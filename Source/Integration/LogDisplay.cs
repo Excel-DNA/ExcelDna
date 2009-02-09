@@ -23,14 +23,18 @@ namespace ExcelDna.Logging
 
         public void SetText(string message)
         {
-            textBoxMessage.Text = message;
-            textBoxMessage.Select(0, 0);
+            listBoxErrors.Items.Clear();
+            listBoxErrors.Items.Add(message);
         }
 
         public void AppendText(string message)
         {
-            textBoxMessage.Text += message;
-            textBoxMessage.Select(textBoxMessage.Text.Length, 0);
+            listBoxErrors.Items.Add(message);
+            // Select last item ... and clear.
+            listBoxErrors.SelectedItems.Clear();
+            listBoxErrors.SelectedItem = listBoxErrors.Items[listBoxErrors.Items.Count - 1];
+            listBoxErrors.SelectedItems.Clear();
+
         }
     }
     
@@ -61,34 +65,22 @@ namespace ExcelDna.Logging
             try
             {
                 LogDisplayForm.SetText(message);
-                LogDisplayForm.Show();
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine(e.Message);
-            }
-    }
-
-        public static void Write(string message)
-        {
-            try
-            {
-                LogDisplayForm.AppendText(message);
-                LogDisplayForm.Show();
+                if (!LogDisplayForm.Visible)
+                    LogDisplayForm.Show( NativeWindow.FromHandle(Excel.WindowHandle) );
             }
             catch (Exception e)
             {
                 Debug.WriteLine(e.Message);
             }
         }
-
         public static void WriteLine(string message)
         {
             try
             {
 
-                LogDisplayForm.AppendText(message + "\r\n");
-                LogDisplayForm.Show();
+                LogDisplayForm.AppendText(message);
+                if (!LogDisplayForm.Visible)
+                    LogDisplayForm.Show(NativeWindow.FromHandle(Excel.WindowHandle));
             }
             catch (Exception e)
             {

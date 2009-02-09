@@ -28,37 +28,37 @@ namespace ExcelDna.Logging
         /// </summary>
         private void InitializeComponent()
         {
-            this.textBoxMessage = new System.Windows.Forms.TextBox();
+            this.listBoxErrors = new System.Windows.Forms.ListBox();
             this.SuspendLayout();
             // 
-            // textBoxMessage
+            // listBoxErrors
             // 
-            this.textBoxMessage.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.textBoxMessage.Location = new System.Drawing.Point(0, 0);
-            this.textBoxMessage.Multiline = true;
-            this.textBoxMessage.Name = "textBoxMessage";
-            this.textBoxMessage.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textBoxMessage.Size = new System.Drawing.Size(741, 332);
-            this.textBoxMessage.TabIndex = 0;
-            this.textBoxMessage.WordWrap = false;
+            this.listBoxErrors.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.listBoxErrors.FormattingEnabled = true;
+            this.listBoxErrors.HorizontalScrollbar = true;
+            this.listBoxErrors.ItemHeight = 15;
+            this.listBoxErrors.Location = new System.Drawing.Point(0, 0);
+            this.listBoxErrors.Name = "listBoxErrors";
+            this.listBoxErrors.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
+            this.listBoxErrors.Size = new System.Drawing.Size(741, 334);
+            this.listBoxErrors.TabIndex = 0;
             // 
             // LogDisplayForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(741, 332);
-            this.Controls.Add(this.textBoxMessage);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
+            this.ClientSize = new System.Drawing.Size(741, 336);
+            this.Controls.Add(this.listBoxErrors);
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Name = "LogDisplayForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "ExcelDna Error Display";
-            this.TopMost = true;
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
         #endregion
 
-        private System.Windows.Forms.TextBox textBoxMessage;
+        private System.Windows.Forms.ListBox listBoxErrors;
+
     }
 }

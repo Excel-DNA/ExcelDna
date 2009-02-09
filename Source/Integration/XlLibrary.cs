@@ -31,19 +31,18 @@ using System.Runtime.InteropServices;
 
 namespace ExcelDna.Integration
 {
-	public delegate void SetJumpDelegate(int fi, IntPtr pfn);
+	internal delegate void SetJumpDelegate(int fi, IntPtr pfn);
 
 	// Implements an XLL in managed code
-	internal class XlLibrary 
+	public class XlLibrary 
 	{
 		static SetJumpDelegate setJump;
 		static List<XlMethodInfo> registeredMethods = new List<XlMethodInfo>();
 		static List<string> addedMenus = new List<string>();
 		static List<XlMethodInfo> addedCommands = new List<XlMethodInfo>();
-        static List<AssemblyLoader.ExcelAddInInfo> addIns = new List<AssemblyLoader.ExcelAddInInfo>();
 		static string dllName;
 
-		public static SetJumpDelegate SetJump
+		internal static SetJumpDelegate SetJump
 		{
 			set { setJump = value; }
 		}
@@ -51,45 +50,31 @@ namespace ExcelDna.Integration
 		// TODO: Improve the separation between the Xll registration and the 
 		// assemblies being registered.
 		// Functions that an XlLibrary must implement
-		public static short AutoOpen()
+		internal static short AutoOpen()
 		{
 			short result = 0;
 			try
 			{
+				// Clear any references, if we are already loaded
+				UnregisterMethods();
+
 				// Initialize loads the .dna file
 				DnaLibrary.Initialize();
 				dllName = Assembly.GetExecutingAssembly().Location;
 				XlCall.Excel(XlCall.xlcMessage, true, "Registering library " + dllName);
 
-				// Clear any references, if we are already loaded
-				UnregisterMethods();
-
 				try
 				{
 					// Ensure there is an Application object created
 					object temp = Excel.Application;
-
 				}
 				catch (Exception e)
 				{
 					// TODO: What to do here?
 					Debug.WriteLine(e.Message);
 				}
-				List<XlMethodInfo> mis = DnaLibrary.CurrentLibrary.GetExcelMethods();
-				addIns = DnaLibrary.CurrentLibrary.GetExcelAddIns();
-				RegisterMethods(mis);
-				foreach (AssemblyLoader.ExcelAddInInfo addIn in addIns)
-				{
-					try
-					{
-                        addIn.AutoOpenMethod.Invoke(addIn.Instance, null);
-					}
-					catch (Exception e)
-					{
-						// TODO: What to do here?
-						Debug.WriteLine(e.Message);
-					}
-				}
+
+                DnaLibrary.CurrentLibrary.AutoOpen();
 
 				result = 1; // All is OK
 			}
@@ -108,7 +93,7 @@ namespace ExcelDna.Integration
 			return result;
 		}
 
-		public static void AutoFree(IntPtr pXloper)
+		internal static void AutoFree(IntPtr pXloper)
 		{
 			// CONSIDER: This might be improved....
 			// Another option would be to have the Com memory allocator run in unmanaged code.
@@ -118,113 +103,117 @@ namespace ExcelDna.Integration
 
 			XlObjectArrayMarshaler.FreeMemory();
 		}
-
-		private static void RegisterMethods(List<XlMethodInfo> methodInfos)
+        
+        public static void RegisterMethods(List<MethodInfo> methods)
 		{
-			// Register each method
-			foreach (XlMethodInfo mi in methodInfos)
-			{ 
-				// TODO: Store the handle (but no unregistration for now)
-				setJump(mi.Index,mi.FunctionPointer);
-				String procName = String.Format("f{0}", mi.Index);
+            List<XlMethodInfo> xlMethods = XlMethodInfo.ConvertToXlMethodInfos(methods);
 
-				string functionType = mi.ReturnType == null ? "" : mi.ReturnType.XlType.ToString();
-				string argumentNames = "";
-				bool showDescriptions = false;
-				string[] argumentDescriptions = new string[mi.Parameters.Length];
-
-				for (int j = 0; j < mi.Parameters.Length; j++)
-				{
-					XlParameterInfo pi = mi.Parameters[j];
-
-					functionType += pi.XlType;
-					if (j > 0)
-						argumentNames += ", ";
-					argumentNames += pi.Name;
-					argumentDescriptions[j] = pi.Description;
-					
-					if (pi.Description != "")
-						showDescriptions = true;
-
-					// DOCUMENT: Here is the patch for the Excel Function Description bug.
-					// DOCUMENT: I add ". " to the last parameters.
-					if (j == mi.Parameters.Length - 1)
-						argumentDescriptions[j] += ". ";
-
-				} // for each parameter
-
-				if (mi.IsVolatile)
-					functionType += "!";
-				// TODO: How do these interact ?
-				// DOCUMENT: If # is set and there is an R argument, 
-				// Excel considers the function volatile
-				// You can call xlfVolatile, false in beginning of function to clear.
-				if (mi.IsMacroType)
-					functionType += "#";
-
-				// DOCUMENT: Here is the patch for the Excel Function Description bug.
-				// DOCUMENT: I add ". " if the function takes no parameters.
-				string functionDescription = mi.Description;
-				if (mi.Parameters.Length == 0)
-					functionDescription += ". ";
-
-				if (mi.Description != "")
-					showDescriptions = true;
-
-				// DOCUMENT: When there is no description, we don't add any.
-				// This allows the user to work around the Excel bug where an extra parameter is displayed if
-				// the function has no parameter but displays a description
-				int numArgs;
-				if (!showDescriptions)
-				{
-					numArgs = 9;
-				}
-				else
-				{
-					numArgs = 10 + argumentDescriptions.Length;
-				}
-				object[] registerParameters = new object[numArgs];
-				registerParameters[0] = dllName;
-				registerParameters[1] = procName;
-				registerParameters[2] = functionType;
-				registerParameters[3] = mi.Name;
-				registerParameters[4] = argumentNames;
-				registerParameters[5] = mi.IsCommand ? 2 /*macro*/ 
-															  : (mi.IsHidden ? 0 : 1); /*function*/
-				registerParameters[6] = mi.Category;
-				registerParameters[7] = mi.ShortCut; /*shortcut_text*/
-				registerParameters[8] = mi.HelpTopic; /*help_topic*/ ;
-
-				if (numArgs > 9)
-				{
-					registerParameters[9] = functionDescription;
-					for (int k = 0; k < argumentDescriptions.Length; k++)
-					{
-						registerParameters[10 + k] = argumentDescriptions[k];
-					}
-				}
-
-				// Basically suppress problems here !?
-				try 
-				{
-					mi.RegisterId = (double)XlCall.Excel(XlCall.xlfRegister, registerParameters);
-					registeredMethods.Add(mi);
-				}
-				catch (Exception e)
-				{
-					// TODO: What to do here?
-					Debug.WriteLine(e.Message);
-				}
-
-				// CONSIDER: The menu stuff might fit better elsewhere?
-				if (mi.IsCommand 
-					&& mi.MenuName != null && mi.MenuName != ""
-					&& mi.MenuText != null && mi.MenuText != "" )
-				{
-					RegisterMenu(mi);
-				}
-			} // for every method
+            xlMethods.ForEach(RegisterXlMethod);
 		}
+
+        private static void RegisterXlMethod(XlMethodInfo mi)
+        {
+            // TODO: Store the handle (but no unregistration for now)
+            int index = registeredMethods.Count;
+            setJump(index, mi.FunctionPointer);
+            String procName = String.Format("f{0}", index);
+
+            string functionType = mi.ReturnType == null ? "" : mi.ReturnType.XlType.ToString();
+            string argumentNames = "";
+            bool showDescriptions = false;
+            string[] argumentDescriptions = new string[mi.Parameters.Length];
+
+            for (int j = 0; j < mi.Parameters.Length; j++)
+            {
+                XlParameterInfo pi = mi.Parameters[j];
+
+                functionType += pi.XlType;
+                if (j > 0)
+                    argumentNames += ", ";
+                argumentNames += pi.Name;
+                argumentDescriptions[j] = pi.Description;
+
+                if (pi.Description != "")
+                    showDescriptions = true;
+
+                // DOCUMENT: Here is the patch for the Excel Function Description bug.
+                // DOCUMENT: I add ". " to the last parameters.
+                if (j == mi.Parameters.Length - 1)
+                    argumentDescriptions[j] += ". ";
+
+            } // for each parameter
+
+            if (mi.IsVolatile)
+                functionType += "!";
+            // TODO: How do these interact ?
+            // DOCUMENT: If # is set and there is an R argument, 
+            // Excel considers the function volatile
+            // You can call xlfVolatile, false in beginning of function to clear.
+            if (mi.IsMacroType)
+                functionType += "#";
+
+            // DOCUMENT: Here is the patch for the Excel Function Description bug.
+            // DOCUMENT: I add ". " if the function takes no parameters.
+            string functionDescription = mi.Description;
+            if (mi.Parameters.Length == 0)
+                functionDescription += ". ";
+
+            if (mi.Description != "")
+                showDescriptions = true;
+
+            // DOCUMENT: When there is no description, we don't add any.
+            // This allows the user to work around the Excel bug where an extra parameter is displayed if
+            // the function has no parameter but displays a description
+            int numArgs;
+            if (!showDescriptions)
+            {
+                numArgs = 9;
+            }
+            else
+            {
+                numArgs = 10 + argumentDescriptions.Length;
+            }
+            object[] registerParameters = new object[numArgs];
+            registerParameters[0] = dllName;
+            registerParameters[1] = procName;
+            registerParameters[2] = functionType;
+            registerParameters[3] = mi.Name;
+            registerParameters[4] = argumentNames;
+            registerParameters[5] = mi.IsCommand ? 2 /*macro*/
+                                                          : (mi.IsHidden ? 0 : 1); /*function*/
+            registerParameters[6] = mi.Category;
+            registerParameters[7] = mi.ShortCut; /*shortcut_text*/
+            registerParameters[8] = mi.HelpTopic; /*help_topic*/ ;
+
+            if (numArgs > 9)
+            {
+                registerParameters[9] = functionDescription;
+                for (int k = 0; k < argumentDescriptions.Length; k++)
+                {
+                    registerParameters[10 + k] = argumentDescriptions[k];
+                }
+            }
+
+            // Basically suppress problems here !?
+            try
+            {
+                mi.RegisterId = (double)XlCall.Excel(XlCall.xlfRegister, registerParameters);
+                registeredMethods.Add(mi);
+            }
+            catch (Exception e)
+            {
+                // TODO: What to do here?
+                Debug.WriteLine(e.Message);
+            }
+
+            // CONSIDER: The menu stuff might fit better elsewhere?
+            if (mi.IsCommand
+                && mi.MenuName != null && mi.MenuName != ""
+                && mi.MenuText != null && mi.MenuText != "")
+            {
+                RegisterMenu(mi);
+            }
+        }
 
 		private static void RegisterMenu(XlMethodInfo mi)
 		{
@@ -330,31 +319,19 @@ namespace ExcelDna.Integration
 			registeredMethods.Clear();
 		}
 
-		public static short AutoClose()
+		internal static short AutoClose()
 		{
-            foreach (AssemblyLoader.ExcelAddInInfo addIn in addIns)
-            {
-                try
-                {
-                    addIn.AutoCloseMethod.Invoke(addIn.Instance, null);
-                }
-				catch (Exception e)
-				{
-					// TODO: What to do here?
-					Debug.WriteLine(e.Message);
-				}
-            }
-			addIns.Clear();
+            DnaLibrary.CurrentLibrary.AutoClose();
 			// UnregisterMethods();
 			return 1; // 0 if problems ?
 		}
 
-		public static short AutoAdd()
+		internal static short AutoAdd()
 		{
 			return 1; // 0 if problems ?
 		}
 
-		public static short AutoRemove()
+		internal static short AutoRemove()
 		{
 			// Apparently better if called here, 
 			// so I try to, but make it safe to call again.
@@ -362,7 +339,7 @@ namespace ExcelDna.Integration
 			return 1; // 0 if problems ?
 		}
 
-		public static IntPtr AddInManagerInfo(IntPtr pXloperAction)
+		internal static IntPtr AddInManagerInfo(IntPtr pXloperAction)
 		{
 			ICustomMarshaler m = XlObjectMarshaler.GetInstance("");
 			object action = m.MarshalNativeToManaged(pXloperAction);

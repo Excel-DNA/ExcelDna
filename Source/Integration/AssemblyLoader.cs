@@ -37,6 +37,11 @@ namespace ExcelDna.Integration
         static public List<MethodInfo> GetExcelMethods(Assembly assembly)
         {
             List<MethodInfo> methods = new List<MethodInfo>();
+            
+            // CONSIDER: Can the assembly resolve be handled better?
+            // Where should it live?
+            SetExcelDnaAssemblyResolve();
+
             Type[] types = assembly.GetTypes();
             foreach (Type t in types)
             {
@@ -63,6 +68,8 @@ namespace ExcelDna.Integration
             // Maybe add a new attribute to ExternalLibrary?
             methods.AddRange(AssemblyLoaderExcelServer.GetExcelMethods(assembly));
 
+            ClearExcelDnaAssemblyResolve();
+
             return methods;
         }
 
@@ -78,7 +85,8 @@ namespace ExcelDna.Integration
 		static public List<ExcelAddInInfo> GetExcelAddIns(Assembly assembly)
 		{
 			List<ExcelAddInInfo> addIns = new List<ExcelAddInInfo>();
-			Type[] types = assembly.GetTypes();
+            SetExcelDnaAssemblyResolve();
+            Type[] types = assembly.GetTypes();
 			foreach (Type t in types)
 			{
                 Type addInType = t.GetInterface("ExcelDna.Integration.IExcelAddIn");
@@ -92,7 +100,29 @@ namespace ExcelDna.Integration
 					addIns.Add(info);
 				}
 			}
+            ClearExcelDnaAssemblyResolve();
 			return addIns;
 		}
+
+        // HACK: Add an assembly resolve override, 
+        // since the dynamic assembly otherwise cannot resolve this assembly !?
+        // This is needed for the Custom Marshaler tagged into the dynamic assembly to work.
+        internal static void SetExcelDnaAssemblyResolve()
+        {
+            AppDomain.CurrentDomain.AssemblyResolve += LocalResolve;
+        }
+
+        internal static void ClearExcelDnaAssemblyResolve()
+        {
+            AppDomain.CurrentDomain.AssemblyResolve -= LocalResolve;
+        }
+
+        private static Assembly LocalResolve(object sender, ResolveEventArgs args)
+        {
+            if (args.Name.StartsWith("ExcelDna,"))
+                return Assembly.GetExecutingAssembly();
+            else
+                return null;
+        }
 	}
 }

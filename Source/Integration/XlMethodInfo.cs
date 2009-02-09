@@ -35,13 +35,14 @@ namespace ExcelDna.Integration
 
 	internal class XlMethodInfo
 	{
+        public static int Index = 0;
+
 		public GCHandle DelegateHandle; // TODO: What with this - when to clean up? 
 										// For cleanup should call DelegateHandle.Free()
 		public IntPtr FunctionPointer;
 
 		// Info for Excel Registration
 		public bool   IsCommand;
-		public int    Index;		// Offset in jump table
 		public string Name;			// Name of UDF/Macro in Excel
 		public string Description;
 		public bool   IsHidden;		// For Functions only
@@ -58,44 +59,9 @@ namespace ExcelDna.Integration
 		public XlParameterInfo[] Parameters;
 		public XlParameterInfo ReturnType; // Macro will have ReturnType null
 
-		public static List<XlMethodInfo> ConvertToXlMethodInfos(List<MethodInfo> methodInfos)
-		{
-			List<XlMethodInfo> xlMethodInfos = new List<XlMethodInfo>();
-
-			// Set up assembly
-			// Examine the methods, built the types and infos
-			// Bake the assembly and export the function pointers
-
-			AssemblyBuilder assemblyBuilder;
-			ModuleBuilder moduleBuilder;
-			assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(
-				new AssemblyName("ExcelDna.DynamicDelegateAssembly"), 
-				AssemblyBuilderAccess.Run/*AndSave*/);
-			moduleBuilder = assemblyBuilder.DefineDynamicModule("DynamicDelegates");
-
-			for (int i = 0; i < methodInfos.Count; i++)
-			{
-				MethodInfo mi = methodInfos[i];
-				try
-				{
-					XlMethodInfo xlmi = new XlMethodInfo(mi, moduleBuilder, i);
-					// Add if no Exceptions
-					xlMethodInfos.Add(xlmi);
-				}
-				catch (DnaMarshalException e)
-				{
-					// TODO: What to do here  (maybe logging)?
-					Debug.Print("ExcelDNA -> Inappropriate Method: " + mi.Name + " - " + e.Message);
-				}
-			}
-
-//			assemblyBuilder.Save(@"ExcelDna.DynamicDelegateAssembly.dll");
-			return xlMethodInfos;
-		}
-
 		// THROWS: Throws a DnaMarshalException if the method cannot be turned into an XlMethodInfo
 		// TODO: Manage errors if things go wrong
-		private XlMethodInfo(MethodInfo targetMethod, ModuleBuilder modBuilder, int index)
+		private XlMethodInfo(MethodInfo targetMethod, ModuleBuilder modBuilder)
 		{
 			// Default Name, Description and Category
 			Name = targetMethod.Name;
@@ -112,8 +78,6 @@ namespace ExcelDna.Integration
 			// but menu is only added if at least the MenuText is set.
 			MenuName = DnaLibrary.CurrentLibrary.Name;	
 			MenuText = null;	// Menu is only 
-
-			Index = index;
 
             SetAttributeInfo(targetMethod.GetCustomAttributes(false));
             
@@ -311,7 +275,7 @@ namespace ExcelDna.Integration
 				delegate(XlParameterInfo pi) { return pi.DelegateParamType; });
 
 			// Create a delegate that has the same signature as the method we would like to hook up to
-			typeBuilder = modBuilder.DefineType("f" + Index + "Delegate",
+			typeBuilder = modBuilder.DefineType("f" + Index++ + "Delegate",
 							TypeAttributes.Class  | TypeAttributes.Public | 
 							TypeAttributes.Sealed,
 							typeof(System.MulticastDelegate));
@@ -436,7 +400,42 @@ namespace ExcelDna.Integration
 			wrapIL.Emit(OpCodes.Ret);
 			return wrapper.CreateDelegate(delegateType);;
 		}
-	}
+    
+        // This is the main conversion function called from XlLibrary.RegisterMethods
+        public static List<XlMethodInfo> ConvertToXlMethodInfos(List<MethodInfo> methodInfos)
+        {
+            List<XlMethodInfo> xlMethodInfos = new List<XlMethodInfo>();
+
+            // Set up assembly
+            // Examine the methods, built the types and infos
+            // Bake the assembly and export the function pointers
+
+            AssemblyBuilder assemblyBuilder;
+            ModuleBuilder moduleBuilder;
+            assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(
+                new AssemblyName("ExcelDna.DynamicDelegateAssembly"),
+                AssemblyBuilderAccess.Run/*AndSave*/);
+            moduleBuilder = assemblyBuilder.DefineDynamicModule("DynamicDelegates");
+
+            foreach  (MethodInfo mi  in methodInfos)
+            {
+                try
+                {
+                    XlMethodInfo xlmi = new XlMethodInfo(mi, moduleBuilder);
+                    // Add if no Exceptions
+                    xlMethodInfos.Add(xlmi);
+                }
+                catch (DnaMarshalException e)
+                {
+                    // TODO: What to do here  (maybe logging)?
+                    Debug.Print("ExcelDNA -> Inappropriate Method: " + mi.Name + " - " + e.Message);
+                }
+            }
+
+            //			assemblyBuilder.Save(@"ExcelDna.DynamicDelegateAssembly.dll");
+            return xlMethodInfos;
+        }
+    }
 
 	// TODO: improve information about the problem
 	internal class DnaMarshalException : Exception
