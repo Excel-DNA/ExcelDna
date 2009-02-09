@@ -1,0 +1,124 @@
+Getting started with ExcelDNA
+=============================
+
+Do this first:
+--------------
+
+* The .NET 2.0 runtime must be installed.
+The .NET Framework Version 2.0 Redistributable Package is available from Microsoft here:
+http://www.microsoft.com/downloads/details.aspx?FamilyID=0856eacb-4362-4b0d-8edd-aab15c5e04f5&DisplayLang=en
+
+* Macros security in Excel must not be 'Very High' or 'High' (if set to Medium -- it will prompt whether to enable each macro library). To use the .NET macros you will have to 'Enable' at the prompt.
+
+* If you also have .NET version 1.1 installed, you might need to configure Excel to load the version 2.0 runtime by default. Do one of the following:
+
+1. For Excel 2003 you can download and run this update from Microsoft:
+http://www.microsoft.com/downloads/details.aspx?FamilyId=1B0BFB35-C252-43CC-8A2A-6A64D6AC4670&displaylang=en
+
+2. For other versions of Excel, you can add an application configuration file for the Excel executable. The ExcelDna distribution includes Excel.exe.config as an example configuration file. This file should be copied into the same directory as Excel.exe, typically C:\Program Files\Microsoft Office\Office10\.
+
+3. As a last resort you can edit (or delete) the following registry key:
+** Do not edit the Windows registry unless you are confident about doing so. **
+	HKEY_LOCAL_MACHINE
+		\SOFTWARE
+			\Microsoft
+				\.NETFramework
+					\policy
+						\AppPatch
+							\v2.0.50727.00000
+								\excel.exe
+to something like
+								\excel.exe_
+
+Everything I know about this problem comes from the Microsoft KB article and these newsgroup posts:
+http://groups.google.com/group/microsoft.public.dotnet.framework.clr/browse_thread/thread/50eb5fd709d9088c/3142500e6d5043b1?tvc=2&q=#3142500e6d5043b1
+
+
+1. Create a user-defined function in Visual Basic
+-------------------------------------------------
+* Make a copy of ExcelDna.xll in a convenient directory, calling the copy Test1.xll.
+* Create a new text file, called Test1.dna (the same prefix as the .xll file), with contents:
+
+	<DnaLibrary>
+	<![CDATA[
+	
+			Public Module MyFunctions
+
+				Function AddThem(x, y)
+						AddThem = x + y
+				End Function	
+
+		End Module
+		
+	]]>
+	</DnaLibrary>
+	
+* Load Test1.xll in Excel (either File->Open or Tools->Add-Ins and Browse).
+* You should be prompted whether to Enable Macros, click Enable.
+* Enter =AddThem(4,2) into a cell - you should get 6.
+* There should also be an entry for AddThem in the function wizard, under the category Test1.
+
+Troubleshooting
+---------------
+* If you are not prompted to Enable Macros and nothing else happens, your security level is probably on High. Set it to Medium.
+* If you get a message indicating that the .xll file is not recognized (and even opening it as text), you might not have the .NET Framework 2.0 installed. Install it. Otherwise Excel is using .Net version 1.1 by default. To change this, refer back to the prerequisites section.
+* If Excel crashes with an unhandled exception, an access violation or some other horrible error, either during loading or when running the function, please let me know. This shouldn't happen, and I would like to know if it does.
+* If a form appears with the title 'ExcelDna Compilation Errors' then there were some errors trying to compile the code in the .dna file. Check that you have put the right code into the .dna file.
+* If Excel prompts for Enabling Macros, and then the function does not work and does not appear in the function wizard, you might not have the right filename for the .dna file. The prefix should be the same as the .xll file and it should be in the same directory.
+* Otherwise, if something goes wrong, let me know.
+
+2. Creating a user-defined function in C#
+-----------------------------------------
+* Change the contents of Test1.dna to:
+
+<DnaLibrary Language="CS">
+	<![CDATA[
+	
+	  using ExcelDna.Integration;
+	
+		public class MyFunctions
+		{
+			[ExcelFunction(Description="Joins a string to a number", Category="Useful functions")]
+			public static string JoinThem(string str, double val)
+			{
+				return str + val;
+			}
+		}
+		
+	]]>
+</DnaLibrary>
+
+* Reload the .xll, either from File->Open or in Tools->Add-Ins.
+* Check with the formula =JoinThem("abc", 123)
+* If the first example worked, this one should too.
+
+3. Making the functions from a compiled library available
+---------------------------------------------------------
+ExcelDna can also load any compiled .NET library. Public static functions with a compatible signature are exported to Excel.
+
+* Create a file called TestLib.cs containing the following code:
+
+	using ExcelDna.Integration;
+	
+	public class SomeClass
+	{
+
+			[ExcelFunction(Description="Multiplies two numbers", Category="Useful functions")]
+	    public static double MultiplyThem(double v1, double v2)
+	    {
+        	return v1 * v2;
+	    }
+	}
+
+
+* Compile TestLib.cs to TestLib.dll: from the command-line:
+c:\windows\microsoft.net\framework\v2.0.50727\csc.exe /target:library /reference:Test1.xll TestLib.cs
+
+* Modify Test1.dna to contain:
+
+	<DnaLibrary>
+		<ExternalLibrary Path="TestLib.dll" />
+	</DnaLibrary>
+
+* Reload the .xll and check =MultiplyThem(2,3)
+

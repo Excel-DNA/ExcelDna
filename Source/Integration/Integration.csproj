@@ -1,0 +1,78 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{AE3835EE-BF5F-4BC8-AD50-97575011F15C}</ProjectGuid>
+    <OutputType>Module</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ExcelDna.Integration</RootNamespace>
+    <AssemblyName>ExcelDna.Integration</AssemblyName>
+    <StartupObject>
+    </StartupObject>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyReference.cs" />
+    <Compile Include="Excel.cs" />
+    <Compile Include="ExcelAttributes.cs" />
+    <Compile Include="ExcelReference.cs" />
+    <Compile Include="DnaLibrary.cs" />
+    <Compile Include="DnaLibrarySerialization.cs" />
+    <Compile Include="ExternalLibrary.cs" />
+    <Compile Include="ErrorDisplay.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ErrorDisplay.Designer.cs">
+      <DependentUpon>ErrorDisplay.cs</DependentUpon>
+    </Compile>
+    <Compile Include="IAssemblyDefinition.cs" />
+    <Compile Include="IExcelAddIn.cs" />
+    <Compile Include="Project.cs" />
+    <Compile Include="XlLibrary.cs" />
+    <Compile Include="Reference.cs" />
+    <Compile Include="SourceItem.cs" />
+    <Compile Include="XlCall.cs" />
+    <Compile Include="ExcelError.cs" />
+    <Compile Include="XlParameterInfo.cs" />
+    <Compile Include="XlMethodInfo.cs" />
+    <Compile Include="AssemblyLoader.cs" />
+    <Compile Include="XlCustomMarshal.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ErrorDisplay.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ErrorDisplay.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>

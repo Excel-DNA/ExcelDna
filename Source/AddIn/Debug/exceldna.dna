@@ -1,0 +1,9 @@
+<DnaLibrary>
+<![CDATA[
+	Public Module Module1
+		Function AddThem(val1 as Double, val2 as Double) as Double
+			AddThem = val1 + val2
+		End Function	
+	End Module
+]]>
+</DnaLibrary>
