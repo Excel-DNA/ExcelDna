@@ -9,8 +9,8 @@ let sayhello () = "Hello from F#"
 let add x y = x + y
  
 let rec factorial = function 
-   | 1.0 -> 1.0 
-   | x -> x * factorial (x - 1.0)
+   | x when (x > 1.0) -> (floor x) * factorial (x - 1.0)
+   | _ -> 1.0
 
 ]]>
 </DnaLibrary>

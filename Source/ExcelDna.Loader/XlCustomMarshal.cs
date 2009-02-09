@@ -56,31 +56,40 @@ namespace ExcelDna.Loader
 	// CONSIDER: How to (if?) make these available to the user code
 	// For now I think of this as an internal structure used in the marshaling
 
-	[Flags]
-	internal enum XlType : ushort
-	{
-		XlTypeNumber	 = 0x0001,
-		XlTypeString	 = 0x0002,
-		XlTypeBoolean	 = 0x0004,
-		XlTypeReference  = 0x0008,
-		XlTypeError		 = 0x0010,
-		XlTypeFlow		 = 0x0020, // Unused
-		XlTypeArray		 = 0x0040,
-		XlTypeMissing	 = 0x0080,
-		XlTypeEmpty		 = 0x0100,
-		XlTypeSReference = 0x0400,
-		XlTypeShort      = 0x0800,
+    [Flags]
+    internal enum XlType : ushort
+    {
+        XlTypeNumber = 0x0001,
+        XlTypeString = 0x0002,
+        XlTypeBoolean = 0x0004,
+        XlTypeReference = 0x0008,
+        XlTypeError = 0x0010,
+        XlTypeFlow = 0x0020, // Unused
+        XlTypeArray = 0x0040,
+        XlTypeMissing = 0x0080,
+        XlTypeEmpty = 0x0100,
+        XlTypeSReference = 0x0400,
+        XlTypeInt = 0x0800,     // int16 in XlOper, int32 in XlOper12, never passed into UDF
 
-		XlBitXLFree      = 0x1000,	// Unused so far
-		XlBitDLLFree     = 0x4000,
+        XlBitXLFree = 0x1000,	// Unused so far
+        XlBitDLLFree = 0x4000,
 
-		XlTypeBigData    = XlTypeString | XlTypeShort	// Unused so far (IntPtr)
-	}
+        XlTypeBigData = XlTypeString | XlTypeInt	// Unused so far (IntPtr)
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    internal unsafe struct XlString
+    {
+        [FieldOffset(0)]
+        public byte Length;
+        [FieldOffset(1)]
+        public fixed byte Data[255];
+    }
 
 	[StructLayout(LayoutKind.Explicit)]
 	internal unsafe struct XlOper
 	{
-		[StructLayout(LayoutKind.Explicit)]
+        [StructLayout(LayoutKind.Explicit)]
 		unsafe public struct XlOperArray
 		{
 			[FieldOffset(0)]
@@ -91,6 +100,41 @@ namespace ExcelDna.Loader
 			public ushort Columns;
 		}
 
+        [StructLayout(LayoutKind.Explicit)]
+        public struct XlRectangle
+        {
+            [FieldOffset(0)]
+            public ushort RowFirst;
+            [FieldOffset(2)]
+            public ushort RowLast;
+            [FieldOffset(4)]
+            public byte ColumnFirst;
+            [FieldOffset(5)]
+            public byte ColumnLast;
+
+            /*
+            public XlRectangle(ushort rowFirst, ushort rowLast, byte columnFirst, byte columnLast)
+            {
+                RowFirst = rowFirst;
+                RowLast = rowLast;
+                ColumnFirst = columnFirst;
+                ColumnLast = columnLast;
+            }
+             * */
+
+            // DOCUMENT: if the values for row / column exceed the limits,
+            // they are silently trimmed to valid values.
+            // This keeps the external interface CLS-compliant and 
+            // will assist future compatibility when the sheets get bigger in Excel12
+            public XlRectangle(int rowFirst, int rowLast, int columnFirst, int columnLast)
+            {
+                RowFirst = (ushort)Math.Max(0, Math.Min(rowFirst, ushort.MaxValue));
+                RowLast = (ushort)Math.Max(0, Math.Min(rowLast, ushort.MaxValue));
+                ColumnFirst = (byte)Math.Max(0, Math.Min(columnFirst, byte.MaxValue)); ;
+                ColumnLast = (byte)Math.Max(0, Math.Min(columnLast, byte.MaxValue)); ; ;
+            }
+        }
+
 		[StructLayout(LayoutKind.Explicit)]
 		unsafe public struct XlMultiRef
 		{
@@ -100,40 +144,6 @@ namespace ExcelDna.Loader
 			public XlRectangle Rectangles;	// Not XlRectangle, actually XlRectangle[Count] !
 		}
 
-		[StructLayout(LayoutKind.Explicit)]
-		public struct XlRectangle
-		{
-			[FieldOffset(0)]
-			public ushort RowFirst;
-			[FieldOffset(2)]
-			public ushort RowLast;
-			[FieldOffset(4)]
-			public byte ColumnFirst;
-			[FieldOffset(5)]
-			public byte ColumnLast;
-
-			/*
-			public XlRectangle(ushort rowFirst, ushort rowLast, byte columnFirst, byte columnLast)
-			{
-				RowFirst = rowFirst;
-				RowLast = rowLast;
-				ColumnFirst = columnFirst;
-				ColumnLast = columnLast;
-			}
-			 * */
-
-			// DOCUMENT: if the values for row / column exceed the limits,
-			// they are silently trimmed to valid values.
-			// This keeps the external interface CLS-compliant and 
-			// will assist future compatibility when the sheets get bigger in Excel12
-			public XlRectangle(int rowFirst, int rowLast, int columnFirst, int columnLast)
-			{
-				RowFirst = (ushort)Math.Max(0, Math.Min(rowFirst, ushort.MaxValue));
-				RowLast = (ushort)Math.Max(0, Math.Min(rowLast, ushort.MaxValue));
-				ColumnFirst = (byte)Math.Max(0, Math.Min(columnFirst, byte.MaxValue)); ;
-				ColumnLast = (byte)Math.Max(0, Math.Min(columnLast, byte.MaxValue)); ; ;
-			}
-		}
 
 		[StructLayout(LayoutKind.Explicit)]
 		unsafe public struct XlSReference
@@ -151,7 +161,7 @@ namespace ExcelDna.Loader
 			[FieldOffset(0)]
 			public XlMultiRef* pMultiRef;
 			[FieldOffset(4)]
-			public int SheetId;
+			public uint SheetId;
 
 		}
 
@@ -162,7 +172,7 @@ namespace ExcelDna.Loader
 		[FieldOffset(0)]
 		public ushort boolValue;
 		[FieldOffset(0)]
-		public short shortValue;
+		public short intValue;
 		[FieldOffset(0)]
 		public ushort /*ExcelError*/ errValue;
 		[FieldOffset(0)]
@@ -175,14 +185,7 @@ namespace ExcelDna.Loader
 		public XlType xlType;
 	}
 
-	[StructLayout(LayoutKind.Explicit)]
-	internal unsafe struct XlString
-	{
-		[FieldOffset(0)]
-		public byte Length;
-		[FieldOffset(1)]
-		public fixed byte Data[255];
-	}
+
 
 	// DOCUMENT: Returned strings longer than 255 chars are truncated.
 	public class XlStringReturnMarshaler : ICustomMarshaler
@@ -217,7 +220,12 @@ namespace ExcelDna.Loader
 			int charCount = Math.Min(str.Length, 255);
 			fixed (char* psrc = str )
 			{
-				int written = Encoding.ASCII.GetBytes(psrc, charCount, pdest->Data, 255);
+                // Support for system codepage by hmd
+				//int written = Encoding.ASCII.GetBytes(psrc, charCount, pdest->Data, 255);
+                Encoding enc = Encoding.GetEncoding(ASCIIEncoding.Default.CodePage,
+                                                    EncoderFallback.ReplacementFallback,    
+                                                    DecoderFallback.ReplacementFallback);
+                int written = enc.GetBytes(psrc, charCount, pdest->Data, 255);
 				pdest->Length = (byte)written;
 			}
 			
@@ -627,6 +635,18 @@ namespace ExcelDna.Loader
 				pOper->xlType = XlType.XlTypeError;
 				return pNative;
 			}
+            else if (IntegrationMarshalHelpers.IsExcelMissingObject(ManagedObj))
+            {
+                XlOper* pOper = (XlOper*)pNative;
+                pOper->xlType = XlType.XlTypeMissing;
+                return pNative;
+            }
+            else if (IntegrationMarshalHelpers.IsExcelEmptyObject(ManagedObj))
+            {
+                XlOper* pOper = (XlOper*)pNative;
+                pOper->xlType = XlType.XlTypeEmpty;
+                return pNative;
+            }
             // 13 November -- this should never be called...
                 // since this marshaler is not used for the Excel4 call anymore ...?
             //else if (ManagedObj is ExcelReference)
@@ -642,10 +662,9 @@ namespace ExcelDna.Loader
             //}
 			else if (ManagedObj is short)
 			{
-				// DOCUMENT: Exception to the rule that numbers are passed back as double
 				XlOper* pOper = (XlOper*)pNative;
-				pOper->shortValue = ((short)ManagedObj);
-				pOper->xlType = XlType.XlTypeShort;
+				pOper->numValue = (double)((short)ManagedObj);
+				pOper->xlType = XlType.XlTypeNumber;
 				return pNative;
 			}
 			else if (ManagedObj is Missing)
@@ -722,7 +741,12 @@ namespace ExcelDna.Loader
 					break;
 				case XlType.XlTypeString:
                     XlString* pString = pOper->pstrValue;
-                    managed = new string((sbyte*)pString->Data, 0, pString->Length, Encoding.ASCII);
+                    // Support for system codepage by hmd
+                    // managed = new string((sbyte*)pString->Data, 0, pString->Length, Encoding.ASCII);
+                    Encoding enc = Encoding.GetEncoding(ASCIIEncoding.Default.CodePage,
+                                                        EncoderFallback.ReplacementFallback,
+                                                        DecoderFallback.ReplacementFallback);
+                    managed = new string((sbyte*)pString->Data, 0, pString->Length, enc);
 					break;
 				case XlType.XlTypeBoolean:
 					managed = pOper->boolValue == 1;
@@ -731,10 +755,14 @@ namespace ExcelDna.Loader
 					managed = IntegrationMarshalHelpers.GetExcelErrorObject(pOper->errValue);
 					break;
 				case XlType.XlTypeMissing:
-					managed = System.Reflection.Missing.Value;
+                    // DOCUMENT: Changed in version 0.17.
+					// managed = System.Reflection.Missing.Value;
+                    managed = IntegrationMarshalHelpers.GetExcelMissingValue();
 					break;
 				case XlType.XlTypeEmpty:
-					managed = null;
+                    // DOCUMENT: Changed in version 0.17.
+                    // managed = null;
+                    managed = IntegrationMarshalHelpers.GetExcelEmptyValue();
 					break;
 				case XlType.XlTypeArray:
 					int rows = pOper->arrayValue.Rows;
@@ -751,12 +779,12 @@ namespace ExcelDna.Loader
 					}
 					managed = array;
 					break;
-				case XlType.XlTypeShort:
-					managed = pOper->shortValue;
+				case XlType.XlTypeInt:
+					managed = (double)pOper->intValue; // int16 in XlOper // always return double
 					break;
 				case XlType.XlTypeReference:
 					object /*ExcelReference*/ r;
-					if (pOper->refValue.pMultiRef == (XlOper.XlMultiRef*)0)
+					if (pOper->refValue.pMultiRef == (XlOper.XlMultiRef*)IntPtr.Zero)
 					{
 						r = IntegrationMarshalHelpers.CreateExcelReference(0, 0, 0, 0, pOper->refValue.SheetId);
 					}
@@ -777,13 +805,14 @@ namespace ExcelDna.Loader
 					managed = r;
 					break;
 				case XlType.XlTypeSReference:
+                    uint sheetId = XlCallImpl.GetCurrentSheetId4();
 					object /*ExcelReference*/ sref;
 					sref = IntegrationMarshalHelpers.CreateExcelReference(
                                             pOper->srefValue.Reference.RowFirst,
 											pOper->srefValue.Reference.RowLast,
 											pOper->srefValue.Reference.ColumnFirst,
 											pOper->srefValue.Reference.ColumnLast, 
-											0 /*Current sheet (not active sheet)*/);
+											sheetId /*Current sheet (not Active sheet!)*/);
 					managed = sref;
 					break;
 				default:
@@ -984,6 +1013,14 @@ namespace ExcelDna.Loader
 					pOper->errValue = (ushort)IntegrationMarshalHelpers.ExcelErrorGetValue(obj);
 					pOper->xlType = XlType.XlTypeError;
 				}
+                else if (IntegrationMarshalHelpers.IsExcelMissingObject(ManagedObj))
+                {
+                    pOper->xlType = XlType.XlTypeMissing;
+                }
+                else if (IntegrationMarshalHelpers.IsExcelEmptyObject(ManagedObj))
+                {
+                    pOper->xlType = XlType.XlTypeEmpty;
+                }
 				else if (obj is bool)
 				{
 					pOper->boolValue = (bool)obj ? (ushort)1 : (ushort)0;
@@ -991,8 +1028,8 @@ namespace ExcelDna.Loader
 				}
 				else if (obj is short)
 				{
-					pOper->shortValue = (short)obj;
-					pOper->xlType = XlType.XlTypeShort;
+					pOper->numValue = (double)((short)obj); // int16 in XlOper
+					pOper->xlType = XlType.XlTypeNumber;
 				}
 				else if (obj is ushort)
 				{
@@ -1037,7 +1074,7 @@ namespace ExcelDna.Loader
                     pOper->arrayValue.Columns = pNested->arrayValue.Columns;
                     pOper->arrayValue.pOpers = pNested->arrayValue.pOpers;
                 }
-                else if (obj is Missing)
+                else if (obj is System.Reflection.Missing)
                 {
                     pOper->xlType = XlType.XlTypeMissing;
                 }
@@ -1093,8 +1130,13 @@ namespace ExcelDna.Loader
 						fixed (char* psrc = str)
 						{
                             // Write the data and length to the XlString
-							int written = Encoding.ASCII.GetBytes(psrc, charCount, pXlString->Data, 255);
-							pXlString->Length = (byte)written;
+                            // Support for system codepage by hmd
+							// int written = Encoding.ASCII.GetBytes(psrc, charCount, pXlString->Data, 255);
+							Encoding enc = Encoding.GetEncoding(ASCIIEncoding.Default.CodePage,
+                                                                EncoderFallback.ReplacementFallback,
+                                                                DecoderFallback.ReplacementFallback);
+                            int written = enc.GetBytes(psrc, charCount, pXlString->Data, 255);
+                            pXlString->Length = (byte)written;
                             // Increment pointer within allocated memory
                             pCurrent += written + 1;
                         }
@@ -1334,26 +1376,39 @@ namespace ExcelDna.Loader
         static MethodInfo excelReferenceGetRectangleCount;
         static MethodInfo excelReferenceGetRectangles;
 
-        internal static void Initialize(Assembly integrationAssembly)
+        static Type excelMissingType;
+        static Type excelEmptyType;
+        static object excelMissingValue;
+        static object excelEmptyValue;
+
+        internal static void Bind(Assembly integrationAssembly)
         {
             excelReferenceType = integrationAssembly.GetType("ExcelDna.Integration.ExcelReference");
             excelErrorType = integrationAssembly.GetType("ExcelDna.Integration.ExcelError");
 
-            excelReferenceConstructor = excelReferenceType.GetConstructor( new Type[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int) });
+            excelReferenceConstructor = excelReferenceType.GetConstructor( new Type[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(uint) });
             excelReferenceAddReference = excelReferenceType.GetMethod("AddReference");
             excelReferenceGetSheetId = excelReferenceType.GetProperty("SheetId");
             excelReferenceGetRectangleCount = excelReferenceType.GetMethod("GetRectangleCount", BindingFlags.NonPublic | BindingFlags.Instance);
             excelReferenceGetRectangles = excelReferenceType.GetMethod("GetRectangles", BindingFlags.NonPublic | BindingFlags.Instance);
+
+            excelMissingType = integrationAssembly.GetType("ExcelDna.Integration.ExcelMissing");
+            excelEmptyType = integrationAssembly.GetType("ExcelDna.Integration.ExcelEmpty");
+
+            FieldInfo excelMissingValueField = excelMissingType.GetField("Value", BindingFlags.Static | BindingFlags.Public);
+            excelMissingValue = excelMissingValueField.GetValue(null);
+            FieldInfo excelEmptyValueField = excelEmptyType.GetField("Value", BindingFlags.Static | BindingFlags.Public);
+            excelEmptyValue = excelEmptyValueField.GetValue(null);
         }
 
-        internal static object CreateExcelReference(int rowFirst, int rowLast, int columnFirst, int columnLast, int sheetId)
+        internal static object CreateExcelReference(int rowFirst, int rowLast, int columnFirst, int columnLast, uint sheetId)
         {
             return excelReferenceConstructor.Invoke(new object[] { rowFirst, rowLast, columnFirst, columnLast, sheetId });
         }
 
         internal unsafe static void SetExcelReference(XlOper* pOper, XlOper.XlMultiRef* pMultiRef, object /*ExcelReference*/ r)
         {
-            int sheetId = ExcelReferenceGetSheetId(r);
+            uint sheetId = ExcelReferenceGetSheetId(r);
             int[][] rects = ExcelReferenceGetRectangles(r);
             int rectCount = rects.GetLength(0);
 
@@ -1374,14 +1429,37 @@ namespace ExcelDna.Loader
             }
         }
 
+        internal unsafe static void SetExcelReference12(XlOper12* pOper, XlOper12.XlMultiRef12* pMultiRef, object /*ExcelReference*/ r)
+        {
+            uint sheetId = ExcelReferenceGetSheetId(r);
+            int[][] rects = ExcelReferenceGetRectangles(r);
+            int rectCount = rects.GetLength(0);
+
+            pOper->xlType = XlType12.XlTypeReference;
+            pOper->refValue.SheetId = sheetId;
+
+            pOper->refValue.pMultiRef = pMultiRef;
+            pOper->refValue.pMultiRef->Count = (ushort)rectCount;
+
+            XlOper12.XlRectangle12* pRectangles = (XlOper12.XlRectangle12*)(&pOper->refValue.pMultiRef->Rectangles);
+
+            for (int i = 0; i < rectCount; i++)
+            {
+                pRectangles[i].RowFirst = rects[i][0];
+                pRectangles[i].RowLast = rects[i][1];
+                pRectangles[i].ColumnFirst = rects[i][2];
+                pRectangles[i].ColumnLast = rects[i][3];
+            }
+        }
+
         internal static void ExcelReferenceAddReference(object r, int rowFirst, int rowLast, int columnFirst, int columnLast)
         {
             excelReferenceAddReference.Invoke(r, new object[] { rowFirst, rowLast, columnFirst, columnLast });
         }
 
-        internal static int ExcelReferenceGetSheetId(object r)
+        internal static uint ExcelReferenceGetSheetId(object r)
         {
-            return (int)excelReferenceGetSheetId.GetValue(r, null);
+            return (uint)excelReferenceGetSheetId.GetValue(r, null);
         }
 
         internal static int ExcelReferenceGetRectangleCount(object r)
@@ -1404,6 +1482,16 @@ namespace ExcelDna.Loader
             return excelErrorType.IsInstanceOfType(o);
         }
 
+        internal static bool IsExcelMissingObject(object o)
+        {
+            return excelMissingType.IsInstanceOfType(o);
+        }
+
+        internal static bool IsExcelEmptyObject(object o)
+        {
+            return excelEmptyType.IsInstanceOfType(o);
+        }
+
         internal static int ExcelErrorGetValue(object e)
         {
             return (int)(ushort)e;
@@ -1420,5 +1508,15 @@ namespace ExcelDna.Loader
         }
 
         internal const int ExcelError_ExcelErrorValue = 15;
+
+        internal static object GetExcelMissingValue()
+        {
+            return excelMissingValue;
+        }
+
+        internal static object GetExcelEmptyValue()
+        {
+            return excelEmptyValue;
+        }
     }
 }

@@ -24,6 +24,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace ExcelDna.Integration
@@ -33,29 +34,41 @@ namespace ExcelDna.Integration
 	{
         internal class ExcelRectangle
         {
-            // TODO: EXCEL2007 - Sort out sizes and compatibility
-            public ushort RowFirst;
-            public ushort RowLast;
-            public byte ColumnFirst;
-            public byte ColumnLast;
+            public int RowFirst;
+            public int RowLast;
+            public int ColumnFirst;
+            public int ColumnLast;
 
             internal ExcelRectangle(int rowFirst, int rowLast, int columnFirst, int columnLast)
             {
-                RowFirst = (ushort)Math.Max(0, Math.Min(rowFirst, ushort.MaxValue));
-                RowLast = (ushort)Math.Max(0, Math.Min(rowLast, ushort.MaxValue));
-                ColumnFirst = (byte)Math.Max(0, Math.Min(columnFirst, byte.MaxValue)); ;
-                ColumnLast = (byte)Math.Max(0, Math.Min(columnLast, byte.MaxValue)); ; ;
+                // CONSIDER: Throw or truncate for errors
+                RowFirst    = GetInRange(rowFirst, 0, ExcelDnaUtil.ExcelLimits.MaxRows - 1);
+                RowLast     = GetInRange(rowLast, 0, ExcelDnaUtil.ExcelLimits.MaxRows - 1);
+                ColumnFirst = GetInRange(columnFirst, 0, ExcelDnaUtil.ExcelLimits.MaxColumns - 1);
+                ColumnLast  = GetInRange(columnLast, 0, ExcelDnaUtil.ExcelLimits.MaxColumns - 1);
+                
+                // CONSIDER: Swap or truncate rect ??
+                //if (RowLast < RowFirst) RowLast = RowFirst;
+                //if (ColumnLast < ColumnFirst) ColumnLast = RowFirst;
+            }
+
+            private int GetInRange(int value, int min, int max)
+            {
+                Debug.Assert(min <= max);
+                if (value < min) return min;
+                if (value > max) return max;
+                return value;
             }
         }
 		List<ExcelRectangle> rectangles = new List<ExcelRectangle>();
-		int sheetId;
+		uint sheetId;
 
 		public ExcelReference(int row, int column)
 			: this(row, row, column, column)
 		{
 		}
 
-		// DOCUMENT: If no SheetId is given, assume the Active Sheet
+		// DOCUMENT: If no SheetId is given, assume the Active (Front) Sheet
 		public ExcelReference(int rowFirst, int rowLast, int columnFirst, int columnLast) :
 			this(rowFirst, rowLast, columnFirst, columnLast, 0)
 		{
@@ -70,7 +83,7 @@ namespace ExcelDna.Integration
 			}
 		}
 
-		public ExcelReference(int rowFirst, int rowLast, int columnFirst, int columnLast, int sheetId)
+		public ExcelReference(int rowFirst, int rowLast, int columnFirst, int columnLast, uint sheetId)
 		{
 			this.sheetId = sheetId;
 			ExcelRectangle rect = new ExcelRectangle(rowFirst, rowLast, columnFirst, columnLast);
@@ -107,7 +120,7 @@ namespace ExcelDna.Integration
 			get { return rectangles[0].ColumnLast; }
 		}
 
-		public int SheetId
+		public uint SheetId
 		{
 			get { return sheetId; }
 		}

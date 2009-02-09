@@ -64,6 +64,10 @@ namespace ExcelDna.Loader
         static string pathXll;
         static IntPtr hModuleXll;
 
+        static int xlCallVersion;
+
+        static bool IsInitialized = false;
+
         #region Initialization
         public static unsafe bool Initialize(int xlAddInExportInfoAddress, int hModuleXll, string pathXll)
         {
@@ -111,6 +115,7 @@ namespace ExcelDna.Loader
             thunkTableLength = pXlAddInExportInfo->ThunkTableLength;
             thunkTable = pXlAddInExportInfo->ThunkTable;
 
+            XlAddIn.xlCallVersion = XlCallImpl.XLCallVer() / 256;
             XlAddIn.hModuleXll = (IntPtr)hModuleXll;
             XlAddIn.pathXll = pathXll;
 
@@ -119,7 +124,7 @@ namespace ExcelDna.Loader
             bool result = false;
             try
             {
-                InitializeIntegration();
+                LoadIntegration();
                 result = true;
             }
             catch (Exception e)
@@ -139,12 +144,12 @@ namespace ExcelDna.Loader
             }
         }
 
-        private static void InitializeIntegration()
+        private static void LoadIntegration()
         {
             Assembly integrationAssembly = Assembly.Load("ExcelDna.Integration");
-
             Type integrationType = integrationAssembly.GetType("ExcelDna.Integration.Integration");
 
+            // Get the methods that need to be called from the integration assembly
             MethodInfo tryExcelImplMethod = typeof(XlCallImpl).GetMethod("TryExcelImpl", BindingFlags.Static | BindingFlags.Public);
             Type tryExcelImplDelegateType = integrationAssembly.GetType("ExcelDna.Integration.TryExcelImplDelegate");
             Delegate tryExcelImplDelegate = Delegate.CreateDelegate(tryExcelImplDelegateType, tryExcelImplMethod);
@@ -160,11 +165,29 @@ namespace ExcelDna.Loader
             Delegate getAssemblyBytesDelegate = Delegate.CreateDelegate(getAssemblyBytesDelegateType, getAssemblyBytesMethod);
             integrationType.InvokeMember("SetGetAssemblyBytesDelegate", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] { getAssemblyBytesDelegate });
 
-            // set up helpers (including marshaling helpers)
-            IntegrationHelpers.Initialize(integrationAssembly);
+            // set up helpers for future calls
+            IntegrationHelpers.Bind(integrationAssembly);
+            IntegrationMarshalHelpers.Bind(integrationAssembly);
+        }
 
-            // Now we are ready to call into the loader assembly.
-            integrationType.InvokeMember("Initialize", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, null);
+        private static void InitializeIntegration()
+        {
+            if (!IsInitialized)
+            {
+                IntegrationHelpers.InitializeIntegration();
+                IsInitialized = true;
+            }
+        }
+
+        private static void DeInitializeIntegration()
+        {
+            if (IsInitialized)
+            {
+                IntegrationHelpers.DnaLibraryAutoClose();
+                UnregisterMethods();
+                IntegrationHelpers.DeInitializeIntegration();
+                IsInitialized = false;
+            }
         }
         #endregion
 
@@ -172,18 +195,17 @@ namespace ExcelDna.Loader
         internal static short XlAutoOpen()
         {
             Debug.Print("AppDomain Id: " + AppDomain.CurrentDomain.Id + " (Default: " + AppDomain.CurrentDomain.IsDefaultAppDomain() + ")");
-
+            
             short result = 0;
             try
             {
-                Debug.WriteLine("In XlAddIn.XlAutoClose");
-                // Clear any references, if we are already loaded
-                UnregisterMethods();
+                Debug.WriteLine("In XlAddIn.XlAutoOpen");
+                DeInitializeIntegration();
 
                 object xlCallResult;
-                //XlCallImpl.TryExcelImpl(XlCallImpl.xlGetName, out xlCallResult);
-                //xllPath = (string)xlCallResult;
                 XlCallImpl.TryExcelImpl(XlCallImpl.xlcMessage, out xlCallResult /*Ignore*/ , true, "Registering library " + pathXll);
+
+                InitializeIntegration();
 
                 // InitializeIntegration has loaded the DnaLibrary
                 IntegrationHelpers.DnaLibraryAutoOpen();
@@ -213,8 +235,6 @@ namespace ExcelDna.Loader
             {
                 Debug.WriteLine("In XlAddIn.XlAutoClose");
                 // This also gets called when workbook starts closing - and can still be cancelled
-                // IntegrationHelpers.DnaLibraryAutoClose();
-                // UnregisterMethods(); //?
                 result = 1; // 0 if problems ?
             }
             catch (Exception e)
@@ -227,6 +247,7 @@ namespace ExcelDna.Loader
 
         internal static short XlAutoAdd()
         {
+            // AutoOpen will get called too, where we set everything up ...
             short result = 0;
             try
             {
@@ -249,8 +270,7 @@ namespace ExcelDna.Loader
                 Debug.WriteLine("In XlAddIn.XlAutoRemove");
                 // Apparently better if called here, 
                 // so I try to, but make it safe to call again.
-                IntegrationHelpers.DnaLibraryAutoClose();
-                UnregisterMethods();
+                DeInitializeIntegration();
                 return 1; // 0 if problems ?
             }
             catch (Exception e)
@@ -280,7 +300,7 @@ namespace ExcelDna.Loader
             // This function can only be called after a return from a user function.
             // I just free all the possibly big memory allocations.
 
-            XlObjectArrayMarshaler.FreeMemory();
+            XlObjectArray12Marshaler.FreeMemory();
         }
 
         internal static IntPtr XlAddInManagerInfo(IntPtr pXloperAction)
@@ -289,9 +309,9 @@ namespace ExcelDna.Loader
             ICustomMarshaler m = XlObjectMarshaler.GetInstance("");
             object action = m.MarshalNativeToManaged(pXloperAction);
             object result;
-            if ((action is short && (short)action == 1) ||
-                (action is double && (double)action == 1.0))
+            if ((action is double && (double)action == 1.0))
             {
+                InitializeIntegration();
                 result = IntegrationHelpers.DnaLibraryGetName();
             }
             else
@@ -299,10 +319,20 @@ namespace ExcelDna.Loader
             return m.MarshalManagedToNative(result);
         }
 
-        internal static IntPtr XlAddInManagerInfo12(IntPtr pXloper12)
+        internal static IntPtr XlAddInManagerInfo12(IntPtr pXloperAction12)
         {
             Debug.WriteLine("In XlAddIn.XlAddInManagerInfo12");
-            return IntPtr.Zero;
+            ICustomMarshaler m = XlObject12Marshaler.GetInstance("");
+            object action = m.MarshalNativeToManaged(pXloperAction12);
+            object result;
+            if ((action is double && (double)action == 1.0))
+            {
+                InitializeIntegration();
+                result = IntegrationHelpers.DnaLibraryGetName();
+            }
+            else
+                result = IntegrationMarshalHelpers.GetExcelErrorObject(IntegrationMarshalHelpers.ExcelError_ExcelErrorValue);
+            return m.MarshalManagedToNative(result);
         }
         #endregion
 
@@ -320,7 +350,6 @@ namespace ExcelDna.Loader
 
         private static void RegisterXlMethod(XlMethodInfo mi)
         {
-            // TODO: Store the handle (but no unregistration for now)
             int index = registeredMethods.Count;
             SetJump(index, mi.FunctionPointer);
             String procName = String.Format("f{0}", index);
@@ -351,14 +380,14 @@ namespace ExcelDna.Loader
 
             } // for each parameter
 
+            if (mi.IsMacroType)
+                functionType += "#";
+
             if (mi.IsVolatile)
                 functionType += "!";
-            // TODO: How do these interact ?
             // DOCUMENT: If # is set and there is an R argument, 
             // Excel considers the function volatile
             // You can call xlfVolatile, false in beginning of function to clear.
-            if (mi.IsMacroType)
-                functionType += "#";
 
             // DOCUMENT: Here is the patch for the Excel Function Description bug.
             // DOCUMENT: I add ". " if the function takes no parameters and has a description.
@@ -374,10 +403,11 @@ namespace ExcelDna.Loader
             // the function has no parameter but displays a description
             int numArguments;
             // DOCUMENT: Maximum 20 Argument Descriptions when registering using Excel4 function.
+            int maxDescriptions = (XlAddIn.xlCallVersion < 12) ? 20 : 245;
             int numArgumentDescriptions;
             if (showDescriptions)
             {
-                numArgumentDescriptions = Math.Min(argumentDescriptions.Length, 20);
+                numArgumentDescriptions = Math.Min(argumentDescriptions.Length, maxDescriptions);
                 numArguments = 10 + numArgumentDescriptions;
             }
             else
@@ -473,10 +503,16 @@ namespace ExcelDna.Loader
                     // I follow the advice from X-Cell website
                     // to get function out of Wizard
                     XlCallImpl.TryExcelImpl(XlCallImpl.xlfRegister, out xlCallResult, pathXll, "xlAutoRemove", "J", mi.Name, Missing.Value, 0);
+
                 }
                 XlCallImpl.TryExcelImpl(XlCallImpl.xlfUnregister, out xlCallResult, mi.RegisterId);
             }
             registeredMethods.Clear();
+        }
+
+        internal static int XlCallVersion
+        {
+            get { return xlCallVersion; }
         }
 
         #endregion

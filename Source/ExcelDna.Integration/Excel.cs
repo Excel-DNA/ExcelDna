@@ -62,38 +62,47 @@ namespace ExcelDna.Integration
 		[DllImport("user32.dll")]
 		private static extern bool EnumChildWindows(IntPtr hWndParent, EnumWindowsCallback callback, /*ref*/ IntPtr param);
 		[DllImport("user32.dll")]
-		private static extern int GetClassName(IntPtr hwnd, [MarshalAs(UnmanagedType.LPStr)] StringBuilder buf, int nMaxCount);
-		[DllImport("Oleacc.dll")]
+		private static extern int GetClassNameW(IntPtr hwnd, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder buf, int nMaxCount);
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetWindowTextW(IntPtr hwnd, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder buf, int nMaxCount);
+        [DllImport("Oleacc.dll")]
 		private static extern int AccessibleObjectFromWindow(
 			  IntPtr hwnd, uint dwObjectID, byte[] riid,
 			  ref IntPtr ptr /*ppUnk*/);
 
-		private static IntPtr _hWndExcel = (IntPtr)0;
+		private static IntPtr _hWndExcel = IntPtr.Zero;
 		public static IntPtr WindowHandle
 		{
 			get
 			{
 				// CONSIDER: Process.GetCurrentProcess().MainWindowHandle;
-				if (_hWndExcel == (IntPtr)0)
+				if (_hWndExcel == IntPtr.Zero)
 				{
-					// Get the LoWord
-					short loWord = (short)XlCall.Excel(XlCall.xlGetHwnd);
-					EnumWindows(delegate(IntPtr hWndEnum, IntPtr param)
-						{
-							// Check the loWord
-							if (((uint)hWndEnum & 0x0000FFFF) == (uint)loWord)
-							{
-								// Check the window class
-								StringBuilder cname = new StringBuilder(256);
-								GetClassName(hWndEnum, cname, cname.Capacity);
-								if (cname.ToString() == "XLMAIN")
-								{
-									_hWndExcel = hWndEnum;
-									return false;	// Stop enumerating
-								}
-							}
-							return true;	// Continue enumerating
-						}, (IntPtr)0);
+                    if (ExcelDnaUtil.ExcelVersion < 12)
+                    {
+                        // Only have the loword so far.
+                        ushort loWord = (ushort)(double)XlCall.Excel(XlCall.xlGetHwnd);
+                        EnumWindows(delegate(IntPtr hWndEnum, IntPtr param)
+                            {
+                                // Check the loWord
+                                if (((uint)hWndEnum & 0x0000FFFF) == (uint)loWord)
+                                {
+                                    // Check the window class
+                                    StringBuilder cname = new StringBuilder(256);
+                                    GetClassNameW(hWndEnum, cname, cname.Capacity);
+                                    if (cname.ToString() == "XLMAIN")
+                                    {
+                                        _hWndExcel = hWndEnum;
+                                        return false;	// Stop enumerating
+                                    }
+                                }
+                                return true;	// Continue enumerating
+                            }, (IntPtr)0);
+                    }
+                    else
+                    {
+                        _hWndExcel = (IntPtr)(int)(double)XlCall.Excel(XlCall.xlGetHwnd);
+                    }
 				}
 				return _hWndExcel;
 			}
@@ -111,6 +120,8 @@ namespace ExcelDna.Integration
 					{
 						// I assume it failed because there was no workbook open
 						// Now make workbook with VBA sheet, according to some Google post
+
+                        // TODO: Consider alternative of sending WM_USER+18 to Excel - KB 147573
 
 						// Create new workbook with the right stuff
 						XlCall.Excel(XlCall.xlcEcho, false);
@@ -133,12 +144,12 @@ namespace ExcelDna.Integration
 			// This is Andrew Whitechapel's plan for getting the Application object.
 			// It does not work when there are no Workbooks open.
 			IntPtr hWndMain = WindowHandle;
-			IntPtr hWndChild = (IntPtr)0;
+			IntPtr hWndChild = IntPtr.Zero;
 			EnumChildWindows(hWndMain, delegate(IntPtr hWndEnum, IntPtr param)
 				{
 					// Check the window class
 					StringBuilder cname = new StringBuilder(256);
-					GetClassName(hWndEnum, cname, cname.Capacity);
+					GetClassNameW(hWndEnum, cname, cname.Capacity);
 					if (cname.ToString() == "EXCEL7")
 					{
 						hWndChild = hWndEnum;
@@ -169,27 +180,98 @@ namespace ExcelDna.Integration
 
 		public static bool IsInFunctionWizard()
 		{
-            // TODO: Handle the Find / Find and Replace dialogs.
-            //       These should not return true here.
+            // TODO: Handle the Find and Replace dialog
+            //       for international versions.
 			IntPtr hWndMain = WindowHandle;
 			bool inFunctionWizard = false;
 			EnumWindows(delegate(IntPtr hWndEnum, IntPtr param)
 				{
 					// Check the window class
 					StringBuilder cname = new StringBuilder(256);
-					GetClassName(hWndEnum, cname, cname.Capacity);
+					GetClassNameW(hWndEnum, cname, cname.Capacity);
 					if (cname.ToString().StartsWith("bosa_sdm_XL"))
 					{
-						if (GetParent(hWndEnum) == hWndMain)
-						{
-							inFunctionWizard = true;
-							return false;	// Stop enumerating
-						}
+                        if (GetParent(hWndEnum) == hWndMain)
+                        {
+                            StringBuilder title = new StringBuilder(256);
+                            GetWindowTextW(hWndEnum, title, title.Capacity);
+                            if (!title.ToString().Contains("Replace"))
+                                inFunctionWizard = true; // will also work for older verions where past box had no title
+                            return false;	// Stop enumerating
+                        }
 					}
 					return true;	// Continue enumerating
 				} , (IntPtr)0);
-
 			return inFunctionWizard;
 		}
+
+        private static double _xlVersion = 0;
+        public static double ExcelVersion
+        {
+            get
+            {
+                if (_xlVersion == 0)
+                {
+                    object versionString;
+                    versionString = XlCall.Excel(XlCall.xlfGetWorkspace, 2);
+                    double version;
+                    bool parseOK = double.TryParse((string)versionString, out version);
+                    if (!parseOK)
+                    {
+                        // Might be locale problem 
+                        // and Excel 12 returns versionString with "." as decimal sep.
+                        //  ->  microsoft.public.excel.sdk thread
+                        //      Excel4(xlfGetWorkspace, &version, 1, & arg) - Excel2007 Options 
+                        //      Dec 12, 2006
+                        parseOK = double.TryParse((string)versionString,
+                                    System.Globalization.NumberStyles.AllowDecimalPoint,
+                                    System.Globalization.NumberFormatInfo.InvariantInfo,
+                                    out version);
+                    }
+                    if (!parseOK)
+                    {
+                        version = 0.99;
+                    }
+                    _xlVersion = version;
+                }
+                return _xlVersion;
+            }
+        }
+
+        private static ExcelLimits _xlLimits;
+        public static ExcelLimits ExcelLimits
+        {
+            get
+            {
+                if (_xlLimits == null)
+                {
+                    _xlLimits = new ExcelLimits();
+                    if (ExcelVersion < 12.0)
+                    {
+                        _xlLimits.MaxRows = 65536;
+                        _xlLimits.MaxColumns = 256;
+                        _xlLimits.MaxArguments = 30;
+                        _xlLimits.MaxStringLength = 255;
+                    }
+                    else
+                    {
+                        _xlLimits.MaxRows = 1048576;
+                        _xlLimits.MaxColumns = 16384;
+                        _xlLimits.MaxArguments = 255;
+                        _xlLimits.MaxStringLength = 32767;
+                    }
+                }
+                return _xlLimits;
+            }
+        }
 	}
+
+    public class ExcelLimits
+    {
+        public int MaxRows { get; internal set; }
+        public int MaxColumns { get; internal set; }
+        public int MaxArguments { get; internal set; }
+        public int MaxStringLength { get; internal set; }
+    }
+
 }

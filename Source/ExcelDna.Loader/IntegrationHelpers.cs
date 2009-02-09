@@ -32,27 +32,17 @@ namespace ExcelDna.Loader
     // This class has a friend in XlCustomMarshal.
     internal static class IntegrationHelpers
     {
+        static Type integrationType;
         static MethodInfo addCommandMenu;
         static MethodInfo removeCommandMenus;
-        static object dnaLibraryCurrentLibrary;
-        static MethodInfo dnaLibraryAutoOpen;
-        static MethodInfo dnaLibraryAutoClose;
-        static PropertyInfo dnaLibraryGetName;
-
-        public static void Initialize(Assembly integrationAssembly)
+        
+        public static void Bind(Assembly integrationAssembly)
         {
-            IntegrationMarshalHelpers.Initialize(integrationAssembly);
+            integrationType = integrationAssembly.GetType("ExcelDna.Integration.Integration");
+
             Type menuManagerType = integrationAssembly.GetType("ExcelDna.Integration.MenuManager");
             addCommandMenu = menuManagerType.GetMethod("AddCommandMenu", BindingFlags.Static | BindingFlags.NonPublic);
             removeCommandMenus = menuManagerType.GetMethod("RemoveCommandMenus", BindingFlags.Static | BindingFlags.NonPublic);
-
-            Type dnaLibraryType = integrationAssembly.GetType("ExcelDna.Integration.DnaLibrary");
-            dnaLibraryCurrentLibrary = dnaLibraryType.GetProperty("CurrentLibrary",  BindingFlags.Static | BindingFlags.Public).GetValue(null, null);
-
-            dnaLibraryAutoOpen = dnaLibraryType.GetMethod("AutoOpen", BindingFlags.Instance | BindingFlags.NonPublic);
-            dnaLibraryAutoClose = dnaLibraryType.GetMethod("AutoClose", BindingFlags.Instance | BindingFlags.NonPublic);
-
-            dnaLibraryGetName = dnaLibraryType.GetProperty("Name");
         }
 
         public static void AddCommandMenu(string commandName, string menuName, string menuText, string description, string shortCut, string helpTopic)
@@ -67,17 +57,27 @@ namespace ExcelDna.Loader
 
         internal static void DnaLibraryAutoOpen()
         {
-            dnaLibraryAutoOpen.Invoke(dnaLibraryCurrentLibrary, null);
+            integrationType.InvokeMember("DnaLibraryAutoOpen", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, null);
         }
 
         internal static void DnaLibraryAutoClose()
         {
-            dnaLibraryAutoClose.Invoke(dnaLibraryCurrentLibrary, null);
+            integrationType.InvokeMember("DnaLibraryAutoClose", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, null);
         }
 
         internal static string DnaLibraryGetName()
         {
-            return (string)dnaLibraryGetName.GetValue(dnaLibraryCurrentLibrary, null);
+            return (string)integrationType.InvokeMember("DnaLibraryGetName", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, null);
+        }
+
+        internal static void InitializeIntegration()
+        {
+            integrationType.InvokeMember("Initialize", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, null);
+        }
+
+        internal static void DeInitializeIntegration()
+        {
+            integrationType.InvokeMember("DeInitialize", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, null);
         }
     }
 }

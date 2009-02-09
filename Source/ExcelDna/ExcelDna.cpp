@@ -111,6 +111,7 @@ extern "C"
 			pExportInfo->pXlAutoOpen != NULL)
 		{
 			result = pExportInfo->pXlAutoOpen();
+			removed = false;
 		}
 		return result;
 	}
@@ -160,21 +161,20 @@ extern "C"
 
 	__declspec(dllexport) void xlAutoFree(void* pXloper)
 	{
-		short result = 0;
-		if (EnsureInitialized() && 
+		if (pExportInfo != NULL && 
 			pExportInfo->pXlAutoFree != NULL)
 		{
 			pExportInfo->pXlAutoFree(pXloper);
 		}
 	}
 
-	//__declspec(dllexport) void xlAutoFree12(void* pXloper12)
-	//{
-	//	if (pExportInfo != NULL && pExportInfo->pXlAutoFree12 != NULL)
-	//	{
-	//		pExportInfo->pXlAutoFree(pXloper12);
-	//	}
-	//}
+	__declspec(dllexport) void xlAutoFree12(void* pXloper12)
+	{
+		if (pExportInfo != NULL && pExportInfo->pXlAutoFree12 != NULL)
+		{
+			pExportInfo->pXlAutoFree12(pXloper12);
+		}
+	}
 
 	__declspec(dllexport) void* xlAddInManagerInfo(void* pXloper)
 	{
@@ -187,16 +187,16 @@ extern "C"
 		return result;
 	}
 
-	//__declspec(dllexport) void* xlAddInManagerInfo12(void* pXloper12)
-	//{
-		//void* result = NULL;
-		//	if (EnsureInitialized() && 
-		//		pExportInfo->pXlAddInManagerInfo12 != NULL)
-		//	{
-		//		result = pExportInfo->pXlAddInManagerInfo12(pXloper);
-		//	}
-		//return result;
-	//}
+	__declspec(dllexport) void* xlAddInManagerInfo12(void* pXloper12)
+	{
+		void* result = NULL;
+			if (EnsureInitialized() && 
+				pExportInfo->pXlAddInManagerInfo12 != NULL)
+			{
+				result = pExportInfo->pXlAddInManagerInfo12(pXloper12);
+			}
+		return result;
+	}
 
 
 

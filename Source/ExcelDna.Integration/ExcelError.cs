@@ -36,6 +36,18 @@ namespace ExcelDna.Integration
 		ExcelErrorRef = 23,
 		ExcelErrorName = 29,
 		ExcelErrorNum = 36,
-		ExcelErrorNA = 42,
+		ExcelErrorNA = 42
 	}
+
+    public class ExcelMissing
+    {
+        public static readonly ExcelMissing Value = new ExcelMissing();
+        private ExcelMissing() {}
+    }
+
+    public class ExcelEmpty
+    {
+        public static readonly ExcelEmpty Value = new ExcelEmpty();
+        private ExcelEmpty() { }
+    }
 }

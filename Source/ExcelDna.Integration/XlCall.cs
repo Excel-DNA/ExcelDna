@@ -40,14 +40,15 @@ namespace ExcelDna.Integration
 		*/
 		public enum XlReturn
 		{
-			XlReturnSuccess   = 0,     /* success */ 
-			XlReturnAbort     = 1,     /* macro halted */
-			XlReturnInvXlfn   = 2,     /* invalid function number */ 
-			XlReturnInvCount  = 4,     /* invalid number of arguments */ 
-			XlReturnInvXloper = 8,     /* invalid OPER structure */  
-			XlReturnStackOvfl = 16,    /* stack overflow */  
-			XlReturnFailed    = 32,    /* command failed */
-			XlReturnUncalced  = 64     /* uncalced cell */
+			XlReturnSuccess   = 0,        /* success */ 
+			XlReturnAbort     = 1,        /* macro halted */
+			XlReturnInvXlfn   = 2,        /* invalid function number */ 
+			XlReturnInvCount  = 4,        /* invalid number of arguments */ 
+			XlReturnInvXloper = 8,        /* invalid OPER structure */  
+			XlReturnStackOvfl = 16,       /* stack overflow */  
+			XlReturnFailed    = 32,       /* command failed */
+			XlReturnUncalced  = 64,       /* uncalced cell */
+            XlReturnNotThreadSafe = 128   /* not allowed during multi-threaded calc */
 		}
 
 		/*
@@ -833,45 +834,10 @@ namespace ExcelDna.Integration
 			}
 		}
 
-		public unsafe static XlReturn TryExcel(int xlFunction, out object result, params object[] parameters)
+		public static XlReturn TryExcel(int xlFunction, out object result, params object[] parameters)
 		{
             return Integration.TryExcelImpl(xlFunction, out result, parameters);
-            /*
-            XlReturn xlReturn;
-            // Set up the memory to hold the result from the call
-            XlOper resultOper = new XlOper();
-            resultOper.xlType = XlType.XlTypeEmpty;
-            XlOper* pResultOper = &resultOper;  // No need to pin for local struct
-
-            // Special kind of ObjectArrayMarshaler for the parameters (rank 1)
-            using (XlObjectArrayMarshaler paramMarshaler = new XlObjectArrayMarshaler(1, true))
-            {
-                XlOper** ppOperParameters = (XlOper**)paramMarshaler.MarshalManagedToNative(parameters);
-                xlReturn = (XlReturn)Excel4v(xlFunction, pResultOper, parameters.Length, ppOperParameters);
-            }
-
-            // pResultOper now holds the result of the evaluated function
-            // Get ObjectMarshaler for the return value
-            ICustomMarshaler m = XlObjectMarshaler.GetInstance("");
-            result = m.MarshalNativeToManaged((IntPtr)pResultOper);
-            // And free any memory allocated by Excel
-            Excel4v(xlFree, (XlOper*)IntPtr.Zero, 1, &pResultOper);
-        
-            return xlReturn;
-             * */
         }
-
-		// An aborted attempt at getting the Marshaling to work automatically.
-		// The reference parameter doen't work as an object,
-		// since it need to be sent without the extra indirection.
-		//[DllImport("XLCALL32.DLL")]
-		//public static extern int Excel4v(int xlfn, 
-		//    [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(XlObjectMarshaler), MarshalCookie="Excel4v")] 
-		//    ref object operRes, 
-		//    int count, 
-		//    [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(XlObjectArrayMarshaler), MarshalCookie="Excel4v")] 
-		//    object[] opers);
-
 	}
 
 	public class XlCallException : Exception
