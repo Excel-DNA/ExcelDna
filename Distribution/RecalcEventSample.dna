@@ -1,0 +1,22 @@
+﻿<DnaLibrary Name="ExcelDna Test OnRecalc" Language="CS">
+<![CDATA[
+
+	using System;
+	using ExcelDna.Integration;
+	
+	public class MyFunctions
+	{
+		[ExcelCommand(MenuName="&TestOnRecalc", MenuText="&Enable Beep")]
+		public static void EnableBeep()
+		{
+			XlCall.Excel(XlCall.xlcOnRecalc, null, "Beep");			
+		}
+
+		[ExcelCommand(MenuName="&TestOnRecalc", MenuText="Beep &Now")]
+		public static void Beep()
+		{
+			Console.Beep();
+		}
+	}
+]]>
+</DnaLibrary>

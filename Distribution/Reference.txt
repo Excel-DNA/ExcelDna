@@ -1,0 +1,166 @@
+ExcelDna Reference
+==================
+
+New Marshaling
+==============
+
+Native (+/- full-fidelity) parameter types:
+All parameters and return values must be like this, and IsExceptionSafe=false.
+
+This is what ExcelDna.Loader will marshal to / from XlOpers.
+
+Double
+Double[,]
+String
+Object
+- Double
+- String
+- Boolean
+- Object[,] (Containing Double, String, Boolean, ExcelError, ExcelEmpty, ExcelMissing or null).
+- ExcelError
+- ExcelEmpty
+- ExcelMissing
+- ExcelReference (if AllowReference=true)
+
+Sequence of delegate->delegate transformations.
+1. Exception wrapper.
+2. Type converters -- No.
+3. Call wrappers.
+
+End must be as above.
+
+"xxx is yyy" takes 5-10 ns.
+typeof(yyy).IsInstanceOfType(xxx) takes 50-100 ns.
+
+
+Data type marshaling
+====================
+
+The allowed function parameter and return types are:
+Double
+String
+DateTime    -- returns a double to Excel (maybe string is better to return?)
+Double[]    -- if only one column is passed in, takes that column, else first row is taken
+Double[,]
+Object
+Object[]    -- if only one column is passed in, takes that column, else first row is taken
+Object[,]
+Boolean (bool) -- returns an Excel bool (maybe string is better to return to Excel?)
+Int32 (int)
+Int16 (short)
+UInt16 (ushort)
+Decimal
+
+incoming function parameters of type Object will only arrive as one of the following:
+Double
+String
+Boolean
+ExcelDna.Integration.ExcelError
+ExcelDna.Integration.ExcelMissing
+ExcelDna.Integration.ExcelEmpty
+Object[,] containing an array with a mixture of the above types
+ExcelReference -- (Only if AllowReference=true in ExcelArgumentAttribute causing R type instead of P)
+
+function parameters of type Object[] or Object[,] will receive an array containing a mixture of the above types (excluding Object[,])
+
+return values of type Object are allowed to be:
+Double
+String
+DateTime
+Boolean
+Double[]
+Double[,]
+Object[]
+Object[,]
+ExcelDna.Integration.ExcelError
+ExcelDna.Integration.ExcelMissing.Value // Converted by Excel to be 0.0
+ExcelDna.Integration.ExcelEmpty.Value   // Converted by Excel to be 0.0
+Int32 (int)
+Int16 (short)
+UInt16 (ushort)
+Decimal
+otherwise return #VALUE! error
+
+return values of type Object[] and Object[,] are processed as arrays of the type Object, containing a mixture of the above, excluding the array types.
+
+
+Public types in ExcelDna library
+================================
+Intended for use within user code (all in the namepace ExcelDna.Integration) are the following:
+
+Attributes 
+----------
+ExcelFunctionAttribute - for user-defined functions
+	Name
+	Description
+	Category (by default the name of the add-in)
+	HelpTopic
+	IsVolatile (! suffix)
+	IsMacroType (# suffix)
+ExcelArgumentAttribute - for the arguments of user-defined functions
+	Name
+	Description
+	AllowReference (R type) - Arguments of type object may receive ExcelReference.
+ExcelCommandAttribute - for macro commands
+	Name
+	Description
+	HelpTopic
+	ShortCut
+	MenuName (default is library name)
+	MenuText
+	IsHidden
+
+Helper classes
+--------------
+ExcelReference - contains a sheet reference. Get/SetValue to read/write to the cells.
+ExcelError - an enum listing the different Excel errors
+ExcelDnaUtils - contains Application property (for COM access), WindowHandle and IsInFunctionWizard, ExcelVersion, ExcelLimits.
+
+Wrapper for the Excel 97 / Excel 2007 SDK API
+---------------------------------------------
+XlCall class
+XlCall.Excel wraps Excel4/Excel12 (but easy to call), also constants for all the API functions and commands.
+
+XlCallException - is thrown when the call to Excel fails.
+
+XlCall.TryExcel - does not throw exception on fail, but returns an XlCallReturn enum value.
+ExcelDna.Integration.Integration contains the static method 'RegisterMethods' which allow dynamic registration of methods.
+
+Excel COM interface access
+==========================
+ExcelDna.Integration.ExcelDnaUtils.Application returns the Excel Application COM object.
+From VB this can be used late-bound quite easily.
+
+Default references and imports
+==============================
+A reference to the ExcelDna.Integration assembly in the .xll file that is 
+loading a .dna file is always added when the .dna file is compiled.
+
+In addition, the following references are added to each project, unless a DefaultReferences="false" attribute is set on the <Project>:
+System.dll
+System.Data.dll
+System.Xml.dll
+
+For VB projects, the following imports are added, unless a DefaultImports="false" attribute is set on the <Project>:
+Microsoft.VisualBasic
+System
+System.Collections
+System.Collections.Generic
+System.Data
+System.Diagnostics
+ExcelDna.Integration
+
+
+.dna file schema
+================
+DnaLibrary 
+	Name
+	Description
+	Language
+	
+....
+
+AutoOpen/AutoClose
+==================
+Cleanup is only done when the add-in is removed from the add-in manager.
+When File->Open is used to reopen the .xll, it is closed and opened, causing the .dna file to be re-read.
