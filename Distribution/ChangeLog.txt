@@ -1,3 +1,17 @@
+Version 0.6 (15 November 2006)
+------------------------------
+* Fixed Excel crash under stress for functions taking arrays of strings.
+* Restructured memory management in marshaling.
+
+Version 0.5 (29 June 2006)
+--------------------------
+* Fixed stack overflow when loading addin with no .dna file.
+* Fixed Excel crash when returning empty array for double[] return type.
+
+Version 0.4 (25 June 2006)
+--------------------------
+* Changed unload behaviour. Methods, commands and menus are unloaded only when AutoRemove is called (when the addin is removed from the AddIns list. I still call then Add-In's AutoClose when Excel calls AutoClose.
+
 Version 0.3 (28 May 2006)
 -------------------------
 * Support for the Decimal datatype as a parameter, explicit return type and object return value.
