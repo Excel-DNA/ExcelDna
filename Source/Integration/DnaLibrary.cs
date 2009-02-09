@@ -22,7 +22,7 @@
   govert@icon.co.za
 */
 
-using System;
+using System; 
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -122,34 +122,31 @@ namespace ExcelDna.Integration
             return projects;
         }
 
-        private List<Assembly> _Assemblies;
 		public List<Assembly> GetAssemblies()
 		{
-			if (_Assemblies == null)
+            List<Assembly>  assemblies = new List<Assembly>();
+			List<IAssemblyDefinition> assemblyDefs = new List<IAssemblyDefinition>();
+			if (ExternalLibraries != null)
+				assemblyDefs.AddRange(ExternalLibraries.ToArray());
+			assemblyDefs.AddRange(GetProjects().ToArray());
+			foreach (IAssemblyDefinition def in assemblyDefs)
 			{
-				_Assemblies = new List<Assembly>();
-				List<IAssemblyDefinition> assemblyDefs = new List<IAssemblyDefinition>();
-				if (ExternalLibraries != null)
-					assemblyDefs.AddRange(ExternalLibraries.ToArray());
-				assemblyDefs.AddRange(GetProjects().ToArray());
-				foreach (IAssemblyDefinition def in assemblyDefs)
-				{
-					_Assemblies.AddRange(def.GetAssemblies());
-				}
+				assemblies.AddRange(def.GetAssemblies());
 			}
-			return _Assemblies;
+			return assemblies;
 		}
 
-		internal List<XlMethodInfo> GetExcelMethods()
-		{
-			// HACK: Add an assembly resolve override, 
-			// since the dynamic assembly otherwise cannot resolve this assembly !?
-			// This is needed for the Custom Marshaler tagged into the dynamic assembly to work.
-			AppDomain.CurrentDomain.AssemblyResolve += LocalResolve;
+        // Managed AddIns related to this DnaLibrary
+        // Kept so that AutoClose can be called later.
+        [XmlIgnore]
+        private List<AssemblyLoader.ExcelAddInInfo> _AddIns = new List<AssemblyLoader.ExcelAddInInfo>();
+        internal void AutoOpen()
+        {
+            List<MethodInfo> methods = new List<MethodInfo>();
 
-			List<MethodInfo> methods = new List<MethodInfo>();
-			foreach (Assembly assembly in GetAssemblies()) 
-			{
+            // Get MethodsInfos and AddIn classes from assemblies
+            foreach (Assembly assembly in GetAssemblies())
+            {
                 try
                 {
                     methods.AddRange(AssemblyLoader.GetExcelMethods(assembly));
@@ -157,36 +154,53 @@ namespace ExcelDna.Integration
                 catch (Exception e)
                 {
                     // TODO: I still don't know how to do exceptions
-					Debug.WriteLine(e.Message);
+                    Debug.WriteLine(e.Message);
                 }
-			}
+                _AddIns.AddRange(AssemblyLoader.GetExcelAddIns(assembly));
+            }
 
-			List<XlMethodInfo> xlMethods = XlMethodInfo.ConvertToXlMethodInfos(methods);
+            // Register Methods
+            XlLibrary.RegisterMethods(methods);
 
-			AppDomain.CurrentDomain.AssemblyResolve -= LocalResolve;
+            // Invoke AutoOpen in all assemblies
+            foreach (AssemblyLoader.ExcelAddInInfo addIn in _AddIns)
+            {
+                try
+                {
+                    addIn.AutoOpenMethod.Invoke(addIn.Instance, null);
+                }
+                catch (Exception e)
+                {
+                    // TODO: What to do here?
+                    Debug.WriteLine(e.Message);
+                }
+            }
+        }
 
-			return xlMethods;
-		}
-
-		internal List<AssemblyLoader.ExcelAddInInfo> GetExcelAddIns()
-		{
-			// Aggregate from assemblies
-            List<AssemblyLoader.ExcelAddInInfo> addIns = new List<AssemblyLoader.ExcelAddInInfo>();
-			foreach (Assembly assembly in GetAssemblies())
-			{
-				addIns.AddRange(AssemblyLoader.GetExcelAddIns(assembly));
-			}
-
-			return addIns;
-		}
-		
-		// Statics
+        internal void AutoClose()
+        {
+            foreach (AssemblyLoader.ExcelAddInInfo addIn in _AddIns)
+            {
+                try
+                {
+                    addIn.AutoCloseMethod.Invoke(addIn.Instance, null);
+                }
+                catch (Exception e)
+                {
+                    // TODO: What to do here?
+                    Debug.WriteLine(e.Message);
+                }
+            }
+            _AddIns.Clear();
+        }
+        
+        // Statics
 		private static DnaLibrary currentLibrary;
 		internal static void Initialize()
 		{
-            // Make safe to initialize more than once
-            if (currentLibrary != null)
-                return;
+            // Might be called more than once in a session
+            // e.g. if AddInManagerInfo is called, and then AutoOpen
+            // or if the add-in is opened more than once.
 
 			// Load the current library
 			// Get the .xll filename
@@ -207,14 +221,6 @@ namespace ExcelDna.Integration
                 currentLibrary = new DnaLibrary();
 		}
 
-		// HACK: See above - need this for resolving custom marshaler
- 		private static Assembly LocalResolve(object sender, ResolveEventArgs args)
-		{
-			if (args.Name.StartsWith("ExcelDna,"))
-				return Assembly.GetExecutingAssembly();
-			else
-				return null;
-		}
 
 		internal static DnaLibrary LoadFrom(string fileName)
 		{
@@ -249,6 +255,8 @@ namespace ExcelDna.Integration
 
 		public static DnaLibrary CurrentLibrary
 		{
+            // Might be called before Initialize()
+            // e.g. if Excel called AddInManagerInfo before AutoOpen
 			get
 			{
                 if (currentLibrary == null)
@@ -271,5 +279,8 @@ namespace ExcelDna.Integration
                 return CurrentLibrary.Name;
             }
         }
-	}
+
+
+
+    }
 }

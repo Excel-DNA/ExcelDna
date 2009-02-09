@@ -8,11 +8,11 @@ Data type marshaling
 The allowed function parameter and return types are:
 Double
 String
-DateTime	-- returns a double to Excel (maybe string is better to return?)
-Double[]	-- first row of the array that is passed in will be used
+DateTime    -- returns a double to Excel (maybe string is better to return?)
+Double[]    -- if only one column is passed in, takes that column, else first row is taken
 Double[,]
 Object
-Object[]
+Object[]    -- if only one column is passed in, takes that column, else first row is taken
 Object[,]
 Boolean (bool) -- returns an Excel bool (maybe string is better to return to Excel?)
 Int32 (int)
@@ -91,7 +91,7 @@ XlCall.Excel wraps Excel4 (but easy to call), also constants for all the API fun
 
 XlCallException - when the call to Excel fails.
 XlCall.TryExcel - does not throw exception on fail, but returns an XlCallReturn enum value.
-
+XlLibrary contains RegisterMethods, allow dynamic registration of methods.
 
 Excel COM interface access
 ==========================

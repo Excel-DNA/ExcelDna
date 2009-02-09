@@ -1,3 +1,10 @@
+Version 0.8 (21 January 2007)
+------------------------------
+* Methods can be dynamically registered in the AutoOpen method of an AddIn.
+ExcelDna.Integration.XlLibrary.RegisterMethods(..) takes a list of MethodInfos to register. See Sample08.dna for an example.
+* Arguments of type object[] and double[] now also accept single column values. If the range passed in has exactly one column, that column is used as the array. If more than one column is passed, the first row is used, as before. object[,] and double[,] have not changed.
+* Minor changes to the Logging window.
+
 Version 0.7 (24 November 2006)
 ------------------------------
 * More changes to string marshaling - returned strings now allocated only to required length.

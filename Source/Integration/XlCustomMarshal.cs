@@ -504,11 +504,22 @@ namespace ExcelDna.Integration
 			// Duplication here, because the types are different and wrapped in fixed blocks
 			if (rank == 1)
 			{
-				double[] array = new double[pFP->Columns];
-				fixed (double* dest = array)
-				{
-					CopyDoubles(pFP->Values, dest, array.Length);
-				} 
+				double[] array;
+                if (pFP->Columns == 1)
+                {
+                    // Take the one and only column as the array
+                    array = new double[pFP->Rows];
+                }
+                else
+                {
+                    // Take only the first row of the array.
+                    array = new double[pFP->Columns];
+                }
+                // Copy works for either case, due to in-memory layout!
+                fixed (double* dest = array)
+                {
+                    CopyDoubles(pFP->Values, dest, array.Length);
+                }
 				result = array;
 			}
 			else if (rank == 2)
@@ -1179,17 +1190,32 @@ namespace ExcelDna.Integration
 				{
 					return new object[1] { managed };
 				}
-				else // managed is object[,]: turn first row into object[]
+				else // managed is object[,]: turn first row (or column) into object[]
 				{
+                    object[] array;
 					object[,] all = (object[,])managed;
-					int columns = all.GetLength(1);
-					// Take first row only
-					object[] objects = new object[columns];
-					for (int i = 0; i < columns; i++)
-					{
-						objects[i] = all[0, i];
-					}
-					return objects;
+                    int rows = all.GetLength(0);
+                    int columns = all.GetLength(1);
+
+                    if (columns == 1)
+                    {
+                        // Take the one and only column as the array
+                        array = new object[rows];
+                        for (int i = 0; i < rows; i++)
+                        {
+                            array[i] = all[i, 0];
+                        }
+                    }
+                    else
+                    {
+                        // Take first row only
+                        array = new object[columns];
+                        for (int j = 0; j < columns; j++)
+                        {
+                            array[j] = all[0, j];
+                        }
+                    }
+					return array;
 				}
 			}
 			else if (rank == 2)
