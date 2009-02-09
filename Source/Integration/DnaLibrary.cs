@@ -193,7 +193,7 @@ namespace ExcelDna.Integration
                 }
             }
             _AddIns.Clear();
-            AssemblyLoader.SetExcelDnaAssemblyResolve();
+            AssemblyLoader.ClearExcelDnaAssemblyResolve();
         }
         
         // Statics
@@ -206,8 +206,8 @@ namespace ExcelDna.Integration
 
 			// Load the current library
 			// Get the .xll filename
-			string xllFileLocation = Assembly.GetExecutingAssembly().Location;
-			string xllDirectory =  Path.GetDirectoryName(xllFileLocation);
+            string xllFileLocation = Assembly.GetExecutingAssembly().Location;
+            string xllDirectory = Path.GetDirectoryName(xllFileLocation);
 			string xllFileRoot = Path.GetFileNameWithoutExtension(xllFileLocation);
 			string dnaFileName = Path.Combine(xllDirectory, xllFileRoot + ".dna");
 			if (File.Exists(dnaFileName))
@@ -223,27 +223,26 @@ namespace ExcelDna.Integration
                 currentLibrary = new DnaLibrary();
 		}
 
-
-		internal static DnaLibrary LoadFrom(string fileName)
-		{
-			DnaLibrary dnaLibrary;
-//			XmlSerializer serializer = new XmlSerializer(typeof(DnaLibrary));
-			XmlSerializer serializer = new Microsoft.Xml.Serialization.GeneratedAssembly.DnaLibrarySerializer();
-			using (FileStream fileStream = new FileStream(fileName, FileMode.Open))
-			{
-                try
+        internal static DnaLibrary LoadFrom(string fileName)
+        {
+            DnaLibrary dnaLibrary;
+            //               XmlSerializer serializer = new XmlSerializer(typeof(DnaLibrary));
+            XmlSerializer serializer = new Microsoft.Xml.Serialization.GeneratedAssembly.DnaLibrarySerializer();
+            try
+            {
+                using (FileStream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
                 {
                     dnaLibrary = (DnaLibrary)serializer.Deserialize(fileStream);
                 }
-                catch (Exception e)
-                {
-                    string errorMessage = string.Format("There was an error while processing {0}:\r\n{1}\r\n{2}", fileName, e.Message,e.InnerException.Message);
-                    ExcelDna.Logging.LogDisplay.SetText(errorMessage);
-                    return null;
-                }
-			}
-			return dnaLibrary;
-		}
+            }
+            catch (Exception e)
+            {
+                string errorMessage = string.Format("There was an error while processing {0}:\r\n{1}\r\n{2}", fileName, e.Message, e.InnerException != null ? e.InnerException.Message : string.Empty);
+                ExcelDna.Logging.LogDisplay.SetText(errorMessage);
+                return null;
+            }
+            return dnaLibrary;
+        }
 
 		internal static void Save(string fileName, DnaLibrary dnaProject)
 		{
@@ -282,7 +281,13 @@ namespace ExcelDna.Integration
             }
         }
 
-
-
+        internal static string ExecutingDirectory
+        {
+            get
+            {
+                string xllFileLocation = Assembly.GetExecutingAssembly().Location;
+                return Path.GetDirectoryName(xllFileLocation);
+            }
+        }
     }
 }

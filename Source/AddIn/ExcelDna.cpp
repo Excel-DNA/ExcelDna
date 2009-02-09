@@ -64,7 +64,7 @@ extern "C"
 
 	__declspec(dllexport) void xlAutoFree(void* pXloper)
 	{
-		return XlLibrary::AutoFree((IntPtr)pXloper);
+		XlLibrary::AutoFree((IntPtr)pXloper);
 	}
 
 	__declspec(dllexport) void* xlAddInManagerInfo(void* pXloper)

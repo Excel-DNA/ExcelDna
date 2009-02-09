@@ -147,6 +147,8 @@ namespace ExcelDna.Integration
 
 		public static bool IsInFunctionWizard()
 		{
+            // TODO: Handle the Find / Find and Replace dialogs.
+            //       These should not return true here.
 			IntPtr hWndMain = WindowHandle;
 			bool inFunctionWizard = false;
 			EnumWindows(delegate(IntPtr hWndEnum, IntPtr param)
