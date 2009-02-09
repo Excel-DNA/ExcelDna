@@ -33,7 +33,6 @@ namespace ExcelDna.Integration
 		List<XlOper.XlRectangle> rectangles = new List<XlOper.XlRectangle>();
 		int sheetId;
 
-		// THROWS: OverFlowException if the arguments exceed the allowed size
 		public ExcelReference(int row, int column)
 			: this(row, row, column, column)
 		{
@@ -63,7 +62,7 @@ namespace ExcelDna.Integration
 
 		// THROWS: OverFlowException if the arguments exceed the allowed size
 		// or if the number of Inner References exceeds 65000
-		public void AddReference(ushort rowFirst, ushort rowLast, byte columnFirst, byte columnLast)
+		public void AddReference(int rowFirst, int rowLast, int columnFirst, int columnLast)
 		{
 			if (rectangles.Count < ushort.MaxValue)
 				rectangles.Add(new XlOper.XlRectangle(rowFirst, rowLast, columnFirst, columnLast));

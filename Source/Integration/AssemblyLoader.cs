@@ -41,11 +41,12 @@ namespace ExcelDna.Integration
             foreach (Type t in types)
             {
                 // CONSIDER: Implement ExportAll="false" ?
-                // DOCUMENT: Exclude if not a class, not public, abstract, an array,  
+                // DOCUMENT: Exclude if not a class, not public, /*abstract,*/ an array,  
                 // open generic type or in "My" namespace.
                 // Some basic checks -- what else?
+                // TODO: Sort out exactly which types to export.
                 if (!t.IsClass || !t.IsPublic ||
-                    t.IsAbstract || t.IsArray ||
+                    /*t.IsAbstract ||*/ t.IsArray ||
                     (t.IsGenericType && t.ContainsGenericParameters) ||
                     t.Namespace == "My")
                 {

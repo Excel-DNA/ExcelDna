@@ -67,6 +67,7 @@
 				Version=""
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\Libraries"
+				GenerateManifest="false"
 				AddModuleNamesToAssembly=""
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
@@ -78,6 +79,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				AdditionalManifestFiles="Microsoft.VC80.DebugCRT.RTM.manifest"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -148,6 +150,7 @@
 				OutputFile="$(OutDir)\ExcelDna.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\Libraries"
+				GenerateManifest="false"
 				AddModuleNamesToAssembly=""
 				GenerateDebugInformation="true"
 				LinkTimeCodeGeneration="1"
@@ -158,6 +161,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				AdditionalManifestFiles="Microsoft.VC80.CRT.RTM.manifest"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"

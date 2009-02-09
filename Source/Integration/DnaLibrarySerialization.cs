@@ -1,3 +1,9 @@
+﻿//#if _DYNAMIC_XMLSERIALIZER_COMPILATION
+//[assembly:System.Security.AllowPartiallyTrustedCallers()]
+//[assembly:System.Security.SecurityTransparent()]
+//#endif
+//[assembly:System.Reflection.AssemblyVersionAttribute("0.11.2629.36674")]
+//[assembly:System.Xml.Serialization.XmlSerializerVersionAttribute(ParentAssemblyId=@"42f66455-e5a1-4e08-b8a9-564cdfa67981,", Version=@"2.0.0.0")]
 namespace Microsoft.Xml.Serialization.GeneratedAssembly
 {
 
