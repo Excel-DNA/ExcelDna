@@ -26,6 +26,7 @@ using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
@@ -159,10 +160,18 @@ namespace ExcelDna.Integration
 			cp.GenerateInMemory = true;
 			cp.TreatWarningsAsErrors = false;
 
-            if (provider is Microsoft.VisualBasic.VBCodeProvider && DefaultImports)
+            if (provider is Microsoft.VisualBasic.VBCodeProvider)
             {
-                string importsList = "Microsoft.VisualBasic,System,System.Collections,System.Collections.Generic,System.Data,System.Diagnostics,ExcelDna.Integration";
-                cp.CompilerOptions = "/imports:" + importsList;
+                cp.CompilerOptions = " /libPath:\"" + DnaLibrary.ExecutingDirectory + "\" ";
+                if (DefaultImports)
+                {
+                    string importsList = "Microsoft.VisualBasic,System,System.Collections,System.Collections.Generic,System.Data,System.Diagnostics,ExcelDna.Integration";
+                    cp.CompilerOptions += " /imports:" + importsList;
+                }
+            }
+            else if (provider is Microsoft.CSharp.CSharpCodeProvider)
+            {
+                cp.CompilerOptions = " /lib:\"" + DnaLibrary.ExecutingDirectory + "\" ";
             }
 
             List<string> references = GetReferences().ConvertAll<string>(delegate(Reference item) { return item.AssemblyPath; });
@@ -212,6 +221,10 @@ namespace ExcelDna.Integration
 			{
 				return new Microsoft.VisualBasic.VBCodeProvider();
 			}
+            //else if (lang == "fs" || lang == "fsharp" || lang == "f#")
+            //{
+            //    // TODO: Sort out assembly and type loading.
+            //}
 
 			// Else try to load the language as a type
 			// TODO: Test this !?

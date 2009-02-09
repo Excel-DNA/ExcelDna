@@ -25,6 +25,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -113,7 +114,20 @@ namespace ExcelDna.Integration
             if (args.Name.StartsWith("ExcelDna,"))
                 return Assembly.GetExecutingAssembly();
             else
+            {
+                // TODO: Understand how the loading should work here.
+                // At least try from current directory
+                try
+                {
+                    AssemblyName assemblyName = new AssemblyName(args.Name);
+                    string path = Path.Combine(DnaLibrary.ExecutingDirectory, assemblyName.Name);
+                    path += ".dll";
+                    Assembly assembly = Assembly.LoadFile(path);
+                    return assembly;
+                }
+                catch { }
                 return null;
+            }
         }
 	}
 }
