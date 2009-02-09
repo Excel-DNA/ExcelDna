@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{196735BC-5A5C-4A21-9FE4-EC01CB7F3DE9}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ExcelDna.Integration</RootNamespace>
+    <AssemblyName>ExcelDna.Integration</AssemblyName>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyLoader.cs" />
+    <Compile Include="AssemblyLoaderExcelServer.cs" />
+    <Compile Include="AssemblyReference.cs" />
+    <Compile Include="DnaLibrary.cs" />
+    <Compile Include="DnaLibrarySerialization.cs" />
+    <Compile Include="Excel.cs" />
+    <Compile Include="ExcelAttributes.cs" />
+    <Compile Include="ExcelError.cs" />
+    <Compile Include="ExcelReference.cs" />
+    <Compile Include="ExternalLibrary.cs" />
+    <Compile Include="IAssemblyDefinition.cs" />
+    <Compile Include="IExcelAddIn.cs" />
+    <Compile Include="LogDisplay.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="LogDisplay.designer.cs">
+      <DependentUpon>LogDisplay.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MenuManager.cs" />
+    <Compile Include="Project.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Reference.cs" />
+    <Compile Include="SourceItem.cs" />
+    <Compile Include="XlCall.cs" />
+    <Compile Include="Integration.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="LogDisplay.resx">
+      <DependentUpon>LogDisplay.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <PropertyGroup>
+    <PostBuildEvent>copy $(TargetPath) $(SolutionDir)\ExcelDna\$(ConfigurationName)</PostBuildEvent>
+  </PropertyGroup>
+</Project>

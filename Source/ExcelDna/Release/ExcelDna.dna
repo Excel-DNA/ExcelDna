@@ -1,0 +1,172 @@
+﻿<DnaLibrary Name="My Test AddIn">
+	<!-- This library has two projects, one in C#, the other in VB -->
+	<Project Language="CS">
+		<Reference AssemblyPath="System.Windows.Forms.dll"/>
+			<![CDATA[
+			using System;
+			using System.Windows.Forms;
+			using ExcelDna.Integration;
+
+			// The class here implements the ExcelDna.Integration.IExcelAddIn interface.
+			// This allows the add-in to run code at start-up and shutdown.
+			public class MyAddIn : IExcelAddIn
+			{
+				public void AutoOpen()
+				{
+					MessageBox.Show("Now in AutoOpen.");
+				}
+				
+				public void AutoClose()
+				{
+					MessageBox.Show("Now in AutoClose.");
+				}
+			}
+
+			public class MyFunctions
+			{
+				// This function returns a string that describes its argument.
+				// For arguments defined as object type, this shows all the possible types that may be received.
+				// Also try this function after changing the 
+				// [ExcelArgument(AllowReference=true)] attribute.
+				// In that case we allow references to be passed (registerd as type R). 
+				// By default the function will be registered not
+				// to receive references AllowReference=false (type P).
+				[ExcelFunction(Description="Describes the value passed to the function.", IsMacroType=true)]
+				public static string Describe([ExcelArgument(AllowReference=false)]object arg)
+				{
+						if (arg is double)
+							return "Double: " + (double)arg;
+						else if (arg is string)
+							return "String: " + (string)arg;
+						else if (arg is bool)
+							return "Boolean: " + (bool)arg;
+						else if (arg is ExcelError)
+							return "ExcelError: " + arg.ToString();
+						else if (arg is object[,])
+							// The object array returned here may contain a mixture of different types,
+							// reflecting the different cell contents.
+							return string.Format("Array[{0},{1}]", ((object[,])arg).GetLength(0), ((object[,])arg).GetLength(1));
+						else if (arg is System.Reflection.Missing)
+							return "Missing";
+						else if (arg == null)
+							return "Empty";
+						else if (arg is ExcelReference)
+							return "Reference: " + XlCall.Excel(XlCall.xlfReftext, arg, true);
+						else if (arg is short)
+							// Truly fringe - only if returned directly from a UDF
+							return "Short: " + (short)arg;
+						else
+							return "!?Unheard Of";
+					}
+
+					// ExcelDna makes calling the Excel API easy:
+					// XlCall.Excel works like Excel4, but you just pass the parameters
+					// - no need for horrible XLOPERs
+					public static double CalcSin(double angle)
+					{
+						return (double)XlCall.Excel(XlCall.xlfSin, angle);
+					}
+
+					[ExcelFunction(IsMacroType=true)]
+					public static object GetTheXllName()
+					{
+						return XlCall.Excel(XlCall.xlfGetWorkspace, 44);
+					}
+
+					// One dimensional arrays are rows.
+					[ExcelFunction(Description="Sorts the given vector")]
+					public static double[] SortVector(double[] vector)
+					{
+						Array.Sort(vector);
+						return vector;
+					}
+
+					// Arguments can have descriptions too
+					[ExcelFunction(Description="Another adding function.", Category="New Functions")]
+					public static double AddTwo([ExcelArgument(Description="First one!")]double a, [ExcelArgument(Description="OtherOne!", Name="SecondArg")]double b)
+					{
+						return a + b;
+					}
+
+					// Arrays work as array formulae 
+					// This returns a 2-D array with one column
+					// and two rows.
+					public static object GetSomeStuff()
+					{
+						return new object[,]{ {3} , {"abc"} };
+					}
+
+					// This function will return (accept) only values larger than the current cell contents.
+					// Put =IncreaseValue(B1) into A1.
+					// Then put different numbers into B1 and watch how A1 changes.
+        			[ExcelFunction(IsMacroType=true)]
+					public static double IncreaseValue(double newValue)
+					{
+						ExcelReference reference = (ExcelReference)XlCall.Excel(XlCall.xlfCaller);
+						object val = reference.GetValue();
+						if (val is double && (double)val > newValue)
+							return (double)val;
+						return newValue;
+					}
+
+					// This is a macro that sets a block of cells
+					public static void SetSome()
+					{
+						ExcelReference r = new ExcelReference(2,5,3,6);
+						bool ok  = r.SetValue(new object[,]{{3.4, 8.9}, {"Wow!", ExcelError.ExcelErrorValue}});
+					}
+			}
+			]]>
+	</Project>
+	<Project Language="VB">
+		<Reference AssemblyPath="System.Windows.Forms.dll"/>
+				<![CDATA[
+				Imports System.Windows.Forms
+				
+				Public Module MyTestFunctions
+					' Some functions might be quite slow, so should not calculate
+					' in the function wizard.
+					Function SlowFunction(val)
+						If Excel.IsInFunctionWizard() Then
+							SlowFunction = "#IN WIZARD"
+						Else
+							SlowFunction = val * 2
+						End If
+					End Function
+
+					' There is easy access to the Excel automation object.
+					' ExcelDna.Integration.Excel.Application returns a reference
+					' to the Excel Application COM object.
+					' This can be used late-bound from VB, or using the PIA from C#
+					Function GetTheExcelVersion() as string
+						GetTheExcelVersion = Excel.Application.Version
+					End Function
+
+					Function DoLater() as String
+						Excel.Application.OnTime(DateTime.Now, "RingBell")
+						DoLater = "#WAIT!"
+					End Function
+
+					' An easy way to add a menu and menu items for a command....
+					' This command sounds a tone and sets cell C3 to the value 42
+					<ExcelCommand(MenuName:="&My Menu", MenuText:="Ring &Bell")> _
+					Sub RingBell()
+						Console.Beep()
+						Dim r as New ExcelReference(3,3)
+						r.SetValue(42)
+					End Sub
+
+					<ExcelCommand(MenuText:="Say &Hello")> _
+					Sub SayIt()
+						MessageBox.Show("Hellooooo!")
+					End Sub
+
+					' Commands that don't appear on a menu, can be assigned to a button
+					' or called from Tools->Macros->Macro and typing in the name.
+					Sub SayBye()
+						MessageBox.Show("Cheers!")
+					End Sub
+					End Module
+				]]>
+	</Project>
+</DnaLibrary>

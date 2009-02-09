@@ -1,0 +1,102 @@
+
+HRESULT ExcelClrLoadDebug(ICorRuntimeHost **ppHost)
+{
+	HRESULT hr = E_FAIL;
+
+	// First attempt - just load the newest version of the Clr
+	HMODULE hMscoree = NULL;
+	hMscoree = LoadLibraryA("mscoree.dll");
+	if (hMscoree == 0)
+	{
+		MessageBox(NULL, "This Excel Add-In requires the .Net 2.0 runtime to be loaded.\r\nThere was a problem while loading the .Net runtime:\r\n\tExcelClrLoader - Could not load library mscoree.dll.\r\nThis error can occur if the .Net runtime is not installed.\r\n\r\nEnsure that the .Net runtime version 2 or later is installed before loading the add-in.", "ExcelDna Add-In Loader", 0);
+		return E_FAIL;
+	}
+	pfnCorBindToRuntimeEx CorBindToRuntimeEx = (pfnCorBindToRuntimeEx)GetProcAddress(hMscoree, "CorBindToRuntimeEx");
+	if (CorBindToRuntimeEx == 0)
+	{
+		MessageBox(NULL, "This Excel Add-In requires the .Net 2.0 runtime to be loaded.\r\nThere was a problem while loading the .Net runtime:\r\n\tExcelClrLoader - Could not get proc address for CorBindToRuntimeEx.\r\nThis error can occur if the .Net runtime is not installed, or if version 2 or later is not installed.\r\n\r\nEnsure that the .Net runtime version 2 or later is installed before loading the add-in.", "ExcelDna Add-In Loader", 0);
+		return E_FAIL;
+	}
+
+	pfnGetCORVersion GetCORVersion = (pfnGetCORVersion)GetProcAddress(hMscoree, "GetCORVersion");
+	if (GetCORVersion == 0)
+	{
+		MessageBox(NULL, "This Excel Add-In requires the .Net 2.0 runtime to be loaded.\r\nThere was a problem while loading the .Net runtime:\r\n\tExcelClrLoader - Could not get proc address for GetCORVersion.\r\nThis is an unknown, catastrophic failure.", "ExcelDna Add-In Loader", 0);
+		return E_FAIL;
+	}
+
+	// Display current runtime loaded, or that will be loaded:
+
+
+	// Check the version
+	{
+		WCHAR szVersion[MAX_PATH + 1];
+		DWORD dwLength = MAX_PATH;
+		hr = GetCORVersion(szVersion, dwLength, &dwLength);
+		if (FAILED(hr))
+		{
+			MessageBox(NULL, "This Excel Add-In requires the .Net 2.0 runtime to be loaded.\r\nThere was a problem while loading the .Net runtime:\r\n\tExcelClrLoader - GetCORVersion failed.\r\nThis is an unknown, catastrophic failure.", "ExcelDna Add-In Loader", 0);
+			return E_FAIL;
+		}
+		MessageBoxW(NULL, L"Version before loading:" , L"ExcelDna Add-In Loader", 0);
+		MessageBoxW(NULL, szVersion , L"ExcelDna Add-In Loader", 0);
+		FreeLibrary(hMscoree); // Clears whatever it caches from previous calls
+		hMscoree = LoadLibraryA("mscoree.dll");
+		if (hMscoree == 0)
+		{
+			MessageBox(NULL, "This Excel Add-In requires the .Net 2.0 runtime to be loaded.\r\nThere was a problem while loading the .Net runtime:\r\n\tExcelClrLoader - Could not load library mscoree.dll.\r\nThis error can occur if the .Net runtime is not installed.\r\n\r\nEnsure that the .Net runtime version 2 or later is installed before loading the add-in.", "ExcelDna Add-In Loader", 0);
+			return E_FAIL;
+		}
+	}
+
+
+	//// Attempt to load a runtime that is compatible with the release version of .Net 2.0.
+	//hr = CorBindToRuntimeEx(L"v2.0.50727", L"wks", NULL, CLSID_CorRuntimeHost, IID_ICorRuntimeHost, (LPVOID*)ppHost);
+	////if (hr == CLR_E_SHIM_RUNTIMELOAD)
+	////{
+	////	MessageBox(NULL, "This Excel Add-In requires the .Net 2.0 runtime to be loaded.\r\nThere was a problem while loading the .Net runtime:\r\n\tExcelClrLoader - CorBindToRuntimeEx could not load a version compatible with v2.0.50727.\r\nThis error can occur if the .Net runtime is not installed, if version 2 or later is not installed, if the AppPatch registry entries are incorrect, or if there is a config file for Excel retricting the versions of the .Net runtime that can be loaded.\r\n\r\nEnsure that the .Net runtime version 2 or later is installed, and will be loaded correctly, before loading the add-in.", "ExcelDna Add-In Loader", 0);
+	////	return E_FAIL;
+	////}
+	//if (FAILED(hr))
+	//{
+	//	MessageBox(NULL, "This Excel Add-In requires the .Net 2.0 runtime to be loaded.\r\nThere was a problem while loading the .Net runtime:\r\n\tExcelClrLoader - CorBindToRuntimeEx failed.\r\nThis error can occur if the .Net runtime is not installed, if version 2 or later is not installed, if the AppPatch registry entries are incorrect, or if there is a config file for Excel retricting the versions of the .Net runtime that can be loaded.\r\n\r\nEnsure that the .Net runtime version 2 or later is installed, and will be loaded correctly, before loading the add-in.", "ExcelDna Add-In Loader", 0);
+	//	return E_FAIL;
+	//}
+
+	hr = ExcelClrLoadByConfig(ppHost);
+
+	// Check the version
+	WCHAR szVersion[MAX_PATH + 1];
+	DWORD dwLength = MAX_PATH;
+	hr = GetCORVersion(szVersion, dwLength, &dwLength);
+	if (FAILED(hr))
+	{
+		MessageBox(NULL, "This Excel Add-In requires the .Net 2.0 runtime to be loaded.\r\nThere was a problem while loading the .Net runtime:\r\n\tExcelClrLoader - GetCORVersion failed.\r\nThis is an unknown, catastrophic failure.", "ExcelDna Add-In Loader", 0);
+		return E_FAIL;
+	}
+
+	MessageBoxW(NULL, L"Version after loading by CorBindToRuntimeEx(v2.0.50727):" , L"ExcelDna Add-In Loader", 0);
+	MessageBoxW(NULL, szVersion , L"ExcelDna Add-In Loader", 0);
+
+	MessageBoxW(NULL, L"Version after loading by CorBindToRuntimeByCfg(v2.0.50727):" , L"ExcelDna Add-In Loader", 0);
+	MessageBoxW(NULL, szVersion , L"ExcelDna Add-In Loader", 0);
+
+		// Compare the version with our requirement
+	// TODO: Do this right -- will not work for v13.8.12345
+	if ( wcsncmp(szVersion, L"v2.0.50727", 2) < 0 )
+	{
+		// The version is no good.
+		MessageBox(NULL, "This Excel Add-In requires the .Net 2.0 runtime to be loaded.\r\nThere was a problem while loading the .Net runtime:\r\n\tExcelClrLoader - GetCORVersion returned a version smaller than v2.0.50727.\r\nThis error can occur if the .Net runtime is not installed, if version 2 or later is not installed, if the AppPatch registry entries are incorrect, or if there is a config file for Excel retricting the versions of the .Net runtime that can be loaded.\r\n\r\nEnsure that the .Net runtime version 2 or later is installed, and will be loaded correctly, before loading the add-in.", "ExcelDna Add-In Loader", 0);
+		return E_FAIL;
+	}
+
+	// Now the right version might be loaded, or some other version.
+	hr = (*ppHost)->Start();
+	if (FAILED(hr))
+	{
+		MessageBox(NULL, "This Excel Add-In requires the .Net 2.0 runtime to be loaded.\r\nThere was a problem while starting the .Net runtime:\r\n\tExcelClrLoader - Host->Start failed.\r\nThis is an unknown, catastrophic failure.", "ExcelDna Add-In Loader", 0);
+		return E_FAIL;
+	}
+	return S_OK;
+
+}
