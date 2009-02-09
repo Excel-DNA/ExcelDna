@@ -12,9 +12,10 @@
     <AssemblyName>ExcelDna.Loader</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
     <DelaySign>false</DelaySign>
-    <AssemblyOriginatorKeyFile>ExcelDna.Loader.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
     <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -46,13 +47,10 @@
     <Compile Include="IntegrationHelpers.cs" />
     <Compile Include="XlCallImpl.cs" />
     <Compile Include="XlCustomMarshal.cs" />
-    <Compile Include="XlLibrary.cs" />
+    <Compile Include="XlAddIn.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="XlMethodInfo.cs" />
     <Compile Include="XlParameterInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ExcelDna.Loader.snk" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

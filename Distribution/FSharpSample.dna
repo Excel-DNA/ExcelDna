@@ -1,11 +1,16 @@
-<DnaLibrary Name="FSharp Sample" Language="Microsoft.FSharp.Compiler.CodeDom.FSharpCodeProvider, FSharp.Compiler.CodeDom, Version=1.9.3.7, Culture=neutral, PublicKeyToken=a19089b1c74d0809">
+<DnaLibrary Name="FSharp Sample" Language="F#">
+<![CDATA[
 
-	let sayhello () = "Hello from F#"
+#light
+open ExcelDna.Integration
+let sayhello () = "Hello from F#"
 
-	let add x y = x + y
+[<ExcelFunction(Category="FSharp Functions", Description="FSharp function to add numbers")>]
+let add x y = x + y
+ 
+let rec factorial = function 
+   | 1.0 -> 1.0 
+   | x -> x * factorial (x - 1.0)
 
-	let rec factorial = function 
-		| 1.0 -> 1.0 
-		| x -> x * factorial (x - 1.0)
-
+]]>
 </DnaLibrary>

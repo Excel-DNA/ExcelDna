@@ -29,7 +29,29 @@ using System.Text;
 
 namespace ExcelDna.Integration
 {
-	public class Excel
+    [Obsolete("Use ExcelDna.Integration.ExcelDnaUtil class.")]
+    public class Excel
+    {
+        [Obsolete("Use ExcelDna.Integration.ExcelDnaUtil.WindowHandle property.")]
+        public static IntPtr WindowHandle
+        {
+            get { return ExcelDnaUtil.WindowHandle; }
+        }
+
+        [Obsolete("Use ExcelDna.Integration.ExcelDnaUtil.Application property.")]
+        public static object Application
+        {
+            get { return ExcelDnaUtil.Application; }
+        }
+
+        [Obsolete("Use ExcelDna.Integration.ExcelDnaUtil.IsInFunctionWizard property.")]
+        public static bool IsInFunctionWizard()
+        {
+            return ExcelDnaUtil.IsInFunctionWizard();
+        }
+    }
+
+	public class ExcelDnaUtil
 	{
 		private delegate bool EnumWindowsCallback(IntPtr hwnd, /*ref*/ IntPtr param);
 

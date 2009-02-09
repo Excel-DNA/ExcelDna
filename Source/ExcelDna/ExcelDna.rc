@@ -34,14 +34,18 @@ END
 
 2 TEXTINCLUDE 
 BEGIN
-    "#include ""afxres.h""\r\n"
-    "\0"
+    "#include ""afxres.h""\r\0"
 END
 
 3 TEXTINCLUDE 
 BEGIN
-    "\r\n"
-    "\0"
+    "#ifdef _DEBUG\r\n"
+    "EXCELDNA_LOADER         ASSEMBLY                ""Debug\\\\ExcelDna.Loader.dll""\r\n"
+    "EXCELDNA_INTEGRATION    ASSEMBLY                ""Debug\\\\ExcelDna.Integration.dll""\r\n"
+    "#else\r\n"
+    "EXCELDNA_LOADER         ASSEMBLY                ""Release\\\\ExcelDna.Loader.dll""\r\n"
+    "EXCELDNA_INTEGRATION    ASSEMBLY                ""Release\\\\ExcelDna.Integration.dll""\r\n"
+    "#endif\r\0"
 END
 
 #endif    // APSTUDIO_INVOKED
@@ -53,8 +57,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,14,0,1
- PRODUCTVERSION 0,14,0,1
+ FILEVERSION 0,16,0,1
+ PRODUCTVERSION 0,16,0,1
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -67,40 +71,103 @@ VS_VERSION_INFO VERSIONINFO
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
-        BLOCK "1c0904b0"
+        BLOCK "080004b0"
         BEGIN
-            VALUE "Comments", "Unmanaged loader shim for ExcelDna"
+            VALUE "Comments", "Unmanaged loader shim for ExcelDna Add-Ins"
             VALUE "CompanyName", "Govert van Drimmelen"
             VALUE "FileDescription", "ExcelDna Dynamic Link Library"
-            VALUE "FileVersion", "0, 14, 0, 1"
+            VALUE "FileVersion", "0, 16, 0, 1"
             VALUE "InternalName", "ExcelDna"
             VALUE "LegalCopyright", "Copyright (C) 2005-2008 Govert van Drimmelen"
             VALUE "OriginalFilename", "ExcelDna.xll"
-            VALUE "ProductName", "ExcelDna Dynamic Link Library"
-            VALUE "ProductVersion", "0, 14, 0, 1"
+            VALUE "ProductName", "ExcelDna Add-In Framework for Microsoft Excel"
+            VALUE "ProductVersion", "0, 16, 0, 1"
         END
     END
     BLOCK "VarFileInfo"
     BEGIN
-        VALUE "Translation", 0x1c09, 1200
+        VALUE "Translation", 0x800, 1200
     END
 END
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// ASSEMBLY
-//
-
-#ifdef _DEBUG
-EXCELDNA_LOADER         ASSEMBLY                "Debug\\ExcelDna.Loader.dll"
-EXCELDNA_INTEGRATION    ASSEMBLY                "Debug\\ExcelDna.Integration.dll"
-#else
-EXCELDNA_LOADER         ASSEMBLY                "Release\\ExcelDna.Loader.dll"
-EXCELDNA_INTEGRATION    ASSEMBLY                "Release\\ExcelDna.Integration.dll"
-#endif
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (South Africa) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENS)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_SOUTH_AFRICA
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_MSG_TITLE           "%1 Add-In Loader"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_MSG_TEMPLATE        "%1\r\n%2\r\n%3\r\n%4\r\n(This add-in is built with ExcelDna and is being loaded from the following location:\r\n\t%5.)"
+    IDS_MSG_HEADER_NEEDCLR20 
+                            "This Excel add-in requires the Microsoft .NET Framework Version 2.0 or later.\r\nA problem occurred while attempting to load the .NET runtime:"
+    IDS_MSG_BODY_LOADMSCOREE 
+                            "\tExcelClrLoader - Could not load library mscoree.dll.\r\nThis error can occur if the .NET framework is not installed."
+    IDS_MSG_FOOTER_ENSURECLR20 
+                            "\r\nPlease ensure that the Microsoft .NET Framework Version 2.0 or later is installed before loading the add-in."
+    IDS_MSG_BODY_CORBINDFAILED 
+                            "\tExcelClrLoader - CorBindToRuntimeEx failed.\r\nThis error can occur if the .NET runtime is not installed, if version 2.0 or later is not installed, if the AppPatch registry entries are incorrect, or if there is an excel.exe.config configuration file restricting the versions of the .NET runtime that can be loaded by Excel."
+    IDS_MSG_FOOTER_ENSURECLR20ANDLOAD 
+                            "\r\nPlease ensure that the Microsoft .NET Framework Version 2.0 or later is installed, and will be loaded correctly by Excel, before reloading the add-in."
+    IDS_MSG_FOOTER_UNEXPECTED 
+                            "\r\nThis is an unexpected error. Please report this error to the add-in developer."
+    IDS_MSG_BODY_HOSTSTART  "The .NET runtime was loaded but could not be started:\r\n\tExcelClrLoad - Host->Start failed."
+    IDS_MSG_BODY_OLDVERSION "Although the required runtime is installed, an older version has been loaded by Excel (only one version of the runtime can be loaded).\r\nThis is possible if another managed add-in caused the runtime to load, using the incorrectly installed AppPatch policy."
+    IDS_MSG_FOOTER_OLDVERSION 
+                            "Review the other managed Excel add-ins that are loaded, or ensure that the .NET 2.0 runtime loads by setting an appropriate 'supportedRuntime' entry in a configuration file for Excel (Excel.exe.config)."
+    IDS_MSG_BODY_NONET20    "The Microsoft .NET Framework Version 2.0 or later was not detected on this machine."
+    IDS_MSG_BODY_NOCORBIND  "\tExcelClrLoader - Could not get proc address for CorBindToRuntimeEx."
+    IDS_MSG_BODY_NOCORVERSION 
+                            "\tExcelClrLoader - Could not get proc address for GetCORVersion."
+    IDS_MSG_BODY_CORVERSIONFAILED 
+                            "\tExcelClrLoader - ExcelClrLoader - GetCORVersion failed."
+    IDS_MSG_HRESULT         "\r\nAdditional error information: HRESULT 0x%1!08X!\r\n"
+    IDS_MSG_BODY_UNKNOWNLOADFAIL 
+                            "The required version of the .NET Framework is installed but could not be loaded.\r\nNo other version is currently loaded."
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_MSG_FOOTER_REVIEWADDINS 
+                            "Review the other add-ins that are loaded, or ensure that the .Net 2.0 runtime loads by setting an approriate 'supportedRuntime' entry in a configuration file (Excel.exe.config).\r\nYou will need to restart Excel to load the correct version of the runtime."
+    IDS_MSG_BODY_WRONGVERSIONLOADED 
+                            "Although the required runtime is installed, it could not be loaded successfully.\r\nThis is possible if a configuration file or another managed add-in forces an older version of the runtime to load (only one version of the runtime can be loaded into the process).\r\n\r\n"
+    IDS_MSG_HEADER_APPDOMAIN 
+                            "A problem occurred while the add-in was creating an isolated application domain and loading required assemblies.\r\n"
+    IDS_MSG_BODY_APPDOMAINSETUP "AppDomainSetup could not be created."
+    IDS_MSG_BODY_APPLICATIONBASE "ApplicationBase could not be set."
+    IDS_MSG_BODY_APPDOMAIN  "AppDomain could not be created."
+    IDS_MSG_BODY_MISSINGEXCELDNALOADER 
+                            "The ASSEMBLY 'EXCELDNA_LOADER' could not be found among the add-in resources."
+    IDS_MSG_BODY_EXCELDNALOADER 
+                            "The ExcelDna.Loader assembly could not be loaded from resource."
+    IDS_MSG_BODY_EXCELDNALOADERNAME 
+                            "The Name for the ExcelDna.Loader assembly could not be determined."
+    IDS_MSG_BODY_XLADDIN    "The type ExcelDna.Loader.XlAddIn could not be found."
+    IDS_MSG_BODY_XLADDININIT 
+                            "The ExcelDna.Loader.XlAddIn.Initialize call failed."
+END
+
+#endif    // English (South Africa) resources
+/////////////////////////////////////////////////////////////////////////////
+
 
 
 #ifndef APSTUDIO_INVOKED
@@ -108,7 +175,13 @@ EXCELDNA_INTEGRATION    ASSEMBLY                "Release\\ExcelDna.Integration.d
 //
 // Generated from the TEXTINCLUDE 3 resource.
 //
-
+#ifdef _DEBUG
+EXCELDNA_LOADER         ASSEMBLY                "Debug\\ExcelDna.Loader.dll"
+EXCELDNA_INTEGRATION    ASSEMBLY                "Debug\\ExcelDna.Integration.dll"
+#else
+EXCELDNA_LOADER         ASSEMBLY                "Release\\ExcelDna.Loader.dll"
+EXCELDNA_INTEGRATION    ASSEMBLY                "Release\\ExcelDna.Integration.dll"
+#endif
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED

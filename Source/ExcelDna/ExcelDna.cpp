@@ -27,8 +27,9 @@
 #include "ExcelDnaLoader.h"
 
 // The one and only ExportInfo
-XlAddInExportInfo* pExportInfo;
-
+XlAddInExportInfo* pExportInfo = NULL;
+// Flag to coordinate close and remove.
+bool removed = false;
 // The actual thunk table 
 PFN thunks[EXPORT_COUNT];
 
@@ -49,8 +50,40 @@ XlAddInExportInfo* CreateExportInfo()
 	return pExportInfo;
 }
 
+// Safe to be called repeatedly, but not from multiple threads
+short EnsureInitialized()
+{
+	short result = 0;
+	if (pExportInfo != NULL)
+	{
+		result = 1;
+	}
+	else
+	{
+		XlAddInExportInfo* pExportInfoTemp = CreateExportInfo();
+		result = XlLibraryInitialize(pExportInfoTemp);
+		if (result)
+		{
+			pExportInfo	= pExportInfoTemp;
+		}
+	}
+	return result;
+}
+
+// Called only when AutoClose is called after AutoRemove.
+void Uninitialize()
+{
+	delete pExportInfo;
+	pExportInfo = NULL;
+	for (int i = 0; i < EXPORT_COUNT; i++)
+	{
+		thunks[i] = NULL;
+	}
+}
+
 extern "C"
 {
+	// Standard DLL entry point.
 	BOOL APIENTRY DllMain( HMODULE hModule,
 						   DWORD  ul_reason_for_call,
 						   LPVOID lpReserved
@@ -63,28 +96,21 @@ extern "C"
 			break;
 		case DLL_THREAD_ATTACH:
 		case DLL_THREAD_DETACH:
+			break;
 		case DLL_PROCESS_DETACH:
 			break;
 		}
 		return TRUE;
 	}
 
+	// Excel Add-In standard exports
 	__declspec(dllexport) short xlAutoOpen()
 	{
 		short result = 0;
-		try
+		if (EnsureInitialized() && 
+			pExportInfo->pXlAutoOpen != NULL)
 		{
-			XlAddInExportInfo* pExportInfo = CreateExportInfo();
-			result = XlLibraryInitialize(pExportInfo);
-			if (result && 
-				pExportInfo != NULL && 
-				pExportInfo->pXlAutoOpen != NULL)
-			{
-				result = pExportInfo->pXlAutoOpen();
-			}
-		}
-		catch(...) 
-		{
+			result = pExportInfo->pXlAutoOpen();
 		}
 		return result;
 	}
@@ -92,18 +118,28 @@ extern "C"
 	__declspec(dllexport) short xlAutoClose()
 	{
 		short result = 0;
-		if (pExportInfo != NULL && pExportInfo->pXlAutoClose != NULL)
+		if (EnsureInitialized() && 
+			pExportInfo->pXlAutoClose != NULL)
 		{
 			result = pExportInfo->pXlAutoClose();
+			if (removed)
+			{
+				// TODO: Consider how and when to unload
+				// DOCUMENT: What the current implementation is.
+				// No more managed functions should be called.
+				Uninitialize();
+				// Complete the clean-up by unloading AppDomain
+				XlLibraryUnload();
+			}
 		}
 		return result;
 	}
-
 	
 	__declspec(dllexport) short xlAutoAdd()
 	{
 		short result = 0;
-		if (pExportInfo != NULL && pExportInfo->pXlAutoAdd != NULL)
+		if (EnsureInitialized() && 
+			pExportInfo->pXlAutoAdd != NULL)
 		{
 			result = pExportInfo->pXlAutoAdd();
 		}
@@ -113,48 +149,57 @@ extern "C"
 	__declspec(dllexport) short xlAutoRemove()
 	{
 		short result = 0;
-		if (pExportInfo != NULL && pExportInfo->pXlAutoRemove != NULL)
+		if (EnsureInitialized() && 
+			pExportInfo->pXlAutoRemove != NULL)
 		{
 			result = pExportInfo->pXlAutoRemove();
+			removed = true;
 		}
 		return result;
 	}
 
 	__declspec(dllexport) void xlAutoFree(void* pXloper)
 	{
-		if (pExportInfo != NULL && pExportInfo->pXlAutoFree != NULL)
+		short result = 0;
+		if (EnsureInitialized() && 
+			pExportInfo->pXlAutoFree != NULL)
 		{
 			pExportInfo->pXlAutoFree(pXloper);
 		}
 	}
 
-	__declspec(dllexport) void xlAutoFree12(void* pXloper12)
-	{
-		if (pExportInfo != NULL && pExportInfo->pXlAutoFree12 != NULL)
-		{
-			pExportInfo->pXlAutoFree(pXloper12);
-		}
-	}
+	//__declspec(dllexport) void xlAutoFree12(void* pXloper12)
+	//{
+	//	if (pExportInfo != NULL && pExportInfo->pXlAutoFree12 != NULL)
+	//	{
+	//		pExportInfo->pXlAutoFree(pXloper12);
+	//	}
+	//}
 
 	__declspec(dllexport) void* xlAddInManagerInfo(void* pXloper)
 	{
 		void* result = NULL;
-		if (pExportInfo != NULL && pExportInfo->pXlAddInManagerInfo != NULL)
+		if (EnsureInitialized() && 
+			pExportInfo->pXlAddInManagerInfo != NULL)
 		{
 			result = pExportInfo->pXlAddInManagerInfo(pXloper);
 		}
 		return result;
 	}
 
-	__declspec(dllexport) void* xlAddInManagerInfo12(void* pXloper12)
-	{
-		void* result = NULL;
-		if (pExportInfo != NULL && pExportInfo->pXlAddInManagerInfo12 != NULL)
-		{
-			result = pExportInfo->pXlAddInManagerInfo12(pXloper12);
-		}
-		return result;
-	}
+	//__declspec(dllexport) void* xlAddInManagerInfo12(void* pXloper12)
+	//{
+		//void* result = NULL;
+		//	if (EnsureInitialized() && 
+		//		pExportInfo->pXlAddInManagerInfo12 != NULL)
+		//	{
+		//		result = pExportInfo->pXlAddInManagerInfo12(pXloper);
+		//	}
+		//return result;
+	//}
+
+
+
 }
 
 // The dll export implementation that jmps to thunk in the thunktable

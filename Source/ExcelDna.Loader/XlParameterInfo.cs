@@ -111,11 +111,11 @@ namespace ExcelDna.Loader
 		{
 			// isExceptionSafe determines whether or not exception wrapper will be constructed
 			// if isExceptionSafe then no exception wrapper is created
-			// else the wrapper function returns and object, and the XlObjectMarshaler is used
-			// the wrapper then ensures that #ERROR is returned from the function 
+			// else the wrapper function returns an object, and the XlObjectMarshaler is always 
+            // used - the wrapper then ensures that #ERROR is returned from the function 
 			// if any exception is caught.
 			// if no exception, the return type is known to be of type BoxedReturnValueType
-			// and boxed accordingly.
+			// and unboxed accordingly.
 
 			// By default DelegateParamType is type
 			// changed for some return types to ensure boxing,

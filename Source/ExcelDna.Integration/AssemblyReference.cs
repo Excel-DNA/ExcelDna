@@ -42,7 +42,7 @@ namespace ExcelDna.Integration
 	// TODO: This class might grow to also manage COM and DnaProject references.
 	// CONSIDER: Fold into Reference class?
 
-	class AssemblyReference
+	public class AssemblyReference
 	{
 		public string Path;
 		public Assembly Assembly;
@@ -67,7 +67,7 @@ namespace ExcelDna.Integration
 		// Way to sort out the assemble resolve to an assembly that was referenced
 		// but is not now accessible.
 		// CONSIDER: How to do this better?
-		static Assembly Resolve(object sender, ResolveEventArgs args)
+		internal static Assembly Resolve(object sender, ResolveEventArgs args)
 		{
 			foreach (AssemblyReference ar in AssemblyReferences.Values)
 			{

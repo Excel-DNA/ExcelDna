@@ -1,3 +1,25 @@
+Version 0.16 (3 September 2008)
+-------------------------------
+* Move IsHidden field from ExcelCommandAttribute to ExcelFunctionAttribute to enable 'hidden' functions.
+* Fix AddInManagerInfo.
+* Add support for FSharp September CTP.
+* Make unrooted HelpTopics relative to the xll directory.
+
+Version 0.15 (28 July 2008)
+---------------------------
+* ExcelDna.Integration.Excel class is obsolete. Use ExcelDna.Integration.ExcelDnaUtil.
+The 'Excel' class could be confused with the COM Interop class.
+* Minor fixes for backward compatibility.
+
+Version 0.14 (21 July 2008)
+---------------------------
+* New unmanaged loader architecture.
+* Every Add-In is loaded into it's own AppDomain.
+* No MSVC*.dll dependency.
+* Clear messages if runtime is not present or wrong version is loaded.
+* Visual Studio 2008 solution and projects.
+* Breaking Change: ExcelDna.Integration.XlLIbrary.RegisterMethods is now ExcelDna.Integration.Integration.RegisterMethods, e.g. see Samples08.dna 
+
 Version 0.11 (18 March 2007)
 ----------------------------
 * Fixed bug when library had function with object[] and object[,] arguments.

@@ -56,7 +56,7 @@ namespace ExcelDna.Integration
 
         private static string _XllPath = null;
         [XmlIgnore]
-        private static string XllPath
+        internal static string XllPath
         {
             get
             {

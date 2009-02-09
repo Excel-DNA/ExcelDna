@@ -53,8 +53,8 @@ namespace ExcelDna.Integration
 				string realPath = Path;
 				if (!File.Exists(realPath))
 				{
-					string dllName = Assembly.GetExecutingAssembly().Location;
-					string localDirectory = System.IO.Path.GetDirectoryName(dllName);
+                    string xllName = DnaLibrary.XllPath;
+					string localDirectory = System.IO.Path.GetDirectoryName(xllName);
 					if (System.IO.Path.IsPathRooted(realPath))
 					{
 						// Rooted path -- try locally

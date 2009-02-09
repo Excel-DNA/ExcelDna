@@ -556,7 +556,8 @@ namespace ExcelDna.Loader
 
 			// DOCUMENT: This function is not called if the return is null!
 			// (A null pointer is immediately returned to Excel, resulting in #NUM!)
-			// However we allow null for the Excel4 marshaline case, and create an Empty xlOper
+			// However, we allow null for the Excel4 marshaling case, and create an Empty xlOper
+            // ^^^^^^^^^^^^ - null case for Excel4 has now been removed ????
 			if (ManagedObj is double)
 			{
 				XlOper* pOper = (XlOper*)pNative;
@@ -1405,7 +1406,7 @@ namespace ExcelDna.Loader
 
         internal static int ExcelErrorGetValue(object e)
         {
-            return (int)e;
+            return (int)(ushort)e;
         }
 
         internal static Type GetExcelErrorType()

@@ -10,29 +10,6 @@ http://www.microsoft.com/downloads/details.aspx?FamilyID=0856eacb-4362-4b0d-8edd
 
 * Macros security in Excel must not be 'Very High' or 'High' (if set to Medium -- it will prompt whether to enable each macro library). To use the .NET macros you will have to 'Enable' at the prompt.
 
-* If you also have .NET version 1.1 installed, you might need to configure Excel to load the version 2.0 runtime by default. Do one of the following:
-
-1. For Excel 2003 you can download and run this update from Microsoft:
-http://www.microsoft.com/downloads/details.aspx?FamilyId=1B0BFB35-C252-43CC-8A2A-6A64D6AC4670&displaylang=en
-
-2. For other versions of Excel, you can add an application configuration file for the Excel executable. The ExcelDna distribution includes Excel.exe.config as an example configuration file. This file should be copied into the same directory as Excel.exe, typically C:\Program Files\Microsoft Office\Office10\.
-
-3. As a last resort you can edit (or delete) the following registry key:
-** Do not edit the Windows registry unless you are confident about doing so. **
-	HKEY_LOCAL_MACHINE
-		\SOFTWARE
-			\Microsoft
-				\.NETFramework
-					\policy
-						\AppPatch
-							\v2.0.50727.00000
-								\excel.exe
-to something like
-								\excel.exe_
-
-Everything I know about this problem comes from the Microsoft KB article and these newsgroup posts:
-http://groups.google.com/group/microsoft.public.dotnet.framework.clr/browse_thread/thread/50eb5fd709d9088c/3142500e6d5043b1?tvc=2&q=#3142500e6d5043b1
-
 
 1. Create a user-defined function in Visual Basic
 -------------------------------------------------
@@ -112,7 +89,7 @@ ExcelDna can also load any compiled .NET library. Public static functions with a
 
 
 * Compile TestLib.cs to TestLib.dll: from the command-line:
-c:\windows\microsoft.net\framework\v2.0.50727\csc.exe /target:library /reference:Test1.xll TestLib.cs
+c:\windows\microsoft.net\framework\v2.0.50727\csc.exe /target:library /reference:ExcelDna.Integration.dll TestLib.cs
 
 * Modify Test1.dna to contain:
 

@@ -66,7 +66,7 @@ namespace ExcelDna.Logging
             {
                 LogDisplayForm.SetText(message);
                 if (!LogDisplayForm.Visible)
-                    LogDisplayForm.Show( NativeWindow.FromHandle(Excel.WindowHandle) );
+                    LogDisplayForm.Show( NativeWindow.FromHandle(ExcelDnaUtil.WindowHandle) );
             }
             catch (Exception e)
             {
@@ -80,7 +80,7 @@ namespace ExcelDna.Logging
 
                 LogDisplayForm.AppendText(message);
                 if (!LogDisplayForm.Visible)
-                    LogDisplayForm.Show(NativeWindow.FromHandle(Excel.WindowHandle));
+                    LogDisplayForm.Show(NativeWindow.FromHandle(ExcelDnaUtil.WindowHandle));
             }
             catch (Exception e)
             {

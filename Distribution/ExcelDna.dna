@@ -1,9 +1,11 @@
 <DnaLibrary>
 <![CDATA[
+
 	Public Module Module1
 		Function AddThem(x, y)
 			AddThem = x + y
 		End Function	
 	End Module
+
 ]]>
 </DnaLibrary>

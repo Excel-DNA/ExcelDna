@@ -25,6 +25,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Reflection;
 using System.Runtime.Remoting;
@@ -35,11 +36,11 @@ namespace ExcelDna.Loader
     internal delegate short fn_short_void();
     internal delegate void fn_void_intptr(IntPtr intPtr);
     internal delegate IntPtr fn_intptr_intptr(IntPtr intPtr);
-
+    // CAUTION: This struct is also defined in the unmanaged loader.
     internal struct XlAddInExportInfo
     {
         #pragma warning disable 0649 // Field 'field' is never assigned to, and will always have its default value 'value'
-        internal Int32 ExportInfoVersion;
+        internal Int32 ExportInfoVersion; // Must be 1 for this version
         internal IntPtr /* PFN_SHORT_VOID */ pXlAutoOpen;
         internal IntPtr /* PFN_SHORT_VOID */ pXlAutoClose;
         internal IntPtr /* PFN_SHORT_VOID */ pXlAutoAdd;
@@ -52,7 +53,6 @@ namespace ExcelDna.Loader
         internal IntPtr /*PFN*/ ThunkTable; // Actually (PFN ThunkTable[EXPORT_COUNT])
         #pragma warning restore 0649
     };
-
 
     // CAUTION: This type is loaded by reflection from the unmanaged loader.
     public static class XlAddIn
@@ -171,6 +171,8 @@ namespace ExcelDna.Loader
         #region Managed Xlxxxx Functions
         internal static short XlAutoOpen()
         {
+            Debug.Print("AppDomain Id: " + AppDomain.CurrentDomain.Id + " (Default: " + AppDomain.CurrentDomain.IsDefaultAppDomain() + ")");
+
             short result = 0;
             try
             {
@@ -288,7 +290,7 @@ namespace ExcelDna.Loader
             object action = m.MarshalNativeToManaged(pXloperAction);
             object result;
             if ((action is short && (short)action == 1) ||
-                (action is double && (double)action == 1))
+                (action is double && (double)action == 1.0))
             {
                 result = IntegrationHelpers.DnaLibraryGetName();
             }
@@ -327,6 +329,7 @@ namespace ExcelDna.Loader
             string argumentNames = "";
             bool showDescriptions = false;
             string[] argumentDescriptions = new string[mi.Parameters.Length];
+            string helpTopic;
 
             for (int j = 0; j < mi.Parameters.Length; j++)
             {
@@ -334,7 +337,7 @@ namespace ExcelDna.Loader
 
                 functionType += pi.XlType;
                 if (j > 0)
-                    argumentNames += ", ";
+                    argumentNames += ",";
                 argumentNames += pi.Name;
                 argumentDescriptions[j] = pi.Description;
 
@@ -358,9 +361,9 @@ namespace ExcelDna.Loader
                 functionType += "#";
 
             // DOCUMENT: Here is the patch for the Excel Function Description bug.
-            // DOCUMENT: I add ". " if the function takes no parameters.
+            // DOCUMENT: I add ". " if the function takes no parameters and has a description.
             string functionDescription = mi.Description;
-            if (mi.Parameters.Length == 0)
+            if (mi.Parameters.Length == 0 && functionDescription != "")
                 functionDescription += ". ";
 
             if (mi.Description != "")
@@ -383,6 +386,23 @@ namespace ExcelDna.Loader
                 numArguments = 9;
             }
 
+            // Make HelpTopic without full path relative to xllPath
+            if (mi.HelpTopic == null || mi.HelpTopic == "")
+            {
+                helpTopic = mi.HelpTopic;
+            }
+            else
+            {
+                if (Path.IsPathRooted(mi.HelpTopic))
+                {
+                    helpTopic = mi.HelpTopic;
+                }
+                else
+                {
+                    helpTopic = Path.Combine(Path.GetDirectoryName(pathXll), mi.HelpTopic);
+                }
+            }
+
             object[] registerParameters = new object[numArguments];
             registerParameters[0] = pathXll;
             registerParameters[1] = procName;
@@ -393,7 +413,7 @@ namespace ExcelDna.Loader
                                                           : (mi.IsHidden ? 0 : 1); /*function*/
             registerParameters[6] = mi.Category;
             registerParameters[7] = mi.ShortCut; /*shortcut_text*/
-            registerParameters[8] = mi.HelpTopic; /*help_topic*/ ;
+            registerParameters[8] = helpTopic; /*help_topic*/ ;
 
             if (showDescriptions)
             {
@@ -444,25 +464,17 @@ namespace ExcelDna.Loader
             // Now take out the methods
             foreach (XlMethodInfo mi in registeredMethods)
             {
-                try
+                if (mi.IsCommand)
                 {
-                    if (mi.IsCommand)
-                    {
-                        XlCallImpl.TryExcelImpl(XlCallImpl.xlfSetName, out xlCallResult, mi.Name, "");
-                    }
-                    else
-                    {
-                        // I follow the advice from X-Cell website
-                        // to get function out of Wizard
-                        XlCallImpl.TryExcelImpl(XlCallImpl.xlfRegister, out xlCallResult, pathXll, "xlAutoRemove", "J", mi.Name, Missing.Value, 0);
-                    }
-                    XlCallImpl.TryExcelImpl(XlCallImpl.xlfUnregister, out xlCallResult, mi.RegisterId);
+                    XlCallImpl.TryExcelImpl(XlCallImpl.xlfSetName, out xlCallResult, mi.Name, "");
                 }
-                catch (Exception e)
+                else
                 {
-                    // TODO: What to do here?
-                    Debug.WriteLine(e.Message);
+                    // I follow the advice from X-Cell website
+                    // to get function out of Wizard
+                    XlCallImpl.TryExcelImpl(XlCallImpl.xlfRegister, out xlCallResult, pathXll, "xlAutoRemove", "J", mi.Name, Missing.Value, 0);
                 }
+                XlCallImpl.TryExcelImpl(XlCallImpl.xlfUnregister, out xlCallResult, mi.RegisterId);
             }
             registeredMethods.Clear();
         }
