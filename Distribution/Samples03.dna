@@ -1,0 +1,56 @@
+<DnaLibrary Language="CS">
+<![CDATA[
+    using System;
+
+	public class Samples03
+	{
+		public static decimal AddDecimals(decimal v1, decimal v2)
+		{
+			return v1 + v2;
+		}
+
+		public static object AddDecimals2(decimal v1, decimal v2)
+		{
+			return v1 + v2;
+		}
+
+		public static double AddAndLog(double v1, double v2)
+		{
+			ExcelDna.Logging.LogDisplay.WriteLine(string.Format("Adding values {0} and {1}", v1, v2));
+			return v1 + v2;
+		}
+	}
+
+
+	// Preview of Excel Services support
+	// ---------------------------------
+	// These attributes are just placeholders to test
+	// For Excel Services support you should create a .dll that references that 
+	// real Microsoft assembly.
+	// The Microsoft assembly also needs to be in the same directory as the UDF library,
+	// or in the GAC.
+	// Then just add the .dll as an ExternalLibrary in the .dna file.
+    namespace Microsoft.Office.Excel.Server.Udf
+    {
+
+	    [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
+	    public class UdfClassAttribute : Attribute {}
+
+	    [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
+	    public class UdfMethodAttribute : Attribute {}
+    }
+
+    
+
+    [Microsoft.Office.Excel.Server.Udf.UdfClass]
+    public class Test
+    {
+    	[Microsoft.Office.Excel.Server.Udf.UdfMethod] // No support for IsVolatile yet!
+    	public string Addabc(string s)
+    	{
+    		return "abc" + s;
+    	}
+
+    }
+]]>
+</DnaLibrary>
