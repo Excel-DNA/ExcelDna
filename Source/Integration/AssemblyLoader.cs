@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005, 2006 Govert van Drimmelen
+  Copyright (C) 2005, 2006, 2007 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -37,11 +37,6 @@ namespace ExcelDna.Integration
         static public List<MethodInfo> GetExcelMethods(Assembly assembly)
         {
             List<MethodInfo> methods = new List<MethodInfo>();
-            
-            // CONSIDER: Can the assembly resolve be handled better?
-            // Where should it live?
-            SetExcelDnaAssemblyResolve();
-
             Type[] types = assembly.GetTypes();
             foreach (Type t in types)
             {
@@ -67,9 +62,6 @@ namespace ExcelDna.Integration
             // TODO: How to make sure this adds no overhead? 
             // Maybe add a new attribute to ExternalLibrary?
             methods.AddRange(AssemblyLoaderExcelServer.GetExcelMethods(assembly));
-
-            ClearExcelDnaAssemblyResolve();
-
             return methods;
         }
 
@@ -85,7 +77,6 @@ namespace ExcelDna.Integration
 		static public List<ExcelAddInInfo> GetExcelAddIns(Assembly assembly)
 		{
 			List<ExcelAddInInfo> addIns = new List<ExcelAddInInfo>();
-            SetExcelDnaAssemblyResolve();
             Type[] types = assembly.GetTypes();
 			foreach (Type t in types)
 			{
@@ -100,7 +91,6 @@ namespace ExcelDna.Integration
 					addIns.Add(info);
 				}
 			}
-            ClearExcelDnaAssemblyResolve();
 			return addIns;
 		}
 
