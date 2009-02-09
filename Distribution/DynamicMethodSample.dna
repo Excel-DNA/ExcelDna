@@ -1,0 +1,75 @@
+<DnaLibrary Name="ExcelDna Test Dynamic Method" Language="C#">
+	<!--
+		This example shows how to dynamically create a method and register it.
+	-->
+	
+	<![CDATA[
+	using System;
+	using System.Collections.Generic;
+	using System.Reflection;
+	using System.Reflection.Emit;
+	using ExcelDna.Integration;
+
+	public class Test : IExcelAddIn
+	{
+		public void AutoOpen()
+		{
+			DynamicMethod mult = new DynamicMethod("MyMultiply",
+																typeof(double),
+																new Type[] {typeof(double), typeof(double)},
+																typeof(Test));
+			ILGenerator il = mult.GetILGenerator();
+			il.Emit(OpCodes.Ldarg_0);
+			il.Emit(OpCodes.Ldarg_1);
+			il.Emit(OpCodes.Mul);
+			il.Emit(OpCodes.Ret);
+			// Method will be completed when CreateDelegate is called during registration.
+
+			// Registration takes a list of methods - the registration
+			// creates a new assembly and a type every time it is called.
+			List<MethodInfo> methods = new List<MethodInfo>();
+			methods.Add(mult);
+			
+			Integration.RegisterMethods(methods);
+		}
+
+		public void AutoClose()
+		{
+		}
+
+		public static double MyAdd(double d1, double d2)
+		{
+			return d1 + d2;
+		}
+		
+		public static double MyMean(double[] values)
+		{
+			if (values.Length == 0)
+				return double.NaN;
+
+			double sum = 0;
+			for (int i = 0; i < values.Length; i++)
+			{
+				sum += values[i];
+			}
+			return sum / values.Length;
+		}
+
+		public static double MyMeanObjects(object[] values)
+		{
+			int length = 0;
+			double sum = 0;
+			for (int i = 0; i < values.Length; i++)
+			{
+				if (values[i] is double)
+				{
+					double d = (double)values[i];
+					length++;
+					sum += d;
+				}
+			}
+			return sum / length;
+		}
+}
+	]]>
+</DnaLibrary>

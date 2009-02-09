@@ -1,0 +1,22 @@
+<DnaLibrary Name="ExcelDna MTR Test AddIn" Language="C#">
+<![CDATA[
+	using System;
+	using ExcelDna.Integration;
+
+	public class TheFunctions
+	{		
+		[ExcelFunction(Category="MTR Test Functions")]
+		public static object NonMtrFunction(object arg)
+		{ 
+			return arg;	
+		}
+
+		[ExcelFunction(Category="MTR Test Functions", IsThreadSafe=true)]
+		public static object MtrFunction(object arg)
+		{
+			System.Threading.Thread.Sleep(1000);
+			return arg;
+		}
+	}
+]]>
+</DnaLibrary>

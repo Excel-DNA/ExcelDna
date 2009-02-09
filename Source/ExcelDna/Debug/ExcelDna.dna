@@ -1,0 +1,89 @@
+<DnaLibrary Language="CS">
+   <![CDATA[
+    using ExcelDna.Integration;
+    using System.Diagnostics;
+    
+    public class Test
+    {
+/////////////////////////
+// New marshaling
+
+
+    public static object testIs()
+    {
+        Stopwatch sw = new Stopwatch();
+        object obj = (int)4;
+        sw.Start();
+        for (long i = 1; i < 10000000; i++)
+        {
+            if (typeof(double).IsInstanceOfType(obj) ||
+                typeof(Stopwatch).IsInstanceOfType(obj) ||
+                typeof(byte).IsInstanceOfType(obj))
+            {
+                return -1;
+            }
+        }
+        sw.Stop();
+        return (sw.Elapsed.Seconds * 1000) + sw.Elapsed.Milliseconds; 
+    }
+
+    
+
+
+
+
+
+
+//////////////////////////////
+/*
+
+
+
+      public static string AppVer()
+      {
+      object app = ExcelDnaUtil.Application;
+      if (app == null)
+      return "--NULL--";
+      else
+        return app.ToString();
+      }
+    
+        public static double aDays360(double start_date,
+                                      double end_date,
+                                      bool method)
+        {
+            return (double)XlCall.Excel(XlCall.xlfDays360,
+                                        start_date,
+                                        end_date,
+                                        method);
+	}
+
+        public static object aYearFrac(double start_date,
+                                       double end_date,
+                                       double basis)
+        {
+            string formula = string.Format("YEARFRAC({0}, {1}, {2})", start_date, end_date, basis);
+            return XlCall.Excel(XlCall.xlfEvaluate, formula);
+        }
+
+public static string ExcelVersionString()
+{
+	return ExcelDnaUtil.ExcelVersion.ToString();
+}
+
+		[ExcelFunction(Category="MTR Test Functions")]
+		public static object NonMtrFunction(object arg)
+		{ 
+			return arg;	
+		}
+
+		[ExcelFunction(Category="MTR Test Functions", IsThreadSafe=true)]
+		public static object MtrFunction(object arg)
+		{
+			System.Threading.Thread.Sleep(1000);
+			return arg;
+		}
+*/
+    }
+    ]]>
+</DnaLibrary>
