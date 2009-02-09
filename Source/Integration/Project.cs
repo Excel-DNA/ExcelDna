@@ -173,14 +173,11 @@ namespace ExcelDna.Integration
 
 			if (cr.Errors.HasErrors)
 			{
-				// TODO: Manage Errors / Output
-				StringBuilder Errors = new StringBuilder();
-				Errors.AppendLine("There were errors when compiling project: " + Name);
+                ExcelDna.Logging.LogDisplay.WriteLine("There were errors when compiling project: " + Name);
 				foreach (CompilerError err in cr.Errors)
 				{
-					Errors.AppendLine(err.ToString());
+                    ExcelDna.Logging.LogDisplay.WriteLine(err.ToString());
 				}
-                ExcelDna.Logging.LogDisplay.SetText(Errors.ToString());
 				return list;
 			}
 

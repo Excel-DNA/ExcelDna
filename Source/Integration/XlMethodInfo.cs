@@ -88,10 +88,10 @@ namespace ExcelDna.Integration
 				ReturnType = null;
 				// HACK: Check that there are no other parameters
 				// Does Excel allow macros with parameters?
-				if (targetMethod.GetParameters().Length > 0)
-				{
-					throw new DnaMarshalException("Macros with parameters are not supported.");
-				}
+                if (targetMethod.GetParameters().Length > 0)
+                {
+                    throw new DnaMarshalException("Macros with parameters are not supported.");
+                }
 			}
 			else
 			{
