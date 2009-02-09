@@ -1,0 +1,8 @@
+Version 0.2 (20 Feb 2006)
+-------------------------
+* Ensure that library is initialized when xlAddInManagerInfo is called. Thanks Stepan Radkovsky for the help.
+* Changed the attribute on DnaLibrary that determines Add-In display name to 'Name'.
+
+Version 0.1 (16 Jan 2006)
+-------------------------
+* Initial version
