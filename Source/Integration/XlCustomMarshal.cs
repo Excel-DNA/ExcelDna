@@ -733,22 +733,8 @@ namespace ExcelDna.Integration
 					managed = pOper->numValue;
 					break;
 				case XlType.XlTypeString:
-                    if ((IntPtr)pOper->pstrValue == IntPtr.Zero)
-                        managed = null;
-                    else
-                    {
-                        byte length = *(byte*)pOper->pstrValue;
-                        byte* pData = (byte*)pOper->pstrValue + 1;
-                        string str = new string('\0', length);
-                        fixed (char* pChars = str)
-                        {
-                            for (int i = 0; i < length; i++)
-                            {
-                                pChars[i] = (char)pData[i];
-                            }
-                        }
-                        managed = str;
-                    }
+                    XlString* pString = pOper->pstrValue;
+                    managed = new string((sbyte*)pString->Data, 0, pString->Length, Encoding.ASCII);
 					break;
 				case XlType.XlTypeBoolean:
 					managed = pOper->boolValue == 1;
@@ -941,7 +927,7 @@ namespace ExcelDna.Integration
 				throw new InvalidOperationException("Damaged XlObjectArrayMarshaler rank");
 			}
 
-			int numStrings = 0;
+            int cbNativeStrings = 0;
 			int numReferenceOpers = 0;
 			int numReferences = 0;
 
@@ -983,11 +969,13 @@ namespace ExcelDna.Integration
 				}
 				else if (obj is string)
 				{
-					pOper->xlType = XlType.XlTypeString;
-					// First we count all of these, 
-					// later allocate memory and return to fix pointers
-					numStrings++;
-				}
+					// We count all of the string lengths, 
+                    string str = (string)obj;
+                    cbNativeStrings += Math.Min(str.Length, 255) + 1;
+                    // mark the Oper as a string, and
+                    // later allocate memory and return to fix pointers
+                    pOper->xlType = XlType.XlTypeString;
+                }
 				else if (obj is DateTime)
 				{
 					pOper->numValue = ((DateTime)obj).ToOADate();
@@ -1076,14 +1064,13 @@ namespace ExcelDna.Integration
 			} // end of first pass
 
 			// Now handle strings
-			if (numStrings > 0)
+			if (cbNativeStrings > 0)
 			{
 				// Allocate room for all the strings
-                int cbNativeStrings = numStrings * Marshal.SizeOf(typeof(XlString));
-				pNativeStrings = Marshal.AllocCoTaskMem(cbNativeStrings);
-				// Go through the Opers and set each string
-				int stringIndex = 0;
-				for (int i = 0; i < rows * columns && stringIndex < numStrings; i++)
+                pNativeStrings = Marshal.AllocCoTaskMem(cbNativeStrings);
+                // Go through the Opers and set each string
+                byte* pCurrent = (byte*)pNativeStrings;
+				for (int i = 0; i < rows * columns; i++)
 				{
 					// Get the corresponding oper
 					pOper = (XlOper*)pNative + i + 1;
@@ -1102,17 +1089,17 @@ namespace ExcelDna.Integration
 							str = (string)((object[,])ManagedObj)[row, column];
 						}
 
-						// Create and set the string
-						XlString* pXlString = 
-							(XlString*)pNativeStrings + stringIndex;
+                        XlString* pXlString = (XlString*)pCurrent;
 						pOper->pstrValue = pXlString;
 						int charCount = Math.Min(str.Length, 255);
 						fixed (char* psrc = str)
 						{
-							int written = Encoding.ASCII.GetBytes(psrc, charCount,pXlString->Data, 255);
+                            // Write the data and length to the XlString
+							int written = Encoding.ASCII.GetBytes(psrc, charCount, pXlString->Data, 255);
 							pXlString->Length = (byte)written;
-						}
-						stringIndex++;
+                            // Increment pointer within allocated memory
+                            pCurrent += written + 1;
+                        }
 					}
 				}
 			}
@@ -1159,7 +1146,7 @@ namespace ExcelDna.Integration
 			if (!isExcel4v)
 			{
 				// For big arrays, ensure that Excel allows us to free the memory
-				if (rows * columns * 16 + numStrings * 256 + numReferences * 8 > 1024)
+                if (rows * columns * 16 + cbNativeStrings + numReferences * 8 > 1024)
 					pOper->xlType |= XlType.XlBitDLLFree;
 
 				// We are done
@@ -1266,46 +1253,18 @@ namespace ExcelDna.Integration
                 nestedInstances.Clear();
             }
 
-//            ZeroMemory(pNative, cbNative);
-//            cbNative = 0;
             Marshal.FreeCoTaskMem(pNative);
             pNative = IntPtr.Zero;
 
-//            ZeroMemory(pNativeStrings, cbNativeStrings);
-//            cbNativeStrings = 0;
             Marshal.FreeCoTaskMem(pNativeStrings);
             pNativeStrings = IntPtr.Zero;
 
-//            ZeroMemory(pNativeReferences, cbNativeReferences);
-//            cbNativeReferences = 0;
             Marshal.FreeCoTaskMem(pNativeReferences);
             pNativeReferences = IntPtr.Zero;
 
-//            ZeroMemory(pOperPointers, cbOperPointers);
-//            cbOperPointers = 0;
             Marshal.FreeCoTaskMem(pOperPointers);
             pOperPointers = IntPtr.Zero;
         }
-
-
-        //// 13 November 2006 -- Temp memory zero helper (There must be an easier way!)
-        //private unsafe static void ZeroMemory(IntPtr ptr, int cb)
-        //{
-        //    byte* p = (byte*)ptr;
-        //    // Loop over the count in blocks of 4 bytes
-        //    for (int i = 0; i < cb / 4; i++)
-        //    {
-        //        *((int*)p) = (int)0;
-        //        p += 4;
-        //    }
-
-        //    // Complete by setting any bytes that weren't set in blocks of 4:
-        //    for (int i = 0; i < cb % 4; i++)
-        //    {
-        //        *p = (byte)0;
-        //        p++;
-        //    }
-        //}
 	}
 
     // We would prefer to get a double, but need to take 
