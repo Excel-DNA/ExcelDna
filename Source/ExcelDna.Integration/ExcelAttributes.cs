@@ -37,6 +37,7 @@ namespace ExcelDna.Integration
         public bool   IsHidden = false;
 		public bool   IsExceptionSafe = false;
 		public bool   IsMacroType = false;
+        public bool   IsThreadSafe = false;
 
 		public ExcelFunctionAttribute()
 		{
