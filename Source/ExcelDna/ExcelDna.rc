@@ -7,8 +7,7 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "afxres.h"
-
+#include "afxres.h"
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
@@ -57,8 +56,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,16,0,1
- PRODUCTVERSION 0,16,0,1
+ FILEVERSION 0,17,0,1
+ PRODUCTVERSION 0,17,0,1
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -76,12 +75,12 @@ BEGIN
             VALUE "Comments", "Unmanaged loader shim for ExcelDna Add-Ins"
             VALUE "CompanyName", "Govert van Drimmelen"
             VALUE "FileDescription", "ExcelDna Dynamic Link Library"
-            VALUE "FileVersion", "0, 16, 0, 1"
+            VALUE "FileVersion", "0, 17, 0, 1"
             VALUE "InternalName", "ExcelDna"
             VALUE "LegalCopyright", "Copyright (C) 2005-2008 Govert van Drimmelen"
             VALUE "OriginalFilename", "ExcelDna.xll"
             VALUE "ProductName", "ExcelDna Add-In Framework for Microsoft Excel"
-            VALUE "ProductVersion", "0, 16, 0, 1"
+            VALUE "ProductVersion", "0, 17, 0, 1"
         END
     END
     BLOCK "VarFileInfo"
@@ -115,13 +114,13 @@ END
 
 STRINGTABLE 
 BEGIN
-    IDS_MSG_TEMPLATE        "%1\r\n%2\r\n%3\r\n%4\r\n(This add-in is built with ExcelDna and is being loaded from the following location:\r\n\t%5.)"
+    IDS_MSG_TEMPLATE        "%1\r\n%2\r\n%3\r\n%4\r\nThis add-in is built with ExcelDna and is being loaded from the following location:\r\n\t%5."
     IDS_MSG_HEADER_NEEDCLR20 
-                            "This Excel add-in requires the Microsoft .NET Framework Version 2.0 or later.\r\nA problem occurred while attempting to load the .NET runtime:"
+                            "This Excel add-in requires the Microsoft .NET Framework 2.0 or later.\r\n\r\nA problem occurred while attempting to load the .NET runtime:"
     IDS_MSG_BODY_LOADMSCOREE 
                             "\tExcelClrLoader - Could not load library mscoree.dll.\r\nThis error can occur if the .NET framework is not installed."
     IDS_MSG_FOOTER_ENSURECLR20 
-                            "\r\nPlease ensure that the Microsoft .NET Framework Version 2.0 or later is installed before loading the add-in."
+                            "\r\nPlease ensure that the Microsoft .NET Framework 2.0 or later is installed before loading the add-in."
     IDS_MSG_BODY_CORBINDFAILED 
                             "\tExcelClrLoader - CorBindToRuntimeEx failed.\r\nThis error can occur if the .NET runtime is not installed, if version 2.0 or later is not installed, if the AppPatch registry entries are incorrect, or if there is an excel.exe.config configuration file restricting the versions of the .NET runtime that can be loaded by Excel."
     IDS_MSG_FOOTER_ENSURECLR20ANDLOAD 
@@ -132,7 +131,7 @@ BEGIN
     IDS_MSG_BODY_OLDVERSION "Although the required runtime is installed, an older version has been loaded by Excel (only one version of the runtime can be loaded).\r\nThis is possible if another managed add-in caused the runtime to load, using the incorrectly installed AppPatch policy."
     IDS_MSG_FOOTER_OLDVERSION 
                             "Review the other managed Excel add-ins that are loaded, or ensure that the .NET 2.0 runtime loads by setting an appropriate 'supportedRuntime' entry in a configuration file for Excel (Excel.exe.config)."
-    IDS_MSG_BODY_NONET20    "The Microsoft .NET Framework Version 2.0 or later was not detected on this machine."
+    IDS_MSG_BODY_NONET20    "The Microsoft .NET Framework 2.0 or later was not detected on this machine."
     IDS_MSG_BODY_NOCORBIND  "\tExcelClrLoader - Could not get proc address for CorBindToRuntimeEx."
     IDS_MSG_BODY_NOCORVERSION 
                             "\tExcelClrLoader - Could not get proc address for GetCORVersion."
@@ -181,8 +180,7 @@ EXCELDNA_INTEGRATION    ASSEMBLY                "Debug\\ExcelDna.Integration.dll
 #else
 EXCELDNA_LOADER         ASSEMBLY                "Release\\ExcelDna.Loader.dll"
 EXCELDNA_INTEGRATION    ASSEMBLY                "Release\\ExcelDna.Integration.dll"
-#endif
-
+#endif
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 

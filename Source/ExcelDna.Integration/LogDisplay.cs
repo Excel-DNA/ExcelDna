@@ -23,18 +23,25 @@ namespace ExcelDna.Logging
 
         public void SetText(string message)
         {
+            string[] messageLines = message.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             listBoxErrors.Items.Clear();
-            listBoxErrors.Items.Add(message);
+            foreach (string line in messageLines)
+            {
+                listBoxErrors.Items.Add(line);
+            }
         }
 
         public void AppendText(string message)
         {
-            listBoxErrors.Items.Add(message);
+            string[] messageLines = message.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string line in messageLines)
+            {
+                listBoxErrors.Items.Add(line);
+            }
             // Select last item ... and clear.
             listBoxErrors.SelectedItems.Clear();
             listBoxErrors.SelectedItem = listBoxErrors.Items[listBoxErrors.Items.Count - 1];
             listBoxErrors.SelectedItems.Clear();
-
         }
     }
     

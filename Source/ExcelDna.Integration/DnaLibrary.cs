@@ -234,6 +234,13 @@ namespace ExcelDna.Integration
                 currentLibrary = new DnaLibrary();
 		}
 
+        internal static void DeInitialize()
+        {
+            // Called to shut down the Add-In.
+            // Free whatever possible
+            currentLibrary = null;
+        }
+
         internal static DnaLibrary LoadFrom(string fileName)
         {
             DnaLibrary dnaLibrary;
@@ -267,7 +274,7 @@ namespace ExcelDna.Integration
 
 		public static DnaLibrary CurrentLibrary
 		{
-            // Might be called before Initialize()
+            // Might be called before Initialize
             // e.g. if Excel called AddInManagerInfo before AutoOpen
 			get
 			{

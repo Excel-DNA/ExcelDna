@@ -88,6 +88,25 @@ namespace ExcelDna.Integration
             DnaLibrary.Initialize();
         }
 
+        internal static void DeInitialize()
+        {
+            DnaLibrary.DeInitialize();
+        }
+
+        internal static void DnaLibraryAutoOpen()
+        {
+            DnaLibrary.CurrentLibrary.AutoOpen();
+        }
+
+        internal static void DnaLibraryAutoClose()
+        {
+            DnaLibrary.CurrentLibrary.AutoClose();
+        }
+
+        internal static string DnaLibraryGetName()
+        {
+            return DnaLibrary.CurrentLibrary.Name;
+        }
     }
 
     [Obsolete("Use ExcelDna.Integration.Integration class")]

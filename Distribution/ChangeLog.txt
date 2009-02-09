@@ -1,3 +1,19 @@
+Version 0.17 (26 December 2008)
+-------------------------------
+* The system codepage is used for string conversions for Excel versions pre 2007 (thanks to Martin Drescher).
+* IsInFunctionWizard now returns false when called from the Find/Replace dialog box on English verisons of Excel.
+* When the .xll is reloaded via File->Open, I do a close and open, which reloads the .dna file.
+* Excel 2007 data types are now supported - references to cells in the large sheet, and long Unicode strings work as expected.
+* ExcelDnaUtil.ExcelVersion returns the Excel version.
+* ExcelDnaUtil.ExcelLimits returns version-specific limits.
+* ExcelDna.Integration.ExcelEmpty and ...ExcelMissing types added.
+* Internal references (SRefs) are no longer exposed - all ExcelReference objects returned by ExcelDna now have a SheetId filled in.
+* BREAKING CHANGES: In preparation for restructuring the marshaling works, I have made some breaking changes to the types passed into UDFs:
+   - For arguments to UDF functions that are declared as type object, the new types ExcelDna.Integration.ExcelMissing and ExcelDna.Integration.ExcelEmpty are used - these replace 'null' values and System.Reflection.Missing respectively. Please study the Describe function in MoreSamples.dna carefully.
+   - Changed ExcelReference.SheetId to be a uint everywhere.
+   ? If you find any of these changes unbearable, please let me know asap.
+   		
+
 Version 0.16 (3 September 2008)
 -------------------------------
 * Move IsHidden field from ExcelCommandAttribute to ExcelFunctionAttribute to enable 'hidden' functions.
@@ -14,7 +30,7 @@ The 'Excel' class could be confused with the COM Interop class.
 Version 0.14 (21 July 2008)
 ---------------------------
 * New unmanaged loader architecture.
-* Every Add-In is loaded into it's own AppDomain.
+* Every Add-In is loaded into its own AppDomain.
 * No MSVC*.dll dependency.
 * Clear messages if runtime is not present or wrong version is loaded.
 * Visual Studio 2008 solution and projects.
@@ -68,4 +84,4 @@ Version 0.2 (20 Feb 2006)
 
 Version 0.1 (16 Jan 2006)
 -------------------------
-* Initial version
+* Initial version on .Net 2.0 release.

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{59AE5BC6-F37E-4CE3-BAE3-796F807A9882}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyManager.cs" />
+    <Compile Include="XlCustomMarshal12.cs" />
     <Compile Include="IntegrationHelpers.cs" />
     <Compile Include="XlCallImpl.cs" />
     <Compile Include="XlCustomMarshal.cs" />
