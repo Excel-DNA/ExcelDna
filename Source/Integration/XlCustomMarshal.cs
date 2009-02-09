@@ -679,22 +679,29 @@ namespace ExcelDna.Integration
 				pOper->xlType = XlType.XlTypeNumber;
 				return pNative;
 			}
-			else if (ManagedObj == null)
-			{
-				// This is never the case for regular marshaling, only for 
-				// return value for Excel4 function
-				XlOper* pOper = (XlOper*)pNative;
-				pOper->xlType = XlType.XlTypeEmpty;
-				return pNative;
-			}
-			else
-			{
-				// Default error return
-				XlOper* pOper = (XlOper*)pNative;
-				pOper->errValue = ExcelError.ExcelErrorValue;
-				pOper->xlType = XlType.XlTypeError;
-				return pNative;
-			}
+            else if (ManagedObj is decimal)
+            {
+                XlOper* pOper = (XlOper*)pNative;
+                pOper->numValue = (double)((decimal)ManagedObj);
+                pOper->xlType = XlType.XlTypeNumber;
+                return pNative;
+            }
+            else if (ManagedObj == null)
+            {
+                // This is never the case for regular marshaling, only for 
+                // return value for Excel4 function
+                XlOper* pOper = (XlOper*)pNative;
+                pOper->xlType = XlType.XlTypeEmpty;
+                return pNative;
+            }
+            else
+            {
+                // Default error return
+                XlOper* pOper = (XlOper*)pNative;
+                pOper->errValue = ExcelError.ExcelErrorValue;
+                pOper->xlType = XlType.XlTypeError;
+                return pNative;
+            }
 		}
 
 		unsafe public object MarshalNativeToManaged(IntPtr pNativeData)
@@ -710,8 +717,13 @@ namespace ExcelDna.Integration
 					managed = pOper->numValue;
 					break;
 				case XlType.XlTypeString:
+                    // Null check added after reported crashes 
+                    // 25 April 2006
 					XlString* pString = (XlString*)pOper->pstrValue;
-					managed = new string((sbyte*)pString->Data, 0, pString->Length);
+                    if (pString == (XlString*)0)
+                        managed = null;
+                    else
+					    managed = new string((sbyte*)pString->Data, 0, pString->Length);
 					break;
 				case XlType.XlTypeBoolean:
 					managed = pOper->boolValue == 1;
@@ -964,56 +976,61 @@ namespace ExcelDna.Integration
 					pOper->numValue = (double)((int)obj);
 					pOper->xlType = XlType.XlTypeNumber;
 				}
-				else if (obj is ExcelReference)
-				{
-					pOper->xlType = XlType.XlTypeReference;
-					// First we count all of these, 
-					// later allocate memory and return to fix pointers
-					numReferenceOpers++;
-					numReferences += ((ExcelReference)obj).InnerReferences.Count;
-				}
-				else if (obj is object[])
-				{
-					XlObjectArrayMarshaler m = new XlObjectArrayMarshaler(1, false);
-					nestedInstances.Add(m);
-					XlOper* pNested = (XlOper*)m.MarshalManagedToNative(obj);
-					pOper->xlType = XlType.XlTypeArray;
-					pOper->arrayValue.Rows = pNested->arrayValue.Rows;
-					pOper->arrayValue.Columns = pNested->arrayValue.Columns;
-					pOper->arrayValue.pOpers = pNested->arrayValue.pOpers;
-				}
-				else if (obj is object[,])
-				{
-					XlObjectArrayMarshaler m = new XlObjectArrayMarshaler(2, false);
-					nestedInstances.Add(m);
-					XlOper* pNested = (XlOper*)m.MarshalManagedToNative(obj);
-					pOper->xlType = XlType.XlTypeArray;
-					pOper->arrayValue.Rows = pNested->arrayValue.Rows;
-					pOper->arrayValue.Columns = pNested->arrayValue.Columns;
-					pOper->arrayValue.pOpers = pNested->arrayValue.pOpers;
-				}
-				else if (obj is Missing)
-				{
-					pOper->xlType = XlType.XlTypeMissing;
-				}
-				else if (obj == null)
-				{
-					// DOCUMENT: I return Empty for nulls inside the Array, 
-					// which is not consistent with what happens in other settings.
-					// In particular not consistent with the results of the XlObjectMarshaler
-					// (which is not called when a null is returned,
-					// and interpreted as ExcelErrorNum in Excel)
-					// This works well for xlSet though.
-					// CONSIDER: Create an ExcelEmpty type to allow this to be more explicit,
-					// and return ErrNum here
-					pOper->xlType = XlType.XlTypeEmpty;
-				}
-				else
-				{
-					// Default error return
-					pOper->errValue = ExcelError.ExcelErrorValue;
-					pOper->xlType = XlType.XlTypeError;
-				}
+                else if (obj is decimal)
+                {
+                    pOper->numValue = (double)((decimal)obj);
+                    pOper->xlType = XlType.XlTypeNumber;
+                }
+                else if (obj is ExcelReference)
+                {
+                    pOper->xlType = XlType.XlTypeReference;
+                    // First we count all of these, 
+                    // later allocate memory and return to fix pointers
+                    numReferenceOpers++;
+                    numReferences += ((ExcelReference)obj).InnerReferences.Count;
+                }
+                else if (obj is object[])
+                {
+                    XlObjectArrayMarshaler m = new XlObjectArrayMarshaler(1, false);
+                    nestedInstances.Add(m);
+                    XlOper* pNested = (XlOper*)m.MarshalManagedToNative(obj);
+                    pOper->xlType = XlType.XlTypeArray;
+                    pOper->arrayValue.Rows = pNested->arrayValue.Rows;
+                    pOper->arrayValue.Columns = pNested->arrayValue.Columns;
+                    pOper->arrayValue.pOpers = pNested->arrayValue.pOpers;
+                }
+                else if (obj is object[,])
+                {
+                    XlObjectArrayMarshaler m = new XlObjectArrayMarshaler(2, false);
+                    nestedInstances.Add(m);
+                    XlOper* pNested = (XlOper*)m.MarshalManagedToNative(obj);
+                    pOper->xlType = XlType.XlTypeArray;
+                    pOper->arrayValue.Rows = pNested->arrayValue.Rows;
+                    pOper->arrayValue.Columns = pNested->arrayValue.Columns;
+                    pOper->arrayValue.pOpers = pNested->arrayValue.pOpers;
+                }
+                else if (obj is Missing)
+                {
+                    pOper->xlType = XlType.XlTypeMissing;
+                }
+                else if (obj == null)
+                {
+                    // DOCUMENT: I return Empty for nulls inside the Array, 
+                    // which is not consistent with what happens in other settings.
+                    // In particular not consistent with the results of the XlObjectMarshaler
+                    // (which is not called when a null is returned,
+                    // and interpreted as ExcelErrorNum in Excel)
+                    // This works well for xlSet though.
+                    // CONSIDER: Create an ExcelEmpty type to allow this to be more explicit,
+                    // and return ErrNum here
+                    pOper->xlType = XlType.XlTypeEmpty;
+                }
+                else
+                {
+                    // Default error return
+                    pOper->errValue = ExcelError.ExcelErrorValue;
+                    pOper->xlType = XlType.XlTypeError;
+                }
 			} // end of first pass
 
 			// Now handle strings
@@ -1186,4 +1203,49 @@ namespace ExcelDna.Integration
 
 		public int GetNativeDataSize() { return -1; }
 	}
+
+    // We would prefer to get a double, but need to take 
+    // XlOper to ensure marshaling
+    internal unsafe class XlDecimalParameterMarshaler : ICustomMarshaler
+    {
+        static ICustomMarshaler instance;
+
+        public XlDecimalParameterMarshaler()
+        {
+        }
+
+        public static ICustomMarshaler GetInstance(string marshalCookie)
+        {
+            if (instance == null)
+                instance = new XlDecimalParameterMarshaler();
+            return instance;
+        }
+
+        public IntPtr MarshalManagedToNative(object ManagedObj)
+        {
+            // Not working in this direction at the moment
+            throw new NotImplementedException("This marshaler only used for native to managed parameter marshaling.");
+            //return null;
+        }
+
+        public object MarshalNativeToManaged(IntPtr pNativeData)
+        {
+            try
+            {
+                return (decimal)*((double*)pNativeData);
+            }
+            catch
+            {
+                // This case is where the range of the decimal is exceeded.
+                // By returning null, the unboxing code will fail,
+                // causing a runtime exception that is caught and returned as a #Value error.
+                return null;
+            }
+        }
+
+        public void CleanUpManagedData(object ManagedObj) { }
+        public void CleanUpNativeData(IntPtr pNativeData) { } // Can't do anything useful here, as the managed to native marshaling is for a return parameter.
+        public int GetNativeDataSize() { return -1; }
+    }
+
 }

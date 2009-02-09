@@ -122,3 +122,6 @@ c:\windows\microsoft.net\framework\v2.0.50727\csc.exe /target:library /reference
 
 * Reload the .xll and check =MultiplyThem(2,3)
 
+4. Additional samples
+---------------------
+Included in the distribution is a file, MoreSamples.dna, containing samples of Excel integration and showing more of the functionality of ExcelDna. To use it, make a copy of ExcelDna.xll called MoreSamples.xll (matching the .dna name), and open MoreSamples.xll in Excel.

@@ -1,6 +1,7 @@
 ExcelDna Reference
 ==================
 
+
 Data type marshaling
 ====================
 
@@ -17,6 +18,7 @@ Boolean (bool) -- returns an Excel bool (maybe string is better to return to Exc
 Int32 (int)
 Int16 (short)
 UInt16 (ushort)
+Decimal
 
 incoming function parameters of type Object will only arrive as one of the following:
 Double
@@ -43,6 +45,7 @@ ExcelDna.Integration.ExcelError
 Int32 (int)
 Int16 (short)
 UInt16 (ushort)
+Decimal
 null reference returns #NUM! error
 otherwise return #VALUE! error
 

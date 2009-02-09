@@ -1,7 +1,7 @@
 namespace Microsoft.Xml.Serialization.GeneratedAssembly
 {
 
-    internal class XmlSerializationWriterDnaLibrary : System.Xml.Serialization.XmlSerializationWriter
+    public class XmlSerializationWriterDnaLibrary : System.Xml.Serialization.XmlSerializationWriter
     {
 
         public void Write7_DnaLibrary(object o)
@@ -36,7 +36,7 @@ namespace Microsoft.Xml.Serialization.GeneratedAssembly
             }
             WriteStartElement(n, ns, o, false, null);
             if (needType) WriteXsiType(null, @"");
-            WriteAttribute(@"Description", @"", ((global::System.String)o.@Description));
+            WriteAttribute(@"Name", @"", ((global::System.String)o.@Name));
             WriteAttribute(@"Language", @"", ((global::System.String)o.@Language));
             WriteAttribute(@"DefaultReferences", @"", System.Xml.XmlConvert.ToString((global::System.Boolean)((global::System.Boolean)o.@DefaultReferences)));
             WriteAttribute(@"DefaultImports", @"", System.Xml.XmlConvert.ToString((global::System.Boolean)((global::System.Boolean)o.@DefaultImports)));
@@ -206,7 +206,7 @@ namespace Microsoft.Xml.Serialization.GeneratedAssembly
         }
     }
 
-    internal class XmlSerializationReaderDnaLibrary : System.Xml.Serialization.XmlSerializationReader
+    public class XmlSerializationReaderDnaLibrary : System.Xml.Serialization.XmlSerializationReader
     {
 
         public object Read7_DnaLibrary()
@@ -256,9 +256,9 @@ namespace Microsoft.Xml.Serialization.GeneratedAssembly
             bool[] paramsRead = new bool[8];
             while (Reader.MoveToNextAttribute())
             {
-                if (!paramsRead[2] && ((object)Reader.LocalName == (object)id3_Description && (object)Reader.NamespaceURI == (object)id2_Item))
+                if (!paramsRead[2] && ((object)Reader.LocalName == (object)id3_Name && (object)Reader.NamespaceURI == (object)id2_Item))
                 {
-                    o.@Description = Reader.Value;
+                    o.@Name = Reader.Value;
                     paramsRead[2] = true;
                 }
                 else if (!paramsRead[4] && ((object)Reader.LocalName == (object)id4_Language && (object)Reader.NamespaceURI == (object)id2_Item))
@@ -278,7 +278,7 @@ namespace Microsoft.Xml.Serialization.GeneratedAssembly
                 }
                 else if (!IsXmlnsAttribute(Reader.Name))
                 {
-                    UnknownNode((object)o, @":Description, :Language, :DefaultReferences, :DefaultImports");
+                    UnknownNode((object)o, @":Name, :Language, :DefaultReferences, :DefaultImports");
                 }
             }
             Reader.MoveToElement();
@@ -422,7 +422,7 @@ namespace Microsoft.Xml.Serialization.GeneratedAssembly
             bool[] paramsRead = new bool[7];
             while (Reader.MoveToNextAttribute())
             {
-                if (!paramsRead[0] && ((object)Reader.LocalName == (object)id11_Name && (object)Reader.NamespaceURI == (object)id2_Item))
+                if (!paramsRead[0] && ((object)Reader.LocalName == (object)id3_Name && (object)Reader.NamespaceURI == (object)id2_Item))
                 {
                     o.@Name = Reader.Value;
                     paramsRead[0] = true;
@@ -466,7 +466,7 @@ namespace Microsoft.Xml.Serialization.GeneratedAssembly
                     {
                         if ((object)(a_2) == null) Reader.Skip(); else a_2.Add(Read3_Reference(false, true));
                     }
-                    else if (((object)Reader.LocalName == (object)id12_SourceItem && (object)Reader.NamespaceURI == (object)id2_Item))
+                    else if (((object)Reader.LocalName == (object)id11_SourceItem && (object)Reader.NamespaceURI == (object)id2_Item))
                     {
                         if ((object)(a_5) == null) Reader.Skip(); else a_5.Add(Read4_SourceItem(false, true));
                     }
@@ -513,7 +513,7 @@ namespace Microsoft.Xml.Serialization.GeneratedAssembly
             bool[] paramsRead = new bool[2];
             while (Reader.MoveToNextAttribute())
             {
-                if (!paramsRead[0] && ((object)Reader.LocalName == (object)id11_Name && (object)Reader.NamespaceURI == (object)id2_Item))
+                if (!paramsRead[0] && ((object)Reader.LocalName == (object)id3_Name && (object)Reader.NamespaceURI == (object)id2_Item))
                 {
                     o.@Name = Reader.Value;
                     paramsRead[0] = true;
@@ -578,7 +578,7 @@ namespace Microsoft.Xml.Serialization.GeneratedAssembly
             bool[] paramsRead = new bool[1];
             while (Reader.MoveToNextAttribute())
             {
-                if (!paramsRead[0] && ((object)Reader.LocalName == (object)id13_Path && (object)Reader.NamespaceURI == (object)id2_Item))
+                if (!paramsRead[0] && ((object)Reader.LocalName == (object)id12_Path && (object)Reader.NamespaceURI == (object)id2_Item))
                 {
                     o.@Path = Reader.Value;
                     paramsRead[0] = true;
@@ -619,39 +619,37 @@ namespace Microsoft.Xml.Serialization.GeneratedAssembly
         {
         }
 
-        string id12_SourceItem;
-        string id11_Name;
+        string id11_SourceItem;
+        string id3_Name;
         string id8_Project;
         string id6_DefaultImports;
-        string id13_Path;
+        string id12_Path;
         string id10_AssemblyPath;
         string id2_Item;
         string id5_DefaultReferences;
         string id4_Language;
-        string id3_Description;
         string id7_ExternalLibrary;
         string id1_DnaLibrary;
         string id9_Reference;
 
         protected override void InitIDs()
         {
-            id12_SourceItem = Reader.NameTable.Add(@"SourceItem");
-            id11_Name = Reader.NameTable.Add(@"Name");
+            id11_SourceItem = Reader.NameTable.Add(@"SourceItem");
+            id3_Name = Reader.NameTable.Add(@"Name");
             id8_Project = Reader.NameTable.Add(@"Project");
             id6_DefaultImports = Reader.NameTable.Add(@"DefaultImports");
-            id13_Path = Reader.NameTable.Add(@"Path");
+            id12_Path = Reader.NameTable.Add(@"Path");
             id10_AssemblyPath = Reader.NameTable.Add(@"AssemblyPath");
             id2_Item = Reader.NameTable.Add(@"");
             id5_DefaultReferences = Reader.NameTable.Add(@"DefaultReferences");
             id4_Language = Reader.NameTable.Add(@"Language");
-            id3_Description = Reader.NameTable.Add(@"Description");
             id7_ExternalLibrary = Reader.NameTable.Add(@"ExternalLibrary");
             id1_DnaLibrary = Reader.NameTable.Add(@"DnaLibrary");
             id9_Reference = Reader.NameTable.Add(@"Reference");
         }
     }
 
-    internal abstract class XmlSerializer1 : System.Xml.Serialization.XmlSerializer
+    public abstract class XmlSerializer1 : System.Xml.Serialization.XmlSerializer
     {
         protected override System.Xml.Serialization.XmlSerializationReader CreateReader()
         {
@@ -663,7 +661,7 @@ namespace Microsoft.Xml.Serialization.GeneratedAssembly
         }
     }
 
-    internal sealed class DnaLibrarySerializer : XmlSerializer1
+    public sealed class DnaLibrarySerializer : XmlSerializer1
     {
 
         public override System.Boolean CanDeserialize(System.Xml.XmlReader xmlReader)
@@ -682,7 +680,7 @@ namespace Microsoft.Xml.Serialization.GeneratedAssembly
         }
     }
 
-    internal class XmlSerializerContract : global::System.Xml.Serialization.XmlSerializerImplementation
+    public class XmlSerializerContract : global::System.Xml.Serialization.XmlSerializerImplementation
     {
         public override global::System.Xml.Serialization.XmlSerializationReader Reader { get { return new XmlSerializationReaderDnaLibrary(); } }
         public override global::System.Xml.Serialization.XmlSerializationWriter Writer { get { return new XmlSerializationWriterDnaLibrary(); } }
