@@ -1,2 +1,0 @@
-Q: How do I reference ExcelDna in my Visual Studio project?
-A: You need to rename the ExcelDna.xll to ExcelDna.dll to reference it in a Visual Studio project. When distributing your add-in, you can distribute your library and the ExcelDna.xll file. But you must not have both the .dll and .xll file in the directory of your add-in. (You can also redistribute with ExcelDna.xll renamed to YourAddin.xll, and have the corresponding YourAddin.dna.)
