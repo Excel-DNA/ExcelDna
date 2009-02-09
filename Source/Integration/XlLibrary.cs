@@ -158,7 +158,7 @@ namespace ExcelDna.Integration
 				// TODO: How do these interact ?
 				// DOCUMENT: If # is set and there is an R argument, 
 				// Excel considers the function volatile
-				// You cal call xlfVolatile, false in beginning of function to clear.
+				// You can call xlfVolatile, false in beginning of function to clear.
 				if (mi.IsMacroType)
 					functionType += "#";
 

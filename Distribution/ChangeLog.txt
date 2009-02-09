@@ -1,3 +1,7 @@
+Version 0.7 (24 November 2006)
+------------------------------
+* More changes to string marshaling - returned strings now allocated only to required length.
+
 Version 0.6 (15 November 2006)
 ------------------------------
 * Fixed Excel crash under stress for functions taking arrays of strings.
