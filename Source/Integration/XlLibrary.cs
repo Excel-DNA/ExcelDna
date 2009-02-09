@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005, 2006 Govert van Drimmelen
+  Copyright (C) 2005, 2006, 2007 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -164,16 +164,21 @@ namespace ExcelDna.Integration
             // DOCUMENT: When there is no description, we don't add any.
             // This allows the user to work around the Excel bug where an extra parameter is displayed if
             // the function has no parameter but displays a description
-            int numArgs;
-            if (!showDescriptions)
+            int numArguments;
+            // DOCUMENT: Maximum 20 Argument Descriptions when registering using Excel4 function.
+            int numArgumentDescriptions;
+            if (showDescriptions)
             {
-                numArgs = 9;
+                numArgumentDescriptions = Math.Min(argumentDescriptions.Length, 20);
+                numArguments = 10 + numArgumentDescriptions;
             }
             else
             {
-                numArgs = 10 + argumentDescriptions.Length;
+                numArgumentDescriptions = 0;
+                numArguments = 9;
             }
-            object[] registerParameters = new object[numArgs];
+
+            object[] registerParameters = new object[numArguments];
             registerParameters[0] = dllName;
             registerParameters[1] = procName;
             registerParameters[2] = functionType;
@@ -185,10 +190,11 @@ namespace ExcelDna.Integration
             registerParameters[7] = mi.ShortCut; /*shortcut_text*/
             registerParameters[8] = mi.HelpTopic; /*help_topic*/ ;
 
-            if (numArgs > 9)
+            if (showDescriptions)
             {
                 registerParameters[9] = functionDescription;
-                for (int k = 0; k < argumentDescriptions.Length; k++)
+
+                for (int k = 0; k < numArgumentDescriptions; k++)
                 {
                     registerParameters[10 + k] = argumentDescriptions[k];
                 }

@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005, 2006 Govert van Drimmelen
+  Copyright (C) 2005, 2006, 2007 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -142,6 +142,7 @@ namespace ExcelDna.Integration
         private List<AssemblyLoader.ExcelAddInInfo> _AddIns = new List<AssemblyLoader.ExcelAddInInfo>();
         internal void AutoOpen()
         {
+            AssemblyLoader.SetExcelDnaAssemblyResolve();
             List<MethodInfo> methods = new List<MethodInfo>();
 
             // Get MethodsInfos and AddIn classes from assemblies
@@ -192,6 +193,7 @@ namespace ExcelDna.Integration
                 }
             }
             _AddIns.Clear();
+            AssemblyLoader.SetExcelDnaAssemblyResolve();
         }
         
         // Statics
