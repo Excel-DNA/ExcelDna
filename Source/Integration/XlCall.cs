@@ -817,8 +817,10 @@ namespace ExcelDna.Integration
 		public static readonly int xlcVbaMakeAddin = (478 | xlCommand);
 		public static readonly int xlcMailSendMailer = (482 | xlCommand);
 
-		private static ICustomMarshaler marshalObject = XlObjectMarshaler.GetInstance("");
-		private static ICustomMarshaler marshalObjectArray = XlObjectArrayMarshaler.GetInstance("Excel4v");
+        // 13 November 2006
+        // Remove these and change TryExcel to try to find corrupt XLOPER crash
+		// private static ICustomMarshaler marshalObject = XlObjectMarshaler.GetInstance("");
+		// private static ICustomMarshaler marshalObjectArray = XlObjectArrayMarshaler.GetInstance("Excel4v");
 
 
 		[DllImport("XLCALL32.DLL")]
@@ -845,16 +847,31 @@ namespace ExcelDna.Integration
 
 		public unsafe static XlReturn TryExcel(int xlFunction, out object result, params object[] parameters)
 		{
-			result = null;
-			IntPtr pResult = marshalObject.MarshalManagedToNative(result);
-			IntPtr ppOperParameters = marshalObjectArray.MarshalManagedToNative(parameters);
-			XlReturn xlReturn = (XlReturn)Excel4v(xlFunction, pResult, parameters.Length, ppOperParameters);
-			marshalObjectArray.CleanUpNativeData(ppOperParameters);
+            XlReturn xlReturn;
 
-			result = marshalObject.MarshalNativeToManaged(pResult);
-			Excel4v(xlFree, (IntPtr)0, 1, (IntPtr)(&pResult));
-			return xlReturn;
-		}
+            // 13 November 2006 -- Create local instance of marshalers - this allows nesting of Excel calls
+
+            // Set up the memory to hold the result from the call
+            XlOper resultOper = new XlOper();
+            resultOper.xlType = XlType.XlTypeEmpty;
+            XlOper* pResultOper = &resultOper;
+
+            // Special kind of ObjectArrayMarshaler for the parameters (rank 1)
+            using (XlObjectArrayMarshaler paramMarshaler = new XlObjectArrayMarshaler(1, true))
+            {
+                IntPtr ppOperParameters = paramMarshaler.MarshalManagedToNative(parameters);
+                xlReturn = (XlReturn)Excel4v(xlFunction, (IntPtr)pResultOper, parameters.Length, ppOperParameters);
+            }
+
+            // pResultOper now holds the result of the evaluated function
+            // Get ObjectMarshaler for the return value
+            ICustomMarshaler m = XlObjectMarshaler.GetInstance("");
+            result = m.MarshalNativeToManaged((IntPtr)pResultOper);
+            // And free any memory allocated by Excel
+            Excel4v(xlFree, (IntPtr)0, 1, (IntPtr)(&pResultOper));
+        
+            return xlReturn;
+        }
 
 		// An aborted attempt at getting the Marshaling to work automatically.
 		// The reference parameter doen't work as an object,

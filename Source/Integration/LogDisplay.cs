@@ -18,7 +18,7 @@ namespace ExcelDna.Logging
         public LogDisplayForm()
         {
             InitializeComponent();
-            Text = DnaLibrary.CurrentLibrary.Name + " - Log Display";
+            Text = DnaLibrary.CurrentLibraryName + " - Log Display";
         }
 
         public void SetText(string message)

@@ -37,4 +37,5 @@ You can help with:
 * Advice or help to manage ExcelDna as a fully fledged open source project (Sourceforge or similar?) 
 * Further testing and development. 
 
-
+Govert van Drimmelen
+govert@icon.co.za

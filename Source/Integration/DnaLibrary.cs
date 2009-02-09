@@ -257,5 +257,19 @@ namespace ExcelDna.Integration
 			}
 		}
 
+        // Called during initialize when displaying log
+        // TODO: Clean up - inserted to prevent recursion when displaying log during initialize
+        internal static string CurrentLibraryName
+        {
+            get
+            {
+                if (currentLibrary == null) 
+                {
+                    string dllName = Assembly.GetExecutingAssembly().Location;
+					return Path.GetFileNameWithoutExtension(dllName);
+				}
+                return CurrentLibrary.Name;
+            }
+        }
 	}
 }

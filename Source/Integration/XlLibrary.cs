@@ -345,7 +345,7 @@ namespace ExcelDna.Integration
 				}
             }
 			addIns.Clear();
-			UnregisterMethods();
+			// UnregisterMethods();
 			return 1; // 0 if problems ?
 		}
 

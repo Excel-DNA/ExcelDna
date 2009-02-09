@@ -44,8 +44,11 @@ using System.Text;
 //			in the Excel4v function.
 
 // WARNING: Memory allocation needs fixing before any attempt at MultiThreading.
+//          Probably allocate instances per thread.... ?
 
 // TODO: Check what happens for re-entrancy, e.g. Calling a UDF from Excel.Excel4 !!
+
+// TODO: Marshalers should implement disposable pattern.
 
 namespace ExcelDna.Integration
 {
@@ -291,7 +294,6 @@ namespace ExcelDna.Integration
 		public object MarshalNativeToManaged(IntPtr pNativeData)
 		{
 			throw new NotImplementedException("This marshaler only used for managed to native return type marshaling.");
-			// return null;
 		}
 
 		public void CleanUpManagedData(object ManagedObj) { }
@@ -417,7 +419,7 @@ namespace ExcelDna.Integration
 			// DOCUMENT: A null pointer is immediately returned to Excel, resulting in #NUM!
 
 			Marshal.FreeCoTaskMem(pNative);
-			pNative = (IntPtr)0;
+			pNative = IntPtr.Zero;
 			
 			ushort rows;
 			ushort columns;
@@ -458,11 +460,22 @@ namespace ExcelDna.Integration
 
 		unsafe private void AllocateFPAndCopy(double* pSrc, ushort rows, ushort columns, int allColumns)
 		{
+            XlFP* pFP;
+            if (columns == 0)
+            {
+                // TODO: Review handling of this corner case
+                pNative = Marshal.AllocCoTaskMem(Marshal.SizeOf(typeof(XlFP)));
+                pFP = (XlFP*)pNative;
+                pFP->Rows = 1;
+                pFP->Columns = 1;
+                pFP->Values[0] = 0;
+                return;
+            }
 			int size = Marshal.SizeOf(typeof(XlFP)) +
 			   Marshal.SizeOf(typeof(double)) * (rows * columns - 1); // room for one double is already in FP struct
 			pNative = Marshal.AllocCoTaskMem(size);
 
-			XlFP* pFP = (XlFP*)pNative;
+			pFP = (XlFP*)pNative;
 			pFP->Rows = rows;
 			pFP->Columns = columns;
 			int count = rows * columns;
@@ -530,11 +543,11 @@ namespace ExcelDna.Integration
 
 	internal class XlObjectMarshaler : ICustomMarshaler
 	{
+        // Shared instance used for all return values
 		static ICustomMarshaler instance;
 
 		IntPtr pNative; // this is really an XlOper, and it is allocated once, 
-		// when the marshaller is constructed, 
-		// and is never reclaimed
+                        // when the marshaller is constructed.
 
 		public XlObjectMarshaler()
 		{
@@ -627,16 +640,18 @@ namespace ExcelDna.Integration
 				pOper->xlType = XlType.XlTypeError;
 				return pNative;
 			}
-			else if (ManagedObj is ExcelReference)
-			{
-				XlOper* pOper = (XlOper*)pNative;
-				ExcelReference r = (ExcelReference)ManagedObj;
-				int refCount = r.InnerReferences.Count;
-				int numBytes = Marshal.SizeOf(typeof(ushort)) + refCount * Marshal.SizeOf(typeof(XlOper.XlRectangle));
-				XlOper.XlMultiRef* pMultiRef = (XlOper.XlMultiRef*)Marshal.AllocCoTaskMem(numBytes);
-				XlOper.XlReference.SetExcelReference(pOper, pMultiRef, r);
-				return pNative;
-			}
+            // 13 November -- this should never be called...
+            //else if (ManagedObj is ExcelReference)
+            //{
+            //    XlOper* pOper = (XlOper*)pNative;
+            //    ExcelReference r = (ExcelReference)ManagedObj;
+            //    int refCount = r.InnerReferences.Count;
+            //    int numBytes = Marshal.SizeOf(typeof(ushort)) + refCount * Marshal.SizeOf(typeof(XlOper.XlRectangle));
+            //    XlOper.XlMultiRef* pMultiRef = (XlOper.XlMultiRef*)Marshal.AllocCoTaskMem(numBytes);
+            //    // 13 November 2006 -- Where is the just allocated memory freed?
+            //    XlOper.XlReference.SetExcelReference(pOper, pMultiRef, r);
+            //    return pNative;
+            //}
 			else if (ManagedObj is short)
 			{
 				// DOCUMENT: Exception to the rule that numbers are passed back as double
@@ -686,14 +701,15 @@ namespace ExcelDna.Integration
                 pOper->xlType = XlType.XlTypeNumber;
                 return pNative;
             }
-            else if (ManagedObj == null)
-            {
-                // This is never the case for regular marshaling, only for 
-                // return value for Excel4 function
-                XlOper* pOper = (XlOper*)pNative;
-                pOper->xlType = XlType.XlTypeEmpty;
-                return pNative;
-            }
+            // 13 November 2006 -- this marshaler not used to set up the Excel4 return value anymore.
+            //else if (ManagedObj == null)
+            //{
+            //    // This is never the case for regular marshaling, only for 
+            //    // return value for Excel4 function
+            //    XlOper* pOper = (XlOper*)pNative;
+            //    pOper->xlType = XlType.XlTypeEmpty;
+            //    return pNative;
+            //}
             else
             {
                 // Default error return
@@ -717,13 +733,22 @@ namespace ExcelDna.Integration
 					managed = pOper->numValue;
 					break;
 				case XlType.XlTypeString:
-                    // Null check added after reported crashes 
-                    // 25 April 2006
-					XlString* pString = (XlString*)pOper->pstrValue;
-                    if (pString == (XlString*)0)
+                    if ((IntPtr)pOper->pstrValue == IntPtr.Zero)
                         managed = null;
                     else
-					    managed = new string((sbyte*)pString->Data, 0, pString->Length);
+                    {
+                        byte length = *(byte*)pOper->pstrValue;
+                        byte* pData = (byte*)pOper->pstrValue + 1;
+                        string str = new string('\0', length);
+                        fixed (char* pChars = str)
+                        {
+                            for (int i = 0; i < length; i++)
+                            {
+                                pChars[i] = (char)pData[i];
+                            }
+                        }
+                        managed = str;
+                    }
 					break;
 				case XlType.XlTypeBoolean:
 					managed = pOper->boolValue == 1;
@@ -793,13 +818,12 @@ namespace ExcelDna.Integration
 		}
 
 		public void CleanUpManagedData(object ManagedObj) { }
-		public void CleanUpNativeData(IntPtr pNativeData) { } // Can't do anything useful here, as the managed to native marshaling is for a return parameter.
+        public void CleanUpNativeData(IntPtr pNativeData) { } // Can't do anything useful here, as the managed to native marshaling is for a return parameter.
 		public int GetNativeDataSize() { return -1; }
 	}
 
-	internal class XlObjectArrayMarshaler : ICustomMarshaler
+	internal class XlObjectArrayMarshaler : ICustomMarshaler, IDisposable
 	{
-
 		// CONSIDER: Marshal return types of object[,] as XLOPER
 		// and set xlFree bit, and handle callback.
 		// This will reduce memory usage but be slower, as we would get callback
@@ -807,55 +831,71 @@ namespace ExcelDna.Integration
 		// (we can use Com memory allocator to free there)
 		// For now just do fast, simple, slightly memory hogging thing.
 
-		static ICustomMarshaler instance1;
-		static ICustomMarshaler instance2;
-		static ICustomMarshaler instanceExcel4v;
-		List<XlObjectArrayMarshaler> nestedInstances = new List<XlObjectArrayMarshaler>();
+        static XlObjectArrayMarshaler instance;
+        int rank; // default set to 1 in constructor
+        // 13 November 2006 -- Cached instance for Excel4v call removed. Now allocated on stack.
+//		static ICustomMarshaler instanceExcel4v;
 
-		int rank;
-		bool isExcel4v;	// Used for calls to Excel4
+        List<XlObjectArrayMarshaler> nestedInstances = new List<XlObjectArrayMarshaler>();
+
+		bool isExcel4v;	// Used for calls to Excel4 -- flags that returned native data should look different
 
 		IntPtr pNative; // For managed -> native returns 
 		// This points to the last OPER (and contained OPER array) that was marshaled
 		// OPERs are re-allocated on every managed->native transition
 		IntPtr pNativeStrings;
 		IntPtr pNativeReferences;
-		IntPtr pOperPointers; // Used for calls to Excel4v - points to the array of oper addresses
+		
+        IntPtr pOperPointers; // Used for calls to Excel4v - points to the array of oper addresses
 
-		public XlObjectArrayMarshaler(int rank, bool isExcel4v)
+        // 13 November 2006 -- Temporary for debugging crash scenario
+        // Add sizes so that we can zero out memory
+        //int cbNative;
+        //int cbNativeStrings;
+        //int cbNativeReferences;
+        //int cbOperPointers;
+
+        public XlObjectArrayMarshaler()
+        {
+            this.rank = 0;  // Must be set before use.
+            this.isExcel4v = false;
+        }
+
+		public XlObjectArrayMarshaler(int rank)
 		{
-		    this.rank = rank;
-		    this.isExcel4v = isExcel4v;
+            this.rank = rank;
+            this.isExcel4v = false;
 		}
+
+        public XlObjectArrayMarshaler(int rank, bool isExcel4v)
+        {
+            this.rank = rank;
+            this.isExcel4v = isExcel4v;
+        }
 
 		public static void FreeMemory()
 		{
-			instance1.CleanUpNativeData((IntPtr)0);
-			instance2.CleanUpNativeData((IntPtr)0);
+            // This method is only called via AutoFree for an instance 
+            instance.Reset(true);
 		}
 
 		public static ICustomMarshaler GetInstance(string marshalCookie)
 		{
-			// marshalCookie denotes the array rank
+            if (instance == null)
+                instance = new XlObjectArrayMarshaler();
+
+            // marshalCookie denotes the array rank
 			// must be 1 or 2
 			if (marshalCookie == "1")
 			{
-				if (instance1 == null)
-					instance1 = new XlObjectArrayMarshaler(1, false);
-				return instance1;
+                instance.rank = 1;
+                return instance;
 			}
 			else if (marshalCookie == "2")
 			{
-				if (instance2 == null)
-					instance2 = new XlObjectArrayMarshaler(2, false);
-				return instance2;
-			}
-			else if (marshalCookie == "Excel4v")
-			{
-				if (instanceExcel4v == null)
-					instanceExcel4v = new XlObjectArrayMarshaler(1, true);
-				return instanceExcel4v;
-			}
+                instance.rank = 2;
+                return instance;
+            }
 			throw new ArgumentException("Invalid cookie for XlObjectArrayMarshaler");
 		}
 
@@ -872,8 +912,10 @@ namespace ExcelDna.Integration
 			// If array is too big!?, we just truncate
 
 			// TODO: Remove duplication - due to fixed / pointer interaction
+            // TODO: Might manages strings differently - currently I allocate the maximum length of 255 bytes
+            //          for each string. Instead, I might just allocate the required number of bytes.
 
-			CleanUpNativeData((IntPtr)0);
+			Reset(true);
 
 			ushort rows;
 			ushort columns; // those in the returned array
@@ -904,9 +946,9 @@ namespace ExcelDna.Integration
 			int numReferences = 0;
 
 			// Allocate native space
-			int size = Marshal.SizeOf(typeof(XlOper)) +				// OPER that is returned
+			int cbNative = Marshal.SizeOf(typeof(XlOper)) +				// OPER that is returned
 				Marshal.SizeOf(typeof(XlOper)) * (rows * columns);	// Array of OPER inside the result
-			pNative = Marshal.AllocCoTaskMem(size);
+			pNative = Marshal.AllocCoTaskMem(cbNative);
 
 			// Set up returned OPER
 			XlOper* pOper = (XlOper*)pNative;
@@ -991,7 +1033,7 @@ namespace ExcelDna.Integration
                 }
                 else if (obj is object[])
                 {
-                    XlObjectArrayMarshaler m = new XlObjectArrayMarshaler(1, false);
+                    XlObjectArrayMarshaler m = new XlObjectArrayMarshaler(1);
                     nestedInstances.Add(m);
                     XlOper* pNested = (XlOper*)m.MarshalManagedToNative(obj);
                     pOper->xlType = XlType.XlTypeArray;
@@ -1001,7 +1043,7 @@ namespace ExcelDna.Integration
                 }
                 else if (obj is object[,])
                 {
-                    XlObjectArrayMarshaler m = new XlObjectArrayMarshaler(2, false);
+                    XlObjectArrayMarshaler m = new XlObjectArrayMarshaler(2);
                     nestedInstances.Add(m);
                     XlOper* pNested = (XlOper*)m.MarshalManagedToNative(obj);
                     pOper->xlType = XlType.XlTypeArray;
@@ -1037,7 +1079,8 @@ namespace ExcelDna.Integration
 			if (numStrings > 0)
 			{
 				// Allocate room for all the strings
-				pNativeStrings = Marshal.AllocCoTaskMem(numStrings * Marshal.SizeOf(typeof(XlString)));
+                int cbNativeStrings = numStrings * Marshal.SizeOf(typeof(XlString));
+				pNativeStrings = Marshal.AllocCoTaskMem(cbNativeStrings);
 				// Go through the Opers and set each string
 				int stringIndex = 0;
 				for (int i = 0; i < rows * columns && stringIndex < numStrings; i++)
@@ -1078,7 +1121,8 @@ namespace ExcelDna.Integration
 			if (numReferenceOpers > 0)
 			{
 				// Allocate room for all the references
-				pNativeReferences = Marshal.AllocCoTaskMem(numReferenceOpers * sizeof(ushort) + numReferences * Marshal.SizeOf(typeof(XlOper.XlRectangle)));
+                int cbNativeReferences = numReferenceOpers * sizeof(ushort) + numReferences * Marshal.SizeOf(typeof(XlOper.XlRectangle));
+				pNativeReferences = Marshal.AllocCoTaskMem(cbNativeReferences);
 				IntPtr pCurrent = pNativeReferences;
 				// Go through the Opers and set each reference
 				int refOperIndex = 0;
@@ -1125,7 +1169,8 @@ namespace ExcelDna.Integration
 			{
 				// For the Excel4v call, we need to return an array
 				// which will contain the pointers to the Opers.
-				pOperPointers = Marshal.AllocCoTaskMem(columns * Marshal.SizeOf(typeof(XlOper*)));
+                int cbOperPointers = columns * Marshal.SizeOf(typeof(XlOper*));
+				pOperPointers = Marshal.AllocCoTaskMem(cbOperPointers);
 				XlOper** pOpers = (XlOper**)pOperPointers;
 				for (int i = 0; i < columns; i++)
 				{
@@ -1179,29 +1224,88 @@ namespace ExcelDna.Integration
 		}
 
 		public void CleanUpManagedData(object ManagedObj) { }
-		public void CleanUpNativeData(IntPtr unused) 
-		{
-			// Can't normally do anything useful here, 
-			// as the managed to native marshaling is for a return parameter.
-			// But for Excelv4 case we can clean up the native memory
-
-			// Also called from xlAutoFree when we set the right bit in the returned XlOper
-			Marshal.FreeCoTaskMem(pNative);
-			pNative = (IntPtr)0;
-			Marshal.FreeCoTaskMem(pNativeStrings);
-			pNativeStrings = (IntPtr)0;
-			Marshal.FreeCoTaskMem(pOperPointers);
-			pOperPointers = (IntPtr)0;
-
-			// Clean up the nested Instances
-			foreach (XlObjectArrayMarshaler m in nestedInstances)
-			{
-				m.CleanUpNativeData((IntPtr)0);
-			}
-			nestedInstances.Clear();
-		} 
-
+		public void CleanUpNativeData(IntPtr pNativeData) { } // Can't do anything useful here, never called as part of marshaling.
 		public int GetNativeDataSize() { return -1; }
+		
+        // Implementation of IDisposable pattern
+        // DOCUMENT: Not threadsafe implementation
+        // Only called from Excel4v parameter marshaling
+        private bool disposed = false;
+       
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        // Also called to clean up the instance on every return call...
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!this.disposed)
+            {
+                Reset(disposing);
+            }
+            disposed = true;
+		}
+
+        ~XlObjectArrayMarshaler()
+        {
+            Dispose(false);
+        }
+
+        // Called for disposal and for reset on every call to ManagedToNative.
+        private void Reset(bool disposeNested)
+        {
+            if (disposeNested)
+            {
+                // Clean up the nested Instances
+                foreach (XlObjectArrayMarshaler m in nestedInstances)
+                {
+                    m.Dispose();
+                }
+                nestedInstances.Clear();
+            }
+
+//            ZeroMemory(pNative, cbNative);
+//            cbNative = 0;
+            Marshal.FreeCoTaskMem(pNative);
+            pNative = IntPtr.Zero;
+
+//            ZeroMemory(pNativeStrings, cbNativeStrings);
+//            cbNativeStrings = 0;
+            Marshal.FreeCoTaskMem(pNativeStrings);
+            pNativeStrings = IntPtr.Zero;
+
+//            ZeroMemory(pNativeReferences, cbNativeReferences);
+//            cbNativeReferences = 0;
+            Marshal.FreeCoTaskMem(pNativeReferences);
+            pNativeReferences = IntPtr.Zero;
+
+//            ZeroMemory(pOperPointers, cbOperPointers);
+//            cbOperPointers = 0;
+            Marshal.FreeCoTaskMem(pOperPointers);
+            pOperPointers = IntPtr.Zero;
+        }
+
+
+        //// 13 November 2006 -- Temp memory zero helper (There must be an easier way!)
+        //private unsafe static void ZeroMemory(IntPtr ptr, int cb)
+        //{
+        //    byte* p = (byte*)ptr;
+        //    // Loop over the count in blocks of 4 bytes
+        //    for (int i = 0; i < cb / 4; i++)
+        //    {
+        //        *((int*)p) = (int)0;
+        //        p += 4;
+        //    }
+
+        //    // Complete by setting any bytes that weren't set in blocks of 4:
+        //    for (int i = 0; i < cb % 4; i++)
+        //    {
+        //        *p = (byte)0;
+        //        p++;
+        //    }
+        //}
 	}
 
     // We would prefer to get a double, but need to take 
