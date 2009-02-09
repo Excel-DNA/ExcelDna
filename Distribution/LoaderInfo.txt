@@ -1,0 +1,51 @@
+We determine the list of CLR versions that are installed.
+If there is no CLR installed, or the largest version is < v2, we display a message and do not load the add-in.
+If the latest version of the CLR is >= v2 we check whether a CLR is loaded in the Excel process.
+If a CLR is loaded, we determine the version.
+If version loaded is < v2, then we display a message describing the problem, and exit without loading the CLR.
+If a version of the CLR is loaded > v2, we load the add-in.
+If no version of the CLR is loaded, we load the latest version of the CLR. This should be consistent with the documented behaviour of Excel 2007.
+(In future we might allow for the loading to be customised.)
+
+Thanks to Nishant Sivakumar (voidnish.com)
+
+Q: Is DLLMain called earlier than AutoLoad?
+Yes.
+
+=========================================================================
+Saturday 5 July 2008
+--------------------
+TODO:
+Add-In loader messages should be lifted out of code into resources, should have name of add-in added.
+
+
+Reasons for implementing the new loader:
+- Explicit messages if the .Net runtime is not installed, or if wrong version will be loaded.
+- Control over the loading of the AppDomains and code into the AppDomains.
+- no VCRT dependency - thus no IJW
+
+I use the deprecated ICorRuntimeHost since I can not assume complete control over CLR hosting, 
+and need access to the AppDomain in order to load and run the code I want.
+
+Load Contexts!!!
+
+
+===========================
+ExcelDna.xll
+	- unmanaged shim
+ExcelDna.Loader
+	- loaded by the unmanaged shim as the transition to managed code
+	- unsafe code
+	- marshaling
+	- methodinfo -> functionptr
+	- may load ExcelDna.Integration is loaded, but all references are late-bound
+	- contains AssemblyManager
+	- marshal returns types from ExcelDna.Integration
+	- no code (except unmanaged shim) should try to load or reference ExcelDna.Loader.
+ExcelDna.Integration
+	- everything users would reference
+	- is given any info or methods needed from ExcelDna.Loader as delegates passed
+		in during initialize
+	- does not load or reference ExcelDna.Loader, early or late-bound
+	- in principle is designed to be swapped out with a lighter or heavier integration layer
+	  interface is controlled - a bit like clr hosting
