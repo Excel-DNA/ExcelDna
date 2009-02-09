@@ -40,7 +40,7 @@ namespace ExcelDna.Integration
 		public bool AllowReference; // Ignored for return 'parameter'
 		public CustomAttributeBuilder MarshalAsAttribute;
 		public Type DelegateParamType;
-		public Type BoxedReturnValueType; 	// Causes a wrapper to be created that boxes the return type from the user method,
+		public Type BoxedValueType; 	// Causes a wrapper to be created that boxes the return type from the user method,
 											// allowing Custom Marshaling to be injected
 
 		public XlParameterInfo(ParameterInfo paramInfo)
@@ -129,7 +129,7 @@ namespace ExcelDna.Integration
 					XlType = 'P'; // OPER
 					MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObjectMarshaler));
 					DelegateParamType = typeof(object);
-					BoxedReturnValueType = typeof(double);
+					BoxedValueType = typeof(double);
 				}
 				else
 				{
@@ -168,7 +168,7 @@ namespace ExcelDna.Integration
 						XlType = 'P'; // OPER
 						MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObjectMarshaler));
 						DelegateParamType = typeof(object);
-						BoxedReturnValueType = typeof(DateTime);
+						BoxedValueType = typeof(DateTime);
 					}
 					else
 					{
@@ -176,7 +176,7 @@ namespace ExcelDna.Integration
 						XlType = 'E'; // double*
 						MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlDateTimeReturnMarshaler));
 						DelegateParamType = typeof(object);
-						BoxedReturnValueType = typeof(DateTime);
+						BoxedValueType = typeof(DateTime);
 					}
 				}
 				else
@@ -258,14 +258,14 @@ namespace ExcelDna.Integration
 						XlType = 'P'; // OPER
 						MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObjectMarshaler));
 						DelegateParamType = typeof(object);
-						BoxedReturnValueType = typeof(bool);
+						BoxedValueType = typeof(bool);
 					}
 					else
 					{
 						XlType = 'P'; // OPER
 						MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlBooleanReturnMarshaler));
 						DelegateParamType = typeof(object);
-						BoxedReturnValueType = typeof(bool);
+						BoxedValueType = typeof(bool);
 					}
 				}
 				else
@@ -280,7 +280,7 @@ namespace ExcelDna.Integration
 					XlType = 'P'; // OPER
 					MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObjectMarshaler));
 					DelegateParamType = typeof(object);
-					BoxedReturnValueType = typeof(int);
+					BoxedValueType = typeof(int);
 				}
 				else
 				{
@@ -294,7 +294,7 @@ namespace ExcelDna.Integration
 					XlType = 'P'; // OPER
 					MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObjectMarshaler));
 					DelegateParamType = typeof(object);
-					BoxedReturnValueType = typeof(short);
+					BoxedValueType = typeof(short);
 				}
 				else
 				{
@@ -308,14 +308,31 @@ namespace ExcelDna.Integration
 					XlType = 'P'; // OPER
 					MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObjectMarshaler));
 					DelegateParamType = typeof(object);
-					BoxedReturnValueType = typeof(ushort);
+					BoxedValueType = typeof(ushort);
 				}
 				else
 				{
 					XlType = 'H';
 				}
 			}
-			else
+            else if (type == typeof(decimal))
+            {
+                if (isReturnType)
+                {
+                    XlType = 'P'; // OPER
+                    MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObjectMarshaler));
+                    DelegateParamType = typeof(object);
+                    BoxedValueType = typeof(decimal);
+                }
+                else
+                {
+                    XlType = 'E'; // double*
+                    MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlDecimalParameterMarshaler));
+				    DelegateParamType = typeof(object);
+                    BoxedValueType = typeof(decimal);
+                }
+            }
+            else
 			{
 				// The function is bad and cannot be marshaled to Excel
 				throw new DnaMarshalException("Unknown Data Type: " + type.ToString());

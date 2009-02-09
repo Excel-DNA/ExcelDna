@@ -367,11 +367,13 @@ namespace ExcelDna.Integration
 			ICustomMarshaler m = XlObjectMarshaler.GetInstance("");
 			object action = m.MarshalNativeToManaged(pXloperAction);
 			object result;
-			if ((action is short && (short)action == 1) || 
-				(action is double && (double)action == 1))
-				result = DnaLibrary.CurrentLibrary.Description;
-			else
-				result = ExcelError.ExcelErrorValue;
+            if ((action is short && (short)action == 1) ||
+                (action is double && (double)action == 1))
+            {
+               result = DnaLibrary.CurrentLibrary.Name;
+            }
+            else
+                result = ExcelError.ExcelErrorValue;
 			return m.MarshalManagedToNative(result);
 		}
 	}

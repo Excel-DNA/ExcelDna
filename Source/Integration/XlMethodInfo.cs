@@ -115,7 +115,9 @@ namespace ExcelDna.Integration
 
 			Index = index;
 
-			// Return type conversion
+            SetAttributeInfo(targetMethod.GetCustomAttributes(false));
+            
+            // Return type conversion
 			if (targetMethod.ReturnType == typeof(void))
 			{
 				IsCommand = true;
@@ -132,8 +134,6 @@ namespace ExcelDna.Integration
 				IsCommand = false;
 				ReturnType = new XlParameterInfo(targetMethod.ReturnType, true, IsExceptionSafe);
 			}
-
-			SetAttributeInfo(targetMethod.GetCustomAttributes(false));
 
 			// Parameters - meta-data and type conversion
 			Parameters = 
@@ -356,11 +356,15 @@ namespace ExcelDna.Integration
 
 		private Delegate CreateMethodDelegate(MethodInfo targetMethod, Type delegateType)
 		{
-			// Create delegate directly if wrapping is not needed
-			if ( IsExceptionSafe && (IsCommand || ReturnType.BoxedReturnValueType == null))
-			{
+            // Check whether we can skip wrapper
+            if (IsExceptionSafe
+                && Array.TrueForAll(Parameters, 
+                        delegate(XlParameterInfo pi){ return pi.BoxedValueType == null;})
+                && (IsCommand || ReturnType.BoxedValueType == null))
+            {
+                // Create the delegate directly
 				return Delegate.CreateDelegate(delegateType, targetMethod);
-			}
+            }
 
 			// Else we create a dynamic wrapper
 			Type[] paramTypes = Array.ConvertAll<XlParameterInfo, Type>(Parameters,
@@ -389,14 +393,19 @@ namespace ExcelDna.Integration
 			// push all the arguments
 			for (byte i = 0; i < paramTypes.Length; i++)
 			{
-				wrapIL.Emit(OpCodes.Ldarg_S, i);
+                wrapIL.Emit(OpCodes.Ldarg_S, i);
+                XlParameterInfo pi = Parameters[i];
+                if (pi.BoxedValueType != null)
+                {
+                    wrapIL.Emit(OpCodes.Unbox_Any , pi.BoxedValueType);
+                }
 			}
-			// Excel4 the real method
+			// Call the real method
 			wrapIL.EmitCall(OpCodes.Call, targetMethod, null);
-			if (!IsCommand && ReturnType.BoxedReturnValueType != null)
+			if (!IsCommand && ReturnType.BoxedValueType != null)
 			{
 				// Box the return value (which is on the stack)
-				wrapIL.Emit(OpCodes.Box, ReturnType.BoxedReturnValueType);
+				wrapIL.Emit(OpCodes.Box, ReturnType.BoxedValueType);
 			}
 			if (!IsCommand)
 			{

@@ -38,12 +38,6 @@ namespace ExcelDna.Integration
 	[XmlRoot(Namespace = "", IsNullable = false)]
 	public class DnaLibrary : IAssemblyDefinition
 	{
-		[XmlIgnore]
-		public string Name;
-		[XmlIgnore]
-		public string FileName;
-
-
 		private List<ExternalLibrary> _ExternalLibraries;
 		[XmlElement("ExternalLibrary", typeof(ExternalLibrary))]
         public List<ExternalLibrary> ExternalLibraries
@@ -60,21 +54,20 @@ namespace ExcelDna.Integration
 			set { _Projects = value; }
 		}
 
-		private string _Description;
+		private string _Name;
 		[XmlAttribute]
-		public string Description
+		public string Name
 		{
 			get
 			{
-				if (_Description == null || _Description == "")
+				if (_Name == null || _Name == "")
 				{
 					string dllName = Assembly.GetExecutingAssembly().Location;
-					string xllFileRoot = Path.GetFileNameWithoutExtension(dllName);
-					_Description = xllFileRoot + " (ExcelDna)";
+					_Name = Path.GetFileNameWithoutExtension(dllName);
 				}
-				return _Description;
+				return _Name;
 			}
-			set { _Description = value; }
+			set { _Name = value; }
 		}
 
         // Next three are abbreviations for Project contents
@@ -157,7 +150,15 @@ namespace ExcelDna.Integration
 			List<MethodInfo> methods = new List<MethodInfo>();
 			foreach (Assembly assembly in GetAssemblies()) 
 			{
-				methods.AddRange(AssemblyLoader.GetExcelMethods(assembly));
+                try
+                {
+                    methods.AddRange(AssemblyLoader.GetExcelMethods(assembly));
+                }
+                catch (Exception e)
+                {
+                    // TODO: I still don't know how to do exceptions
+					Debug.WriteLine(e.Message);
+                }
 			}
 
 			List<XlMethodInfo> xlMethods = XlMethodInfo.ConvertToXlMethodInfos(methods);
@@ -183,6 +184,10 @@ namespace ExcelDna.Integration
 		private static DnaLibrary currentLibrary;
 		internal static void Initialize()
 		{
+            // Make safe to initialize more than once
+            if (currentLibrary != null)
+                return;
+
 			// Load the current library
 			// Get the .xll filename
 			string xllFileLocation = Assembly.GetExecutingAssembly().Location;
@@ -195,7 +200,7 @@ namespace ExcelDna.Integration
 			}
 			else
 			{
-				ErrorDisplay.DisplayErrorMessage(string.Format("The required .dna script file {0} does not exist.", dnaFileName));
+                ExcelDna.Logging.LogDisplay.SetText(string.Format("The required .dna script file {0} does not exist.", dnaFileName));
 			}
             // If there have been problems, ensure that there is at lease some current library.
             if (currentLibrary == null)
@@ -225,13 +230,10 @@ namespace ExcelDna.Integration
                 catch (Exception e)
                 {
                     string errorMessage = string.Format("There was an error while processing {0}:\r\n{1}\r\n{2}", fileName, e.Message,e.InnerException.Message);
-                    ErrorDisplay.DisplayErrorMessage(errorMessage);
+                    ExcelDna.Logging.LogDisplay.SetText(errorMessage);
                     return null;
                 }
 			}
-
-			dnaLibrary.Name = Path.GetFileNameWithoutExtension(fileName);
-			dnaLibrary.FileName = fileName;
 			return dnaLibrary;
 		}
 
@@ -249,6 +251,8 @@ namespace ExcelDna.Integration
 		{
 			get
 			{
+                if (currentLibrary == null)
+                    Initialize();
 				return currentLibrary;
 			}
 		}

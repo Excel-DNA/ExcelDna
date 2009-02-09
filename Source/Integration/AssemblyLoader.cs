@@ -34,33 +34,40 @@ namespace ExcelDna.Integration
 	// and build the method information.
 	internal class AssemblyLoader
 	{
-		static public List<MethodInfo> GetExcelMethods(Assembly assembly)
-		{
-			List<MethodInfo> methods = new List<MethodInfo>();
-			Type[] types = assembly.GetTypes();
-			foreach (Type t in types)
-			{
-				// CONSIDER: Implement ExportAll="true" ?
-				// DOCUMENT: Exclude if not a class, not public, abstract, an array,  
-				// open generic type or in "My" namespace.
-				// Some basic checks -- what else?
-				if (!t.IsClass || !t.IsPublic ||
-					t.IsAbstract || t.IsArray ||
-					(t.IsGenericType && t.ContainsGenericParameters) ||
-					t.Namespace == "My")
-				{
-					// Bad cases
-					Debug.Print("ExcelDNA -> Inappropriate Type: " + t.FullName);
-					continue;
-				}
+        static public List<MethodInfo> GetExcelMethods(Assembly assembly)
+        {
+            List<MethodInfo> methods = new List<MethodInfo>();
+            Type[] types = assembly.GetTypes();
+            foreach (Type t in types)
+            {
+                // CONSIDER: Implement ExportAll="false" ?
+                // DOCUMENT: Exclude if not a class, not public, abstract, an array,  
+                // open generic type or in "My" namespace.
+                // Some basic checks -- what else?
+                if (!t.IsClass || !t.IsPublic ||
+                    t.IsAbstract || t.IsArray ||
+                    (t.IsGenericType && t.ContainsGenericParameters) ||
+                    t.Namespace == "My")
+                {
+                    // Bad cases
+                    Debug.Print("ExcelDNA -> Inappropriate Type: " + t.FullName);
+                    continue;
+                }
 
-				MethodInfo[] mis = t.GetMethods(BindingFlags.Public | BindingFlags.Static);
-				methods.AddRange(mis);
-			}
+                MethodInfo[] mis = t.GetMethods(BindingFlags.Public | BindingFlags.Static);
+                methods.AddRange(mis);
+            }
 
-			return methods;
-		}
+            // This is temporary support for Excel Server
+            // TODO: How to make sure this adds no overhead? 
+            // Maybe add a new attribute to ExternalLibrary?
+            methods.AddRange(AssemblyLoaderExcelServer.GetExcelMethods(assembly));
 
+            return methods;
+        }
+
+        // Some support for creating add-ins that are notified of open and close
+        // this allows the add-in to add menus, toolbar buttons etc.
         public class ExcelAddInInfo
         {
             public MethodInfo AutoOpenMethod;

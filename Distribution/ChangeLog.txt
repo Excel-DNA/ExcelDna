@@ -1,3 +1,9 @@
+Version 0.3 (28 May 2006)
+-------------------------
+* Support for the Decimal datatype as a parameter, explicit return type and object return value.
+* Rudimentary logging support - see ExcelDna.Logging.LogDisplay.Write / WriteLine.
+* Preview support for Excel Services UDF DLLs with UdfClass and UdfMethod. Current missing are some datatypes and IsVolatile support. Also you currently need to copy the attribute .dll to the same directory as the add-in.
+
 Version 0.2 (20 Feb 2006)
 -------------------------
 * Ensure that library is initialized when xlAddInManagerInfo is called. Thanks Stepan Radkovsky for the help.

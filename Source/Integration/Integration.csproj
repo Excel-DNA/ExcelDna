@@ -39,6 +39,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssemblyLoader.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="AssemblyLoaderExcelServer.cs" />
     <Compile Include="AssemblyReference.cs" />
     <Compile Include="Excel.cs" />
     <Compile Include="ExcelAttributes.cs" />
@@ -46,11 +50,11 @@
     <Compile Include="DnaLibrary.cs" />
     <Compile Include="DnaLibrarySerialization.cs" />
     <Compile Include="ExternalLibrary.cs" />
-    <Compile Include="ErrorDisplay.cs">
+    <Compile Include="LogDisplay.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ErrorDisplay.Designer.cs">
-      <DependentUpon>ErrorDisplay.cs</DependentUpon>
+    <Compile Include="LogDisplay.Designer.cs">
+      <DependentUpon>LogDisplay.cs</DependentUpon>
     </Compile>
     <Compile Include="IAssemblyDefinition.cs" />
     <Compile Include="IExcelAddIn.cs" />
@@ -62,13 +66,12 @@
     <Compile Include="ExcelError.cs" />
     <Compile Include="XlParameterInfo.cs" />
     <Compile Include="XlMethodInfo.cs" />
-    <Compile Include="AssemblyLoader.cs" />
     <Compile Include="XlCustomMarshal.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="ErrorDisplay.resx">
+    <EmbeddedResource Include="LogDisplay.resx">
       <SubType>Designer</SubType>
-      <DependentUpon>ErrorDisplay.cs</DependentUpon>
+      <DependentUpon>LogDisplay.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

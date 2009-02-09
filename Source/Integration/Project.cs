@@ -180,7 +180,7 @@ namespace ExcelDna.Integration
 				{
 					Errors.AppendLine(err.ToString());
 				}
-                ErrorDisplay.DisplayErrorMessage(Errors.ToString());
+                ExcelDna.Logging.LogDisplay.SetText(Errors.ToString());
 				return list;
 			}
 
