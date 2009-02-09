@@ -1,7 +1,12 @@
+Version 0.11 (18 March 2007)
+----------------------------
+* Fixed bug when library had function with object[] and object[,] arguments.
+* Created explicit manifests to allow RTM version of C runtime, even when ExcelDna.xll is compiled with Visual Studio 2005 Service Pack 1. This should fix the strange loading problems reported since version 0.8.
+
 Version 0.9 (23 Feburary 2007)
 ------------------------------
 * Fixed loading bug from version 0.8.
-* Fixed bug when more that 20 arguments. (At most 20 argument descriptions are allowed.) There is still a restriction on the combined length of the argument names, approximately 200 characters.
+* Fixed bug when more that 20 arguments. (At most 20 argument descriptions are allowed.)
 
 Version 0.8 (21 January 2007)
 ------------------------------

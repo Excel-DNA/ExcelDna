@@ -372,8 +372,8 @@ namespace ExcelDna.Integration
 		// (we can use Com memory allocator to free there)
 		// For now just do fast, simple, slightly memory hogging thing.
 
-		static ICustomMarshaler instance1;	// For rank 1 arrays
-		static ICustomMarshaler instance2;	// For rank 2 arrays
+        static XlDoubleArrayMarshaler instance1;	// For rank 1 arrays
+        static XlDoubleArrayMarshaler instance2;	// For rank 2 arrays
 
 		int rank;
 		IntPtr pNative; // For managed -> native returns 
@@ -828,8 +828,13 @@ namespace ExcelDna.Integration
 		// (we can use Com memory allocator to free there)
 		// For now just do fast, simple, slightly memory hogging thing.
 
-        static XlObjectArrayMarshaler instance;
-        int rank; // default set to 1 in constructor
+        static XlObjectArrayMarshaler instance1;	// For rank 1 arrays
+        static XlObjectArrayMarshaler instance2;	// For rank 2 arrays
+
+        int rank;
+
+//        static XlObjectArrayMarshaler instance;
+//        int rank; // default set to 1 in constructor
         // 13 November 2006 -- Cached instance for Excel4v call removed. Now allocated on stack.
 //		static ICustomMarshaler instanceExcel4v;
 
@@ -852,6 +857,9 @@ namespace ExcelDna.Integration
         //int cbNativeReferences;
         //int cbOperPointers;
 
+
+        
+        
         public XlObjectArrayMarshaler()
         {
             this.rank = 0;  // Must be set before use.
@@ -873,28 +881,28 @@ namespace ExcelDna.Integration
 		public static void FreeMemory()
 		{
             // This method is only called via AutoFree for an instance 
-            instance.Reset(true);
+            instance1.Reset(true);
+            instance2.Reset(true);
 		}
 
-		public static ICustomMarshaler GetInstance(string marshalCookie)
-		{
-            if (instance == null)
-                instance = new XlObjectArrayMarshaler();
-
+        public static ICustomMarshaler GetInstance(string marshalCookie)
+        {
             // marshalCookie denotes the array rank
-			// must be 1 or 2
-			if (marshalCookie == "1")
-			{
-                instance.rank = 1;
-                return instance;
-			}
-			else if (marshalCookie == "2")
-			{
-                instance.rank = 2;
-                return instance;
+            // must be 1 or 2
+            if (marshalCookie == "1")
+            {
+                if (instance1 == null)
+                    instance1 = new XlObjectArrayMarshaler(1);
+                return instance1;
             }
-			throw new ArgumentException("Invalid cookie for XlObjectArrayMarshaler");
-		}
+            else if (marshalCookie == "2")
+            {
+                if (instance2 == null)
+                    instance2 = new XlObjectArrayMarshaler(2);
+                return instance2;
+            }
+            throw new ArgumentException("Invalid cookie for XlObjectArrayMarshaler");
+        }
 
 		unsafe public IntPtr MarshalManagedToNative(object ManagedObj)
 		{
