@@ -1,9 +1,16 @@
 <DnaLibrary>
 <![CDATA[
 	Public Module Module1
-		Function AddThem(val1, val2)
-			AddThem = val1 + val2
-		End Function	
+    <ExcelFunction(IsMacroType:=True)> _
+		Function RingTheBell(times as Integer) as integer
+			Dim i as Integer
+			For i = 1 to times
+				Console.Beep()
+			Next
+		End Function
+	  Function GetTheValue(a as integer)
+      GetTheValue = a
+     End Function
 	End Module
 ]]>
 </DnaLibrary>

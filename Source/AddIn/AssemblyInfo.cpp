@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005, 2006 Govert van Drimmelen
+  Copyright (C) 2005, 2006, 2007 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -51,7 +51,7 @@ using namespace System::Runtime::InteropServices;
 // You can specify all the value or you can default the Revision and Build Numbers
 // by using the '*' as shown below:
 
-[assembly:AssemblyVersionAttribute("0.9.*")];
+[assembly:AssemblyVersionAttribute("0.10.*")];
 
 //
 // In order to sign your assembly you must specify a key to use. Refer to the
