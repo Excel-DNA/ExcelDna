@@ -53,6 +53,7 @@ namespace ExcelDna.Loader
 		public bool   IsVolatile;
 		public bool   IsExceptionSafe;
 		public bool   IsMacroType;
+        public bool   IsThreadSafe; // For Functions only
 		public string HelpTopic;
 		public double RegisterId;
 
@@ -72,6 +73,7 @@ namespace ExcelDna.Loader
 			IsExceptionSafe = false;
 			IsHidden = false;
 			IsMacroType = false;
+            IsThreadSafe = false;
 
 			ShortCut = "";
 			// DOCUMENT: Default MenuName is the library name
@@ -204,7 +206,7 @@ namespace ExcelDna.Loader
                     bool isExceptionSafe = (bool)attribType.GetField("IsExceptionSafe").GetValue(attrib);
                     bool isMacroType = (bool)attribType.GetField("IsMacroType").GetValue(attrib);
                     bool isHidden = (bool)attribType.GetField("IsHidden").GetValue(attrib);
-
+                    bool isThreadSafe = (bool)attribType.GetField("IsThreadSafe").GetValue(attrib);
                     if (name != null)
                     {
                         Name = name;
@@ -225,6 +227,7 @@ namespace ExcelDna.Loader
                     IsExceptionSafe = isExceptionSafe;
                     IsMacroType = isMacroType;
                     IsHidden = isHidden;
+                    IsThreadSafe = (!isMacroType && isThreadSafe);
                 }
 
                 if (attribType.FullName == "ExcelDna.Integration.ExcelCommandAttribute")

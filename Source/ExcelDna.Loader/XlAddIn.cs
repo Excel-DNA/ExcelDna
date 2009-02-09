@@ -382,6 +382,8 @@ namespace ExcelDna.Loader
 
             if (mi.IsMacroType)
                 functionType += "#";
+            else if (mi.IsThreadSafe && XlAddIn.xlCallVersion >= 12)
+                functionType += "$";
 
             if (mi.IsVolatile)
                 functionType += "!";
