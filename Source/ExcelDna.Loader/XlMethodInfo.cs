@@ -31,7 +31,7 @@ using System.Runtime.InteropServices;
 
 namespace ExcelDna.Loader
 {
-	// TODO: Refactor into XlFunctionInfo and XlCommandInfo
+	// TODO: Refactor into XlFunctionInfo and XlCommandInfo ?
 
 	internal class XlMethodInfo
 	{
@@ -203,6 +203,7 @@ namespace ExcelDna.Loader
                     bool isVolatile = (bool)attribType.GetField("IsVolatile").GetValue(attrib);
                     bool isExceptionSafe = (bool)attribType.GetField("IsExceptionSafe").GetValue(attrib);
                     bool isMacroType = (bool)attribType.GetField("IsMacroType").GetValue(attrib);
+                    bool isHidden = (bool)attribType.GetField("IsHidden").GetValue(attrib);
 
                     if (name != null)
                     {
@@ -223,6 +224,7 @@ namespace ExcelDna.Loader
                     IsVolatile = isVolatile;
                     IsExceptionSafe = isExceptionSafe;
                     IsMacroType = isMacroType;
+                    IsHidden = isHidden;
                 }
 
                 if (attribType.FullName == "ExcelDna.Integration.ExcelCommandAttribute")
@@ -233,7 +235,7 @@ namespace ExcelDna.Loader
                     string shortCut = (string)attribType.GetField("ShortCut").GetValue(attrib);
                     string menuName = (string)attribType.GetField("MenuName").GetValue(attrib);
                     string menuText = (string)attribType.GetField("MenuText").GetValue(attrib);
-                    bool isHidden = (bool)attribType.GetField("IsHidden").GetValue(attrib);
+//                    bool isHidden = (bool)attribType.GetField("IsHidden").GetValue(attrib);
                     bool isExceptionSafe = (bool)attribType.GetField("IsExceptionSafe").GetValue(attrib);
 
                     if (name != null)
@@ -260,7 +262,7 @@ namespace ExcelDna.Loader
                     {
                         MenuText = menuText;
                     }
-                    IsHidden = isHidden;
+//                    IsHidden = isHidden;  // Only for functions.
                     IsExceptionSafe = isExceptionSafe;
                 }
 			}

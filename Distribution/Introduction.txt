@@ -17,10 +17,10 @@ Future work
 -----------
 There are two themes for future work: 
 Firstly to improve the current integration .xll:
+* Extended support for Excel 2007.
 * Testing on different OS and Excel versions, maybe unit tests.
 * Documentation.
 * Additional functionality like asyncronous calls and multithreading.
-* Preparation for Excel12.
 * Other .Net hosted languages (Java via IKVM, IronPython, Boo)
 
 Secondly, it would be really nice to have a user editor / IDE for working with .dna scripts. This would then work like the VBA IDE - maybe even with debugging some day! It should be as easy to create a user-defined function in .NET as it is in VBA.

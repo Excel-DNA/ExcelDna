@@ -1,4 +1,3 @@
-
 /*
   Copyright (C) 2005-2008 Govert van Drimmelen
 
@@ -26,4 +25,5 @@
 #pragma once
 
 bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo);
+void XlLibraryUnload();
 void SetCurrentModule(HMODULE hModule);

@@ -31,22 +31,24 @@ using System.Runtime.InteropServices;
 
 namespace ExcelDna.Integration
 {
-    // These functions are called by the loader to set up the link between the loader and the integration library.
+    // CAUTION: These functions are called _via reflection_ by
+    // ExcelDna.Loader.XlLibrary to set up the link between the loader 
+    // and the integration library.
+    // Signatures, private/public etc. is fragile.
 
-    public delegate int TryExcelImplDelegate(int xlFunction, out object result, params object[] parameters);
-    public delegate void RegisterMethodsDelegate(List<MethodInfo> methods);
-    public delegate byte[] GetAssemblyBytesDelegate(string assemblyName);
+    internal delegate int TryExcelImplDelegate(int xlFunction, out object result, params object[] parameters);
+    internal delegate void RegisterMethodsDelegate(List<MethodInfo> methods);
+    internal delegate byte[] GetAssemblyBytesDelegate(string assemblyName);
 
     public static class Integration
     {
-
         private static TryExcelImplDelegate tryExcelImpl;
-        public static void SetTryExcelImpl(TryExcelImplDelegate d)
+        internal static void SetTryExcelImpl(TryExcelImplDelegate d)
         {
             tryExcelImpl = d;
         }
 
-        public static XlCall.XlReturn TryExcelImpl(int xlFunction, out object result, params object[] parameters)
+        internal static XlCall.XlReturn TryExcelImpl(int xlFunction, out object result, params object[] parameters)
         {
             if (tryExcelImpl != null)
             {
@@ -57,33 +59,44 @@ namespace ExcelDna.Integration
         }
 
         private static RegisterMethodsDelegate registerMethods;
-        public static void SetRegisterMethods(RegisterMethodsDelegate d)
+        internal static void SetRegisterMethods(RegisterMethodsDelegate d)
         {
             registerMethods = d;
         }
 
+        // This is the only 'externally' exposed member.
         public static void RegisterMethods(List<MethodInfo> methods)
         {
             registerMethods(methods);
         }
 
         private static GetAssemblyBytesDelegate getAssemblyBytesDelegate;
-        public static void SetGetAssemblyBytesDelegate(GetAssemblyBytesDelegate d)
+        internal static void SetGetAssemblyBytesDelegate(GetAssemblyBytesDelegate d)
         {
             getAssemblyBytesDelegate = d;
         }
 
-        public static byte[] GetAssemblyBytes(string assemblyName)
+        internal static byte[] GetAssemblyBytes(string assemblyName)
         {
             return getAssemblyBytesDelegate(assemblyName);
         }
 
-        public static void Initialize()
+        internal static void Initialize()
         {
             // Ensure COM Application object is set
-            object unused = Excel.Application;
+            object unused = ExcelDnaUtil.Application;
             DnaLibrary.Initialize();
         }
 
+    }
+
+    [Obsolete("Use ExcelDna.Integration.Integration class")]
+    public class XlLibrary
+    {
+        [Obsolete("Use ExcelDna.Integration.Integration.RegisterMethods method")]
+        public static void RegisterMethods(List<MethodInfo> methods)
+        {
+            Integration.RegisterMethods(methods);
+        }
     }
 }

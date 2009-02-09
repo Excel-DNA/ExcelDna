@@ -126,7 +126,7 @@ namespace ExcelDna.Integration
             return sourceItems;
         }
 
-        // TODO: Revisit this...
+        // TODO: URGENT: Revisit this...
         private string tempIntegrationAssemblyPath = null;
 
         public List<Reference> GetReferences()
@@ -142,7 +142,7 @@ namespace ExcelDna.Integration
             }
             // DOCUMENT: Reference to the xll is always added
             // Sort out "ExcelDna.Integration.dll"
-            // TODO: Revisit this...
+            // TODO: URGENT: Revisit this...
             string location = Assembly.GetExecutingAssembly().Location;
             if (location != "")
             {
@@ -189,6 +189,10 @@ namespace ExcelDna.Integration
             {
                 cp.CompilerOptions = " /lib:\"" + DnaLibrary.ExecutingDirectory + "\" ";
             }
+            else if (provider.GetType().FullName == "Microsoft.FSharp.Compiler.CodeDom.FSharpCodeProvider")
+            {
+                cp.CompilerOptions = " --nologo -I " + DnaLibrary.ExecutingDirectory;
+            }
 
             List<string> references = GetReferences().ConvertAll<string>(delegate(Reference item) { return item.AssemblyPath; });
 			cp.ReferencedAssemblies.AddRange(references.ToArray());
@@ -196,7 +200,7 @@ namespace ExcelDna.Integration
             List<string> sources = GetSourceItems().ConvertAll<string>(delegate(SourceItem item) { return item.Code; });
 			CompilerResults cr = provider.CompileAssemblyFromSource(cp, sources.ToArray());
 
-            // TODO: Revisit...
+            // TODO: URGENT: Revisit...
             if (tempIntegrationAssemblyPath != null)
             {
                 File.Delete(tempIntegrationAssemblyPath);
@@ -236,7 +240,7 @@ namespace ExcelDna.Integration
             else
 			    lang = Language.ToLower();
 
-			if (lang == "cs" || lang == "csharp" || lang == "c#" )
+			if (lang == "cs" || lang == "csharp" || lang == "c#" || lang == "c sharp")
 			{
 				return new Microsoft.CSharp.CSharpCodeProvider();
 			}
@@ -244,10 +248,21 @@ namespace ExcelDna.Integration
 			{
 				return new Microsoft.VisualBasic.VBCodeProvider();
 			}
-            //else if (lang == "fs" || lang == "fsharp" || lang == "f#")
-            //{
-            //    // TODO: Sort out assembly and type loading.
-            //}
+            else if (lang == "fs" || lang == "fsharp" || lang == "f#" || lang == "f sharp")
+            {
+                try
+                {
+                    // TODO: Reconsider how and if to support F#
+                    Assembly fsharp = Assembly.LoadWithPartialName("FSharp.Compiler.CodeDom" );
+                    return (CodeDomProvider)fsharp.CreateInstance("Microsoft.FSharp.Compiler.CodeDom.FSharpCodeProvider");
+                }
+                catch
+                {
+                    // TODO: Log this error to the display?
+                    Debug.Fail("FSharp.Compiler.CodeDom could not be loaded.");
+                    return null;
+                }
+            }
 
 			// Else try to load the language as a type
 			// TODO: Test this !?

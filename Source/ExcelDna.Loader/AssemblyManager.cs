@@ -34,6 +34,66 @@ using System.IO;
 
 namespace ExcelDna.Loader
 {
+    // TODO: Lots more to make a flexible loader.
+    internal class AssemblyManager
+    {
+        static string pathXll;
+        static IntPtr hModule;
+        static Dictionary<string, Assembly> loadedAssemblies = new Dictionary<string,Assembly>();
+
+        internal static void Initialize(IntPtr hModule, string pathXll)
+        {
+            AssemblyManager.pathXll = pathXll;
+            AssemblyManager.hModule = hModule;
+            loadedAssemblies.Add(Assembly.GetExecutingAssembly().FullName, Assembly.GetExecutingAssembly());
+
+            //// Testing ...
+            //Assembly a = ResourceHelper.LoadAssemblyFromResources(hModule, "EXCELDNA_INTEGRATION");
+            //loadedAssemblies.Add(a.FullName, a);
+
+            AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolve;
+        }
+        
+        private static Assembly AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            // Check cache - includes special case of ExcelDna.Loader.
+            if (loadedAssemblies.ContainsKey(args.Name))
+            {
+                return loadedAssemblies[args.Name];
+            }
+
+            // Now check in resources ...
+            if (args.Name.StartsWith("ExcelDna.Integration") || 
+                args.Name.StartsWith("ExcelDna,") /* Special case for pre-0.14 versions of ExcelDna */)
+            {
+                foreach (Assembly ass in loadedAssemblies.Values)
+                {
+                    if (ass.FullName.StartsWith("ExcelDna.Integration"))
+                        return ass;
+                }
+
+                Debug.Print("Loading ExcelDna.Integration from resources.");
+                Assembly loadedAssembly = ResourceHelper.LoadAssemblyFromResources(hModule, "EXCELDNA_INTEGRATION");
+                loadedAssemblies.Add(loadedAssembly.FullName, loadedAssembly);
+                return loadedAssembly;
+            }
+
+            // TODO: Other Assemblies.
+            Debug.WriteLine("AssemblyManager.AssemblyResolve failed: " + args.Name);
+            return null;
+        }
+
+        internal static byte[] GetAssemblyBytes(string assemblyName)
+        {
+            // TODO: Other assemblies
+            if (assemblyName.StartsWith("ExcelDna.Integration"))
+            {
+                return ResourceHelper.ReadAssemblyFromResources(hModule, "EXCELDNA_INTEGRATION");
+            }
+            return null;
+        }
+    }
+
     internal unsafe static class ResourceHelper
     {
         [DllImport("KERNEL32.DLL")]
@@ -72,60 +132,4 @@ namespace ExcelDna.Loader
         }
     }
 
-    internal class AssemblyManager
-    {
-        static string xllPath;
-        static IntPtr hModule;
-        static Dictionary<string, Assembly> loadedAssemblies = new Dictionary<string,Assembly>();
-
-        internal static void Initialize(IntPtr hModule, string xllPath)
-        {
-            AssemblyManager.xllPath = xllPath;
-            AssemblyManager.hModule = hModule;
-            loadedAssemblies.Add(Assembly.GetExecutingAssembly().FullName, Assembly.GetExecutingAssembly());
-
-            //// Testing ...
-            //Assembly a = ResourceHelper.LoadAssemblyFromResources(hModule, "EXCELDNA_INTEGRATION");
-            //loadedAssemblies.Add(a.FullName, a);
-
-            AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolve;
-        }
-        
-        private static Assembly AssemblyResolve(object sender, ResolveEventArgs args)
-        {
-            // Check cache - includes special case of ExcelDna.Loader.
-            if (loadedAssemblies.ContainsKey(args.Name))
-            {
-                return loadedAssemblies[args.Name];
-            }
-
-            // Now check in resources ...
-            if (args.Name.StartsWith("ExcelDna.Integration"))
-            {
-                foreach (Assembly ass in loadedAssemblies.Values)
-                {
-                    if (ass.FullName.StartsWith("ExcelDna.Integration"))
-                        return ass;
-                }
-
-                Debug.Print("Loading ExcelDna.Integration from resources.");
-                Assembly loadedAssembly = ResourceHelper.LoadAssemblyFromResources(hModule, "EXCELDNA_INTEGRATION");
-                loadedAssemblies.Add(loadedAssembly.FullName, loadedAssembly);
-                return loadedAssembly;
-            }
-
-            Debug.Fail("AssemblyManager.AssemblyResolve: " + args.Name);
-            return null;
-        }
-
-        internal static byte[] GetAssemblyBytes(string assemblyName)
-        {
-            // TODO: Other assemblies
-            if (assemblyName.StartsWith("ExcelDna.Integration"))
-            {
-                return ResourceHelper.ReadAssemblyFromResources(hModule, "EXCELDNA_INTEGRATION");
-            }
-            return null;
-        }
-    }
 }

@@ -31,7 +31,7 @@ using System.Runtime.InteropServices;
 
 namespace ExcelDna.Loader
 {
-	public class XlCallImpl
+	internal class XlCallImpl
 	{
 		[DllImport("XLCALL32.DLL")]
 		private static extern unsafe int Excel4v(int xlfn, XlOper* pOperRes, int count, XlOper** ppOpers);

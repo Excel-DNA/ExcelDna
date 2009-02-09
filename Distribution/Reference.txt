@@ -82,25 +82,26 @@ Helper classes
 --------------
 ExcelReference - contains a sheet reference. Get/SetValue to read/write to the cells.
 ExcelError - an enum listing the different Excel errors
-Excel - contains Application property (for COM access), WindowHandle and IsInFunctionWizard.
+ExcelDnaUtils - contains Application property (for COM access), WindowHandle and IsInFunctionWizard.
 
 Wrapper for the Excel 97 SDK API
 --------------------------------
 XlCall class
-XlCall.Excel wraps Excel4 (but easy to call), also constants for all the API functions and commands.
+XlCall.Excel wraps Excel4/Excel12 (but easy to call), also constants for all the API functions and commands.
 
-XlCallException - when the call to Excel fails.
+XlCallException - is thrown when the call to Excel fails.
 XlCall.TryExcel - does not throw exception on fail, but returns an XlCallReturn enum value.
-XlLibrary contains RegisterMethods, allow dynamic registration of methods.
+ExcelDna.Integration.Integration contains the static method 'RegisterMethods' which allow dynamic registration of methods.
 
 Excel COM interface access
 ==========================
-ExcelDna.Integration.Excel.Application returns the Excel Application COM object.
+ExcelDna.Integration.ExcelDnaUtils.Application returns the Excel Application COM object.
 From VB this can be used late-bound quite easily.
 
 Default references and imports
 ==============================
-A reference to the .xll file that is loading a .dna file is always added when the .dna file is compiled.
+A reference to the ExcelDna.Integration assembly in the .xll file that is 
+loading a .dna file is always added when the .dna file is compiled.
 
 In addition, the following references are added to each project, unless a DefaultReferences="false" attribute is set on the <Project>:
 System.dll
@@ -117,3 +118,15 @@ System.Diagnostics
 ExcelDna.Integration
 
 
+.dna file schema
+================
+DnaLibrary 
+	Name
+	Description
+	Language
+	
+....
+
+AutoOpen/AutoClose
+==================
+Cleanup is only done when the add-in is removed from the add-in manager.

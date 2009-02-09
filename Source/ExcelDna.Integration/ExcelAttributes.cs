@@ -34,6 +34,7 @@ namespace ExcelDna.Integration
 		public string Category = null;
 		public string HelpTopic = null;
 		public bool   IsVolatile = false;
+        public bool   IsHidden = false;
 		public bool   IsExceptionSafe = false;
 		public bool   IsMacroType = false;
 
@@ -73,8 +74,10 @@ namespace ExcelDna.Integration
 		public string ShortCut = null;
 		public string MenuName = null;
 		public string MenuText = null;
+        public bool IsExceptionSafe = false;
+
+        [Obsolete("ExcelFunctions can be declared hidden, not ExcelCommands.")]
 		public bool   IsHidden = false;
-		public bool   IsExceptionSafe = false;
 
 		public ExcelCommandAttribute()
 		{
