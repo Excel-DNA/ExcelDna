@@ -1,3 +1,8 @@
+Version 0.19 (22 April 2009)
+-----------------------------
+* Fixed localized version ExcelVersion bug (thanks to Martin Drescher)
+* Fixed large object array returns (thanks to Suraj Gupta for reporting).
+
 Version 0.18 (28 December 2008)
 -------------------------------
 * Added support for Excel 2007 Multi-Threaded Recalculation

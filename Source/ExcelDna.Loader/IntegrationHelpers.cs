@@ -1,5 +1,5 @@
 ﻿/*
-  Copyright (C) 2005-2008 Govert van Drimmelen
+  Copyright (C) 2005-2009 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages

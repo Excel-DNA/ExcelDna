@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2008 Govert van Drimmelen
+  Copyright (C) 2005-2009 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -108,34 +108,31 @@ namespace ExcelDna.Integration
 			}
 		}
 
-		private static object _Application = null;
 		public static object Application
 		{
 			get
 			{
-				if (_Application == null)
+				object application = null;
+				application = GetApplicationFromWindow();
+				if (application == null)
 				{
-					_Application = GetApplicationFromWindow();
-					if (_Application == null)
-					{
-						// I assume it failed because there was no workbook open
-						// Now make workbook with VBA sheet, according to some Google post
+					// I assume it failed because there was no workbook open
+					// Now make workbook with VBA sheet, according to some Google post
 
-                        // TODO: Consider alternative of sending WM_USER+18 to Excel - KB 147573
+					// TODO: Consider alternative of sending WM_USER+18 to Excel - KB 147573
 
-						// Create new workbook with the right stuff
-						XlCall.Excel(XlCall.xlcEcho, false);
-						XlCall.Excel(XlCall.xlcNew, 5);
-						XlCall.Excel(XlCall.xlcWorkbookInsert, 6);
+					// Create new workbook with the right stuff
+					XlCall.Excel(XlCall.xlcEcho, false);
+					XlCall.Excel(XlCall.xlcNew, 5);
+					XlCall.Excel(XlCall.xlcWorkbookInsert, 6);
 
-						_Application = GetApplicationFromWindow();
+					application = GetApplicationFromWindow();
 
-						// Clean up
-						XlCall.Excel(XlCall.xlcFileClose, false);
-						XlCall.Excel(XlCall.xlcEcho, true);
-					}
+					// Clean up
+					XlCall.Excel(XlCall.xlcFileClose, false);
+					XlCall.Excel(XlCall.xlcEcho, true);
 				}
-				return _Application;
+				return application;
 			}
 		}
 
@@ -146,17 +143,17 @@ namespace ExcelDna.Integration
 			IntPtr hWndMain = WindowHandle;
 			IntPtr hWndChild = IntPtr.Zero;
 			EnumChildWindows(hWndMain, delegate(IntPtr hWndEnum, IntPtr param)
+			{
+				// Check the window class
+				StringBuilder cname = new StringBuilder(256);
+				GetClassNameW(hWndEnum, cname, cname.Capacity);
+				if (cname.ToString() == "EXCEL7")
 				{
-					// Check the window class
-					StringBuilder cname = new StringBuilder(256);
-					GetClassNameW(hWndEnum, cname, cname.Capacity);
-					if (cname.ToString() == "EXCEL7")
-					{
-						hWndChild = hWndEnum;
-						return false;	// Stop enumerating
-					}
-					return true;	// Continue enumerating
-				} , (IntPtr)0);
+					hWndChild = hWndEnum;
+					return false;	// Stop enumerating
+				}
+				return true;	// Continue enumerating
+			}, (IntPtr)0);
 			if (hWndChild != (IntPtr)0)
 			{
 				const uint OBJID_NATIVEOM = 0xFFFFFFF0;
@@ -180,63 +177,90 @@ namespace ExcelDna.Integration
 
 		public static bool IsInFunctionWizard()
 		{
-            // TODO: Handle the Find and Replace dialog
-            //       for international versions.
+			// TODO: Handle the Find and Replace dialog
+			//       for international versions.
 			IntPtr hWndMain = WindowHandle;
 			bool inFunctionWizard = false;
 			EnumWindows(delegate(IntPtr hWndEnum, IntPtr param)
+			{
+				// Check the window class
+				StringBuilder cname = new StringBuilder(256);
+				GetClassNameW(hWndEnum, cname, cname.Capacity);
+				if (cname.ToString().StartsWith("bosa_sdm_XL"))
 				{
-					// Check the window class
-					StringBuilder cname = new StringBuilder(256);
-					GetClassNameW(hWndEnum, cname, cname.Capacity);
-					if (cname.ToString().StartsWith("bosa_sdm_XL"))
+					if (GetParent(hWndEnum) == hWndMain)
 					{
-                        if (GetParent(hWndEnum) == hWndMain)
-                        {
-                            StringBuilder title = new StringBuilder(256);
-                            GetWindowTextW(hWndEnum, title, title.Capacity);
-                            if (!title.ToString().Contains("Replace"))
-                                inFunctionWizard = true; // will also work for older verions where past box had no title
-                            return false;	// Stop enumerating
-                        }
+						StringBuilder title = new StringBuilder(256);
+						GetWindowTextW(hWndEnum, title, title.Capacity);
+						if (!title.ToString().Contains("Replace"))
+							inFunctionWizard = true; // will also work for older verions where past box had no title
+						return false;	// Stop enumerating
 					}
-					return true;	// Continue enumerating
-				} , (IntPtr)0);
+				}
+				return true;	// Continue enumerating
+			}, (IntPtr)0);
 			return inFunctionWizard;
 		}
 
-        private static double _xlVersion = 0;
-        public static double ExcelVersion
-        {
-            get
-            {
-                if (_xlVersion == 0)
-                {
-                    object versionString;
-                    versionString = XlCall.Excel(XlCall.xlfGetWorkspace, 2);
-                    double version;
-                    bool parseOK = double.TryParse((string)versionString, out version);
-                    if (!parseOK)
-                    {
-                        // Might be locale problem 
-                        // and Excel 12 returns versionString with "." as decimal sep.
-                        //  ->  microsoft.public.excel.sdk thread
-                        //      Excel4(xlfGetWorkspace, &version, 1, & arg) - Excel2007 Options 
-                        //      Dec 12, 2006
-                        parseOK = double.TryParse((string)versionString,
-                                    System.Globalization.NumberStyles.AllowDecimalPoint,
-                                    System.Globalization.NumberFormatInfo.InvariantInfo,
-                                    out version);
-                    }
-                    if (!parseOK)
-                    {
-                        version = 0.99;
-                    }
-                    _xlVersion = version;
-                }
-                return _xlVersion;
-            }
-        }
+		//private static double _xlVersion = 0;
+		//public static double ExcelVersion
+		//{
+		//    get
+		//    {
+		//        if (_xlVersion == 0)
+		//        {
+		//            object versionString;
+		//            versionString = XlCall.Excel(XlCall.xlfGetWorkspace, 2);
+		//            double version;
+		//            bool parseOK = double.TryParse((string)versionString, out version);
+		//            if (!parseOK)
+		//            {
+		//                // Might be locale problem 
+		//                // and Excel 12 returns versionString with "." as decimal sep.
+		//                //  ->  microsoft.public.excel.sdk thread
+		//                //      Excel4(xlfGetWorkspace, &version, 1, & arg) - Excel2007 Options 
+		//                //      Dec 12, 2006
+		//                parseOK = double.TryParse((string)versionString,
+		//                            System.Globalization.NumberStyles.AllowDecimalPoint,
+		//                            System.Globalization.NumberFormatInfo.InvariantInfo,
+		//                            out version);
+		//            }
+		//            if (!parseOK)
+		//            {
+		//                version = 0.99;
+		//            }
+		//            _xlVersion = version;
+		//        }
+		//        return _xlVersion;
+		//    }
+		//}
+
+		// Updated for International Excel - Thanks to Martin Drecher
+		private static double _xlVersion = 0;
+		public static double ExcelVersion
+		{
+			get
+			{
+				if (_xlVersion == 0)
+				{
+					string versionString;
+					versionString = (string)XlCall.Excel(XlCall.xlfGetWorkspace, 2);
+					versionString = System.Text.RegularExpressions.Regex.Match(versionString, "^\\d+(\\.\\d+)?").Value;
+					double version;
+					if (!String.IsNullOrEmpty(versionString) &&
+						Double.TryParse(versionString, System.Globalization.NumberStyles.Any,
+										System.Globalization.CultureInfo.InvariantCulture, out version))
+					{
+						_xlVersion = version;
+					}
+					else
+					{
+						_xlVersion = 0.99;
+					}
+				}
+				return _xlVersion;
+			}
+		} 
 
         private static ExcelLimits _xlLimits;
         public static ExcelLimits ExcelLimits
