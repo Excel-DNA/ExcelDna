@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2008 Govert van Drimmelen
+  Copyright (C) 2005-2009 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -835,32 +835,27 @@ namespace ExcelDna.Loader
 			// Here we allocate and clear when the next array is returned
 			// we might also return XLOPER and have xlFree called back.
 
-			// If array is too big!?, we just truncate
-
 			// TODO: Remove duplication - due to fixed / pointer interaction
             // TODO: Might manages strings differently - currently I allocate the maximum length of 255 bytes
             //          for each string. Instead, I might just allocate the required number of bytes.
 
 			Reset(true);
 
-			ushort rows;
-			ushort columns; // those in the returned array
-			int allColumns;	// all in the managed array
+			int rows;
+			int columns; // those in the returned array
 			if (rank == 1)
 			{
 				object[] objects = (object[])ManagedObj;
 
 				rows = 1;
-				allColumns = objects.Length;
-				columns = (ushort)Math.Min(objects.Length, ushort.MaxValue);
+				columns = objects.Length;
 			}
 			else if (rank == 2)
 			{
 				object[,] objects = (object[,])ManagedObj;
 
-				rows = (ushort)Math.Min(objects.GetLength(0), ushort.MaxValue);
-				allColumns = objects.GetLength(1);
-				columns = (ushort)Math.Min(objects.GetLength(1), ushort.MaxValue);
+				rows = objects.GetLength(0);
+				columns = objects.GetLength(1);
 			}
 			else
 			{
@@ -893,8 +888,8 @@ namespace ExcelDna.Loader
 				}
 				else
 				{
-					int row = i / allColumns;
-					int column = i % allColumns;
+					int row = i / columns;
+					int column = i % columns;
 					obj = ((object[,])ManagedObj)[row, column];
 				}
 
@@ -1060,8 +1055,8 @@ namespace ExcelDna.Loader
 						}
 						else
 						{
-							int row = i / allColumns;
-							int column = i % allColumns;
+							int row = i / columns;
+							int column = i % columns;
 							str = (string)((object[,])ManagedObj)[row, column];
 						}
 
@@ -1108,8 +1103,8 @@ namespace ExcelDna.Loader
 						}
 						else
 						{
-							int row = i / allColumns;
-							int column = i % allColumns;
+							int row = i / columns;
+							int column = i % columns;
 							r = /*(ExcelReference)*/((object[,])ManagedObj)[row, column];
 						}
 
