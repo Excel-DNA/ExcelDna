@@ -83,8 +83,7 @@ namespace ExcelDna.Integration
 
         internal static void Initialize()
         {
-            // Ensure COM Application object is set
-            object unused = ExcelDnaUtil.Application;
+			ExcelDnaUtil.Initialize();
             DnaLibrary.Initialize();
         }
 

@@ -1,0 +1,28 @@
+<DnaLibrary Description="GetInfo Library" Language="CS">
+	<![CDATA[
+            using System;
+            using ExcelDna.Integration;
+
+            public class GetInfoFunctions
+            {
+                [ExcelFunction(Description = "Returns the result of xlfGetCell.", IsMacroType=true)]
+                public static object GetCell(int type_num, [ExcelArgument(AllowReference=true)]object reference)
+                {                    
+		    return XlCall.Excel(XlCall.xlfGetCell, type_num, reference);
+                }
+
+                [ExcelFunction(Description = "Returns the result of xlfGetDocument.", IsMacroType=true)]
+                public static object GetDocument(int type_num, string name_text )
+                {                    
+		    return XlCall.Excel(XlCall.xlfGetDocument, type_num, name_text);
+                }
+
+                [ExcelFunction(Description = "Returns the result of xlfGetWorkbook.", IsMacroType=true)]
+                public static object GetWorkbook(int type_num, string name_text )
+                {                    
+		    return XlCall.Excel(XlCall.xlfGetWorkbook, type_num, name_text);
+                }
+
+            }
+	]]>
+</DnaLibrary>

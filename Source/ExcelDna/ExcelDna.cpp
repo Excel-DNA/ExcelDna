@@ -197,9 +197,6 @@ extern "C"
 			}
 		return result;
 	}
-
-
-
 }
 
 // The dll export implementation that jmps to thunk in the thunktable
@@ -459,7 +456,6 @@ expf(246)
 expf(247)
 expf(248)
 expf(249)
-/*
 expf(250)
 expf(251)
 expf(252)
@@ -1210,4 +1206,3 @@ expf(996)
 expf(997)
 expf(998)
 expf(999)
-*/

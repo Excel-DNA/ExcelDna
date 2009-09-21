@@ -1,3 +1,10 @@
+Version 0.20 (20 September 2009)
+--------------------------------
+* Fix COM reference leak in ExcelDnaUtil.Application (thanks to Suraj Gupta for reporting).
+* Updated function and command constants from 2007 xlcall.h file.
+* Made minor changes to ease VS 2005 conversion.
+* Increased max. exported functions to 1000.
+
 Version 0.19 (22 April 2009)
 -----------------------------
 * Fixed localized version ExcelVersion bug (thanks to Martin Drescher)

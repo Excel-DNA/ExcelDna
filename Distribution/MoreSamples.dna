@@ -70,7 +70,14 @@
 					{
 						return XlCall.Excel(XlCall.xlfGetWorkspace, 44);
 					}
-          
+
+					[ExcelFunction(IsMacroType=true)]
+					public static object DoStuffLater()
+					{
+						XlCall.Excel(XlCall.xlcOnTime, DateTime.Now.AddSeconds(5), "SetSome");
+						return DateTime.Now.AddSeconds(5);
+					}
+
 					// One dimensional arrays are rows.
 					[ExcelFunction(Description="Sorts the given vector")]
 					public static double[] SortVector(double[] vector)
@@ -182,7 +189,7 @@
 					End Function
 
 					' There is easy access to the Excel automation object.
-					' ExcelDna.Integration.Excel.Application returns a reference
+					' ExcelDna.Integration.ExcelDnaUtil.Application returns a reference
 					' to the Excel Application COM object.
 					' This can be used late-bound from VB, or using the PIA from C#
 					Function GetTheExcelVersion() as double
@@ -193,9 +200,10 @@
             GetTheExcelVersionFromExcelDna = ExcelDnaUtil.ExcelVersion
           End Function 
 
-					Function DoLater() as String
+<ExcelFunction(IsMacroType:=True)> Function DoLater() as String
             ' This is not recommended, but it works for me.
-						Excel.Application.OnTime(DateTime.Now, "RingBell")
+						'XlCall.Excel(XlCall.xlcOnTime, DateTime.Now, "RingBell")
+						Excel.Application.OnTime(DateTime.Now.AddSeconds(5), "RingBell")
 						DoLater = "#WAIT!"
 					End Function
 

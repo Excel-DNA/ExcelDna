@@ -70,6 +70,15 @@ namespace ExcelDna.Integration
 			  IntPtr hwnd, uint dwObjectID, byte[] riid,
 			  ref IntPtr ptr /*ppUnk*/);
 
+		private const uint OBJID_NATIVEOM = 0xFFFFFFF0;
+		private static readonly byte[] IID_IDispatchBytes = new Guid("{00020400-0000-0000-C000-000000000046}").ToByteArray();
+
+		internal static void Initialize()
+		{
+			// Need to get window in a macro context, else the call to get the Excel version fails.
+			IntPtr unused = WindowHandle;
+		}
+
 		private static IntPtr _hWndExcel = IntPtr.Zero;
 		public static IntPtr WindowHandle
 		{
@@ -119,7 +128,9 @@ namespace ExcelDna.Integration
 					// I assume it failed because there was no workbook open
 					// Now make workbook with VBA sheet, according to some Google post
 
-					// TODO: Consider alternative of sending WM_USER+18 to Excel - KB 147573
+					// CONSIDER: Alternative of sending WM_USER+18 to Excel - KB 147573
+					//           And trying to retrieve Excel from the ROT using GetActiveObject
+					//           Concern then is whether it is the right instance of the Excel.Application for this process.
 
 					// Create new workbook with the right stuff
 					XlCall.Excel(XlCall.xlcEcho, false);
@@ -156,18 +167,18 @@ namespace ExcelDna.Integration
 			}, (IntPtr)0);
 			if (hWndChild != (IntPtr)0)
 			{
-				const uint OBJID_NATIVEOM = 0xFFFFFFF0;
-				Guid IID_IDispatch = new Guid(
-					 "{00020400-0000-0000-C000-000000000046}");
-				IntPtr ptr = (IntPtr)0;
+				IntPtr pUnk = (IntPtr)0;
 				int hr = AccessibleObjectFromWindow(
 						hWndChild, OBJID_NATIVEOM,
-						IID_IDispatch.ToByteArray(), ref ptr);
+						IID_IDispatchBytes, ref pUnk);
 				if (hr >= 0)
 				{
-					object obj = Marshal.GetObjectForIUnknown(ptr);
+					object obj = Marshal.GetObjectForIUnknown(pUnk);
+					Marshal.Release(pUnk);
+
 					object app = obj.GetType().InvokeMember("Application", System.Reflection.BindingFlags.GetProperty, null, obj, null);
 					Marshal.ReleaseComObject(obj);
+
 					//							object ver = app.GetType().InvokeMember("Version", System.Reflection.BindingFlags.GetProperty, null, app, null);
 					return app;
 				}
@@ -193,7 +204,7 @@ namespace ExcelDna.Integration
 						StringBuilder title = new StringBuilder(256);
 						GetWindowTextW(hWndEnum, title, title.Capacity);
 						if (!title.ToString().Contains("Replace"))
-							inFunctionWizard = true; // will also work for older verions where past box had no title
+							inFunctionWizard = true; // will also work for older versions where paste box had no title
 						return false;	// Stop enumerating
 					}
 				}
@@ -292,10 +303,33 @@ namespace ExcelDna.Integration
 
     public class ExcelLimits
     {
-        public int MaxRows { get; internal set; }
-        public int MaxColumns { get; internal set; }
-        public int MaxArguments { get; internal set; }
-        public int MaxStringLength { get; internal set; }
-    }
+		private int _maxRows;
+		public int MaxRows
+		{
+			get { return _maxRows; }
+			internal set { _maxRows = value; }
+		}
+
+		private int _maxColumns;
+		public int MaxColumns
+		{
+			get { return _maxColumns; }
+			internal set { _maxColumns = value; }
+		}
+
+		private int _maxArguments;
+		public int MaxArguments
+		{
+			get { return _maxArguments; }
+			internal set { _maxArguments = value; }
+		}
+
+		private int _maxStringLength;
+		public int MaxStringLength
+		{
+			get { return _maxStringLength; }
+			internal set { _maxStringLength = value; }
+		}
+	}
 
 }

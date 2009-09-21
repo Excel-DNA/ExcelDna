@@ -1,0 +1,15 @@
+﻿<DnaLibrary Name="Testing Errors" Language="CS">
+using ExcelDna.Integration;
+public static class MyFunctions
+{
+	public static object GetValueError()
+	{	
+		return ExcelError.ExcelErrorValue;
+	}
+
+	public static object GetReferenceError()
+	{
+		return ExcelError.ExcelErrorRef;
+	}
+}
+</DnaLibrary>

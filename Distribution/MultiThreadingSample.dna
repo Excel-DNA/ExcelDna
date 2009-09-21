@@ -15,7 +15,7 @@
 		public static object MtrFunction(object arg)
 		{
 			System.Threading.Thread.Sleep(1000);
-			return arg;
+			return (double)arg+1;
 		}
 	}
 ]]>
