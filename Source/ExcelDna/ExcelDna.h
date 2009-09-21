@@ -24,10 +24,10 @@
 
 #pragma once
 
-// JUMP_NUM defines the size of the jump table. 
-// Must match the number of functions exported in Exports.cpp
-#define EXPORT_COUNT 250
-// #define EXPORT_COUNT 1000
+// EXPORT_COUNT defines the size of the thunk table. 
+// Must match the number of functions exported in ExcelDna.cpp
+//#define EXPORT_COUNT 250
+ #define EXPORT_COUNT 1000
 
 typedef void (*PFN)();
 typedef short (*PFN_SHORT_VOID)();

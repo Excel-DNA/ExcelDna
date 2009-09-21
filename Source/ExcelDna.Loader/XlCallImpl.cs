@@ -36,18 +36,18 @@ namespace ExcelDna.Loader
         [DllImport("XLCALL32.DLL")]
         internal static extern int XLCallVer();
 
-        [DllImport("XLCALL32.DLL")]
+		[DllImport("XLCALL32.DLL")]
 		private static extern unsafe int Excel4v(int xlfn, XlOper* pOperRes, int count, XlOper** ppOpers);
 
-        [DllImport("kernel32.dll")]
+		[DllImport("kernel32.dll")]
         public static extern IntPtr GetModuleHandle(string moduleName);
 
-        [DllImport("kernel32.dll")]
+		[DllImport("kernel32.dll")]
         public static extern IntPtr GetProcAddress(IntPtr hModule, string procedureName);
 
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+		[UnmanagedFunctionPointer(CallingConvention.StdCall)]
         private unsafe delegate int Excel12vDelegate(int xlfn, int count, XlOper12** ppOpers, XlOper12* pOperRes);
-        private static Excel12vDelegate Excel12v;
+		private static Excel12vDelegate Excel12v;
 
         /*
         ** Function number bits

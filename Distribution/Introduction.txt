@@ -9,7 +9,7 @@ ExcelDna is developed using .NET 2.0, and users have to install the freely avail
 
 Current status
 --------------
-ExcelDna allows exporting functions and commands from .NET scripts or compiled libraries. ExcelDna also supports automatic marshaling for calling the Excel C API from .NET, making it easy to port existing C/C++ code that uses the native Excel API. Access to the Excel automation interfaces is available from ExcelDna, and can be used late-bound from Visual Basic, or via a reference to the primary interop assemblies. ExcelDna supports the Excel 2007 large sheet and long Unicode strings.
+ExcelDna allows exporting functions and commands from .NET scripts or compiled libraries. ExcelDna also supports automatic marshaling for calling the Excel C API from .NET, making it easy to port existing C/C++ code that uses the native Excel API. Access to the Excel automation interfaces is available from ExcelDna, and can be used late-bound from Visual Basic, or via a reference to the primary interop assemblies. ExcelDna supports the Excel 2007 large sheet and long Unicode strings, and multi-threaded recalculation.
 
 ExcelDna is at an early stage of development and has not been tested extensively. This means it might not entirely work as advertised. Please be patient and careful.
 
@@ -17,7 +17,6 @@ Future work
 -----------
 There are two themes for future work: 
 Firstly to improve the current integration .xll:
-* Support for multithreading recalculation in Excel 2007.
 * Testing on different OS and Excel versions, maybe unit tests.
 * Documentation.
 * Additional functionality like object handles and asyncronous calls.
@@ -34,8 +33,8 @@ Related projects
 You can help with:
 ------------------
 * Feedback, ideas and suggestions.
-* Advice or help to manage ExcelDna as a fully fledged open source project (Sourceforge or similar?) 
 * Further testing and development. 
+* Using ExcelDna :-)
 
 Govert van Drimmelen
 govert@icon.co.za

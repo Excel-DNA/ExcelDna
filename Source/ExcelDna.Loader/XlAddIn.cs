@@ -69,11 +69,13 @@ namespace ExcelDna.Loader
         static bool IsInitialized = false;
 
         #region Initialization
-        public static unsafe bool Initialize(int xlAddInExportInfoAddress, int hModuleXll, string pathXll)
+
+		public static unsafe bool Initialize(int xlAddInExportInfoAddress, int hModuleXll, string pathXll)
         {
             Debug.Assert(xlAddInExportInfoAddress != 0);
             Debug.Print("InitializationInfo Address: 0x{0:x8}", xlAddInExportInfoAddress);
-            XlAddInExportInfo* pXlAddInExportInfo = (XlAddInExportInfo*)xlAddInExportInfoAddress;
+			
+			XlAddInExportInfo* pXlAddInExportInfo = (XlAddInExportInfo*)xlAddInExportInfoAddress;
             if (pXlAddInExportInfo->ExportInfoVersion != 1)
             {
                 Debug.Print("ExportInfoVersion not supported.");
@@ -115,8 +117,8 @@ namespace ExcelDna.Loader
             thunkTableLength = pXlAddInExportInfo->ThunkTableLength;
             thunkTable = pXlAddInExportInfo->ThunkTable;
 
-            XlAddIn.xlCallVersion = XlCallImpl.XLCallVer() / 256;
-            XlAddIn.hModuleXll = (IntPtr)hModuleXll;
+			XlAddIn.xlCallVersion = XlCallImpl.XLCallVer() / 256;
+			XlAddIn.hModuleXll = (IntPtr)hModuleXll;
             XlAddIn.pathXll = pathXll;
 
             AssemblyManager.Initialize((IntPtr)hModuleXll, pathXll);
@@ -131,7 +133,6 @@ namespace ExcelDna.Loader
             {
                 Debug.WriteLine("XlAddIn: Initialize Exception: " + e);
             }
-
             return result;
         }
 
@@ -192,11 +193,11 @@ namespace ExcelDna.Loader
         #endregion
 
         #region Managed Xlxxxx Functions
+
         internal static short XlAutoOpen()
         {
             Debug.Print("AppDomain Id: " + AppDomain.CurrentDomain.Id + " (Default: " + AppDomain.CurrentDomain.IsDefaultAppDomain() + ")");
-            
-            short result = 0;
+			short result = 0;
             try
             {
                 Debug.WriteLine("In XlAddIn.XlAutoOpen");
@@ -205,7 +206,7 @@ namespace ExcelDna.Loader
                 object xlCallResult;
                 XlCallImpl.TryExcelImpl(XlCallImpl.xlcMessage, out xlCallResult /*Ignore*/ , true, "Registering library " + pathXll);
 
-                InitializeIntegration();
+				InitializeIntegration();
 
                 // InitializeIntegration has loaded the DnaLibrary
                 IntegrationHelpers.DnaLibraryAutoOpen();
@@ -224,11 +225,10 @@ namespace ExcelDna.Loader
                 object xlCallResult;
                 XlCallImpl.TryExcelImpl(XlCallImpl.xlcMessage, out xlCallResult /*Ignore*/ , false);
             }
-
             return result;
         }
 
-        internal static short XlAutoClose()
+		internal static short XlAutoClose()
         {
             short result = 0;
             try
@@ -245,7 +245,7 @@ namespace ExcelDna.Loader
             return result;
         }
 
-        internal static short XlAutoAdd()
+		internal static short XlAutoAdd()
         {
             // AutoOpen will get called too, where we set everything up ...
             short result = 0;
@@ -262,7 +262,7 @@ namespace ExcelDna.Loader
             return result;
         }
 
-        internal static short XlAutoRemove()
+		internal static short XlAutoRemove()
         {
             short result = 0;
             try
@@ -281,7 +281,7 @@ namespace ExcelDna.Loader
             return result;
         }
 
-        internal static void XlAutoFree(IntPtr pXloper)
+		internal static void XlAutoFree(IntPtr pXloper)
         {
             // CONSIDER: This might be improved....
             // Another option would be to have the Com memory allocator run in unmanaged code.
@@ -292,7 +292,7 @@ namespace ExcelDna.Loader
             XlObjectArrayMarshaler.FreeMemory();
         }
 
-        internal static void XlAutoFree12(IntPtr pXloper12)
+		internal static void XlAutoFree12(IntPtr pXloper12)
         {
             // CONSIDER: This might be improved....
             // Another option would be to have the Com memory allocator run in unmanaged code.
@@ -303,7 +303,7 @@ namespace ExcelDna.Loader
             XlObjectArray12Marshaler.FreeMemory();
         }
 
-        internal static IntPtr XlAddInManagerInfo(IntPtr pXloperAction)
+		internal static IntPtr XlAddInManagerInfo(IntPtr pXloperAction)
         {
             Debug.WriteLine("In XlAddIn.XlAddInManagerInfo");
             ICustomMarshaler m = XlObjectMarshaler.GetInstance("");
@@ -319,7 +319,7 @@ namespace ExcelDna.Loader
             return m.MarshalManagedToNative(result);
         }
 
-        internal static IntPtr XlAddInManagerInfo12(IntPtr pXloperAction12)
+		internal static IntPtr XlAddInManagerInfo12(IntPtr pXloperAction12)
         {
             Debug.WriteLine("In XlAddIn.XlAddInManagerInfo12");
             ICustomMarshaler m = XlObject12Marshaler.GetInstance("");
@@ -397,12 +397,12 @@ namespace ExcelDna.Loader
             if (mi.Parameters.Length == 0 && functionDescription != "")
                 functionDescription += ". ";
 
-            if (mi.Description != "")
+			// DOCUMENT: When there is no description, we don't add any.
+			// This allows the user to work around the Excel bug where an extra parameter is displayed if
+			// the function has no parameter but displays a description
+			if (mi.Description != "")
                 showDescriptions = true;
 
-            // DOCUMENT: When there is no description, we don't add any.
-            // This allows the user to work around the Excel bug where an extra parameter is displayed if
-            // the function has no parameter but displays a description
             int numArguments;
             // DOCUMENT: Maximum 20 Argument Descriptions when registering using Excel4 function.
             int maxDescriptions = (XlAddIn.xlCallVersion < 12) ? 20 : 245;
@@ -504,8 +504,7 @@ namespace ExcelDna.Loader
                 {
                     // I follow the advice from X-Cell website
                     // to get function out of Wizard
-                    XlCallImpl.TryExcelImpl(XlCallImpl.xlfRegister, out xlCallResult, pathXll, "xlAutoRemove", "J", mi.Name, Missing.Value, 0);
-
+                    XlCallImpl.TryExcelImpl(XlCallImpl.xlfRegister, out xlCallResult, pathXll, "xlAutoRemove", "J", mi.Name, IntegrationMarshalHelpers.GetExcelMissingValue(), 0);
                 }
                 XlCallImpl.TryExcelImpl(XlCallImpl.xlfUnregister, out xlCallResult, mi.RegisterId);
             }
