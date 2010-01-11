@@ -391,7 +391,12 @@ namespace ExcelDna.Loader
             // Excel considers the function volatile
             // You can call xlfVolatile, false in beginning of function to clear.
 
-            // DOCUMENT: Here is the patch for the Excel Function Description bug.
+			// DOCUMENT: There is a bug? in Excel 2007 that limits the total argumentname string to 255 chars.
+			// DOCUMENT: I truncate the argument string for all versions.
+			if (argumentNames.Length > 255)
+				argumentNames = argumentNames.Substring(0, 255);
+
+			// DOCUMENT: Here is the patch for the Excel Function Description bug.
             // DOCUMENT: I add ". " if the function takes no parameters and has a description.
             string functionDescription = mi.Description;
             if (mi.Parameters.Length == 0 && functionDescription != "")
@@ -403,7 +408,7 @@ namespace ExcelDna.Loader
 			if (mi.Description != "")
                 showDescriptions = true;
 
-            int numArguments;
+			int numArguments;
             // DOCUMENT: Maximum 20 Argument Descriptions when registering using Excel4 function.
             int maxDescriptions = (XlAddIn.xlCallVersion < 12) ? 20 : 245;
             int numArgumentDescriptions;
@@ -462,6 +467,7 @@ namespace ExcelDna.Loader
             {
                 object xlCallResult;
                 XlCallImpl.TryExcelImpl(XlCallImpl.xlfRegister, out xlCallResult, registerParameters);
+				//TODO: if (xlCallResult is ExcelErrorValue) { } .....
                 mi.RegisterId = (double)xlCallResult;
                 registeredMethods.Add(mi);
             }

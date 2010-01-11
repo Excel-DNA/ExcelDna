@@ -176,23 +176,37 @@ namespace ExcelDna.Integration
 			cp.GenerateInMemory = true;
 			cp.TreatWarningsAsErrors = false;
 
+			//set the temp dir for the compiler
+            cp.TempFiles = new TempFileCollection(System.IO.Path.GetTempPath(), true);
+
+			// This is attempt to fix the bug reported on the group, where the add-in compilation fails if the add-in is put into c:\
+			// It is caused by a quirk of the 'Path.GetDirectoryName' function when dealing with the path "c:\test.abc" 
+			// - it leaves the last DirectorySeparator in the path in this special case.
+			// Thanks to Nemo for the great fix.
+			//local variable to hold the quoted/unquoted version of the executing dirction
+			string ProcessedExecutingDirectory = DnaLibrary.ExecutingDirectory;
+            if (ProcessedExecutingDirectory.IndexOf(' ') != -1)
+                ProcessedExecutingDirectory = "\"" + ProcessedExecutingDirectory + "\"";
+
+			//set compiler command line vars as needed
             if (provider is Microsoft.VisualBasic.VBCodeProvider)
             {
-                cp.CompilerOptions = " /libPath:\"" + DnaLibrary.ExecutingDirectory + "\" ";
+                cp.CompilerOptions = " /libPath:" + ProcessedExecutingDirectory;
                 if (DefaultImports)
                 {
                     string importsList = "Microsoft.VisualBasic,System,System.Collections,System.Collections.Generic,System.Data,System.Diagnostics,ExcelDna.Integration";
                     cp.CompilerOptions += " /imports:" + importsList;
                 }
             }
-            else if (provider is Microsoft.CSharp.CSharpCodeProvider)
+            else if ( (provider is Microsoft.CSharp.CSharpCodeProvider) || (provider.GetType().FullName.ToLower().IndexOf(".jscript.") != -1))
             {
-                cp.CompilerOptions = " /lib:\"" + DnaLibrary.ExecutingDirectory + "\" ";
+                cp.CompilerOptions = " /lib:" + ProcessedExecutingDirectory;
             }
             else if (provider.GetType().FullName == "Microsoft.FSharp.Compiler.CodeDom.FSharpCodeProvider")
             {
-                cp.CompilerOptions = " --nologo -I " + DnaLibrary.ExecutingDirectory;
+                cp.CompilerOptions = " --nologo -I " + ProcessedExecutingDirectory;
             }
+
 
             List<string> references = GetReferences().ConvertAll<string>(delegate(Reference item) { return item.AssemblyPath; });
 			cp.ReferencedAssemblies.AddRange(references.ToArray());

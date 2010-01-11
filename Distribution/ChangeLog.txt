@@ -1,4 +1,9 @@
-Version 0.20 (20 September 2009)
+Version 0.21 (10 December 2009)
+-------------------------------
+* There is a bug? in Excel 2007 that limits the total argumentname string to 255 chars. I truncate the argument string for all versions. Sometime the display in the function wizard will now be incomplete.
+* Fix bug if the vb code is used in the .dna file and the .xll is in the root directory of a drive (thanks to Nemo for the error report and fix).
+
+Version 0.20 (21 September 2009)
 --------------------------------
 * Fix COM reference leak in ExcelDnaUtil.Application (thanks to Suraj Gupta for reporting).
 * Updated function and command constants from 2007 xlcall.h file.
