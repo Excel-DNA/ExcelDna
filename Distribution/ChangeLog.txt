@@ -1,4 +1,4 @@
-Version 0.22 (20 February 2010)
+Version 0.22 (22 February 2010)
 -------------------------------
 * Fix critical bug in MultiThreaded marshaling (under Excel 2007).
 
