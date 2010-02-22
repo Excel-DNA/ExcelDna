@@ -1,38 +1,6 @@
 ExcelDna Reference
 ==================
 
-New Marshaling
-==============
-
-Native (+/- full-fidelity) parameter types:
-All parameters and return values must be like this, and IsExceptionSafe=false.
-
-This is what ExcelDna.Loader will marshal to / from XlOpers.
-
-Double
-Double[,]
-String
-Object
-- Double
-- String
-- Boolean
-- Object[,] (Containing Double, String, Boolean, ExcelError, ExcelEmpty, ExcelMissing or null).
-- ExcelError
-- ExcelEmpty
-- ExcelMissing
-- ExcelReference (if AllowReference=true)
-
-Sequence of delegate->delegate transformations.
-1. Exception wrapper.
-2. Type converters -- No.
-3. Call wrappers.
-
-End must be as above.
-
-"xxx is yyy" takes 5-10 ns.
-typeof(yyy).IsInstanceOfType(xxx) takes 50-100 ns.
-
-
 Data type marshaling
 ====================
 
@@ -97,6 +65,7 @@ ExcelFunctionAttribute - for user-defined functions
 	HelpTopic
 	IsVolatile (! suffix)
 	IsMacroType (# suffix)
+	IsThreadSafe ($ suffix)
 ExcelArgumentAttribute - for the arguments of user-defined functions
 	Name
 	Description
@@ -129,7 +98,7 @@ ExcelDna.Integration.Integration contains the static method 'RegisterMethods' wh
 Excel COM interface access
 ==========================
 ExcelDna.Integration.ExcelDnaUtils.Application returns the Excel Application COM object.
-From VB this can be used late-bound quite easily.
+From VB.NET this can be used late-bound quite easily.
 
 Default references and imports
 ==============================
