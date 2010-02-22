@@ -1,3 +1,7 @@
+Version 0.22 (20 February 2010)
+-------------------------------
+* Fix critical bug in MultiThreaded marshaling (under Excel 2007).
+
 Version 0.21 (10 December 2009)
 -------------------------------
 * There is a bug? in Excel 2007 that limits the total argumentname string to 255 chars. I truncate the argument string for all versions. Sometime the display in the function wizard will now be incomplete.
