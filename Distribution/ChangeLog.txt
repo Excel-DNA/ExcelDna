@@ -39,7 +39,6 @@ Version 0.17 (26 December 2008)
    - For arguments to UDF functions that are declared as type object, the new types ExcelDna.Integration.ExcelMissing and ExcelDna.Integration.ExcelEmpty are used - these replace 'null' values and System.Reflection.Missing respectively.
    - Changed ExcelReference.SheetId to be a uint everywhere.
    ? If you find any of these changes unbearable, please let me know asap.
-   		
 
 Version 0.16 (3 September 2008)
 -------------------------------
