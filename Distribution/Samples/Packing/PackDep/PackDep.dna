@@ -1,0 +1,5 @@
+<DnaLibrary Description="PackDep Test Add-In" Language="CS">
+	<ExternalLibrary Path="MainLib.dll" Pack="true" />
+	<Reference AssemblyPath="DepLib.dll" Pack="true" />
+</DnaLibrary>
+

@@ -1,0 +1,34 @@
+<DnaLibrary Name="ErrorHandler Sample" Language="CS">
+<![CDATA[
+using System;
+using ExcelDna.Integration;
+
+public class MyAddIn : IExcelAddIn
+{
+
+	public void AutoOpen()
+	{
+		Integration.RegisterUnhandledExceptionHandler( ErrorHandler );
+	}
+
+	private object ErrorHandler(object exceptionObject)
+	{
+		return ">>ERROR<< : " + exceptionObject.ToString();
+	}
+		
+	public void AutoClose()
+	{
+	}
+
+	public static string SayHello()
+	{
+		return "Hello from the ExceptionHandler Add-In!";
+	}
+
+	public static string DoBadStuff()
+	{
+		throw new InvalidOperationException("Don't be evil!");
+	}
+}
+]]>
+</DnaLibrary>

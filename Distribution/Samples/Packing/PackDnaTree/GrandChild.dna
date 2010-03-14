@@ -1,0 +1,11 @@
+<DnaLibrary Language="CS">
+<![CDATA[
+	public class SomeClass
+	{
+		public static string PackDnaGrandChild()
+		{
+			return "Hello from PackDnaGrandChild!";
+		}
+	}
+]]>
+</DnaLibrary>
