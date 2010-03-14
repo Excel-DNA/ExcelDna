@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2009 Govert van Drimmelen
+  Copyright (C) 2005-2010 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -138,7 +138,7 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 	hr = pAppDomain->Load_2(CComBSTR(L"ExcelDna.Loader"), &pExcelDnaLoaderAssembly);
 	if (FAILED(hr) || pExcelDnaLoaderAssembly == NULL)
 	{
-		HRSRC hResInfoLoader = FindResource(hModuleCurrent, L"EXCELDNA_LOADER", L"ASSEMBLY");
+		HRSRC hResInfoLoader = FindResource(hModuleCurrent, L"EXCELDNA.LOADER", L"ASSEMBLY");
 		if (hResInfoLoader == NULL)
 		{
 			ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 

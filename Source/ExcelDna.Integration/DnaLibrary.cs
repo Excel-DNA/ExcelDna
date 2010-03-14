@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2009 Govert van Drimmelen
+  Copyright (C) 2005-2010 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -36,7 +36,7 @@ namespace ExcelDna.Integration
 	[Serializable]
 	[XmlType(AnonymousType = true)]
 	[XmlRoot(Namespace = "", IsNullable = false)]
-	public class DnaLibrary : IAssemblyDefinition
+	public class DnaLibrary
 	{
 		private List<ExternalLibrary> _ExternalLibraries;
 		[XmlElement("ExternalLibrary", typeof(ExternalLibrary))]
@@ -83,7 +83,7 @@ namespace ExcelDna.Integration
 			set { _Name = value; }
 		}
 
-        // Next three are abbreviations for Project contents
+        // Next bunch are abbreviations for Project contents
         private List<Reference> _References;
         [XmlElement("Reference", typeof(Reference))]
         public List<Reference> References
@@ -100,6 +100,14 @@ namespace ExcelDna.Integration
             set { _Language = value; }
         }
 
+		private string _CompilerVersion;
+		[XmlAttribute]
+		public string CompilerVersion
+		{
+			get { return _CompilerVersion; }
+			set { _CompilerVersion = value; }
+		}
+
         private bool _DefaultReferences = true;
         [XmlAttribute]
         public bool DefaultReferences
@@ -115,6 +123,16 @@ namespace ExcelDna.Integration
             get { return _DefaultImports; }
             set { _DefaultImports = value; }
         }
+
+		// No ExplicitExports flag on the DnaLibrary (for now), because it might cause confusion when mixed with ExternalLibraries.
+		// Projects can be markes as ExplicitExports by adding an explicit <Project> tag.
+		//private bool _ExplicitExports = false;
+		//[XmlAttribute]
+		//public bool ExplicitExports
+		//{
+		//    get { return _ExplicitExports; }
+		//    set { _ExplicitExports = value; }
+		//}
         
         private string _Code;
         [XmlText]
@@ -125,26 +143,36 @@ namespace ExcelDna.Integration
         }
 
         // Get projects explicit and implicitly present in the library
-        private List<Project> GetProjects()
+        public List<Project> GetProjects()
         {
             List<Project> projects = new List<Project>();
             if (Projects != null)
                 projects.AddRange(Projects);
             if (_Code != null && Code.Trim() != "")
-                projects.Add(new Project(Language, References, _Code, DefaultReferences, DefaultImports));
+                projects.Add(new Project(Language, CompilerVersion, References, _Code, DefaultReferences, DefaultImports, false));
             return projects;
         }
 
-		public List<Assembly> GetAssemblies()
+		internal List<ExportedAssembly> GetAssemblies()
 		{
-            List<Assembly>  assemblies = new List<Assembly>();
-			List<IAssemblyDefinition> assemblyDefs = new List<IAssemblyDefinition>();
-			if (ExternalLibraries != null)
-				assemblyDefs.AddRange(ExternalLibraries.ToArray());
-			assemblyDefs.AddRange(GetProjects().ToArray());
-			foreach (IAssemblyDefinition def in assemblyDefs)
+            List<ExportedAssembly> assemblies = new List<ExportedAssembly>();
+			try
 			{
-				assemblies.AddRange(def.GetAssemblies());
+				if (ExternalLibraries != null)
+				{
+					foreach (ExternalLibrary lib in ExternalLibraries)
+					{
+						assemblies.AddRange(lib.GetAssemblies());
+					}
+				}
+				foreach (Project proj in GetProjects())
+				{
+					assemblies.AddRange(proj.GetAssemblies());
+				}
+			}
+			catch (Exception e)
+			{
+				Logging.LogDisplay.WriteLine("Error while loading assemblies. Exception: " + e.Message);
 			}
 			return assemblies;
 		}
@@ -153,12 +181,13 @@ namespace ExcelDna.Integration
         // Kept so that AutoClose can be called later.
         [XmlIgnore]
         private List<AssemblyLoader.ExcelAddInInfo> _AddIns = new List<AssemblyLoader.ExcelAddInInfo>();
+
         internal void AutoOpen()
         {
             List<MethodInfo> methods = new List<MethodInfo>();
 
             // Get MethodsInfos and AddIn classes from assemblies
-            foreach (Assembly assembly in GetAssemblies())
+            foreach (ExportedAssembly assembly in GetAssemblies())
             {
                 try
                 {
@@ -206,7 +235,7 @@ namespace ExcelDna.Integration
             }
             _AddIns.Clear();
         }
-        
+
         // Statics
 		private static DnaLibrary currentLibrary;
 		internal static void Initialize()
@@ -215,23 +244,35 @@ namespace ExcelDna.Integration
             // e.g. if AddInManagerInfo is called, and then AutoOpen
             // or if the add-in is opened more than once.
 
-			// Load the current library
-			// Get the .xll filename
-            string xllDirectory = Path.GetDirectoryName(XllPath);
-			string xllFileRoot = Path.GetFileNameWithoutExtension(XllPath);
-			string dnaFileName = Path.Combine(xllDirectory, xllFileRoot + ".dna");
-			if (File.Exists(dnaFileName))
+			// Loads the primary .dna library
+			// Load sequence is:
+			// 1. Look for a packed .dna file named "__MAIN__" in the .xll.
+			// 2. Look for the .dna file in the same directory as the .xll file, with the same name and extension .dna.
+
+			Debug.WriteLine("Enter DnaLibrary.Initialize");
+			byte[] dnaBytes = Integration.GetDnaFileBytes("__MAIN__");
+			if (dnaBytes != null)
 			{
-				currentLibrary = LoadFrom(dnaFileName);
+				Debug.WriteLine("Got Dna file from resources.");
+				currentLibrary = LoadFrom(dnaBytes);
+				// ... would have displayed error and returned null if there was an error.
 			}
 			else
 			{
-                // TODO: Load a default library as from .dll or from resources.
-                ExcelDna.Logging.LogDisplay.SetText(string.Format("The required .dna script file {0} does not exist.", dnaFileName));
+				Debug.WriteLine("No Dna file in resources - looking for file.");
+				// No packed .dna file found - load from a .dna file.
+				string dnaFileName = Path.ChangeExtension(XllPath, ".dna");
+				currentLibrary = LoadFrom(dnaFileName);
+				// ... would have displayed error and returned null if there was an error.
 			}
-            // If there have been problems, ensure that there is at lease some current library.
-            if (currentLibrary == null)
-                currentLibrary = new DnaLibrary();
+
+			// If there have been problems, ensure that there is at lease some current library.
+			if (currentLibrary == null)
+			{
+				Debug.WriteLine("No Dna Library found.");
+				currentLibrary = new DnaLibrary();
+			}
+			Debug.WriteLine("Exit DnaLibrary.Initialize");
 		}
 
         internal static void DeInitialize()
@@ -241,14 +282,42 @@ namespace ExcelDna.Integration
             currentLibrary = null;
         }
 
-        internal static DnaLibrary LoadFrom(string fileName)
+		public static DnaLibrary LoadFrom(byte[] bytes)
+		{
+			DnaLibrary dnaLibrary;
+			XmlSerializer serializer = new Microsoft.Xml.Serialization.GeneratedAssembly.DnaLibrarySerializer();
+
+			try
+			{
+				using (MemoryStream ms = new MemoryStream(bytes))
+				{
+					dnaLibrary = (DnaLibrary)serializer.Deserialize(ms);
+				}
+			}
+			catch (Exception e)
+			{
+				string errorMessage = string.Format("There was an error while processing DnaFile bytes:\r\n{0}\r\n{1}", e.Message, e.InnerException != null ? e.InnerException.Message : string.Empty);
+				Debug.WriteLine(errorMessage);
+				//ExcelDna.Logging.LogDisplay.SetText(errorMessage);
+				return null;
+			}
+			return dnaLibrary;
+		}
+
+        public static DnaLibrary LoadFrom(string fileName)
         {
             DnaLibrary dnaLibrary;
-            //               XmlSerializer serializer = new XmlSerializer(typeof(DnaLibrary));
-            XmlSerializer serializer = new Microsoft.Xml.Serialization.GeneratedAssembly.DnaLibrarySerializer();
+
+			if (!File.Exists(fileName))
+			{
+				ExcelDna.Logging.LogDisplay.SetText(string.Format("The required .dna script file {0} does not exist.", fileName));
+				return null;
+			}
+
             try
             {
-                using (FileStream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
+				XmlSerializer serializer = new Microsoft.Xml.Serialization.GeneratedAssembly.DnaLibrarySerializer();
+				using (FileStream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
                 {
                     dnaLibrary = (DnaLibrary)serializer.Deserialize(fileStream);
                 }
@@ -262,13 +331,24 @@ namespace ExcelDna.Integration
             return dnaLibrary;
         }
 
-		internal static void Save(string fileName, DnaLibrary dnaProject)
+		public static void Save(string fileName, DnaLibrary dnaLibrary)
 		{
 //			XmlSerializer serializer = new XmlSerializer(typeof(DnaLibrary));
 			XmlSerializer serializer = new Microsoft.Xml.Serialization.GeneratedAssembly.DnaLibrarySerializer(); 
 			using (FileStream fileStream = new FileStream(fileName, FileMode.Truncate))
 			{
-				serializer.Serialize(fileStream, dnaProject);
+				serializer.Serialize(fileStream, dnaLibrary);
+			}
+		}
+
+		public static byte[] Save(DnaLibrary dnaLibrary)
+		{
+			//			XmlSerializer serializer = new XmlSerializer(typeof(DnaLibrary));
+			XmlSerializer serializer = new Microsoft.Xml.Serialization.GeneratedAssembly.DnaLibrarySerializer();
+			using (MemoryStream ms = new MemoryStream())
+			{
+				serializer.Serialize(ms, dnaLibrary);
+				return ms.ToArray();
 			}
 		}
 

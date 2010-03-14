@@ -43,6 +43,30 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Lzma\ICoder.cs">
+      <Link>Lzma\ICoder.cs</Link>
+    </Compile>
+    <Compile Include="..\Lzma\IMatchFinder.cs">
+      <Link>Lzma\IMatchFinder.cs</Link>
+    </Compile>
+    <Compile Include="..\Lzma\LzmaBase.cs">
+      <Link>Lzma\LzmaBase.cs</Link>
+    </Compile>
+    <Compile Include="..\Lzma\LzmaDecoder.cs">
+      <Link>Lzma\LzmaDecoder.cs</Link>
+    </Compile>
+    <Compile Include="..\Lzma\LzOutWindow.cs">
+      <Link>Lzma\LzOutWindow.cs</Link>
+    </Compile>
+    <Compile Include="..\Lzma\RangeCoder.cs">
+      <Link>Lzma\RangeCoder.cs</Link>
+    </Compile>
+    <Compile Include="..\Lzma\RangeCoderBit.cs">
+      <Link>Lzma\RangeCoderBit.cs</Link>
+    </Compile>
+    <Compile Include="..\Lzma\RangeCoderBitTree.cs">
+      <Link>Lzma\RangeCoderBitTree.cs</Link>
+    </Compile>
     <Compile Include="AssemblyManager.cs" />
     <Compile Include="XlCustomMarshal12.cs" />
     <Compile Include="IntegrationHelpers.cs" />
@@ -62,6 +86,6 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>copy $(TargetPath) $(SolutionDir)\ExcelDna\$(ConfigurationName)\</PostBuildEvent>
+    <PostBuildEvent>copy $(TargetPath) $(SolutionDir)ExcelDna\$(ConfigurationName)\</PostBuildEvent>
   </PropertyGroup>
 </Project>
