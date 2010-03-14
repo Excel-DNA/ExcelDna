@@ -1,0 +1,13 @@
+<DnaLibrary Name="PackDnaTree Add-In by Govert van Drimmelen" Description="My packed Tree add-in" Language="CS">
+<ExternalLibrary Path="Child1.dna" Pack="true" />
+<ExternalLibrary Path="Child2.dna" />
+<![CDATA[
+	public class SomeClass
+	{
+		public static string PackDnaTree()
+		{
+			return "Hello from PackDnaTree!";
+		}
+	}
+]]>
+</DnaLibrary>

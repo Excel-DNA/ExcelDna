@@ -196,13 +196,16 @@
 						GetTheExcelVersion = Excel.Application.Version
 					End Function
 
-          Function GetTheExcelVersionFromExcelDna() as double
-            GetTheExcelVersionFromExcelDna = ExcelDnaUtil.ExcelVersion
-          End Function 
-
-<ExcelFunction(IsMacroType:=True)> Function DoLater() as String
-            ' This is not recommended, but it works for me.
+          				Function GetTheExcelVersionFromExcelDna() as double
+				            GetTheExcelVersionFromExcelDna = ExcelDnaUtil.ExcelVersion		
+					End Function 
+		
+					<ExcelFunction(IsMacroType:=True)> _
+					Function DoLater() as String
+            
 						'XlCall.Excel(XlCall.xlcOnTime, DateTime.Now, "RingBell")
+
+						' This is not recommended, but it works for me.
 						Excel.Application.OnTime(DateTime.Now.AddSeconds(5), "RingBell")
 						DoLater = "#WAIT!"
 					End Function

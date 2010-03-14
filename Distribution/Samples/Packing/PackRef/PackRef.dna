@@ -1,0 +1,12 @@
+<DnaLibrary Description="PackLib Test Add-In" Language="CS">
+<Reference AssemblyPath="MyLib.dll" Pack="true" />
+<![CDATA[
+	public class SomeRefClass
+	{
+		public static string PackRef()
+		{
+			return "Hello from PackRef. Message from Lib: " + SomeClass.PackRefMyLib();
+		}
+	}
+]]>
+</DnaLibrary>

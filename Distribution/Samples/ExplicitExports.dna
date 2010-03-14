@@ -1,0 +1,28 @@
+<DnaLibrary Name="ExplicitExports Sample">
+<Project Language="VB"  ExplicitExports="true">
+<![CDATA[
+
+	' This examples tests the ExplicitExports directive.
+	' In this add-in, only those functions marked with the <ExcelFunction> attribute will be registered in Excel.
+
+	Imports ExcelDna.Integration
+
+	Public Module Module1
+		Function AddThemInvisible(x, y)
+			AddThemInvisible = x + y
+		End Function	
+
+		<ExcelFunction> _
+		Function AddThemVisible(x, y)
+			AddThemVisible = x + y
+		End Function	
+
+		<ExcelFunction(Name:="MyMultiply.With?.Coolname", Description:="A cool function to multiply two numbers.", Category:="Explicit Exports Extra AddIn Functions")> _
+		Function Multiply(x, y)
+			Multiply = x * y
+		End Function	
+	End Module
+
+]]>
+</Project>
+</DnaLibrary>

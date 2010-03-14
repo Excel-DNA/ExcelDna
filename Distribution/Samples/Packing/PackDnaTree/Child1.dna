@@ -1,0 +1,12 @@
+<DnaLibrary Name="PackDnaTree" Language="CS">
+<ExternalLibrary Path="GrandChild.dna" Pack="true" />
+<![CDATA[
+	public class SomeClass
+	{
+		public static string PackDnaChild1()
+		{
+			return "Hello from PackDnaChild1!";
+		}
+	}
+]]>
+</DnaLibrary>

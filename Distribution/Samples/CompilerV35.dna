@@ -1,0 +1,19 @@
+<DnaLibrary Name="CompilerV35 Sample" Language="CS" CompilerVersion="v3.5">
+<Reference AssemblyPath="System.Core.dll" />
+<![CDATA[
+
+using System;
+
+public class MyAddIn
+{
+	public static string TestCompilerV35()
+	{
+		var s = "abc";
+		Func<string, string> f = str => str.ToUpper();
+		return f(s);
+		
+	}
+}
+
+]]>
+</DnaLibrary>

@@ -1,0 +1,12 @@
+<DnaLibrary Name="PackDna" Language="CS">
+<![CDATA[
+	using System;
+	public class SomeClass
+	{
+		public static string PackDna()
+		{
+			return "Hello from PackDna!";
+		}
+	}
+]]>
+</DnaLibrary>
