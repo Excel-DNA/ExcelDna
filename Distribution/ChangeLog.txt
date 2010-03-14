@@ -1,4 +1,17 @@
-Version 0.22 (22 February 2010)
+Version 0.23 (14 March 2010)
+----------------------------
+* Add ExplicitExports attribute to Project and ExternalLibrary (default is false). If set to ExplicitExports="true" only methods marked with ExcelFunction / ExcelCommand attributes will be exported.
+* Add CompilerVersion attribute to DnaLibrary and Project. When set to CompilerVersion="v3.5" for VB or C#, the new language features are enabled.
+* Add Name attribute to Reference for use in LoadWithPartialName.
+* Add ExcelDna.Integration.Integration.RegisterUnhandledExceptionHandler to set user-provided handler that is invoked for functions that throw unhandled exceptions. The handler can log the error, or return error-specific information to Excel. The default handler returns the #VALUE error to Excel as before.
+* Add button to save ExcelDna error log.
+* Create ExcelDnaPack. Add Pack attribute to ExternalLibrary and Reference (default is false).
+  ExcelDnaPack Notes:
+  - By default, only the .dna file, and the ExcelDna.Loader and ExcelDna.Integration assemblies are packed in the .xll.
+  - <ExternalLibrary> can be .dna files or .dll assemblies. These are packed if they are marked as Pack="true".
+  - <Reference> can appear in two contexts: 1. In a project (or in the default project of a DnaLibrary) as a reference to be used when compiling .dna based source at runtime. 2. In a DnaLibrary inside a Project or not, even when there is no source in the .dna file. Such ocurrence of the <Reference> tag is only used to indicate that the referenced assembly should be packed, by adding the Pack="true" attribute. Otherwise in case 2. the reference is not used at all.
+
+Version 0.22 (20 February 2010)
 -------------------------------
 * Fix critical bug in MultiThreaded marshaling (under Excel 2007).
 
@@ -39,7 +52,7 @@ Version 0.17 (26 December 2008)
    - For arguments to UDF functions that are declared as type object, the new types ExcelDna.Integration.ExcelMissing and ExcelDna.Integration.ExcelEmpty are used - these replace 'null' values and System.Reflection.Missing respectively.
    - Changed ExcelReference.SheetId to be a uint everywhere.
    ? If you find any of these changes unbearable, please let me know asap.
-
+   		
 Version 0.16 (3 September 2008)
 -------------------------------
 * Move IsHidden field from ExcelCommandAttribute to ExcelFunctionAttribute to enable 'hidden' functions.

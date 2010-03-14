@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("ExcelDna")]
-[assembly: AssemblyCopyright("Copyright © 2005-2009 Govert van Drimmelen")]
+[assembly: AssemblyCopyright("Copyright © 2005-2010 Govert van Drimmelen")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.22.*")]
-[assembly: AssemblyFileVersion("0.22.0.1")]
+[assembly: AssemblyVersion("0.23.*")]
+[assembly: AssemblyFileVersion("0.23.0.1")]

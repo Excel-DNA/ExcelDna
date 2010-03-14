@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 
 using ExcelDna.Integration;
+using System.IO;
 
 namespace ExcelDna.Logging
 {
@@ -43,6 +44,25 @@ namespace ExcelDna.Logging
             listBoxErrors.SelectedItem = listBoxErrors.Items[listBoxErrors.Items.Count - 1];
             listBoxErrors.SelectedItems.Clear();
         }
+
+		private void btnSaveErrors_Click(object sender, EventArgs e)
+		{
+			SaveFileDialog sfd = new SaveFileDialog();
+			sfd.DefaultExt = "txt";
+			sfd.Filter = "Text File (*.txt)|*.txt|All Files (*.*)|*.*";
+			sfd.Title = "Save Error List As";
+			DialogResult result = sfd.ShowDialog();
+			if (result == DialogResult.OK)
+			{
+				using (StreamWriter w =  new StreamWriter(sfd.FileName))
+				{
+					foreach (object item in listBoxErrors.Items)
+					{
+						w.WriteLine(item.ToString());
+					}
+				}
+			}
+		}
     }
     
     public class LogDisplay
@@ -84,7 +104,6 @@ namespace ExcelDna.Logging
         {
             try
             {
-
                 LogDisplayForm.AppendText(message);
                 if (!LogDisplayForm.Visible)
                     LogDisplayForm.Show(NativeWindow.FromHandle(ExcelDnaUtil.WindowHandle));

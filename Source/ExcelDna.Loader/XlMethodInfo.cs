@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2009 Govert van Drimmelen
+  Copyright (C) 2005-2010 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -386,13 +386,22 @@ namespace ExcelDna.Loader
 			{
 				wrapIL.Emit(OpCodes.Leave_S, endOfMethod );
 				wrapIL.BeginCatchBlock(typeof(object));
-				wrapIL.Emit(OpCodes.Pop);
 				if (!IsCommand && ReturnType.DelegateParamType == typeof(object))
 				{
-					// Create a boxed Excel error value, and set the return object to it
-                    wrapIL.Emit(OpCodes.Ldc_I4, IntegrationMarshalHelpers.ExcelError_ExcelErrorValue);
-					wrapIL.Emit(OpCodes.Box, IntegrationMarshalHelpers.GetExcelErrorType());
+					// Call Integration.HandleUnhandledException - Exception object is on the stack.
+					wrapIL.EmitCall(OpCodes.Call, IntegrationHelpers.UnhandledExceptionHandler, null);
+					// Stack now has return value from the ExceptionHandler - Store to local 
 					wrapIL.Emit(OpCodes.Stloc_S, retobj);
+
+					//// Create a boxed Excel error value, and set the return object to it
+					//wrapIL.Emit(OpCodes.Ldc_I4, IntegrationMarshalHelpers.ExcelError_ExcelErrorValue);
+					//wrapIL.Emit(OpCodes.Box, IntegrationMarshalHelpers.GetExcelErrorType());
+					//wrapIL.Emit(OpCodes.Stloc_S, retobj);
+				}
+				else
+				{
+					// Just ignore the Exception.
+					wrapIL.Emit(OpCodes.Pop);
 				}
 				wrapIL.EndExceptionBlock();
 			}
@@ -403,6 +412,8 @@ namespace ExcelDna.Loader
 				wrapIL.Emit(OpCodes.Ldloc_S, retobj);
 			}
 			wrapIL.Emit(OpCodes.Ret);
+			// End of Wrapper
+
 			return wrapper.CreateDelegate(delegateType);;
 		}
     

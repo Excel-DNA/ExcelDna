@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2009 Govert van Drimmelen
+  Copyright (C) 2005-2010 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -38,10 +38,13 @@ namespace ExcelDna.Integration
 
     internal delegate int TryExcelImplDelegate(int xlFunction, out object result, params object[] parameters);
     internal delegate void RegisterMethodsDelegate(List<MethodInfo> methods);
-    internal delegate byte[] GetAssemblyBytesDelegate(string assemblyName);
+    internal delegate byte[] GetResourceBytesDelegate(string resourceName, int type); // types: 0 - Assembly, 1 - Dna file
+	public delegate object UnhandledExceptionHandler(object exceptionObject);
 
     public static class Integration
     {
+
+
         private static TryExcelImplDelegate tryExcelImpl;
         internal static void SetTryExcelImpl(TryExcelImplDelegate d)
         {
@@ -70,16 +73,46 @@ namespace ExcelDna.Integration
             registerMethods(methods);
         }
 
-        private static GetAssemblyBytesDelegate getAssemblyBytesDelegate;
-        internal static void SetGetAssemblyBytesDelegate(GetAssemblyBytesDelegate d)
+		private static UnhandledExceptionHandler unhandledExceptionHandler;
+		public static void RegisterUnhandledExceptionHandler(UnhandledExceptionHandler h)
+		{
+			unhandledExceptionHandler = h;
+		}
+
+		// WARNING: This method is bound by name from the ExcelDna.Loader in IntegrationHelpers.Bind.
+		// It should not throw an exception, and is called directly from the UDF exceptionhandler.
+		internal static object HandleUnhandledException(object exceptionObject)
+		{
+			if (unhandledExceptionHandler == null)
+			{
+				return ExcelError.ExcelErrorValue;
+			}
+			try
+			{
+				return unhandledExceptionHandler(exceptionObject);
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine("Exception in UnhandledExceptionHandler: " + ex);
+				return ExcelError.ExcelErrorValue;
+			}
+		}
+
+        private static GetResourceBytesDelegate getResourceBytesDelegate;
+        internal static void SetGetResourceBytesDelegate(GetResourceBytesDelegate d)
         {
-            getAssemblyBytesDelegate = d;
+            getResourceBytesDelegate = d;
         }
 
-        internal static byte[] GetAssemblyBytes(string assemblyName)
-        {
-            return getAssemblyBytesDelegate(assemblyName);
-        }
+		internal static byte[] GetAssemblyBytes(string assemblyName)
+		{
+			return getResourceBytesDelegate(assemblyName, 0);
+		}
+
+		internal static byte[] GetDnaFileBytes(string dnaFileName)
+		{
+			return getResourceBytesDelegate(dnaFileName, 1);
+		}
 
         internal static void Initialize()
         {
@@ -94,8 +127,17 @@ namespace ExcelDna.Integration
 
         internal static void DnaLibraryAutoOpen()
         {
-            DnaLibrary.CurrentLibrary.AutoOpen();
-        }
+			Debug.WriteLine("Enter Integration.DnaLibraryAutoOpen");
+			try
+			{
+				DnaLibrary.CurrentLibrary.AutoOpen();
+			}
+			catch (Exception e)
+			{
+				Debug.WriteLine("Integration.DnaLibraryAutoOpen Excption: " + e);
+			}
+			Debug.WriteLine("Exit Integration.DnaLibraryAutoOpen");
+		}
 
         internal static void DnaLibraryAutoClose()
         {

@@ -1,5 +1,5 @@
 ﻿/*
-  Copyright (C) 2005-2009 Govert van Drimmelen
+  Copyright (C) 2005-2010 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -117,23 +117,33 @@ namespace ExcelDna.Loader
             thunkTableLength = pXlAddInExportInfo->ThunkTableLength;
             thunkTable = pXlAddInExportInfo->ThunkTable;
 
-			XlAddIn.xlCallVersion = XlCallImpl.XLCallVer() / 256;
+			// This is the place where we call into Excel - this causes SecurityPermission exception
+			// when run from VSTO. I don't know how to deal with this problem yet.
+			// TODO: Learn more about the special security stuff in VSTO.
+			try
+			{
+				XlAddIn.xlCallVersion = XlCallImpl.XLCallVer() / 256;
+			}
+			catch (Exception e)
+			{
+				Debug.WriteLine("XlAddIn: XLCallVer Exception: " + e);
+				return false;
+			}
 			XlAddIn.hModuleXll = (IntPtr)hModuleXll;
             XlAddIn.pathXll = pathXll;
 
             AssemblyManager.Initialize((IntPtr)hModuleXll, pathXll);
 
-            bool result = false;
             try
             {
                 LoadIntegration();
-                result = true;
             }
             catch (Exception e)
             {
                 Debug.WriteLine("XlAddIn: Initialize Exception: " + e);
+				return false;
             }
-            return result;
+            return true;
         }
 
         internal static unsafe void SetJump(int fi, IntPtr pfn)
@@ -161,10 +171,10 @@ namespace ExcelDna.Loader
             Delegate registerMethodsDelegate = Delegate.CreateDelegate(registerMethodsDelegateType, registerMethodsMethod);
             integrationType.InvokeMember("SetRegisterMethods", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] { registerMethodsDelegate });
 
-            MethodInfo getAssemblyBytesMethod = typeof(AssemblyManager).GetMethod("GetAssemblyBytes", BindingFlags.Static | BindingFlags.NonPublic);
-            Type getAssemblyBytesDelegateType = integrationAssembly.GetType("ExcelDna.Integration.GetAssemblyBytesDelegate");
-            Delegate getAssemblyBytesDelegate = Delegate.CreateDelegate(getAssemblyBytesDelegateType, getAssemblyBytesMethod);
-            integrationType.InvokeMember("SetGetAssemblyBytesDelegate", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] { getAssemblyBytesDelegate });
+            MethodInfo getResourceBytesMethod = typeof(AssemblyManager).GetMethod("GetResourceBytes", BindingFlags.Static | BindingFlags.NonPublic);
+            Type getResourceBytesDelegateType = integrationAssembly.GetType("ExcelDna.Integration.GetResourceBytesDelegate");
+            Delegate getResourceBytesDelegate = Delegate.CreateDelegate(getResourceBytesDelegateType, getResourceBytesMethod);
+            integrationType.InvokeMember("SetGetResourceBytesDelegate", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] { getResourceBytesDelegate });
 
             // set up helpers for future calls
             IntegrationHelpers.Bind(integrationAssembly);

@@ -1,5 +1,5 @@
 ﻿/*
-  Copyright (C) 2005-2009 Govert van Drimmelen
+  Copyright (C) 2005-2010 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -26,16 +26,21 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
+//using System.Text;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Resources;
 using System.IO;
+using SevenZip.Compression.LZMA;
+using System.ComponentModel;
+using System.Security.Permissions;
+using System.Security.Policy;
+using System.Security;
 
 namespace ExcelDna.Loader
 {
     // TODO: Lots more to make a flexible loader.
-    internal class AssemblyManager
+    internal static class AssemblyManager
     {
         static string pathXll;
         static IntPtr hModule;
@@ -47,89 +52,167 @@ namespace ExcelDna.Loader
             AssemblyManager.hModule = hModule;
             loadedAssemblies.Add(Assembly.GetExecutingAssembly().FullName, Assembly.GetExecutingAssembly());
 
-            //// Testing ...
-            //Assembly a = ResourceHelper.LoadAssemblyFromResources(hModule, "EXCELDNA_INTEGRATION");
-            //loadedAssemblies.Add(a.FullName, a);
+            // TODO: Load up the DnaFile and Assembly names ?
 
             AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolve;
         }
-        
+       
         private static Assembly AssemblyResolve(object sender, ResolveEventArgs args)
         {
-            // Check cache - includes special case of ExcelDna.Loader.
-            if (loadedAssemblies.ContainsKey(args.Name))
-            {
-                return loadedAssemblies[args.Name];
-            }
+			string name;
+			byte[] assemblyBytes;
+
+			AssemblyName assName = new AssemblyName(args.Name);
+			name = assName.Name.ToUpperInvariant();
+
+			if (name == "EXCELDNA") /* Special case for pre-0.14 versions of ExcelDna */
+			{
+				name = "EXCELDNA.INTEGRATION";
+			}
+			
+			if (name == "EXCELDNA.LOADER")
+			{
+				// Loader must have been loaded from bytes.
+				// But I have seen the Loader, and it is us.
+				return Assembly.GetExecutingAssembly();
+			}
+
+            // Check cache
+            if (loadedAssemblies.ContainsKey(name))
+                return loadedAssemblies[name];
 
             // Now check in resources ...
-            if (args.Name.StartsWith("ExcelDna.Integration") || 
-                args.Name.StartsWith("ExcelDna,") /* Special case for pre-0.14 versions of ExcelDna */)
-            {
-                foreach (Assembly ass in loadedAssemblies.Values)
-                {
-                    if (ass.FullName.StartsWith("ExcelDna.Integration"))
-                        return ass;
-                }
+			Debug.Print("Attempting to load {0} from resources.", name);
+			assemblyBytes = GetResourceBytes(name, 0);
+			if (assemblyBytes == null)
+			{
+				Debug.Print("Assembly {0} could not be loaded from resources.", name);
+				return null;
+			}
 
-                Debug.Print("Loading ExcelDna.Integration from resources.");
-                Assembly loadedAssembly = ResourceHelper.LoadAssemblyFromResources(hModule, "EXCELDNA_INTEGRATION");
-                loadedAssemblies.Add(loadedAssembly.FullName, loadedAssembly);
-                return loadedAssembly;
-            }
-
-            // TODO: Other Assemblies.
-            Debug.WriteLine("AssemblyManager.AssemblyResolve failed: " + args.Name);
-            return null;
+			Debug.Print("Trying Assembly.Load for {0} (from {1} bytes).", name, assemblyBytes.Length);
+			//File.WriteAllBytes(@"c:\Temp\" + name + ".dll", assemblyBytes);
+			try
+			{
+				Assembly loadedAssembly = Assembly.Load(assemblyBytes);
+				Debug.Print("Assembly Loaded from bytes. FullName: {0}", loadedAssembly.FullName);
+				loadedAssemblies.Add(name, loadedAssembly);
+				return loadedAssembly;
+			}
+			catch (Exception e)
+			{
+				Debug.Print("Exception during Assembly Load from bytes. Exception: {0}", e);
+				// TODO: Trace / Log.
+			}
+			return null;
         }
 
-        internal static byte[] GetAssemblyBytes(string assemblyName)
-        {
-            // TODO: Other assemblies
-            if (assemblyName.StartsWith("ExcelDna.Integration"))
-            {
-                return ResourceHelper.ReadAssemblyFromResources(hModule, "EXCELDNA_INTEGRATION");
-            }
-            return null;
-        }
+		internal static byte[] GetResourceBytes(string resourceName, int type) // types: 0 - Assembly, 1 - Dna file
+		{
+			Debug.Print("GetResourceBytes for resource {0} of type {1}", resourceName, type);
+			string typeName;
+			if (type == 0)
+			{
+				typeName = "ASSEMBLY";
+			}
+			else if (type == 1)
+			{
+				typeName = "DNA";
+			}
+			else
+			{
+				throw new ArgumentOutOfRangeException("type", "Unknown resource type. Only types 0 (Assembly) and 1 (Dna file) are valid.");
+			}
+			return ResourceHelper.LoadResourceBytes(hModule, typeName, resourceName);
+		}
     }
 
     internal unsafe static class ResourceHelper
     {
-        [DllImport("KERNEL32.DLL")]
-        internal static extern IntPtr FindResource(
-            IntPtr hModule,
-            string lpName,
-            string lpType);
-        [DllImport("KERNEL32.DLL")]
-        internal static extern IntPtr LoadResource(
-            IntPtr hModule,
-            IntPtr hResInfo);
-        [DllImport("KERNEL32.DLL")]
-        internal static extern IntPtr LockResource(
-            IntPtr hResData);
-        [DllImport("KERNEL32.DLL")]
-        internal static extern uint SizeofResource(
-            IntPtr hModule,
-            IntPtr hResInfo);
+		[DllImport("kernel32.dll", SetLastError = true)]
+		private static extern IntPtr FindResource(
+			IntPtr hModule,
+			string lpName,
+			string lpType);
+		[DllImport("KERNEL32.DLL", SetLastError = true)]
+		private static extern IntPtr LoadResource(
+			IntPtr hModule,
+			IntPtr hResInfo);
+		[DllImport("KERNEL32.DLL", SetLastError = true)]
+		private static extern IntPtr LockResource(
+			IntPtr hResData);
+		[DllImport("KERNEL32.DLL", SetLastError = true)]
+		private static extern uint SizeofResource(
+			IntPtr hModule,
+			IntPtr hResInfo);
 
-        internal unsafe static byte[] ReadAssemblyFromResources(IntPtr hModule, string resourceName)
-        {
-            IntPtr hResInfo = FindResource(hModule, resourceName, "ASSEMBLY");
-            IntPtr hResData = LoadResource(hModule, hResInfo);
-            uint size = SizeofResource(hModule, hResInfo);
-            IntPtr pAssemblyBytes = LockResource(hResData);
-            byte[] assemblyBytes = new byte[size];
-            Marshal.Copy(pAssemblyBytes, assemblyBytes, 0, (int)size);
-            return assemblyBytes;
-        }
+		[DllImport("KERNEL32.DLL")]
+		private static extern uint GetLastError();
 
-        internal unsafe static Assembly LoadAssemblyFromResources(IntPtr hModule, string resourceName)
-        {
-            byte[] assemblyBytes = ReadAssemblyFromResources(hModule, resourceName);
-            Assembly loadedAssembly = Assembly.Load(assemblyBytes);
-            return loadedAssembly;
-        }
-    }
+		// Load the resource, trying also as compressed if no uncompressed version is found.
+		// If the resource type ends with "_LZMA", we decompress from the LZMA format.
+		internal static byte[] LoadResourceBytes(IntPtr hModule, string typeName, string resourceName)
+		{
+			Debug.Print("LoadResourceBytes for resource {0} of type {1}", resourceName, typeName);
+			IntPtr hResInfo	= FindResource(hModule, resourceName, typeName);
+			if (hResInfo == IntPtr.Zero)
+			{
+				// We expect this null result value when the resource does not exists.
 
+				if (!typeName.EndsWith("_LZMA"))
+				{
+					// Try the compressed name.
+					typeName += "_LZMA";
+					hResInfo = FindResource(hModule, resourceName, typeName);
+				}
+				if (hResInfo == IntPtr.Zero)
+				{
+					Debug.Print("Resource not found - resource {0} of type {1}", resourceName, typeName);
+					// Return null to indicate that the resource was not found.
+					return null;
+				}
+			}
+            IntPtr hResData	= LoadResource(hModule, hResInfo);
+			if (hResData == IntPtr.Zero)
+			{
+				// Unexpected error - this should not happen
+				Debug.Print("Unexpected errror loading resource {0} of type {1}", resourceName, typeName);
+				throw new Win32Exception();
+			}
+            uint   size	= SizeofResource(hModule, hResInfo);
+            IntPtr pResourceBytes = LockResource(hResData);
+            byte[] resourceBytes = new byte[size];
+			Marshal.Copy(pResourceBytes, resourceBytes, 0, (int)size);
+			
+			if (typeName.EndsWith("_LZMA"))
+				return Decompress(resourceBytes);
+			else 
+				return resourceBytes;
+		}
+
+		private static byte[] Decompress(byte[] inputBytes)
+		{
+			MemoryStream newInStream = new MemoryStream(inputBytes);
+			Decoder decoder = new Decoder();
+			newInStream.Seek(0, 0);
+			MemoryStream newOutStream = new MemoryStream();
+			byte[] properties2 = new byte[5];
+			if (newInStream.Read(properties2, 0, 5) != 5)
+				throw (new Exception("input .lzma is too short"));
+			long outSize = 0;
+			for (int i = 0; i < 8; i++)
+			{
+				int v = newInStream.ReadByte();
+				if (v < 0)
+					throw (new Exception("Can't Read 1"));
+				outSize |= ((long)(byte)v) << (8 * i);
+			}
+			decoder.SetDecoderProperties(properties2);
+			long compressedSize = newInStream.Length - newInStream.Position;
+			decoder.Code(newInStream, newOutStream, compressedSize, outSize, null);
+			byte[] b = newOutStream.ToArray();
+			return b;
+		}
+
+	}
 }

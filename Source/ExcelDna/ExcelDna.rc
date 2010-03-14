@@ -39,11 +39,11 @@ END
 3 TEXTINCLUDE 
 BEGIN
     "#ifdef _DEBUG\r\n"
-    "EXCELDNA_LOADER         ASSEMBLY                ""Debug\\\\ExcelDna.Loader.dll""\r\n"
-    "EXCELDNA_INTEGRATION    ASSEMBLY                ""Debug\\\\ExcelDna.Integration.dll""\r\n"
+    "EXCELDNA.LOADER         ASSEMBLY                ""Debug\\\\ExcelDna.Loader.dll""\r\n"
+    "EXCELDNA.INTEGRATION    ASSEMBLY                ""Debug\\\\ExcelDna.Integration.dll""\r\n"
     "#else\r\n"
-    "EXCELDNA_LOADER         ASSEMBLY                ""Release\\\\ExcelDna.Loader.dll""\r\n"
-    "EXCELDNA_INTEGRATION    ASSEMBLY                ""Release\\\\ExcelDna.Integration.dll""\r\n"
+    "EXCELDNA.LOADER         ASSEMBLY                ""Release\\\\ExcelDna.Loader.dll""\r\n"
+    "EXCELDNA.INTEGRATION    ASSEMBLY                ""Release\\\\ExcelDna.Integration.dll""\r\n"
     "#endif\r\0"
 END
 
@@ -56,8 +56,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,22,0,1
- PRODUCTVERSION 0,22,0,1
+ FILEVERSION 0,23,0,1
+ PRODUCTVERSION 0,23,0,1
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -75,12 +75,12 @@ BEGIN
             VALUE "Comments", "Unmanaged loader shim for ExcelDna Add-Ins"
             VALUE "CompanyName", "Govert van Drimmelen"
             VALUE "FileDescription", "ExcelDna Dynamic Link Library"
-            VALUE "FileVersion", "0, 22, 0, 1"
+            VALUE "FileVersion", "0, 23, 0, 1"
             VALUE "InternalName", "ExcelDna"
-            VALUE "LegalCopyright", "Copyright (C) 2005-2009 Govert van Drimmelen"
+            VALUE "LegalCopyright", "Copyright (C) 2005-2010 Govert van Drimmelen"
             VALUE "OriginalFilename", "ExcelDna.xll"
             VALUE "ProductName", "ExcelDna Add-In Framework for Microsoft Excel"
-            VALUE "ProductVersion", "0, 22, 0, 1"
+            VALUE "ProductVersion", "0, 23, 0, 1"
         END
     END
     BLOCK "VarFileInfo"
@@ -89,18 +89,6 @@ BEGIN
     END
 END
 
-#endif    // English (U.S.) resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////////////////////////
-// English (South Africa) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENS)
-#ifdef _WIN32
-LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_SOUTH_AFRICA
-#pragma code_page(1252)
-#endif //_WIN32
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -154,7 +142,7 @@ BEGIN
     IDS_MSG_BODY_APPLICATIONBASE "ApplicationBase could not be set."
     IDS_MSG_BODY_APPDOMAIN  "AppDomain could not be created."
     IDS_MSG_BODY_MISSINGEXCELDNALOADER 
-                            "The ASSEMBLY 'EXCELDNA_LOADER' could not be found among the add-in resources."
+                            "The ASSEMBLY 'EXCELDNA.LOADER' could not be found among the add-in resources."
     IDS_MSG_BODY_EXCELDNALOADER 
                             "The ExcelDna.Loader assembly could not be loaded from resource."
     IDS_MSG_BODY_EXCELDNALOADERNAME 
@@ -164,7 +152,7 @@ BEGIN
                             "The ExcelDna.Loader.XlAddIn.Initialize call failed."
 END
 
-#endif    // English (South Africa) resources
+#endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
@@ -175,11 +163,11 @@ END
 // Generated from the TEXTINCLUDE 3 resource.
 //
 #ifdef _DEBUG
-EXCELDNA_LOADER         ASSEMBLY                "Debug\\ExcelDna.Loader.dll"
-EXCELDNA_INTEGRATION    ASSEMBLY                "Debug\\ExcelDna.Integration.dll"
+EXCELDNA.LOADER         ASSEMBLY                "Debug\\ExcelDna.Loader.dll"
+EXCELDNA.INTEGRATION    ASSEMBLY                "Debug\\ExcelDna.Integration.dll"
 #else
-EXCELDNA_LOADER         ASSEMBLY                "Release\\ExcelDna.Loader.dll"
-EXCELDNA_INTEGRATION    ASSEMBLY                "Release\\ExcelDna.Integration.dll"
+EXCELDNA.LOADER         ASSEMBLY                "Release\\ExcelDna.Loader.dll"
+EXCELDNA.INTEGRATION    ASSEMBLY                "Release\\ExcelDna.Integration.dll"
 #endif
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED

@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2009 Govert van Drimmelen
+  Copyright (C) 2005-2010 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -41,64 +41,112 @@ namespace ExcelDna.Integration
 
 	[Serializable]
 	[XmlType(AnonymousType = true)]
-	public class ExternalLibrary : IAssemblyDefinition
+	public class ExternalLibrary
 	{
+		private string _Path;
 		[XmlAttribute]
-		public string Path;
-
-		public List<Assembly> GetAssemblies()
+		public string Path
 		{
+			get { return _Path; }
+			set { _Path = value; }
+		}
+
+		private bool _Pack = false;
+		[XmlAttribute]
+		public bool Pack
+		{
+			get { return _Pack; }
+			set { _Pack = value; }
+		}
+
+		private bool _ExplicitExports = false;
+		[XmlAttribute]
+		public bool ExplicitExports
+		{
+			get { return _ExplicitExports; }
+			set { _ExplicitExports = value; }
+		}
+
+		internal List<ExportedAssembly> GetAssemblies()
+		{
+			List<ExportedAssembly> list = new List<ExportedAssembly>();
+
 			try
 			{
-				string realPath = Path;
-				if (!File.Exists(realPath))
+				if (Path.StartsWith("packed:"))
 				{
-                    string xllName = DnaLibrary.XllPath;
-					string localDirectory = System.IO.Path.GetDirectoryName(xllName);
-					if (System.IO.Path.IsPathRooted(realPath))
+					string resourceName = Path.Substring(7);
+					if (Path.EndsWith(".dna") || Path.EndsWith(".DNA"))
 					{
-						// Rooted path -- try locally
-						string fileName = System.IO.Path.GetFileName(realPath);
-						realPath = System.IO.Path.Combine(localDirectory, fileName);
+						byte[] dnaContent = Integration.GetDnaFileBytes(resourceName);
+						DnaLibrary lib = DnaLibrary.LoadFrom(dnaContent);
+						if (lib == null)
+						{
+							// Problems during load.
+							return list;
+						}
+
+						return lib.GetAssemblies();
 					}
 					else
 					{
-						// Try a path relative to local directory
-						realPath = System.IO.Path.Combine(localDirectory, realPath);
+						byte[] rawAssembly = Integration.GetAssemblyBytes(resourceName);
+						list.Add(new ExportedAssembly(Assembly.Load(rawAssembly), ExplicitExports));
+						return list;
 					}
-					// Check again
-					if (!File.Exists(realPath))
-					{
-						// Give up.
-						Debug.Print("Could not find file " + Path);
-						return new List<Assembly>();
-					}
-				}
-				if (System.IO.Path.GetExtension(realPath).ToLower() == ".dna")
-				{
-					// Load as a DnaLibrary
-					DnaLibrary lib = DnaLibrary.LoadFrom(realPath);
-                    if (lib == null)
-                    {
-                        // Problems during load.
-                        return new List<Assembly>();
-                    }
-
-                    return lib.GetAssemblies();
 				}
 				else
 				{
-					// Load as a regular assembly
-					List<Assembly> list = new List<Assembly>();
-					list.Add(Assembly.LoadFrom(realPath));
-					return list;
+					string realPath = Path;
+					if (!File.Exists(realPath))
+					{
+						string xllName = DnaLibrary.XllPath;
+						string localDirectory = System.IO.Path.GetDirectoryName(xllName);
+						if (System.IO.Path.IsPathRooted(realPath))
+						{
+							// Rooted path -- try locally
+							string fileName = System.IO.Path.GetFileName(realPath);
+							realPath = System.IO.Path.Combine(localDirectory, fileName);
+						}
+						else
+						{
+							// Try a path relative to local directory
+							realPath = System.IO.Path.Combine(localDirectory, realPath);
+						}
+						// Check again
+						if (!File.Exists(realPath))
+						{
+							// Give up.
+							Debug.Print("Could not find file " + Path);
+							return list;
+						}
+					}
+					if (System.IO.Path.GetExtension(realPath).ToUpperInvariant() == ".DNA")
+					{
+						// Load as a DnaLibrary
+						DnaLibrary lib = DnaLibrary.LoadFrom(realPath);
+						if (lib == null)
+						{
+							// Problems during load.
+							return list;
+						}
+
+						return lib.GetAssemblies();
+					}
+					else
+					{
+						// Load as a regular assembly
+						// CONSIDER: Rather load into the Load context?
+						list.Add(new ExportedAssembly(Assembly.LoadFrom(realPath), ExplicitExports));
+						return list;
+					}
 				}
 			}
 			catch (Exception e)
 			{
 				// Assembly could not be loaded.
 				Debug.Print("Assembly load exception for file: " + Path + "\n" + e.ToString());
-				return new List<Assembly>();
+				return list;
 			}
 		}
 	}

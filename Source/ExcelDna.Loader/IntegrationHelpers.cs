@@ -1,5 +1,5 @@
 ﻿/*
-  Copyright (C) 2005-2009 Govert van Drimmelen
+  Copyright (C) 2005-2010 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -35,6 +35,7 @@ namespace ExcelDna.Loader
         static Type integrationType;
         static MethodInfo addCommandMenu;
         static MethodInfo removeCommandMenus;
+		internal static MethodInfo UnhandledExceptionHandler; // object->object
         
         public static void Bind(Assembly integrationAssembly)
         {
@@ -43,6 +44,8 @@ namespace ExcelDna.Loader
             Type menuManagerType = integrationAssembly.GetType("ExcelDna.Integration.MenuManager");
             addCommandMenu = menuManagerType.GetMethod("AddCommandMenu", BindingFlags.Static | BindingFlags.NonPublic);
             removeCommandMenus = menuManagerType.GetMethod("RemoveCommandMenus", BindingFlags.Static | BindingFlags.NonPublic);
+
+			UnhandledExceptionHandler = integrationType.GetMethod("HandleUnhandledException", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
         public static void AddCommandMenu(string commandName, string menuName, string menuText, string description, string shortCut, string helpTopic)

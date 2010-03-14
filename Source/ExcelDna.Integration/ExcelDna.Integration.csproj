@@ -23,6 +23,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -32,6 +33,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -50,8 +52,8 @@
     <Compile Include="ExcelAttributes.cs" />
     <Compile Include="ExcelError.cs" />
     <Compile Include="ExcelReference.cs" />
+    <Compile Include="ExportedAssembly.cs" />
     <Compile Include="ExternalLibrary.cs" />
-    <Compile Include="IAssemblyDefinition.cs" />
     <Compile Include="IExcelAddIn.cs" />
     <Compile Include="LogDisplay.cs">
       <SubType>Form</SubType>
@@ -82,6 +84,6 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>copy $(TargetPath) $(SolutionDir)\ExcelDna\$(ConfigurationName)</PostBuildEvent>
+    <PostBuildEvent>copy $(TargetPath) $(SolutionDir)ExcelDna\$(ConfigurationName)\</PostBuildEvent>
   </PropertyGroup>
 </Project>

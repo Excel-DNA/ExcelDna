@@ -147,7 +147,7 @@ namespace ExcelDna.Loader
 			[FieldOffset(0)]
 			public XlMultiRef12* pMultiRef;
 			[FieldOffset(4)]
-			public uint SheetId;
+			public uint SheetId; // EXCEL2010: Actually a uint*
 		}
 
 		[FieldOffset(0)]
@@ -328,12 +328,12 @@ namespace ExcelDna.Loader
 	 * The K data type uses a pointer to a variable-size FP structure. 
 	 * You should define this structure in the DLL or code resource as follows:
 
-		typedef struct _FP
+		typedef struct _FP12
 		{
-			unsigned short int rows;
-			unsigned short int columns;
+			INT32 rows;
+			INT32 columns;
 			double array[1];        // Actually, array[rows][columns]
-		} FP;
+		} FP12;
 
 	 *	The declaration double array[1] allocates storage only for a single-element array. 
 	 *  The number of elements in the actual array equals the number of rows multiplied 

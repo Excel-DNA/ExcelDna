@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2009 Govert van Drimmelen
+  Copyright (C) 2005-2010 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -36,7 +36,7 @@ namespace ExcelDna.Integration
 {
 	[Serializable]
 	[XmlType(AnonymousType = true)]
-	public class Project : IAssemblyDefinition
+	public class Project
 	{
 
         private string _Name;
@@ -53,6 +53,14 @@ namespace ExcelDna.Integration
 		{
 			get { return _Language; }
 			set { _Language = value; }
+		}
+
+		private string _CompilerVersion;
+		[XmlAttribute]
+		public string CompilerVersion
+		{
+			get { return _CompilerVersion; }
+			set { _CompilerVersion = value; }
 		}
 
         private List<Reference> _References;
@@ -83,6 +91,13 @@ namespace ExcelDna.Integration
             set { _DefaultImports = value; }
         }
 
+		private bool _ExplicitExports = false;
+		[XmlAttribute]
+		public bool ExplicitExports
+		{
+			get { return _ExplicitExports; }
+			set { _ExplicitExports = value; }
+		}
 
         private List<SourceItem> _SourceItems;
         [XmlElement("SourceItem", typeof(SourceItem))]
@@ -105,14 +120,16 @@ namespace ExcelDna.Integration
         }
 
         // Used by DnaLibrary to quickly make a default project
-        internal Project(string language, List<Reference> references, string code,
-                bool defaultReferences, bool defaultImports )
+        internal Project(string language, string compilerVersion, List<Reference> references, string code,
+                bool defaultReferences, bool defaultImports, bool explicitExports )
         {
             Language = language;
+			CompilerVersion = compilerVersion;
             References = references;
             Code = code;
             DefaultReferences = defaultReferences;
             DefaultImports = defaultImports;
+			ExplicitExports = explicitExports;
         }
 
         // Get projects explicit and implicitly prosent in the library
@@ -126,14 +143,29 @@ namespace ExcelDna.Integration
             return sourceItems;
         }
 
-        // TODO: URGENT: Revisit this...
-        private string tempIntegrationAssemblyPath = null;
+        private List<string> tempAssemblyPaths = new List<string>();
 
         public List<Reference> GetReferences()
         {
             List<Reference> references = new List<Reference>();
-            if (References != null)
-                references.AddRange(References);
+			if (References != null)
+			{
+				foreach (var rf in References)
+				{
+					if (rf.AssemblyPath != null && rf.AssemblyPath.StartsWith("packed:"))
+					{
+						string assName = rf.AssemblyPath.Substring(7);
+						string assPath = Path.GetTempFileName();
+						tempAssemblyPaths.Add(assPath);
+						File.WriteAllBytes(assPath, Integration.GetAssemblyBytes(assName));
+						references.Add(new Reference(assPath));
+					}
+					else
+					{
+						references.Add(rf);
+					}
+				}
+			}
             if (DefaultReferences)
             {
                 references.Add(new Reference("System.dll"));
@@ -150,19 +182,27 @@ namespace ExcelDna.Integration
             }
             else
             {
-                tempIntegrationAssemblyPath = Path.GetTempFileName();
-                File.WriteAllBytes(tempIntegrationAssemblyPath, Integration.GetAssemblyBytes("ExcelDna.Integration"));
-                references.Add(new Reference(tempIntegrationAssemblyPath));
+				string assPath = Path.GetTempFileName();
+                tempAssemblyPaths.Add(assPath);
+                File.WriteAllBytes(assPath, Integration.GetAssemblyBytes("EXCELDNA.INTEGRATION"));
+                references.Add(new Reference(assPath));
             }
+
+			Debug.WriteLine("Compiler References: ");
+			foreach (Reference rf in references)
+			{
+				Debug.WriteLine("\t" + rf.AssemblyPath);
+			}
 
             return references;
         }
 
         // TODO: Move compilation stuff elsewhere.
-		public List<Assembly> GetAssemblies()
+		internal List<ExportedAssembly> GetAssemblies()
 		{
-			List<Assembly> list = new List<Assembly>();
+			List<ExportedAssembly> list = new List<ExportedAssembly>();
 			// Dynamically compile this project to an in-memory assembly
+
 			CodeDomProvider provider = GetProvider();
 			if (provider == null)
 				return list;
@@ -207,19 +247,34 @@ namespace ExcelDna.Integration
                 cp.CompilerOptions = " --nologo -I " + ProcessedExecutingDirectory;
             }
 
+			List<Reference> references = GetReferences();
+			List<string> refNames = new List<string>();
+			foreach (Reference item in references)
+			{
+				if (item.AssemblyPath != null && item.AssemblyPath != "")
+				{
+					refNames.Add(item.AssemblyPath);
+				}
+				if (item.Name != null && item.Name != "")
+				{
+					refNames.Add(item.Name);
+				}
+			}
 
-            List<string> references = GetReferences().ConvertAll<string>(delegate(Reference item) { return item.AssemblyPath; });
-			cp.ReferencedAssemblies.AddRange(references.ToArray());
+			cp.ReferencedAssemblies.AddRange(refNames.ToArray());
 
-            List<string> sources = GetSourceItems().ConvertAll<string>(delegate(SourceItem item) { return item.Code; });
+            List<string> sources = GetSourceItems().ConvertAll<string>(delegate(SourceItem item) { return item.Code.Trim(); });
 			CompilerResults cr = provider.CompileAssemblyFromSource(cp, sources.ToArray());
 
-            // TODO: URGENT: Revisit...
-            if (tempIntegrationAssemblyPath != null)
-            {
-                File.Delete(tempIntegrationAssemblyPath);
-                tempIntegrationAssemblyPath = null;
-            }
+			foreach (string path in tempAssemblyPaths)
+			{
+				File.Delete(path);
+			}
+			tempAssemblyPaths.Clear();
+			if (cp.TempFiles != null)
+			{
+				cp.TempFiles.Delete();
+			}
 
 			if (cr.Errors.HasErrors)
 			{
@@ -239,7 +294,7 @@ namespace ExcelDna.Integration
 				AssemblyReference.AddAssembly(r.AssemblyPath);
 			}
 
-			list.Add(cr.CompiledAssembly);
+			list.Add(new ExportedAssembly(cr.CompiledAssembly, ExplicitExports));
 			return list;
 		}
 
@@ -248,6 +303,14 @@ namespace ExcelDna.Integration
 			// DOCUMENT: Currently accepted languages: 
 			// CS / CSHARP / C#, VB, VISUAL BASIC, VISUALBASIC
 			// or a fully qualified TypeName that derives from CodeDomProvider
+			// DOCUMENT: CompilerVersion usage
+
+			Dictionary<string, string> providerOptions = new Dictionary<string,string>();
+			if (!string.IsNullOrEmpty(CompilerVersion))
+			{
+				providerOptions.Add("CompilerVersion", CompilerVersion);
+			}
+
             string lang;
             if (Language == null)
                 lang = "vb";
@@ -256,11 +319,11 @@ namespace ExcelDna.Integration
 
 			if (lang == "cs" || lang == "csharp" || lang == "c#" || lang == "c sharp")
 			{
-				return new Microsoft.CSharp.CSharpCodeProvider();
+				return new Microsoft.CSharp.CSharpCodeProvider(providerOptions);
 			}
 			else if (lang == "vb" || lang == "visual basic" || lang == "visualbasic")
 			{
-				return new Microsoft.VisualBasic.VBCodeProvider();
+				return new Microsoft.VisualBasic.VBCodeProvider(providerOptions);
 			}
             else if (lang == "fs" || lang == "fsharp" || lang == "f#" || lang == "f sharp")
             {
@@ -292,9 +355,10 @@ namespace ExcelDna.Integration
 
 				return null;
 			}
-			catch
+			catch (Exception e)
 			{
 				Debug.Fail("Unknown Project Language: " + Language);
+				Logging.LogDisplay.WriteLine("Unknown Project Language: " + Language + " Exception: " + e.Message);
 			}
 			return null;
 		}

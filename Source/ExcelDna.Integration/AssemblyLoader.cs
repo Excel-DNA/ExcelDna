@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2009 Govert van Drimmelen
+  Copyright (C) 2005-2010 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -35,10 +35,10 @@ namespace ExcelDna.Integration
 	// and build the method information.
 	internal class AssemblyLoader
 	{
-        static public List<MethodInfo> GetExcelMethods(Assembly assembly)
+        static public List<MethodInfo> GetExcelMethods(ExportedAssembly assembly)
         {
             List<MethodInfo> methods = new List<MethodInfo>();
-            Type[] types = assembly.GetTypes();
+            Type[] types = assembly.Assembly.GetTypes();
             foreach (Type t in types)
             {
                 // CONSIDER: Implement ExportAll="false" ?
@@ -57,15 +57,46 @@ namespace ExcelDna.Integration
                 }
 
                 MethodInfo[] mis = t.GetMethods(BindingFlags.Public | BindingFlags.Static);
-                methods.AddRange(mis);
+				if (assembly.ExplicitExports)
+				{
+					// Filter list first
+					foreach (MethodInfo mi in mis)
+					{
+						if (IsMethodMarkedForExport(mi))
+						{
+							methods.Add(mi);
+						}
+					}
+				}
+				else
+				{
+					// Add all the methods found
+					methods.AddRange(mis);
+				}
             }
 
             // This is temporary support for Excel Server
             // TODO: How to make sure this adds no overhead? 
             // Maybe add a new attribute to ExternalLibrary?
-            methods.AddRange(AssemblyLoaderExcelServer.GetExcelMethods(assembly));
+            methods.AddRange(AssemblyLoaderExcelServer.GetExcelMethods(assembly.Assembly));
             return methods;
         }
+
+		// CAUTION: This check needs to match the usage in ExcelDna.Loader.XlMethodInfo.SetAttributeInfo()
+		private static bool IsMethodMarkedForExport(MethodInfo mi)
+		{
+			object[] atts = mi.GetCustomAttributes(false);
+			foreach (object att in atts)
+			{
+				Type attType = att.GetType();
+				if (attType.FullName == "ExcelDna.Integration.ExcelFunctionAttribute" ||
+					attType.FullName == "ExcelDna.Integration.ExcelCommandAttribute")
+				{
+					return true;
+				}
+			}
+			return false;
+		}
 
         // Some support for creating add-ins that are notified of open and close
         // this allows the add-in to add menus, toolbar buttons etc.
@@ -76,10 +107,10 @@ namespace ExcelDna.Integration
             public object     Instance;
         }
 
-		static public List<ExcelAddInInfo> GetExcelAddIns(Assembly assembly)
+		static public List<ExcelAddInInfo> GetExcelAddIns(ExportedAssembly assembly)
 		{
 			List<ExcelAddInInfo> addIns = new List<ExcelAddInInfo>();
-            Type[] types = assembly.GetTypes();
+            Type[] types = assembly.Assembly.GetTypes();
 			foreach (Type t in types)
 			{
                 Type addInType = t.GetInterface("ExcelDna.Integration.IExcelAddIn");
@@ -95,6 +126,5 @@ namespace ExcelDna.Integration
 			}
 			return addIns;
 		}
-
 	}
 }
