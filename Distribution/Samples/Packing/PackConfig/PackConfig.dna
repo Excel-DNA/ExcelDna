@@ -1,0 +1,17 @@
+<DnaLibrary Name="PackConfig" Language="CS">
+<![CDATA[
+	
+	#define TRACE 
+	
+	using System;
+	using System.Diagnostics;
+	public class SomeClass
+	{
+		public static string PackConfig()
+		{
+			Trace.TraceInformation("Inside the PackConfig function.");
+			return "Hello from PackConfig!";
+		}
+	}
+]]>
+</DnaLibrary>

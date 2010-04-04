@@ -74,8 +74,29 @@
 					[ExcelFunction(IsMacroType=true)]
 					public static object DoStuffLater()
 					{
-						XlCall.Excel(XlCall.xlcOnTime, DateTime.Now.AddSeconds(5), "SetSome");
-						return DateTime.Now.AddSeconds(5);
+						double now = (double)XlCall.Excel(XlCall.xlfNow);
+						double later = now + 10.0 / (60.0 * 60.0 * 24.0);
+						bool ok = (bool)XlCall.Excel(XlCall.xlcOnTime, later, "RingBell");
+						if (ok) 
+							return "OK " + later;
+						else
+							return "ERROR";
+
+		
+					}
+
+					[ExcelCommand(MenuText="DoStuffLaterMacro")]
+					public static void DoStuffLaterMacro()
+					{
+						double now = (double)XlCall.Excel(XlCall.xlfNow);
+						double later = now + 10.0 / (60.0 * 60.0 * 24.0);
+						bool ok = (bool)XlCall.Excel(XlCall.xlcOnTime, later, "RingBell");
+						if (ok) 
+							MessageBox.Show("OK " + later);
+						else
+							MessageBox.Show("ERROR");
+
+		
 					}
 
 					// One dimensional arrays are rows.

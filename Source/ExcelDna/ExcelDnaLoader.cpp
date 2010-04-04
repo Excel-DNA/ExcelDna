@@ -35,10 +35,16 @@ static HMODULE hModuleCurrent;
 // These don't use ATL classes to give us explicit control over when CLR is called
 static IUnknown* pAppDomain_ForUnload = NULL;
 static ICorRuntimeHost* pHost_ForUnload = NULL;
+// Temp file to be used if we need to write .config from resources.
+static CString tempConfigFileName = "";
+
+// Forward declarations for functions defined in this file.
 HRESULT LoadClr20(ICorRuntimeHost **ppHost);
 void ShowMessage(int headerId, int bodyId, int footerId, HRESULT hr = S_OK);
 CString AddInFullPath();
+HRESULT CreateTempFile(void* pBuffer, DWORD nBufSize, CString& fileName);
 
+// COR function pointer typedefs.
 typedef HRESULT (STDAPICALLTYPE *pfnGetCORVersion)(LPWSTR pBuffer, 
                                          DWORD cchBuffer,
                                          DWORD* dwLength);
@@ -57,6 +63,8 @@ typedef HRESULT (STDAPICALLTYPE *pfnCorBindToRuntimeEx)(
 									REFIID riid,    
 									LPVOID* ppv );
 
+// Ensure the CLR is loaded, create a new AppDomain, get the manager loader running,
+// and do the ExportInfo hook-up.
 bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 {
 	HRESULT hr;
@@ -86,6 +94,7 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 	CPath xllDirectory(addInFullPath);
 	xllDirectory.RemoveFileSpec();
 
+	// Create and populate AppDomainSetup
 	CComPtr<IUnknown> pAppDomainSetupUnk;
 	hr = pHost->CreateDomainSetup(&pAppDomainSetupUnk);
 	if (FAILED(hr) || pAppDomainSetupUnk == NULL)
@@ -98,7 +107,6 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 	}
 
 	CComQIPtr<IAppDomainSetup> pAppDomainSetup = pAppDomainSetupUnk;
-
 	hr = pAppDomainSetup->put_ApplicationBase(CComBSTR(xllDirectory));
 	if (FAILED(hr))
 	{
@@ -108,14 +116,42 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 					hr);
 		return 0;
 	}
-	
-	CComBSTR configFileName = addInFullPath;
-	configFileName.Append(L".config");
-	pAppDomainSetup->put_ConfigurationFile(configFileName);
 
+	// AppDomainSetup.ApplicationName = "ExcelDna: c:\MyAddins\MyAddIn.xll";
 	CComBSTR appDomainName = L"ExcelDna: ";
 	appDomainName.Append(addInFullPath);
 	pAppDomainSetup->put_ApplicationName(appDomainName);
+
+
+	// Check if a .config file exists next to the .xll as MyAddIn.xll.config. Use it if it exists.
+	CComBSTR configFileName = addInFullPath;
+	configFileName.Append(L".config");
+	if (ATLPath::FileExists(configFileName))
+	{
+		pAppDomainSetup->put_ConfigurationFile(configFileName);
+	}
+	else
+	{
+		// Try to load .config file from resources, store into a temp file
+		HRSRC hResConfig = FindResource(hModuleCurrent, L"__MAIN__", L"CONFIG");
+		if (hResConfig != NULL)
+		{
+			HGLOBAL hConfig = LoadResource(hModuleCurrent, hResConfig);
+			void* pConfig = LockResource(hConfig);
+			DWORD sizeConfig = SizeofResource(hModuleCurrent, hResConfig);
+
+			hr = CreateTempFile(pConfig, sizeConfig, tempConfigFileName);
+			if (SUCCEEDED(hr))
+			{
+				pAppDomainSetup->put_ConfigurationFile( CComBSTR(tempConfigFileName) );
+			}
+			// tempConfigFile will be deleted after the AppDomain has been unloaded.
+		}
+		else
+		{
+			// No config file - no problem.
+		}
+	}
 
 	IUnknown *pAppDomainUnk = NULL;
 	hr = pHost->CreateDomainEx(appDomainName, pAppDomainSetupUnk, 0, &pAppDomainUnk);
@@ -209,6 +245,8 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 	return initRetVal.boolVal == 0 ? false : true;
 }
 
+// XlLibraryUnload is only called if we are unloading the add-in via the add-in manager.
+// Unload the AppDomain.
 void XlLibraryUnload()
 {
 	if (pHost_ForUnload != NULL)
@@ -227,6 +265,7 @@ void XlLibraryUnload()
 	}
 }
 
+// Try to get the CLR 2.0 running.
 HRESULT LoadClr20(ICorRuntimeHost **ppHost)
 {
 	HRESULT hr = E_FAIL;
@@ -339,11 +378,6 @@ HRESULT LoadClr20(ICorRuntimeHost **ppHost)
 	return hr;
 }
 
-void SetCurrentModule(HMODULE hModule)
-{
-	hModuleCurrent = hModule;
-}
-
 struct FindExcelWindowParam
 {
 	DWORD processId;
@@ -429,4 +463,74 @@ CString AddInFullPath()
 	DWORD count = GetModuleFileName(hModuleCurrent, pBuffer, MAX_PATH);
 	addInFullPath.ReleaseBuffer(count); // pBuffer is now invalid
 	return addInFullPath;
+}
+
+// Create a new temp file with the given content.
+// Most of this copied from CAtlTemporaryFile....
+HRESULT CreateTempFile(void* pBuffer, DWORD nBufSize, CString& fileName)
+{
+		TCHAR szPath[_MAX_PATH]; 
+		TCHAR tmpFileName[_MAX_PATH]; 
+		DWORD dwRet = GetTempPath(_MAX_DIR, szPath);
+		if (dwRet == 0)
+		{
+			// Couldn't find temporary path;
+			return AtlHresultFromLastError();
+		}
+		else if (dwRet > _MAX_DIR)
+		{
+			return DISP_E_BUFFERTOOSMALL;
+		}
+
+		if (!GetTempFileName(szPath, _T("DNA"), 0, tmpFileName))
+		{
+			// Couldn't create temporary filename;
+			return AtlHresultFromLastError();
+		}
+		tmpFileName[_countof(tmpFileName)-1]='\0';
+
+		HANDLE hFile = ::CreateFile(
+			tmpFileName,
+			GENERIC_WRITE,
+			0,		// No sharing - we'll write and close
+			NULL,	// default security
+			CREATE_ALWAYS,
+			FILE_ATTRIBUTE_NOT_CONTENT_INDEXED | FILE_ATTRIBUTE_TEMPORARY,
+			NULL);	// no template
+
+		if (hFile == INVALID_HANDLE_VALUE)
+			return AtlHresultFromLastError();
+
+		DWORD nBytesWritten;
+		BOOL writeOK = ::WriteFile(hFile, pBuffer, nBufSize, &nBytesWritten, NULL);
+		if (!writeOK)
+			return AtlHresultFromLastError();
+
+		BOOL closeOK = ::CloseHandle(hFile);
+		if (!closeOK)
+			return AtlHresultFromLastError();
+
+		fileName = tmpFileName;
+		return S_OK;
+}
+
+// LoaderInitialize is called when the .dll gets PROCESS_ATTACH
+// First initialization comes here.
+// For now we only store our own module handle.
+void LoaderInitialize(HMODULE hModule)
+{
+	hModuleCurrent = hModule;
+}
+
+// LoaderUnload is called when the .dll gets PROCESS_DETACH.
+// Last chance to clean up anything.
+// We just delete the temp .config file if we created one.
+void LoaderUnload()
+{
+	if (tempConfigFileName != "")
+	{
+		BOOL deleteOK = ::DeleteFile(tempConfigFileName);
+//		if (!deleteOK)
+//			return AtlHresultFromLastError();
+	}
 }

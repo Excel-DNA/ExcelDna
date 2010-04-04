@@ -77,6 +77,11 @@ internal unsafe static class ResourceHelper
 			DoUpdateResource("DNA_LZMA", name, data);
 		}
 
+		public void AddConfigFile(byte[] configContent, string name)
+		{
+			DoUpdateResource("CONFIG", name, configContent);
+		}
+
 		public void DoUpdateResource(string typeName, string name, byte[] data)
 		{
 			Console.WriteLine(string.Format("  ->  Updating resource: Type: {0}, Name: {1}, Length: {2}", typeName, name, data.Length));

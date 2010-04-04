@@ -27,8 +27,12 @@ cd ..
 ..\..\ExcelDnaPack PackDep\PackDep.dna /Y
 copy PackDep\PackDep-packed.xll Out\
 
+..\..\ExcelDnaPack PackConfig\PackConfig.dna /Y
+copy PackConfig\PackConfig-packed.xll Out\
+
 del PackDna\PackDna-packed.xll
 del PackDnaTree\PackDnaTree-packed.xll
+del PackConfig\PackConfig-packed.xll
 
 del PackLib\ExcelDna.Integration.dll
 del PackLib\MyLib.dll

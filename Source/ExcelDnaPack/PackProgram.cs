@@ -26,9 +26,13 @@ Usage: ExcelDnaPack.exe dnaPath [/Y]
 Example: ExcelDnaPack.exe MyAddins\FirstAddin.dna
 		 The packed add-in file will be created as MyAddins\FirstAddin.xll.
 
-The template add-in host file (always called ExcelDna.xll) is searched for 
+The template add-in host file (always called ExcelDna.xll) and helper 
+assembly (ExcelDna.Integration.dll) are searched for 
   1. in the same directory as the .dna file, and if not found there, 
   2. in the same directory as the ExcelDnaPack.exe file.
+
+ExcelDnaPack will also pack the configuration file FirstAddin.xll.config if it is 
+found next to FirstAddin.dna.
 ";
 		
 		static void Main(string[] args)
@@ -53,6 +57,7 @@ The template add-in host file (always called ExcelDna.xll) is searched for
 			string dnaDirectory = Path.GetDirectoryName(dnaPath);
 //			string dnaFileName = Path.GetFileName(dnaPath);
 			string dnaFilePrefix = Path.GetFileNameWithoutExtension(dnaPath);
+			string configPath = Path.ChangeExtension(dnaPath, ".xll.config");
 
 			string xllOutputPath = Path.Combine(dnaDirectory, dnaFilePrefix + "-packed.xll");
 
@@ -105,6 +110,7 @@ The template add-in host file (always called ExcelDna.xll) is searched for
 
 			File.Copy(xllInputPath, xllOutputPath, false);
 			ResourceHelper.ResourceUpdater ru = new ResourceHelper.ResourceUpdater(xllOutputPath);
+			// Take out Integration assembly - to be replaced by a compressed copy.
 			ru.RemoveResource("ASSEMBLY", "EXCELDNA.INTEGRATION");
 			string integrationPath = ResolvePath("ExcelDna.Integration.dll", dnaDirectory);
 			string packedName = null;
@@ -118,6 +124,10 @@ The template add-in host file (always called ExcelDna.xll) is searched for
 				ru.EndUpdate();
 				File.Delete(xllOutputPath);
 				return;
+			}
+			if (File.Exists(configPath))
+			{
+				ru.AddConfigFile(File.ReadAllBytes(configPath), "__MAIN__");  // Name here must exactly match name in ExcelDnaLoad.cpp.
 			}
 			byte[] dnaBytes = File.ReadAllBytes(dnaPath);
 			byte[] dnaContentForPacking = PackDnaLibrary(dnaBytes, dnaDirectory, ru);
