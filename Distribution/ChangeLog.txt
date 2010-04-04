@@ -1,3 +1,11 @@
+Version 0.24 (2 April 2010)
+---------------------------
+* Fixed bug that left many temp files created by .dna file compilation.
+* Add packing of .xll.config files.
+  - If a file MyAddIn.xll.config is found next to the MyAddIn.dna file, the ExcelDnaPack will pack the .config file into the packed .xll too. It is extracted to a DNAxxx.tmp temp file at runtime, and deleted if Excel is closed nicely.
+  - If a config file is present at runtime, that file is used instead of the packed file. 
+  - PackConfig sample added in Samples\Pack\PackConfig. The sample sets up a trace listener file at c:\PackConfig.log.
+
 Version 0.23 (14 March 2010)
 ----------------------------
 * Add ExplicitExports attribute to Project and ExternalLibrary (default is false). If set to ExplicitExports="true" only methods marked with ExcelFunction / ExcelCommand attributes will be exported.

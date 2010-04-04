@@ -216,9 +216,6 @@ namespace ExcelDna.Integration
 			cp.GenerateInMemory = true;
 			cp.TreatWarningsAsErrors = false;
 
-			//set the temp dir for the compiler
-            cp.TempFiles = new TempFileCollection(System.IO.Path.GetTempPath(), true);
-
 			// This is attempt to fix the bug reported on the group, where the add-in compilation fails if the add-in is put into c:\
 			// It is caused by a quirk of the 'Path.GetDirectoryName' function when dealing with the path "c:\test.abc" 
 			// - it leaves the last DirectorySeparator in the path in this special case.
@@ -271,10 +268,6 @@ namespace ExcelDna.Integration
 				File.Delete(path);
 			}
 			tempAssemblyPaths.Clear();
-			if (cp.TempFiles != null)
-			{
-				cp.TempFiles.Delete();
-			}
 
 			if (cr.Errors.HasErrors)
 			{

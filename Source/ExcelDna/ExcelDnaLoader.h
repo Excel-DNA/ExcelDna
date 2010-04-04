@@ -24,6 +24,8 @@
 
 #pragma once
 
+void LoaderInitialize(HMODULE hModule);
+void LoaderUnload();
+
 bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo);
 void XlLibraryUnload();
-void SetCurrentModule(HMODULE hModule);

@@ -41,6 +41,8 @@ namespace ExcelDna.Integration
     internal delegate byte[] GetResourceBytesDelegate(string resourceName, int type); // types: 0 - Assembly, 1 - Dna file
 	public delegate object UnhandledExceptionHandler(object exceptionObject);
 
+	// TODO: Rename to ExcelDnaAddIn and make obsolete - type name should not be the same as namespace name.
+
     public static class Integration
     {
 
