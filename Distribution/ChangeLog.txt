@@ -1,3 +1,9 @@
+Version 0.25 (10 April 2010)
+---------------------------
+* Fix case where unpacked .config temp file might not be deleted.
+* Fix compiler problem with .Net 2.0 RTM version introduced in version 0.23.
+* Fix DateTime parameter OutOfRange crash.
+
 Version 0.24 (2 April 2010)
 ---------------------------
 * Fixed bug that left many temp files created by .dna file compilation.

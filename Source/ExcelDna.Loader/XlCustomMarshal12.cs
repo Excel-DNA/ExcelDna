@@ -322,6 +322,86 @@ namespace ExcelDna.Loader
 		}
 	}
 
+	public class XlDateTime12Marshaler : ICustomMarshaler
+	{
+		// One and only instance of this marshaler shared by all threads.
+		static XlDateTime12Marshaler instance;
+
+		public XlDateTime12Marshaler()
+		{
+		}
+
+		// GetInstance is called when the function is baked.
+		public static ICustomMarshaler GetInstance(string marshalCookie)
+		{
+			if (instance == null)
+				instance = new XlDateTime12Marshaler();
+			return instance;
+		}
+
+		public IntPtr MarshalManagedToNative(object ManagedObj)
+		{
+			// Forward to the correct instance for this thread.
+			return XlDateTime12MarshalerImpl.GetInstance().MarshalManagedToNative(ManagedObj);
+		}
+
+		public object MarshalNativeToManaged(IntPtr pNativeData)
+		{
+			// Forward to the correct instance for this thread.
+			return XlDateTime12MarshalerImpl.GetInstance().MarshalNativeToManaged(pNativeData);
+		}
+
+		// Unused ICustomMarshaler methods.
+		public void CleanUpManagedData(object ManagedObj) { }
+		public void CleanUpNativeData(IntPtr pNativeData) { } // Can't do anything useful here, as the managed to native marshaling is for a return parameter.
+		public int GetNativeDataSize() { return -1; }
+
+		private unsafe class XlDateTime12MarshalerImpl
+		{
+			[ThreadStatic]
+			static XlDateTime12MarshalerImpl instance;
+			IntPtr pNative; // this is really an XlOper, and is is allocated once, 
+			// when the marshaller is constructed, 
+			// and is never reclaimed
+
+			public XlDateTime12MarshalerImpl()
+			{
+				int size = Marshal.SizeOf(typeof(XlOper12));
+				pNative = Marshal.AllocCoTaskMem(size);
+			}
+
+			public static XlDateTime12MarshalerImpl GetInstance()
+			{
+				if (instance == null)
+					instance = new XlDateTime12MarshalerImpl();
+				return instance;
+			}
+
+			unsafe public IntPtr MarshalManagedToNative(object ManagedObj)
+			{
+				*(double*)pNative = ((DateTime)ManagedObj).ToOADate();
+				return pNative;
+			}
+
+			unsafe public object MarshalNativeToManaged(IntPtr pNativeData)
+			{
+				try
+				{
+					double dateSerial = *(double*)pNativeData;
+					return DateTime.FromOADate(dateSerial);
+				}
+				catch
+				{
+					// This case is where the range of the OADate is exceeded.
+					// By returning null, the unboxing code will fail,
+					// causing a runtime exception that is caught and returned as a #Value error.
+					return null;
+				}
+			}
+
+		}
+	}
+
 	// Excel signature type 'K'
 	/* From Excel97DevKit:
 	 * K Data Type

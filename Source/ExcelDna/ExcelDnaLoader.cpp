@@ -43,6 +43,7 @@ HRESULT LoadClr20(ICorRuntimeHost **ppHost);
 void ShowMessage(int headerId, int bodyId, int footerId, HRESULT hr = S_OK);
 CString AddInFullPath();
 HRESULT CreateTempFile(void* pBuffer, DWORD nBufSize, CString& fileName);
+HRESULT DeleteTempFile(CString fileName);
 
 // COR function pointer typedefs.
 typedef HRESULT (STDAPICALLTYPE *pfnGetCORVersion)(LPWSTR pBuffer, 
@@ -263,6 +264,13 @@ void XlLibraryUnload()
 #endif
 		}
 	}
+	// Also delete the temp .config file, if we made one.
+	if (tempConfigFileName != "")
+	{
+		DeleteTempFile(tempConfigFileName);
+		tempConfigFileName = "";
+	}
+
 }
 
 // Try to get the CLR 2.0 running.
@@ -514,6 +522,15 @@ HRESULT CreateTempFile(void* pBuffer, DWORD nBufSize, CString& fileName)
 		return S_OK;
 }
 
+HRESULT DeleteTempFile(CString fileName)
+{
+		BOOL deleteOK = ::DeleteFile(tempConfigFileName);
+		if (!deleteOK)
+			return AtlHresultFromLastError();
+		
+		return S_OK;
+}
+
 // LoaderInitialize is called when the .dll gets PROCESS_ATTACH
 // First initialization comes here.
 // For now we only store our own module handle.
@@ -529,8 +546,7 @@ void LoaderUnload()
 {
 	if (tempConfigFileName != "")
 	{
-		BOOL deleteOK = ::DeleteFile(tempConfigFileName);
-//		if (!deleteOK)
-//			return AtlHresultFromLastError();
+		DeleteTempFile(tempConfigFileName);
+		tempConfigFileName = "";
 	}
 }

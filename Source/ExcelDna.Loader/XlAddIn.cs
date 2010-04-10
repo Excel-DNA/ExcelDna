@@ -225,15 +225,18 @@ namespace ExcelDna.Loader
             }
             catch (Exception e)
             {
-                // TODO: What to do here?
-                Debug.WriteLine(e.Message);
+                // TODO: What to do here - maybe prefer Trace...?
+                Debug.WriteLine("ExcelDna.Loader.XlAddin.XlAutoOpen. Exception during Integration load: " + e.ToString());
+				string alertMessage = string.Format("A problem occurred while an add-in was being initialized (InitializeIntegration failed).\r\nThe add-in is built with ExcelDna and is being loaded from {0}", pathXll);
+				object xlCallResult;
+				XlCallImpl.TryExcelImpl(XlCallImpl.xlcAlert, out xlCallResult /*Ignored*/, alertMessage , 3 /* Only OK Button, Warning Icon*/);
                 result = 0;
             }
             finally
             {
                 // Clear the status bar message
                 object xlCallResult;
-                XlCallImpl.TryExcelImpl(XlCallImpl.xlcMessage, out xlCallResult /*Ignore*/ , false);
+                XlCallImpl.TryExcelImpl(XlCallImpl.xlcMessage, out xlCallResult /*Ignored*/ , false);
             }
             return result;
         }

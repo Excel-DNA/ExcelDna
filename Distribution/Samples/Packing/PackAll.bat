@@ -47,3 +47,4 @@ del PackDep\MainLib.dll
 del PackDep\DepLib.dll
 del PackDep\PackDep-packed.xll
 
+pause "Packing complete."
