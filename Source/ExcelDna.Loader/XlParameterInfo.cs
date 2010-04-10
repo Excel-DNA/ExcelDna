@@ -186,14 +186,17 @@ namespace ExcelDna.Loader
 					{
 						// TODO: Consolidate with the above case?
 						XlType = "E"; // double*
-						MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlDateTimeReturnMarshaler));
+						MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlDateTimeMarshaler));
 						DelegateParamType = typeof(object);
 						BoxedValueType = typeof(DateTime);
 					}
 				}
 				else
 				{
-					XlType = "B"; // double
+					XlType = "E"; // double*
+					MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlDateTimeMarshaler));
+					DelegateParamType = typeof(object);
+					BoxedValueType = typeof(DateTime);
 				}
 			}
 			else if (type == typeof(double[]))
@@ -418,15 +421,17 @@ namespace ExcelDna.Loader
                     {
                         // TODO: Consolidate with the above case?
                         XlType = "E"; // double*
-                        MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlDateTimeReturnMarshaler));
+						MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlDateTime12Marshaler));
                         DelegateParamType = typeof(object);
                         BoxedValueType = typeof(DateTime);
                     }
                 }
                 else
                 {
-                    XlType = "B"; // double
-                    // No marshaling
+					XlType = "E"; // double*
+					MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlDateTime12Marshaler));
+					DelegateParamType = typeof(object);
+					BoxedValueType = typeof(DateTime);
                 }
             }
             else if (type == typeof(double[]))

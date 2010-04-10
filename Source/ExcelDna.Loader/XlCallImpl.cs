@@ -69,7 +69,8 @@ namespace ExcelDna.Loader
         public static readonly int xlSheetNm = (5 | xlSpecial);
         public static readonly int xlGetName = (9 | xlSpecial);
 
-        public static readonly int xlcMessage = (122 | xlCommand);
+		public static readonly int xlcAlert = (118 | xlCommand);
+		public static readonly int xlcMessage = (122 | xlCommand);
 
         public static readonly int xlfSetName = 88;
         public static readonly int xlfRegister = 149;

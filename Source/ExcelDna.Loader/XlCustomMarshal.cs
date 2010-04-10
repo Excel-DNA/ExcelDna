@@ -285,12 +285,12 @@ namespace ExcelDna.Loader
 	}
 
 	// DateTimes are returned as a double*
-    public class XlDateTimeReturnMarshaler : ICustomMarshaler
+    public class XlDateTimeMarshaler : ICustomMarshaler
 	{
 		static ICustomMarshaler instance;
 		IntPtr pNative;	// points to a double - never changes
 
-		public XlDateTimeReturnMarshaler()
+		public XlDateTimeMarshaler()
 		{
 			int size = Marshal.SizeOf(typeof(double));
 			pNative = Marshal.AllocCoTaskMem(size);
@@ -299,7 +299,7 @@ namespace ExcelDna.Loader
 		public static ICustomMarshaler GetInstance(string marshalCookie)
 		{
 			if (instance == null)
-				instance = new XlDateTimeReturnMarshaler();
+				instance = new XlDateTimeMarshaler();
 			return instance;
 		}
 
@@ -309,9 +309,20 @@ namespace ExcelDna.Loader
 			return pNative;
 		}
 
-		public object MarshalNativeToManaged(IntPtr pNativeData)
+		unsafe public object MarshalNativeToManaged(IntPtr pNativeData)
 		{
-			throw new NotImplementedException("This marshaler only used for managed to native return type marshaling.");
+			try
+			{
+				double dateSerial = *(double*)pNativeData;
+				return DateTime.FromOADate(dateSerial);
+			}
+			catch
+			{
+				// This case is where the range of the OADate is exceeded.
+				// By returning null, the unboxing code will fail,
+				// causing a runtime exception that is caught and returned as a #Value error.
+				return null;
+			}
 		}
 
 		public void CleanUpManagedData(object ManagedObj) { }

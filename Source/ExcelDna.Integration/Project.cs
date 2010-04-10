@@ -294,13 +294,14 @@ namespace ExcelDna.Integration
 		private CodeDomProvider GetProvider()
 		{
 			// DOCUMENT: Currently accepted languages: 
-			// CS / CSHARP / C#, VB, VISUAL BASIC, VISUALBASIC
+			// CS / CSHARP / C# / VB / VISUAL BASIC / VISUALBASIC / FS /F# / FSHARP / F SHARP
 			// or a fully qualified TypeName that derives from CodeDomProvider
 			// DOCUMENT: CompilerVersion usage
 
-			Dictionary<string, string> providerOptions = new Dictionary<string,string>();
+			Dictionary<string, string> providerOptions = null; 
 			if (!string.IsNullOrEmpty(CompilerVersion))
 			{
+				providerOptions = new Dictionary<string, string>();
 				providerOptions.Add("CompilerVersion", CompilerVersion);
 			}
 
@@ -312,17 +313,33 @@ namespace ExcelDna.Integration
 
 			if (lang == "cs" || lang == "csharp" || lang == "c#" || lang == "c sharp")
 			{
-				return new Microsoft.CSharp.CSharpCodeProvider(providerOptions);
+				if (providerOptions == null)
+				{
+					return new Microsoft.CSharp.CSharpCodeProvider();
+				}
+				else
+				{
+					Assembly sys = Assembly.GetAssembly(typeof(Microsoft.CSharp.CSharpCodeProvider));
+					return (CodeDomProvider)sys.CreateInstance("Microsoft.CSharp.CSharpCodeProvider", false, BindingFlags.CreateInstance, null, new object[] {providerOptions}, null, null);
+				}
 			}
 			else if (lang == "vb" || lang == "visual basic" || lang == "visualbasic")
 			{
-				return new Microsoft.VisualBasic.VBCodeProvider(providerOptions);
+				if (providerOptions == null)
+				{
+					return new Microsoft.VisualBasic.VBCodeProvider();
+				}
+				else
+				{
+					Assembly sys = Assembly.GetAssembly(typeof(Microsoft.VisualBasic.VBCodeProvider));
+					return (CodeDomProvider)sys.CreateInstance("Microsoft.VisualBasic.VBCodeProvider", false, BindingFlags.CreateInstance, null, new object[] {providerOptions}, null, null);
+				}
 			}
             else if (lang == "fs" || lang == "fsharp" || lang == "f#" || lang == "f sharp")
             {
                 try
                 {
-                    // TODO: Reconsider how and if to support F#
+                    // TODO: Reconsider how to support F#
                     Assembly fsharp = Assembly.LoadWithPartialName("FSharp.Compiler.CodeDom" );
                     return (CodeDomProvider)fsharp.CreateInstance("Microsoft.FSharp.Compiler.CodeDom.FSharpCodeProvider");
                 }
