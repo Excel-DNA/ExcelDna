@@ -51,4 +51,23 @@ namespace ExcelDna.Integration
             AssemblyPath = assemblyPath;
         }
 	}
+
+    [Serializable]
+    [XmlType(AnonymousType = true)]
+    public class Image
+    {
+        [XmlAttribute]
+        public string Name;
+
+        [XmlAttribute]
+        public string Path;
+
+        [XmlAttribute]
+        public bool Pack;
+
+        public Image()
+        {
+        }
+    }
+
 }

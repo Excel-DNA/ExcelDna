@@ -8,6 +8,7 @@ using System.Reflection;
 using System.IO;
 using System.Diagnostics;
 using ExcelDna.Integration;
+using System.Runtime.InteropServices;
 
 namespace ExcelDnaPack
 {
@@ -45,7 +46,7 @@ found next to FirstAddin.dna.
 //			return;
 
 			// Force jit-load of ExcelDna.Integration assembly
-			var unused = XlCall.xlAbort;
+			int unused = XlCall.xlAbort;
 
 			if (args.Length < 1)
 			{
@@ -112,7 +113,7 @@ found next to FirstAddin.dna.
 			ResourceHelper.ResourceUpdater ru = new ResourceHelper.ResourceUpdater(xllOutputPath);
 			// Take out Integration assembly - to be replaced by a compressed copy.
 			ru.RemoveResource("ASSEMBLY", "EXCELDNA.INTEGRATION");
-			string integrationPath = ResolvePath("ExcelDna.Integration.dll", dnaDirectory);
+            string integrationPath = DnaLibrary.ResolvePath("ExcelDna.Integration.dll", dnaDirectory);
 			string packedName = null;
 			if (integrationPath != null)
 			{
@@ -144,14 +145,14 @@ found next to FirstAddin.dna.
 
 		static byte[] PackDnaLibrary(byte[] dnaContent, string dnaDirectory, ResourceHelper.ResourceUpdater ru)
 		{
-			DnaLibrary dna = DnaLibrary.LoadFrom(dnaContent);
+			DnaLibrary dna = DnaLibrary.LoadFrom(dnaContent, dnaDirectory);
 			if (dna.ExternalLibraries != null)
 			{
 				foreach (var ext in dna.ExternalLibraries)
 				{
 					if (ext.Pack)
 					{
-						string path = ResolvePath(ext.Path, dnaDirectory);
+						string path = dna.ResolvePath(ext.Path);
 						if (Path.GetExtension(path).ToUpperInvariant() == ".DNA")
 						{
 							string name = Path.GetFileNameWithoutExtension(path).ToUpperInvariant() + "_" + lastPackIndex++ + ".DNA";
@@ -198,7 +199,7 @@ found next to FirstAddin.dna.
 							break;
 						}
 
-						path = ResolvePath(rf.AssemblyPath, dnaDirectory);
+                        path = dna.ResolvePath(rf.AssemblyPath);
 
 						if (path == null)
 						{
@@ -253,56 +254,24 @@ found next to FirstAddin.dna.
 					}
 				}
 			}
+            foreach (Image image in dna.Images)
+            {
+                if (image.Pack)
+                {
+                    string path = dna.ResolvePath(image.Path);
+                    if (path == null)
+                    {
+                        Console.WriteLine("  ~~> Image path {0} not resolved.", image.Path);
+                        break;
+                    }
+                    string name = Path.GetFileNameWithoutExtension(path).ToUpperInvariant() + "_" + lastPackIndex++ + Path.GetExtension(path).ToUpperInvariant(); ;
+                    byte[] imageBytes = File.ReadAllBytes(path);
+                    ru.AddImage(imageBytes, name);
+                    image.Path = "packed:" + name;
+                }
+            }
+
 			return DnaLibrary.Save(dna);
-		}
-
-		// ResolvePath tries to figure out the actual path to a file - either a .dna file or an 
-		// assembly to be packed.
-		// Resolution sequence:
-		// 1. Check the path - if not rooted that will be relative to working directory.
-		// 2. If the path is rooted, try the filename part relative to the .dna file location.
-		//    If the path is not rooted, try the whole path relative to the .dna file location.
-		// 3. Try step 2 against the appdomain.
-		static string ResolvePath(string path, string dnaDirectory)
-		{
-			Console.WriteLine("ResolvePath: {0}, DnaDirectory: {1}", path, dnaDirectory);
-			if (File.Exists(path)) return path;
-
-			// Try relative to dna directory
-			string dnaPath;
-			if (Path.IsPathRooted(path))
-			{
-				// It was a rooted path -- try locally instead
-				string fileName = Path.GetFileName(path);
-				dnaPath = Path.Combine(dnaDirectory, fileName);
-			}
-			else
-			{
-				// Not rooted - try a path relative to local directory
-				dnaPath = System.IO.Path.Combine(dnaDirectory, path);
-			}
-			Console.WriteLine("ResolvePath: Searching for {0}", dnaPath);
-			if (File.Exists(dnaPath)) return dnaPath;
-
-			// try relative to AppDomain BaseDirectory
-			string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-			string basePath;
-			if (Path.IsPathRooted(path))
-			{
-				string fileName = Path.GetFileName(path);
-				basePath = Path.Combine(baseDirectory, fileName);
-			}
-			else
-			{
-				basePath = System.IO.Path.Combine(baseDirectory, path);
-			}
-
-			// Check again
-			Console.WriteLine("ResolvePath: Searching for {0}", basePath);
-			if (File.Exists(basePath)) return basePath;
-
-			// Else give up (maybe try GAC?)
-			return null;
 		}
 
 	}

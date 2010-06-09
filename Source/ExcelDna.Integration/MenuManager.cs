@@ -31,6 +31,8 @@ namespace ExcelDna.Integration
 {
     /// <summary>
     /// The MenuManager is used by the Loader.
+    /// TODO: Can we integrate with ExcelCommandBars?
+    ///       Hierarchical menus.
     /// </summary>
   
     // CAUTION: This 'internal' class is called via reflection by the ExcelDna Loader.

@@ -38,10 +38,10 @@ namespace ExcelDna.Integration
 
     internal delegate int TryExcelImplDelegate(int xlFunction, out object result, params object[] parameters);
     internal delegate void RegisterMethodsDelegate(List<MethodInfo> methods);
-    internal delegate byte[] GetResourceBytesDelegate(string resourceName, int type); // types: 0 - Assembly, 1 - Dna file
+    internal delegate byte[] GetResourceBytesDelegate(string resourceName, int type); // types: 0 - Assembly, 1 - Dna file, 2 - Image
 	public delegate object UnhandledExceptionHandler(object exceptionObject);
 
-	// TODO: Rename to ExcelDnaAddIn and make obsolete - type name should not be the same as namespace name.
+	// TODO: Rename to ExcelDnaAddIn? and make obsolete - type name should not be the same as namespace name.
 
     public static class Integration
     {
@@ -116,6 +116,11 @@ namespace ExcelDna.Integration
 			return getResourceBytesDelegate(dnaFileName, 1);
 		}
 
+        internal static byte[] GetImageBytes(string imageName)
+        {
+            return getResourceBytesDelegate(imageName, 1);
+        }
+
         internal static void Initialize()
         {
 			ExcelDnaUtil.Initialize();
@@ -133,10 +138,10 @@ namespace ExcelDna.Integration
 			try
 			{
 				DnaLibrary.CurrentLibrary.AutoOpen();
-			}
+            }
 			catch (Exception e)
 			{
-				Debug.WriteLine("Integration.DnaLibraryAutoOpen Excption: " + e);
+				Debug.WriteLine("Integration.DnaLibraryAutoOpen Exception: " + e);
 			}
 			Debug.WriteLine("Exit Integration.DnaLibraryAutoOpen");
 		}

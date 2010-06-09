@@ -36,6 +36,7 @@ namespace ExcelDna.Loader
     internal delegate short fn_short_void();
     internal delegate void fn_void_intptr(IntPtr intPtr);
     internal delegate IntPtr fn_intptr_intptr(IntPtr intPtr);
+
     // CAUTION: This struct is also defined in the unmanaged loader.
     internal struct XlAddInExportInfo
     {
@@ -45,8 +46,8 @@ namespace ExcelDna.Loader
         internal IntPtr /* PFN_SHORT_VOID */ pXlAutoClose;
         internal IntPtr /* PFN_SHORT_VOID */ pXlAutoAdd;
         internal IntPtr /* PFN_SHORT_VOID */ pXlAutoRemove;
-        internal IntPtr /* PFN_VOID_LPXLOPER */ pXlAutoFree;
-        internal IntPtr /* PFN_VOID_LPXLOPER12 */ pXlAutoFree12;
+        internal IntPtr /* PFN_VOID_LPXLOPER */     pXlAutoFree;
+        internal IntPtr /* PFN_VOID_LPXLOPER12 */   pXlAutoFree12;
         internal IntPtr /* PFN_LPXLOPER_LPXLOPER */ pXlAddInManagerInfo;
         internal IntPtr /* PFN_LPXLOPER12_LPXLOPER12 */ pXlAddInManagerInfo12;
         internal Int32 ThunkTableLength;  // Must be EXPORT_COUNT
@@ -62,7 +63,7 @@ namespace ExcelDna.Loader
 
         // Passed in from unmanaged code during initialization 
         static string pathXll;
-        static IntPtr hModuleXll;
+        internal static IntPtr hModuleXll;
 
         static int xlCallVersion;
 
@@ -114,6 +115,7 @@ namespace ExcelDna.Loader
             GCHandle.Alloc(fnXlAddInManagerInfo12);
             pXlAddInExportInfo->pXlAddInManagerInfo12 = Marshal.GetFunctionPointerForDelegate(fnXlAddInManagerInfo12);
 
+            // Thunk table for registered functions
             thunkTableLength = pXlAddInExportInfo->ThunkTableLength;
             thunkTable = pXlAddInExportInfo->ThunkTable;
 

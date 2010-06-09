@@ -67,7 +67,7 @@ namespace ExcelDna.Integration
 			set { _ExplicitExports = value; }
 		}
 
-		internal List<ExportedAssembly> GetAssemblies()
+		internal List<ExportedAssembly> GetAssemblies(string pathResolveRoot)
 		{
 			List<ExportedAssembly> list = new List<ExportedAssembly>();
 
@@ -76,17 +76,17 @@ namespace ExcelDna.Integration
 				if (Path.StartsWith("packed:"))
 				{
 					string resourceName = Path.Substring(7);
-					if (Path.EndsWith(".dna") || Path.EndsWith(".DNA"))
+					if (Path.ToUpperInvariant().EndsWith(".DNA"))
 					{
 						byte[] dnaContent = Integration.GetDnaFileBytes(resourceName);
-						DnaLibrary lib = DnaLibrary.LoadFrom(dnaContent);
+						DnaLibrary lib = DnaLibrary.LoadFrom(dnaContent, pathResolveRoot);
 						if (lib == null)
 						{
 							// Problems during load.
 							return list;
 						}
 
-						return lib.GetAssemblies();
+						return lib.GetAssemblies(pathResolveRoot);
 					}
 					else
 					{
@@ -98,46 +98,31 @@ namespace ExcelDna.Integration
 				else
 				{
 					string realPath = Path;
-					if (!File.Exists(realPath))
-					{
-						string xllName = DnaLibrary.XllPath;
-						string localDirectory = System.IO.Path.GetDirectoryName(xllName);
-						if (System.IO.Path.IsPathRooted(realPath))
-						{
-							// Rooted path -- try locally
-							string fileName = System.IO.Path.GetFileName(realPath);
-							realPath = System.IO.Path.Combine(localDirectory, fileName);
-						}
-						else
-						{
-							// Try a path relative to local directory
-							realPath = System.IO.Path.Combine(localDirectory, realPath);
-						}
-						// Check again
-						if (!File.Exists(realPath))
-						{
-							// Give up.
-							Debug.Print("Could not find file " + Path);
-							return list;
-						}
+
+                    string resolvedPath = DnaLibrary.ResolvePath(realPath, pathResolveRoot);
+                    if (resolvedPath == null)
+                    {
+                        // Give up.
+					    return list;
 					}
-					if (System.IO.Path.GetExtension(realPath).ToUpperInvariant() == ".DNA")
+                    if (System.IO.Path.GetExtension(resolvedPath).ToUpperInvariant() == ".DNA")
 					{
 						// Load as a DnaLibrary
-						DnaLibrary lib = DnaLibrary.LoadFrom(realPath);
+                        DnaLibrary lib = DnaLibrary.LoadFrom(resolvedPath);
 						if (lib == null)
 						{
 							// Problems during load.
 							return list;
 						}
 
-						return lib.GetAssemblies();
+                        string pathResolveRelative = System.IO.Path.GetDirectoryName(resolvedPath);
+						return lib.GetAssemblies(pathResolveRelative);
 					}
 					else
 					{
 						// Load as a regular assembly
 						// CONSIDER: Rather load into the Load context?
-						list.Add(new ExportedAssembly(Assembly.LoadFrom(realPath), ExplicitExports));
+                        list.Add(new ExportedAssembly(Assembly.LoadFrom(resolvedPath), ExplicitExports));
 						return list;
 					}
 				}

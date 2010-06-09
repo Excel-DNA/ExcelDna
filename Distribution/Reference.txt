@@ -1,11 +1,29 @@
 ExcelDna Reference
 ==================
 
+Ribbon
+======
+To support the Excel 2007 / 2010 Ribbon interface, the addin (in a .dna file or ExternalLibrary) must contain at least one 
+public class that is a direct subclass of ExcelDna.Integration.CustomUI.ExcelRibbon.
+This class can also implement ExcelDna.Integration.IExcelAddIn, but need not.
+For each such class, ExcelDna will dynamically register and load a COM add-in 
+in the AutoOpen call (after calling all the IExcelAddin.AutoOpen methods).
+This will trigger the loading of the Ribbon ui, and Excel calls the ExcelRibbon.GetCustomUI method.
+This is a virtual method, with a default implementation that retrieves the ribbon xml from the .dna file.
+An add-in can override the default GetCustomUI method to explicitly return an xml appropriate string.
+All callback methods that the Ribbon calls must be implemented as public methods in the class derived from ExcelRibbon.
+TODO: (Maybe? - allow callbacks to any public static method, like VBA implementation allows. 
+		This would require ExcelDna to explicitly implement IDispatch, and can be compatibly added as a feature later.)
+
+My goal for the multi-version customUI support is to allow you to create a single add-in that contains UI customization
+	for each version. The idea is not to make a unified customization layer - the add-in could contain
+	different code for different versions.
+
 Packing
 =======
 ExcelDnaPack can pack the .dna files and dependent assemblies into a single .xll file.
 The Samples\Packing directory has a number of samples of how to use the packing feature.
-To run the samples, run PackAll.bat - the packed libraries are placed into the OUt directory.
+To run the samples, run PackAll.bat - the packed libraries are placed into the out directory.
 
 
 Data type marshaling
@@ -72,6 +90,7 @@ ExcelFunctionAttribute - for user-defined functions
 	HelpTopic
 	IsVolatile (! suffix)
 	IsMacroType (# suffix)
+	IsThreadSafe (??? suffix)
 ExcelArgumentAttribute - for the arguments of user-defined functions
 	Name
 	Description
@@ -80,7 +99,7 @@ ExcelCommandAttribute - for macro commands
 	Name
 	Description
 	HelpTopic
-	ShortCut
+	ShortCut (does not seem to work ?)
 	MenuName (default is library name)
 	MenuText
 	IsHidden
@@ -99,6 +118,7 @@ XlCall.Excel wraps Excel4/Excel12 (but easy to call), also constants for all the
 XlCallException - is thrown when the call to Excel fails.
 
 XlCall.TryExcel - does not throw exception on fail, but returns an XlCallReturn enum value.
+
 ExcelDna.Integration.Integration contains the static method 'RegisterMethods' which allow dynamic registration of methods.
 
 Excel COM interface access
@@ -124,6 +144,14 @@ System.Collections.Generic
 System.Data
 System.Diagnostics
 ExcelDna.Integration
+?? Microsoft.Office.Core (for Ribbon)??
+
+Image Resolution
+================
+Image is only used if the Path is supplied.
+Image Name must match (case sensitive) the image tag in the Ribbon markup.
+1. If the Path starts with "packed:" the image is retrieved from resources.
+2. If the Path contains .....
 
 Reference Resolution
 ====================
@@ -155,8 +183,8 @@ Given a path containing a file name, maybe rooted, maybe with some or no directo
 
 ExplicitExports
 ===============
-If the ExplicitExports attribute is set to "true" on a DnaLibrary or project, only functions and methods explicitly marked by an 
-ExcelFunction or ExcelCommand atteribute are exported. Otherwise, all public static methods with compatible signatures are exported.
+If the ExplicitExports attribute is set to "true" on a Project or ExternalLibrary node, only functions and methods explicitly marked by an 
+ExcelFunction or ExcelCommand attribute are exported. Otherwise, all public static methods with compatible signatures are exported.
 
 .dna file schema
 ================
@@ -164,10 +192,12 @@ DnaLibrary
 	Name
 	Description
 	Language
-	
 ....
+Project*
+Image*
+CustomUI*
 
-* Attributes set on the DnaLibrary apply to the implicit project and are not inherited by any <Project> sections.
+[Attributes set on the DnaLibrary apply to the implicit project and are not inherited by any <Project> sections.]
 
 
 AutoOpen/AutoClose

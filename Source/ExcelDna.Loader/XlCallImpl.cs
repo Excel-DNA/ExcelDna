@@ -67,10 +67,15 @@ namespace ExcelDna.Loader
         public static readonly int xlCoerce = (2 | xlSpecial);
         public static readonly int xlSheetId = (4 | xlSpecial);
         public static readonly int xlSheetNm = (5 | xlSpecial);
+        public static readonly int xlGetHwnd = (8 | xlSpecial);
         public static readonly int xlGetName = (9 | xlSpecial);
 
 		public static readonly int xlcAlert = (118 | xlCommand);
-		public static readonly int xlcMessage = (122 | xlCommand);
+        public static readonly int xlcNew = (119 | xlCommand);
+        public static readonly int xlcMessage = (122 | xlCommand);
+        public static readonly int xlcEcho = (141 | xlCommand);
+        public static readonly int xlcFileClose = (144 | xlCommand);
+        public static readonly int xlcWorkbookInsert = (354 | xlCommand);
 
         public static readonly int xlfSetName = 88;
         public static readonly int xlfRegister = 149;

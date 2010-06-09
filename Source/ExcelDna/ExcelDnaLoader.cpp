@@ -79,7 +79,7 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 		return 0;
 	}
 
-	// If all is fine now, also start the CLR (always safe to do again.
+	// If all is fine now, also start the CLR (always safe to do again).
 	hr = pHost->Start();
 	if (FAILED(hr))
 	{
@@ -231,7 +231,7 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 	CComVariant initRetVal;
 	CComVariant target;
 	hr = pXlAddInType->InvokeMember_3(CComBSTR("Initialize"), (BindingFlags)(BindingFlags_Static | BindingFlags_Public | BindingFlags_InvokeMethod), NULL, target, initArgs, &initRetVal);
-	if (FAILED(hr))
+	if (FAILED(hr) || initRetVal.boolVal == FALSE)
 	{
 		ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
 					IDS_MSG_BODY_XLADDININIT, 

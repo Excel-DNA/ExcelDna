@@ -1000,6 +1000,11 @@ namespace ExcelDna.Integration
 		{
             return Integration.TryExcelImpl(xlFunction, out result, parameters);
         }
+
+        public static object RTD(string progId, string server, params string[] topics)
+        {
+            return Rtd.ExcelRtd.RTD(progId, server, topics);
+        }
 	}
 
 	public class XlCallException : Exception

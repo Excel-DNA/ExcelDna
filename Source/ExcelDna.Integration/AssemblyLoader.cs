@@ -28,6 +28,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.InteropServices;
+using ExcelDna.ComInterop;
+using ExcelDna.Integration.CustomUI;
 
 namespace ExcelDna.Integration
 {
@@ -100,11 +103,13 @@ namespace ExcelDna.Integration
 
         // Some support for creating add-ins that are notified of open and close
         // this allows the add-in to add menus, toolbar buttons etc.
+        // Also records whether this class should be loaded as a ComAddIn (for the Ribbon).
         public class ExcelAddInInfo
         {
             public MethodInfo AutoOpenMethod;
             public MethodInfo AutoCloseMethod;
-            public object     Instance;
+            public bool IsCustomUI;
+            public object Instance;
         }
 
 		static public List<ExcelAddInInfo> GetExcelAddIns(ExportedAssembly assembly)
@@ -113,18 +118,63 @@ namespace ExcelDna.Integration
             Type[] types = assembly.Assembly.GetTypes();
 			foreach (Type t in types)
 			{
-                Type addInType = t.GetInterface("ExcelDna.Integration.IExcelAddIn");
-				if (addInType != null)
-				{
-                    ExcelAddInInfo info = new ExcelAddInInfo();
-                    info.AutoOpenMethod = addInType.GetMethod("AutoOpen");
-                    info.AutoCloseMethod = addInType.GetMethod("AutoClose");
-
-					info.Instance = Activator.CreateInstance(t);
-					addIns.Add(info);
-				}
+                try
+                {
+                    Type addInType = t.GetInterface("ExcelDna.Integration.IExcelAddIn");
+                    bool isCustomUI = (t.BaseType == typeof(ExcelRibbon));
+                    if (addInType != null || isCustomUI)
+                    {
+                        ExcelAddInInfo info = new ExcelAddInInfo();
+                        if (addInType != null)
+                        {
+                            info.AutoOpenMethod = addInType.GetMethod("AutoOpen");
+                            info.AutoCloseMethod = addInType.GetMethod("AutoClose");
+                        }
+                        info.IsCustomUI = isCustomUI;
+                        info.Instance = Activator.CreateInstance(t);
+                        addIns.Add(info);
+                    }
+                }
+                catch (Exception e) // I think only CreateInstance can throw an exception here...
+                {
+                    Debug.Print("GetExcelAddIns CreateInstance problem for type: {0} - exception: {1}", t.FullName, e);
+                }
 			}
 			return addIns;
 		}
+
+        // DOCUMENT: We register types that implement an interface with the IRtdServer Guid. These include
+        //           "Microsoft.Office.Interop.Excel.IRtdServer" and
+        //           "ExcelDna.Integration.Rtd.IRtdServer".
+        // The RTD server can be accessed using the ExcelDnaUtil.RTD function under the 
+        // FullName of the type, or under the ProgId defined in an attribute, if there is one.
+        static public Dictionary<string, Type> GetRtdServerTypes(ExportedAssembly assembly)
+        {
+			Dictionary<string, Type> rtdServerTypes = new Dictionary<string, Type>();
+            Type[] types = assembly.Assembly.GetTypes();
+            foreach (Type t in types)
+            {
+                Type[] itfs = t.GetInterfaces();
+                foreach (Type itf in itfs)
+                {
+                    if (itf.GUID == ComAPI.guidIRtdServer)
+                    {
+                        object[] attrs = t.GetCustomAttributes(typeof(ProgIdAttribute), false);
+                        if (attrs.Length >= 1)
+                        {
+                            ProgIdAttribute progIdAtt = (ProgIdAttribute)attrs[0];
+                            rtdServerTypes[progIdAtt.Value] = t;
+                        }
+                        rtdServerTypes[t.FullName] = t;
+                    }
+                }
+                //if (t.GetInterface("ExcelDna.Integration.Rtd.IRtdServer") != null ||
+                //    t.GetInterface("Microsoft.Office.Interop.Excel.IRtdServer") != null)
+                //{
+                //}
+            }
+            return rtdServerTypes;
+        }
+
 	}
 }

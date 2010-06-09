@@ -233,7 +233,7 @@
 
 					' An easy way to add a menu and menu items for a command....
 					' This command sounds a tone and sets cell C3 to the value 42
-					<ExcelCommand(MenuName:="&My Menu", MenuText:="Ring &Bell")> _
+					<ExcelCommand(MenuName:="&My Menu", MenuText:="Ring &Bell", ShortCut:="m")> _
 					Sub RingBell()
 						Console.Beep()
 						Dim r as New ExcelReference(3,3)
@@ -250,6 +250,7 @@
 					Sub SayBye()
 						MessageBox.Show("Cheers!")
 					End Sub
+					
 					End Module
 				]]>
 	</Project>

@@ -7,18 +7,17 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "afxres.h"
+#include "afxres.h"
+
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+// English (United States) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-#ifdef _WIN32
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
-#endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -41,7 +40,7 @@ BEGIN
     "#ifdef _DEBUG\r\n"
     "EXCELDNA.LOADER         ASSEMBLY                ""Debug\\\\ExcelDna.Loader.dll""\r\n"
     "EXCELDNA.INTEGRATION    ASSEMBLY                ""Debug\\\\ExcelDna.Integration.dll""\r\n"
-    "#else\r\n"
+	"#else\r\n"
     "EXCELDNA.LOADER         ASSEMBLY                ""Release\\\\ExcelDna.Loader.dll""\r\n"
     "EXCELDNA.INTEGRATION    ASSEMBLY                ""Release\\\\ExcelDna.Integration.dll""\r\n"
     "#endif\r\0"
@@ -56,8 +55,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,25,0,1
- PRODUCTVERSION 0,25,0,1
+ FILEVERSION 0,26,0,1
+ PRODUCTVERSION 0,26,0,1
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -75,12 +74,12 @@ BEGIN
             VALUE "Comments", "Unmanaged loader shim for ExcelDna Add-Ins"
             VALUE "CompanyName", "Govert van Drimmelen"
             VALUE "FileDescription", "ExcelDna Dynamic Link Library"
-            VALUE "FileVersion", "0, 25, 0, 1"
+            VALUE "FileVersion", "0, 26, 0, 1"
             VALUE "InternalName", "ExcelDna"
             VALUE "LegalCopyright", "Copyright (C) 2005-2010 Govert van Drimmelen"
             VALUE "OriginalFilename", "ExcelDna.xll"
             VALUE "ProductName", "ExcelDna Add-In Framework for Microsoft Excel"
-            VALUE "ProductVersion", "0, 25, 0, 1"
+            VALUE "ProductVersion", "0, 26, 0, 1"
         END
     END
     BLOCK "VarFileInfo"
@@ -95,12 +94,12 @@ END
 // String Table
 //
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDS_MSG_TITLE           "%1 Add-In Loader"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDS_MSG_TEMPLATE        "%1\r\n%2\r\n%3\r\n%4\r\nThis add-in is built with ExcelDna and is being loaded from the following location:\r\n\t%5."
     IDS_MSG_HEADER_NEEDCLR20 
@@ -130,7 +129,7 @@ BEGIN
                             "The required version of the .NET Framework is installed but could not be loaded.\r\nNo other version is currently loaded."
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDS_MSG_FOOTER_REVIEWADDINS 
                             "Review the other add-ins that are loaded, or ensure that the .Net 2.0 runtime loads by setting an approriate 'supportedRuntime' entry in a configuration file (Excel.exe.config).\r\nYou will need to restart Excel to load the correct version of the runtime."
@@ -152,10 +151,8 @@ BEGIN
                             "The ExcelDna.Loader.XlAddIn.Initialize call failed."
 END
 
-#endif    // English (U.S.) resources
+#endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
-
-
 
 #ifndef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -168,7 +165,8 @@ EXCELDNA.INTEGRATION    ASSEMBLY                "Debug\\ExcelDna.Integration.dll
 #else
 EXCELDNA.LOADER         ASSEMBLY                "Release\\ExcelDna.Loader.dll"
 EXCELDNA.INTEGRATION    ASSEMBLY                "Release\\ExcelDna.Integration.dll"
-#endif
+#endif
+
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 

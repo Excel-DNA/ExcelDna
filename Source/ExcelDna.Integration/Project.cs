@@ -150,7 +150,7 @@ namespace ExcelDna.Integration
             List<Reference> references = new List<Reference>();
 			if (References != null)
 			{
-				foreach (var rf in References)
+				foreach (Reference rf in References)
 				{
 					if (rf.AssemblyPath != null && rf.AssemblyPath.StartsWith("packed:"))
 					{
@@ -198,7 +198,7 @@ namespace ExcelDna.Integration
         }
 
         // TODO: Move compilation stuff elsewhere.
-		internal List<ExportedAssembly> GetAssemblies()
+		internal List<ExportedAssembly> GetAssemblies(string pathResolveRoot /*currently unused - for references?*/)
 		{
 			List<ExportedAssembly> list = new List<ExportedAssembly>();
 			// Dynamically compile this project to an in-memory assembly
