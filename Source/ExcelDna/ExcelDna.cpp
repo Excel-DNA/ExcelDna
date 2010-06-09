@@ -84,7 +84,7 @@ void Uninitialize()
 extern "C"
 {
 	// Standard DLL entry point.
-	BOOL APIENTRY DllMain( HMODULE hModule,
+	BOOL __stdcall DllMain( HMODULE hModule,
 						   DWORD  ul_reason_for_call,
 						   LPVOID lpReserved
 						 )
@@ -103,6 +103,7 @@ extern "C"
 		}
 		return TRUE;
 	}
+
 
 	// Excel Add-In standard exports
 	__declspec(dllexport) short xlAutoOpen()
@@ -191,11 +192,11 @@ extern "C"
 	__declspec(dllexport) void* xlAddInManagerInfo12(void* pXloper12)
 	{
 		void* result = NULL;
-			if (EnsureInitialized() && 
-				pExportInfo->pXlAddInManagerInfo12 != NULL)
-			{
-				result = pExportInfo->pXlAddInManagerInfo12(pXloper12);
-			}
+		if (EnsureInitialized() && 
+			pExportInfo->pXlAddInManagerInfo12 != NULL)
+		{
+			result = pExportInfo->pXlAddInManagerInfo12(pXloper12);
+		}
 		return result;
 	}
 }

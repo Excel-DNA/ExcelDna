@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Diagnostics;
 
 namespace ExcelDna.Integration
 {
@@ -117,6 +118,9 @@ namespace ExcelDna.Integration
 			}
 		}
 
+        // CONSIDER: If we do load a COM Add-in for the Ribbon, should we keep that Application object 
+        // around for convenience?
+        // CONSIDER: Keep a WeakReference cache, just for performance?
 		public static object Application
 		{
 			get

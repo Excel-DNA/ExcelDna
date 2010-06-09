@@ -107,7 +107,8 @@ namespace ExcelDna.Loader
 			return null;
         }
 
-		internal static byte[] GetResourceBytes(string resourceName, int type) // types: 0 - Assembly, 1 - Dna file
+        // TODO: This method probably should not be here.
+		internal static byte[] GetResourceBytes(string resourceName, int type) // types: 0 - Assembly, 1 - Dna file, 2 - Image
 		{
 			Debug.Print("GetResourceBytes for resource {0} of type {1}", resourceName, type);
 			string typeName;
@@ -119,10 +120,14 @@ namespace ExcelDna.Loader
 			{
 				typeName = "DNA";
 			}
-			else
-			{
-				throw new ArgumentOutOfRangeException("type", "Unknown resource type. Only types 0 (Assembly) and 1 (Dna file) are valid.");
-			}
+            else if (type == 2)
+            {
+                typeName = "IMAGE";
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException("type", "Unknown resource type. Only types 0 (Assembly), 1 (Dna file) and 2 (Image) are valid.");
+            }
 			return ResourceHelper.LoadResourceBytes(hModule, typeName, resourceName);
 		}
     }

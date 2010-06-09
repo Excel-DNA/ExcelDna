@@ -1,3 +1,10 @@
+Version 0.26 (31 May 2010)
+-----------------------
+* Ribbon support for Excel 2007 and 2010 and CommandBars for pre-2007.
+* Dynamic RTD server support for Excel 2002 (Office XP) and later.
+* Minor changes to ensure consistent path resolution for References, ExternalLibraries and Images - paths are now checked relative to .dna file path, consistent with ExcelDnaPack.
+* Updated (and multi-thread safe) logging window (thanks to a user contribution).
+
 Version 0.25 (10 April 2010)
 ---------------------------
 * Fix case where unpacked .config temp file might not be deleted.

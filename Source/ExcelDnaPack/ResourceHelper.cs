@@ -2,10 +2,10 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using SevenZip.Compression.LZMA;
 using System.Reflection;
 using System.IO;
 using System.Collections.Generic;
+using SevenZip.Compression.LZMA;
 
 internal unsafe static class ResourceHelper
 {
@@ -57,7 +57,7 @@ internal unsafe static class ResourceHelper
 				byte[] assBytes = File.ReadAllBytes(path);
 				// Not just into the Reflection context, bacause this Load is used to get the name and also to 
 				// check that the assembly can Load from bytes (mixed assemblies can't).
-				var ass = Assembly.Load(assBytes);
+				Assembly ass = Assembly.Load(assBytes);
 				string name = ass.GetName().Name.ToUpperInvariant(); // .ToUpperInvariant().Replace(".", "_");
 				byte[] data = SevenZipHelper.Compress(assBytes);
 				DoUpdateResource("ASSEMBLY_LZMA", name, data);
@@ -76,6 +76,13 @@ internal unsafe static class ResourceHelper
 			byte[] data = SevenZipHelper.Compress(dnaContent);
 			DoUpdateResource("DNA_LZMA", name, data);
 		}
+
+        public void AddImage(byte[] imageBytes, string name)
+        {
+            Debug.Assert(name == name.ToUpperInvariant());
+            byte[] data = SevenZipHelper.Compress(imageBytes);
+            DoUpdateResource("IMAGE_LZMA", name, data);
+        }
 
 		public void AddConfigFile(byte[] configContent, string name)
 		{
@@ -111,12 +118,11 @@ internal unsafe static class ResourceHelper
 
 		public void EndUpdate(bool discard)
 		{
-			var result = EndUpdateResource(_hUpdate, discard);
+			bool result = EndUpdateResource(_hUpdate, discard);
 			if (!result)
 			{
 				throw new Win32Exception();
 			}
 		}
 	}
-
 }

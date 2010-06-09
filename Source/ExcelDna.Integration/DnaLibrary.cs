@@ -30,6 +30,10 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using System.Xml.Serialization;
+using System.Xml;
+using System.Xml.Schema;
+using ExcelDna.Integration.CustomUI;
+using System.Drawing;
 
 namespace ExcelDna.Integration
 {
@@ -83,6 +87,14 @@ namespace ExcelDna.Integration
 			set { _Name = value; }
 		}
 
+        private string _RuntimeVersion; // default is effectively v2.0.50727 ?
+        [XmlAttribute]
+        public string RuntimeVersion
+        {
+            get { return _RuntimeVersion; }
+            set { _RuntimeVersion = value; }
+        }
+
         // Next bunch are abbreviations for Project contents
         private List<Reference> _References;
         [XmlElement("Reference", typeof(Reference))]
@@ -125,7 +137,7 @@ namespace ExcelDna.Integration
         }
 
 		// No ExplicitExports flag on the DnaLibrary (for now), because it might cause confusion when mixed with ExternalLibraries.
-		// Projects can be markes as ExplicitExports by adding an explicit <Project> tag.
+		// Projects can be marked as ExplicitExports by adding an explicit <Project> tag.
 		//private bool _ExplicitExports = false;
 		//[XmlAttribute]
 		//public bool ExplicitExports
@@ -142,6 +154,27 @@ namespace ExcelDna.Integration
             set { _Code = value; }
         }
 
+ 
+        // DOCUMENT: The three different elements are their namespaces.
+        //           The CustomUI and inner customUI are case sensitive.
+        private List<XmlNode> _CustomUIs;
+        [XmlElement("CustomUI", typeof(XmlNode))]
+        public List<XmlNode> CustomUIs
+        {
+            get { return _CustomUIs; }
+            set { _CustomUIs = value; }
+        }
+
+        private List<Image> _Images;
+        [XmlElement("Image", typeof(Image))]
+        public List<Image> Images
+        {
+            get { return _Images; }
+            set { _Images = value; }
+        }
+
+        private string dnaResolveRoot;
+
         // Get projects explicit and implicitly present in the library
         public List<Project> GetProjects()
         {
@@ -153,7 +186,7 @@ namespace ExcelDna.Integration
             return projects;
         }
 
-		internal List<ExportedAssembly> GetAssemblies()
+		internal List<ExportedAssembly> GetAssemblies(string pathResolveRoot)
 		{
             List<ExportedAssembly> assemblies = new List<ExportedAssembly>();
 			try
@@ -162,12 +195,12 @@ namespace ExcelDna.Integration
 				{
 					foreach (ExternalLibrary lib in ExternalLibraries)
 					{
-						assemblies.AddRange(lib.GetAssemblies());
+                        assemblies.AddRange(lib.GetAssemblies(pathResolveRoot));
 					}
 				}
 				foreach (Project proj in GetProjects())
 				{
-					assemblies.AddRange(proj.GetAssemblies());
+                    assemblies.AddRange(proj.GetAssemblies(pathResolveRoot));
 				}
 			}
 			catch (Exception e)
@@ -187,7 +220,7 @@ namespace ExcelDna.Integration
             List<MethodInfo> methods = new List<MethodInfo>();
 
             // Get MethodsInfos and AddIn classes from assemblies
-            foreach (ExportedAssembly assembly in GetAssemblies())
+            foreach (ExportedAssembly assembly in GetAssemblies(dnaResolveRoot))
             {
                 try
                 {
@@ -199,6 +232,10 @@ namespace ExcelDna.Integration
                     Debug.WriteLine(e.Message);
                 }
                 _AddIns.AddRange(AssemblyLoader.GetExcelAddIns(assembly));
+
+                // Register RTD Server Types
+                Dictionary<String, Type> rtdServerTypes = AssemblyLoader.GetRtdServerTypes(assembly);
+                Rtd.ExcelRtd.RegisterRtdServerTypes(rtdServerTypes);
             }
 
             // Register Methods
@@ -209,23 +246,33 @@ namespace ExcelDna.Integration
             {
                 try
                 {
-                    addIn.AutoOpenMethod.Invoke(addIn.Instance, null);
+                    if (addIn.AutoOpenMethod != null)
+                    {
+                        addIn.AutoOpenMethod.Invoke(addIn.Instance, null);
+                    }
                 }
                 catch (Exception e)
                 {
                     // TODO: What to do here?
-                    Debug.WriteLine(e.Message);
+                    Debug.Print(e.Message);
                 }
             }
+
+            LoadCustomUI();
         }
 
         internal void AutoClose()
         {
+            UnloadCustomUI();
+
             foreach (AssemblyLoader.ExcelAddInInfo addIn in _AddIns)
             {
                 try
                 {
-                    addIn.AutoCloseMethod.Invoke(addIn.Instance, null);
+                    if (addIn.AutoCloseMethod != null)
+                    {
+                        addIn.AutoCloseMethod.Invoke(addIn.Instance, null);
+                    }
                 }
                 catch (Exception e)
                 {
@@ -234,6 +281,72 @@ namespace ExcelDna.Integration
                 }
             }
             _AddIns.Clear();
+        }
+
+        internal void LoadCustomUI()
+        {
+            bool uiLoaded = false;
+            if (ExcelDnaUtil.ExcelVersion >= 12.0)
+            {
+                // Load ComAddIns
+                foreach (AssemblyLoader.ExcelAddInInfo addIn in _AddIns)
+                {
+                    if (addIn.IsCustomUI)
+                    {
+                        // Load ExcelRibbon classes
+                        ExcelRibbon excelRibbon = addIn.Instance as ExcelRibbon;
+                        excelRibbon.DnaLibrary = this;
+                        ExcelComAddIn.LoadComAddIn(excelRibbon);
+                        uiLoaded = true;
+                    }
+                }
+
+                if (uiLoaded == false && CustomUIs != null)
+                {
+                    // Check whether we should add an empty ExcelCustomUI instance to load a Ribbon interface?
+                    bool loadEmptyAddIn = false;
+                    if (CustomUIs != null)
+                    {
+                        foreach (XmlNode xmlCustomUI in CustomUIs)
+                        {
+                            if (xmlCustomUI.LocalName == "customUI" &&
+                                (xmlCustomUI.NamespaceURI == ExcelRibbon.NamespaceCustomUI2007 ||
+                                 (ExcelDnaUtil.ExcelVersion >= 14.0 &&
+                                  xmlCustomUI.NamespaceURI == ExcelRibbon.NamespaceCustomUI2010)))
+                            {
+                                loadEmptyAddIn = true;
+                            }
+                            if (loadEmptyAddIn)
+                            {
+                                // There will be Ribbon xml to load. Make a temp add-in and load it.
+                                ExcelRibbon customUI = new ExcelRibbon();
+                                customUI.DnaLibrary = this;
+                                ExcelComAddIn.LoadComAddIn(customUI);
+                                uiLoaded = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // should we load CommandBars?
+            if (uiLoaded == false && CustomUIs != null)
+            {
+                foreach (XmlNode xmlCustomUI in CustomUIs)
+                {
+                    if (xmlCustomUI.LocalName == "commandBars")
+                    {
+                        ExcelCommandBars.LoadCommandBars(xmlCustomUI, this);
+                    }
+                }
+            }
+        }
+
+        internal void UnloadCustomUI()
+        {
+            // This is safe, even if no Com Add-Ins were loaded.
+            ExcelComAddIn.UnloadComAddIns();
+            ExcelCommandBars.UnloadCommandBars();
         }
 
         // Statics
@@ -250,11 +363,13 @@ namespace ExcelDna.Integration
 			// 2. Look for the .dna file in the same directory as the .xll file, with the same name and extension .dna.
 
 			Debug.WriteLine("Enter DnaLibrary.Initialize");
+            Logging.LogDisplay.CreateInstance();
 			byte[] dnaBytes = Integration.GetDnaFileBytes("__MAIN__");
 			if (dnaBytes != null)
 			{
 				Debug.WriteLine("Got Dna file from resources.");
-				currentLibrary = LoadFrom(dnaBytes);
+                string pathResolveRoot = Path.GetDirectoryName(DnaLibrary.XllPath);
+				currentLibrary = LoadFrom(dnaBytes, pathResolveRoot);
 				// ... would have displayed error and returned null if there was an error.
 			}
 			else
@@ -282,7 +397,7 @@ namespace ExcelDna.Integration
             currentLibrary = null;
         }
 
-		public static DnaLibrary LoadFrom(byte[] bytes)
+		public static DnaLibrary LoadFrom(byte[] bytes, string pathResolveRoot)
 		{
 			DnaLibrary dnaLibrary;
 			XmlSerializer serializer = new Microsoft.Xml.Serialization.GeneratedAssembly.DnaLibrarySerializer();
@@ -301,6 +416,7 @@ namespace ExcelDna.Integration
 				//ExcelDna.Logging.LogDisplay.SetText(errorMessage);
 				return null;
 			}
+            dnaLibrary.dnaResolveRoot = pathResolveRoot;
 			return dnaLibrary;
 		}
 
@@ -310,7 +426,7 @@ namespace ExcelDna.Integration
 
 			if (!File.Exists(fileName))
 			{
-				ExcelDna.Logging.LogDisplay.SetText(string.Format("The required .dna script file {0} does not exist.", fileName));
+				ExcelDna.Logging.LogDisplay.WriteLine("The required .dna script file {0} does not exist.", fileName);
 				return null;
 			}
 
@@ -324,10 +440,10 @@ namespace ExcelDna.Integration
             }
             catch (Exception e)
             {
-                string errorMessage = string.Format("There was an error while processing {0}:\r\n{1}\r\n{2}", fileName, e.Message, e.InnerException != null ? e.InnerException.Message : string.Empty);
-                ExcelDna.Logging.LogDisplay.SetText(errorMessage);
+                ExcelDna.Logging.LogDisplay.WriteLine("There was an error while processing {0}:\r\n{1}\r\n{2}", fileName, e.Message, e.InnerException != null ? e.InnerException.Message : string.Empty);
                 return null;
             }
+            dnaLibrary.dnaResolveRoot = Path.GetDirectoryName(fileName);
             return dnaLibrary;
         }
 
@@ -386,5 +502,181 @@ namespace ExcelDna.Integration
                 return Path.GetDirectoryName(XllPath);
             }
         }
+
+        public string ResolvePath(string path)
+        {
+            return ResolvePath(path, dnaResolveRoot);
+        }
+
+        // ResolvePath tries to figure out the actual path to a file - either a .dna file or an 
+        // assembly to be packed.
+        // Resolution sequence:
+        // 1. Check the path - if not rooted that will be relative to working directory.
+        // 2. If the path is rooted, try the filename part relative to the .dna file location.
+        //    If the path is not rooted, try the whole path relative to the .dna file location.
+        // 3. Try step 2 against the appdomain.
+        public static string ResolvePath(string path, string dnaDirectory)
+        {
+            Debug.Print("ResolvePath: Resolving {0} from DnaDirectory: {1}", path, dnaDirectory);
+            if (File.Exists(path))
+            {
+                Debug.Print("ResolvePath: Found at {0}", path);
+                return path;
+            }
+
+            // Try relative to dna directory
+            string dnaPath;
+            if (Path.IsPathRooted(path))
+            {
+                // It was a rooted path -- try locally instead
+                string fileName = Path.GetFileName(path);
+                dnaPath = Path.Combine(dnaDirectory, fileName);
+            }
+            else
+            {
+                // Not rooted - try a path relative to local directory
+                dnaPath = System.IO.Path.Combine(dnaDirectory, path);
+            }
+            Debug.Print("ResolvePath: Checking at {0}", dnaPath);
+            if (File.Exists(dnaPath))
+            {
+                Debug.Print("ResolvePath: Found at {0}", dnaPath);
+                return dnaPath;
+            }
+
+            // try relative to AppDomain BaseDirectory
+            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            string basePath;
+            if (Path.IsPathRooted(path))
+            {
+                string fileName = Path.GetFileName(path);
+                basePath = Path.Combine(baseDirectory, fileName);
+            }
+            else
+            {
+                basePath = System.IO.Path.Combine(baseDirectory, path);
+            }
+
+            // Check again
+            Debug.Print("ResolvePath: Checking at {0}", basePath);
+            if (File.Exists(basePath))
+            {
+                Debug.Print("ResolvePath: Found at {0}", basePath);
+                return basePath;
+            }
+
+            // Else give up (maybe try GAC?)
+            Debug.Print("ResolvePath: Could not find {0} from DnaDirectory {1}", path, dnaDirectory);
+            return null;
+        }
+
+        public Bitmap GetImage(string imageId)
+        {
+            // We expect these to be small images.
+
+            // First check if imageId is in the DnaLibrary's Image list.
+            // DOCUMENT: Case sensitive match.
+            foreach (Image image in Images)
+            {
+                if (image.Name == imageId && image.Path != null)
+                {
+                    byte[] imageBytes = null;
+                    System.Drawing.Image imageLoaded;
+                    if (image.Path.StartsWith("packed:"))
+                    {
+                        string resourceName = image.Path.Substring(7);
+                        imageBytes = Integration.GetImageBytes(resourceName);
+                    }
+                    else
+                    {
+                        string imagePath = ResolvePath(image.Path);
+                        if (imagePath == null)
+                        {
+                            // This is the image but we could not find it !?
+                            Debug.Print("DnaLibrary.LoadImage - For image {0} the path resolution failed: {1}", image.Name, image.Path);
+                            return null;
+                        }
+                        imageBytes = File.ReadAllBytes(imagePath);
+                    }
+                    using (MemoryStream ms = new MemoryStream(imageBytes, false))
+                    {
+                        imageLoaded = Bitmap.FromStream(ms);
+                        if (imageLoaded is Bitmap)
+                        {
+                            return (Bitmap)imageLoaded;
+                        }
+                        Debug.Print("Image {0} read from {1} was not a bitmap!?", image.Name, image.Path);
+                    }
+                }
+            }
+            return null;
+        }
+
     }
+
+    //public class CustomUI : IXmlSerializable
+    //{
+    //    public string Content { get; set; }
+    //    public string NsUri { get; set; }
+
+
+    //    public XmlSchema GetSchema()
+    //    {
+    //        return null;
+    //    }
+
+    //    public void WriteXml(XmlWriter w)
+    //    {
+    //        w.WriteStartElement("customUI");
+    //        w.WriteAttributeString("xmlns", NsUri);
+    //        w.WriteRaw(Content);
+    //        w.WriteEndElement();
+    //    }
+
+    //    public void ReadXml(XmlReader r)
+    //    {
+    //        NsUri = r.NamespaceURI;
+    //        Content = r.ReadOuterXml();
+    //    }
+    //
+    //}
 }
+
+
+/*
+public class CDataField : IXmlSerializable
+    {
+        private string elementName;
+        private string elementValue;
+
+        public CDataField(string elementName, string elementValue)
+        {
+            this.elementName = elementName;
+            this.elementValue = elementValue;
+        }
+
+        public XmlSchema GetSchema()
+        {
+            return null;
+        }
+
+        public void WriteXml(XmlWriter w)
+        {
+            w.WriteStartElement(this.elementName);
+            w.WriteCData(this.elementValue);
+            w.WriteEndElement();
+        }
+
+        public void ReadXml(XmlReader r)
+        {                      
+            throw new NotImplementedException("This method has not been implemented");
+        }
+    }
+ */ 
+ 
+// CAREFUL: Customization of the deserialization in this if clause....
+//else if (((object)Reader.LocalName == (object)id11_customUI /*&& (object)Reader.NamespaceURI == (object)id2_Item */))
+//{
+//    a_9.Add((global::System.Xml.XmlNode)ReadXmlNode(false /*true*/));
+//}
+

@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("ExcelDnaPack")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("ExcelDna Packing Tool")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Private")]
-[assembly: AssemblyProduct("ExcelDnaPack")]
-[assembly: AssemblyCopyright("Copyright © Private 2010")]
+[assembly: AssemblyCompany("Govert van Drimmelen")]
+[assembly: AssemblyProduct("ExcelDna Add-In Framework for Microsoft Excel")]
+[assembly: AssemblyCopyright("Copyright © 2010 Govert van Drimmelen")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("0.26.*")]
+[assembly: AssemblyFileVersion("0.26.0.0")]
