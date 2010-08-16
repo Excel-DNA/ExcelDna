@@ -75,7 +75,7 @@
       </commandBar>
       <commandBar name='Cell'>
         <!-- Here we add a menu to the Excel context menu -->
-        <button caption='New context item' enabled='false' ShortcutText='CTRL+A'/>
+        <button caption='New context item' enabled='false' shortcutText='CTRL+A'/>
       </commandBar>
     </commandBars>
   </CustomUI>

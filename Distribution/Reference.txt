@@ -1,6 +1,14 @@
 ExcelDna Reference
 ==================
 
+RuntimeVersion
+==============
+Add RuntimeVersion="v4.0" to the DnaLibrary tag.
+
+Shadow Copy Files
+=================
+Add ShadowCopyFiles="true" to the DnaLibrary tag to enable shadow copying for the add-in's AppDomain.
+
 Ribbon
 ======
 To support the Excel 2007 / 2010 Ribbon interface, the addin (in a .dna file or ExternalLibrary) must contain at least one 

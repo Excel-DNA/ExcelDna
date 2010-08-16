@@ -132,7 +132,7 @@ namespace ExcelDna.Integration
 			ExplicitExports = explicitExports;
         }
 
-        // Get projects explicit and implicitly prosent in the library
+        // Get projects explicit and implicitly present in the library
         private List<SourceItem> GetSourceItems()
         {
             List<SourceItem> sourceItems = new List<SourceItem>();

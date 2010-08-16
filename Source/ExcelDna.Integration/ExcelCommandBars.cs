@@ -6,8 +6,8 @@ using System.Xml.XPath;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Reflection;
-using Microsoft.Office.Core;
-using System.Diagnostics; // Not from PIA, but from ComInterop.cs
+using Microsoft.Office.Core; // Not from PIA, but from ComInterop.cs
+using System.Diagnostics; 
 
 namespace ExcelDna.Integration.CustomUI
 {
@@ -69,11 +69,38 @@ namespace ExcelDna.Integration.CustomUI
                 if (childNode.Name == "commandBar")
                 {
                     string barName = childNode.Attributes["name"].Value;
-                    CommandBar bar = excelApp.CommandBars[barName];
+                    CommandBar bar = null;
+                    for (int i = 1; i <= excelApp.CommandBars.Count; i++)
+                    {
+                        if (excelApp.CommandBars[i].Name == barName)
+                        {
+                            bar = excelApp.CommandBars[i];
+                            break;
+                        }
+                    }
                     if (bar != null)
                     {
                         AddControls(bar.Controls, childNode.ChildNodes, dnaLibrary);
                     }
+                    else
+                    {
+                        MsoBarPosition barPosition = MsoBarPosition.msoBarLeft;
+                        XmlAttribute posAttribute = childNode.Attributes["position"];
+                        if (posAttribute == null)
+                        {
+                            // Compatible with original patch
+                            posAttribute = childNode.Attributes["MsoBarPosition"];
+                        }
+                        if ( posAttribute != null)
+                        {
+                            if (Enum.IsDefined(typeof(MsoBarPosition), posAttribute.Value))
+                                barPosition = (MsoBarPosition)Enum.Parse(typeof(MsoBarPosition), posAttribute.Value, false);
+                        }
+
+                        bar = excelApp.CommandBars.Add(barName, barPosition);
+                        AddControls(bar.Controls, childNode.ChildNodes, dnaLibrary);
+                    }
+
                 }
             }
         }
@@ -85,14 +112,28 @@ namespace ExcelDna.Integration.CustomUI
                 if (childNode.Name == "commandBar")
                 {
                     string barName = childNode.Attributes["name"].Value;
-                    CommandBar bar = excelApp.CommandBars[barName];
+                    CommandBar bar = null;
+                    for (int i = 1; i <= excelApp.CommandBars.Count; i++)
+                    {
+                        if (excelApp.CommandBars[i].Name == barName)
+                        {
+                            bar = excelApp.CommandBars[i];
+                            break;
+                        }
+                    }
                     if (bar != null)
                     {
                         RemoveControls(bar.Controls, childNode.ChildNodes);
+
+                        if (bar.Controls.Count() == 0)
+                        {
+                            bar.Delete();
+                        }
                     }
                 }
             }
         }
+
 
         private static void AddControls(CommandBarControls parentControls, XmlNodeList xmlNodes, DnaLibrary dnaLibrary)
         {
@@ -115,7 +156,8 @@ namespace ExcelDna.Integration.CustomUI
             CommandBarControl newControl;
             if (xmlNode.Name == "popup")
             {
-                newControl = parentControls.AddPopup();
+                string controlName = xmlNode.Attributes["caption"].Value;
+                newControl = parentControls.AddPopup(controlName);
                 ApplyControlAttributes(newControl, xmlNode, dnaLibrary);
                 AddControls(newControl.Controls, xmlNode.ChildNodes, dnaLibrary);
             }
@@ -128,13 +170,23 @@ namespace ExcelDna.Integration.CustomUI
 
         private static void RemoveControl(CommandBarControls parentControls, XmlNode xmlNode)
         {
-            // top level controls only - no recursing down.
-            if (xmlNode.Name == "popup" || xmlNode.Name == "button")
+            string controlName = xmlNode.Attributes["caption"].Value;
+            if (xmlNode.Name == "popup")
             {
-                string controlName = xmlNode.Attributes["caption"].Value;
+                CommandBarControl cb = parentControls[controlName];
+                RemoveControls(cb.Controls, xmlNode.ChildNodes);
+
+                if (cb.Controls.Count() == 0)
+                {
+                    cb.Delete(true);
+                }
+            }
+            if (xmlNode.Name == "button")
+            {
                 parentControls[controlName].Delete(true);
             }
         }
+
 
         private static void ApplyControlAttributes(CommandBarControl control, XmlNode xmlNode, DnaLibrary dnaLibrary)
         {
@@ -232,6 +284,13 @@ namespace ExcelDna.Integration.CustomUI
                         Debug.Print("Could not find or load image {0}", value);
                     }
                     break;
+                case "style":
+                case "MsoButtonStyle":  // Compatible with original style code.
+                    if (Enum.IsDefined(typeof(MsoButtonStyle), value))
+                        control.Style = (MsoButtonStyle)Enum.Parse(typeof(MsoButtonStyle), value, false);
+                    else
+                        control.Style = MsoButtonStyle.msoButtonAutomatic;
+                    break;
                 default:
                     Debug.Print("Unknown attribute '{0}' - ignoring.", attribute);
                     break;
@@ -258,20 +317,20 @@ namespace ExcelDna.Integration.CustomUI
                 }
             }
 
-            public CommandBarControl AddCommandBarMenu(string commandBarName, int? before)
-            {
-                CommandBarControl cd;
-                if (before == null)
-                {
-                    cd = CommandBars[commandBarName].Controls.Add(MsoControlType.msoControlPopup, Type.Missing, Type.Missing, Type.Missing, true);
-                }
-                else
-                {
-                    int b = (int)before;
-                    cd = CommandBars[commandBarName].Controls.Add(MsoControlType.msoControlButton, Type.Missing, Type.Missing, b, true);
-                }
-                return cd;
-            }
+            //public CommandBarControl AddCommandBarMenu(string commandBarName, int? before)
+            //{
+            //    CommandBarControl cd;
+            //    if (before == null)
+            //    {
+            //        cd = CommandBars[commandBarName].Controls.Add(MsoControlType.msoControlPopup, Type.Missing, Type.Missing, Type.Missing, true);
+            //    }
+            //    else
+            //    {
+            //        int b = (int)before;
+            //        cd = CommandBars[commandBarName].Controls.Add(MsoControlType.msoControlButton, Type.Missing, Type.Missing, b, true);
+            //    }
+            //    return cd;
+            //}
         }
 
         private class CommandBar
@@ -292,16 +351,49 @@ namespace ExcelDna.Integration.CustomUI
                     return new CommandBarControls(controls);
                 }
             }
+
+            public string Name
+            {
+                get
+                {
+                    object controls = _type.InvokeMember("Name", BindingFlags.GetProperty, null, _object, null);
+                    return controls.ToString();
+                }
+            }
+
+            public bool Visible
+            {
+                set 
+                {
+                    _type.InvokeMember("Visible", BindingFlags.SetProperty, null, _object, new object[] { value });
+                }
+            }
+
+
+            public void Delete()
+            {
+                _type.InvokeMember("Delete", BindingFlags.InvokeMethod, null, _object, null);
+            }
+
         }
 
         private class CommandBars
         {
             object _object;
             Type _type;
+
             public CommandBars(object commandBars)
             {
                 _object = commandBars;
                 _type = _object.GetType();
+            }
+
+            public CommandBar Add(string name, MsoBarPosition barPosition)
+            {
+                object commandBar = _type.InvokeMember("Add", BindingFlags.InvokeMethod, null, _object, new object[] { name, barPosition, Type.Missing, true });
+                CommandBar cb = new CommandBar(commandBar);
+                cb.Visible = true;
+                return new CommandBar(commandBar);
             }
 
             public CommandBar this[string name]
@@ -312,6 +404,25 @@ namespace ExcelDna.Integration.CustomUI
                     return new CommandBar(commandBar);
                 }
             }
+
+            public CommandBar this[int i]
+            {
+                get
+                {
+                    object commandBar = _type.InvokeMember("", BindingFlags.GetProperty, null, _object, new object[] { i });
+                    return new CommandBar(commandBar);
+                }
+            }
+
+            public int Count
+            {
+                get
+                {
+                    object i = _type.InvokeMember("Count", BindingFlags.GetProperty, null, _object, null);
+                    return Convert.ToInt32(i);
+                }
+            }
+
         }
 
         private class CommandBarControl
@@ -472,6 +583,18 @@ namespace ExcelDna.Integration.CustomUI
                     _type.InvokeMember("HelpContextId", BindingFlags.SetProperty, null, _object, new object[] { value });
                 }
             }
+
+            public MsoButtonStyle Style
+            {
+                get
+                {
+                    return (MsoButtonStyle)_type.InvokeMember("Style", BindingFlags.GetProperty, null, _object, null);
+                }
+                set
+                {
+                    _type.InvokeMember("Style", BindingFlags.SetProperty, null, _object, new object[] { value });
+                }
+            }
             
             public void Delete(object Temporary)
             {
@@ -483,6 +606,7 @@ namespace ExcelDna.Integration.CustomUI
         {
             object _object;
             Type _type;
+
             public CommandBarControls(object commandBarControls)
             {
                 _object = commandBarControls;
@@ -493,14 +617,36 @@ namespace ExcelDna.Integration.CustomUI
             {
                 get
                 {
-                    object commandBarControl = _type.InvokeMember(
-                        "", BindingFlags.GetProperty, null, _object, new object[] { name });
+                    object commandBarControl = _type.InvokeMember("", BindingFlags.GetProperty, null, _object, new object[] { name });
                     return new CommandBarControl(commandBarControl);
                 }
             }
 
-            public CommandBarControl Add(MsoControlType controlType, object Id, object Parameter, object Before, object Temporary)
+            public CommandBarControl this[int id]
             {
+                get
+                {
+                    object commandBarControl = _type.InvokeMember(
+                        "", BindingFlags.GetProperty, null, _object, new object[] { id });
+                    return new CommandBarControl(commandBarControl);
+                }
+            }
+
+            public int Count()
+            {
+                object i = _type.InvokeMember("Count", BindingFlags.GetProperty, null, _object, null);
+                return Convert.ToInt32(i);
+            }
+
+            private CommandBarControl Add(MsoControlType controlType, string name, object Id, object Parameter, object Before, object Temporary)
+            {
+                for (int i = 1; i <= Count(); i++)
+                {
+                    if (!String.IsNullOrEmpty(this[i].Caption))
+                        if (this[i].Caption.Replace("&", "") == name.Replace("&", ""))
+                            return this[i];
+                }
+
                 object /*CommandBarControl*/ newControl = _type.InvokeMember("Add", BindingFlags.InvokeMethod, null, _object,
                     new object[] { controlType, Id, Parameter, Before, Temporary });
                 return new CommandBarControl(newControl);
@@ -508,14 +654,36 @@ namespace ExcelDna.Integration.CustomUI
 
             public CommandBarControl AddButton()
             {
-                return Add(MsoControlType.msoControlButton, 1, Type.Missing, Type.Missing, true);
+                return Add(MsoControlType.msoControlButton, "", 1, Type.Missing, Type.Missing, true);
             }
 
-            public CommandBarControl AddPopup()
+            public CommandBarControl AddPopup(string name)
             {
-                return Add(MsoControlType.msoControlPopup, 1, Type.Missing, Type.Missing, true);
+                return Add(MsoControlType.msoControlPopup, name, 1, Type.Missing, Type.Missing, true);
+            }
+
+
+            private void Remove(MsoControlType controlType, object id)
+            {
+                for (int i = 1; i <= Count(); i++)
+                {
+                    if (!String.IsNullOrEmpty(this[i].Caption))
+                        if (this[i].Caption.Replace("&", "") == id.ToString().Replace("&", ""))
+                            this[i].Delete(true);
+                }
+            }
+
+            public void RemoveButton()
+            {
+                Remove(MsoControlType.msoControlButton, 1);
+            }
+
+            public void RemovePopup(string name)
+            {
+                Remove(MsoControlType.msoControlPopup, name);
             }
         }
+
 
     }
 }
