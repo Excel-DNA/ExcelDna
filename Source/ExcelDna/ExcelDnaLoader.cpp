@@ -22,6 +22,10 @@
   govert@icon.co.za
 */
 
+
+// TODO: Change to the .Net 2.0+ hosting interface IClrRuntimeHost, 
+// so that we can set the safe AppDomain flags when loading.
+
 #include "stdafx.h"
 #include "DetectFx.h"
 #include "ExcelDna.h"
@@ -29,7 +33,8 @@
 #include "resource.h"
 
 #define CountOf(x) sizeof(x)/sizeof(*x)
-#define MAX_MSG = 1024;
+const int MAX_MSG = 1024;
+const CString CLR_VERSION_20 = L"v2.0.50727";
 
 static HMODULE hModuleCurrent;
 // These don't use ATL classes to give us explicit control over when CLR is called
@@ -39,11 +44,21 @@ static ICorRuntimeHost* pHost_ForUnload = NULL;
 static CString tempConfigFileName = "";
 
 // Forward declarations for functions defined in this file.
+HRESULT LoadClr(CString clrVersion, ICorRuntimeHost **ppHost);
+HRESULT LoadClrMeta(CString clrVersion, ICLRMetaHost* pMetaHost, ICorRuntimeHost **ppHost);
 HRESULT LoadClr20(ICorRuntimeHost **ppHost);
 void ShowMessage(int headerId, int bodyId, int footerId, HRESULT hr = S_OK);
 CString AddInFullPath();
 HRESULT CreateTempFile(void* pBuffer, DWORD nBufSize, CString& fileName);
 HRESULT DeleteTempFile(CString fileName);
+
+HRESULT ReadClrOptions(CString& clrVersion, bool& shadowCopyFiles);
+HRESULT ReadDnaHeader(CString& header);
+HRESULT ParseDnaHeader(CString header, CString& runtimeVersion, bool& shadowCopyFiles);
+HRESULT ReadAttributeValue(CString tag, CString attributeName, CString& attributeValue);
+
+BOOL IsBufferUTF8(BYTE* buffer, DWORD bufferLength);
+CStringW UTF8toUTF16(const CStringA& utf8);
 
 // COR function pointer typedefs.
 typedef HRESULT (STDAPICALLTYPE *pfnGetCORVersion)(LPWSTR pBuffer, 
@@ -64,17 +79,31 @@ typedef HRESULT (STDAPICALLTYPE *pfnCorBindToRuntimeEx)(
 									REFIID riid,    
 									LPVOID* ppv );
 
+typedef HRESULT (STDAPICALLTYPE *pfnCLRCreateInstance)(        
+									REFCLSID  clsid,
+									REFIID riid,
+									LPVOID* ppInterface );
+
 // Ensure the CLR is loaded, create a new AppDomain, get the manager loader running,
 // and do the ExportInfo hook-up.
 bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 {
 	HRESULT hr;
 	CComPtr<ICorRuntimeHost> pHost;
-
-	hr = LoadClr20(&pHost);
+	CString clrVersion;
+	bool shadowCopyFiles;
+	
+	hr = ReadClrOptions(clrVersion, shadowCopyFiles);
+	if (FAILED(hr))
+	{
+		// SelectClrVersion shows diagnostic MessageBoxes if needed.
+		// Perhaps remember that we are not loaded?
+		return 0;
+	}
+	hr = LoadClr(clrVersion, &pHost);
 	if (FAILED(hr) || pHost == NULL)
 	{
-		// LoadClr20 shows diagnostic MessageBoxes if needed.
+		// LoadClr shows diagnostic MessageBoxes if needed.
 		// Perhaps remember that we are not loaded?
 		return 0;
 	}
@@ -113,6 +142,16 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 	{
 		ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
 					IDS_MSG_BODY_APPLICATIONBASE, 
+					IDS_MSG_FOOTER_UNEXPECTED,
+					hr);
+		return 0;
+	}
+
+	hr = pAppDomainSetup->put_ShadowCopyFiles(CComBSTR(shadowCopyFiles ? L"true" : L"false"));
+	if (FAILED(hr))
+	{
+		ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
+					IDS_MSG_BODY_SHADOWCOPYFILES, 
 					IDS_MSG_FOOTER_UNEXPECTED,
 					hr);
 		return 0;
@@ -273,7 +312,141 @@ void XlLibraryUnload()
 
 }
 
-// Try to get the CLR 2.0 running.
+// Try to get the right version of the CLR running.
+HRESULT LoadClr(CString clrVersion, ICorRuntimeHost **ppHost)
+{
+	// Check whether the .Net 4+ MetaHost interfaces are present.
+	// The checks here are according to this blog post: 
+	// http://bradwilson.typepad.com/blog/2010/04/selecting-clr-version-from-unmanaged-host.html
+	/*
+	1. LoadLibrary mscoree
+	2. GetProcAddress for CLRCreateInstance. If you get NULL, fall back to legacy path (CorBindToRuntimeEx)
+	3. Call CLRCreateInstance to get ICLRMetaHost. If you get E_NOTIMPL, fall back to legacy path (same as above)
+	4. Otherwise, party on the ICLRMetaHost you just got
+	*/
+	// If present, load the desired version using the new interfaces.
+	// If not, check if we want .Net 4+, if so fail, else load old-style.
+
+	HRESULT hr = E_FAIL;
+	HMODULE hMscoree = NULL;
+	CComPtr<ICLRMetaHost> pMetaHost;
+
+	bool needNet40 = (clrVersion.CompareNoCase(L"v4.0") >= 0);
+	bool needMetaHost = needNet40;
+
+	hMscoree = LoadLibrary(L"mscoree.dll");
+	if (hMscoree == 0)
+	{
+		// No .Net installed
+		if (needNet40)
+		{
+				ShowMessage(IDS_MSG_HEADER_NEEDCLR40, 
+					IDS_MSG_BODY_LOADMSCOREE, 
+					IDS_MSG_FOOTER_ENSURECLR40 );
+		}
+		else
+		{
+				ShowMessage(IDS_MSG_HEADER_NEEDCLR20, 
+					IDS_MSG_BODY_LOADMSCOREE, 
+					IDS_MSG_FOOTER_ENSURECLR20 );
+		}
+		hr = E_FAIL;
+	}
+	else
+	{
+		pfnCLRCreateInstance CLRCreateInstance = (pfnCLRCreateInstance)GetProcAddress(hMscoree, "CLRCreateInstance");
+		if (CLRCreateInstance == 0)
+		{
+			// Certainly no .Net 4 installed
+			if (needMetaHost)
+			{
+				// We need .Net 4.0 but it is not installed
+				ShowMessage(IDS_MSG_HEADER_NEEDCLR40, 
+							IDS_MSG_BODY_NOCLRCREATEINSTANCE, 
+							IDS_MSG_FOOTER_ENSURECLR40 );
+				hr = E_FAIL;
+			}
+			else
+			{
+				// We need only .Net 2.0 runtime and cannot MetaHost.
+				// Load .Net 2.0 with old code path
+				hr = LoadClr20(ppHost);
+			}
+		}
+		else
+		{
+			hr = CLRCreateInstance(CLSID_CLRMetaHost, IID_ICLRMetaHost, (LPVOID*)&pMetaHost);
+			if (FAILED(hr))
+			{
+				// MetaHost is not available, even though we have a new version of MSCorEE.dll
+				// Certainly no .Net 4 installed
+				if (needMetaHost)
+				{
+					// We need .Net 4.0 but it is not installed
+					ShowMessage(IDS_MSG_HEADER_NEEDCLR40, 
+								IDS_MSG_BODY_CLRCREATEINSTANCEFAILED, 
+								IDS_MSG_FOOTER_ENSURECLR40 );
+					hr = E_FAIL;
+				}
+				else
+				{
+					// We need only .Net 2.0 runtime and cannot MetaHost.
+					// Load .Net 2.0 with old code path
+					hr = LoadClr20(ppHost);
+				}
+			}
+			else
+			{
+				// Yay! We have a metahost
+				hr = LoadClrMeta(clrVersion, pMetaHost, ppHost);
+			}
+		}
+		FreeLibrary(hMscoree);
+	}
+	return hr;
+}
+
+// Load the desired Clr version using .Net 4+ the MetaHost interfaces.
+HRESULT LoadClrMeta(CString clrVersion, ICLRMetaHost* pMetaHost, ICorRuntimeHost **ppHost)
+{
+	// Even if we want to load .Net 2.0, we might need to multi-host since .Net 4.0 runtime
+	// might also be loaded.
+
+	HRESULT hr = E_FAIL;
+	CComPtr<ICLRRuntimeInfo> pRuntimeInfo;
+	bool needNet40 = (clrVersion.CompareNoCase(L"v4.0") >= 0);
+
+	hr = pMetaHost->GetRuntime(clrVersion, IID_ICLRRuntimeInfo, (LPVOID*)&pRuntimeInfo);
+	if (FAILED(hr))
+	{
+		// The version we ask for is not installed.
+		// I.e. we want 2.0 but only 4.0 is installed.
+		ShowMessage(IDS_MSG_HEADER_VERSIONLOADFAILED, 
+					IDS_MSG_BODY_METAHOSTGETRUNTIMEFAILED, 
+					IDS_MSG_FOOTER_ENSUREVERSION );
+		hr = E_FAIL;
+	}
+	else
+	{
+		hr = pRuntimeInfo->GetInterface(CLSID_CorRuntimeHost, IID_ICorRuntimeHost, (LPVOID*)ppHost); 
+		if (FAILED(hr))
+		{
+			// Not sure why this would happen???
+			ShowMessage( needNet40 ? IDS_MSG_HEADER_NEEDCLR40 : IDS_MSG_HEADER_NEEDCLR20, 
+						IDS_MSG_BODY_RUNTIMEGETINTERFACEFAILED, 
+						IDS_MSG_FOOTER_UNEXPECTED );
+
+			hr = E_FAIL;
+		}
+		else
+		{
+			hr = S_OK;
+		}
+	}
+	return hr;
+}
+
+// Try to get the CLR 2.0 running - .Net 4+ MetaHost stuff not present.
 HRESULT LoadClr20(ICorRuntimeHost **ppHost)
 {
 	HRESULT hr = E_FAIL;
@@ -549,4 +722,256 @@ void LoaderUnload()
 		DeleteTempFile(tempConfigFileName);
 		tempConfigFileName = "";
 	}
+}
+
+
+// Decide what version of the CLR to load.
+// returns E_FAIL if no dna file information, 
+// else S_OK and clrVersion has a version string.
+
+// Version is updated:
+//	"v2.0" -> "v2.0.50727"
+//	"v4.0" -> "v4.0.30319"
+
+HRESULT ReadClrOptions(CString& clrVersion, bool& shadowCopyFiles)
+{
+	HRESULT hr;
+	CString header;
+
+	hr = ReadDnaHeader(header);	// Errors will be shown in there.
+	if (!FAILED(hr))
+	{
+		hr = ParseDnaHeader(header, clrVersion, shadowCopyFiles); // No errors yet.
+		if (FAILED(hr))
+		{
+			// XML Parse error
+			ShowMessage(IDS_MSG_HEADER_DNAPROBLEM, 
+			IDS_MSG_BODY_DNAPARSEFAILED, 
+			IDS_MSG_FOOTER_ENSUREDNAFILE,
+			hr);
+
+			return E_FAIL;
+		}
+		
+		// Default version expansions
+		if (clrVersion == L"v2.0") clrVersion = L"v2.0.50727";
+		if (clrVersion == L"v4.0") clrVersion = L"v4.0.30319";
+
+	}
+	return hr;
+}
+
+HRESULT ParseDnaHeader(CString header, CString& runtimeVersion, bool& shadowCopyFiles)
+{
+	HRESULT hr;
+
+	int rootTagStart = header.Find(L"<DnaLibrary");
+	if (rootTagStart == -1)
+	{
+		// Parse error
+		return E_FAIL;
+	}
+
+	int rootTagEnd = header.Find(L">", rootTagStart);
+	if (rootTagEnd == -1)
+	{
+		// Parse error
+		return E_FAIL;
+	}
+
+	CString rootTag = header.Mid(rootTagStart, rootTagEnd - rootTagStart + 1);
+
+	// CONSIDER: Some checks, e.g. "v.X..."
+	hr = ReadAttributeValue(rootTag, L"RuntimeVersion", runtimeVersion);
+	if (FAILED(hr))
+	{
+		// Parse error
+		return E_FAIL;
+	}
+	if (hr == S_FALSE)
+	{
+		runtimeVersion = CLR_VERSION_20;
+		hr = S_OK;
+	}
+
+	CString shadowCopyFilesValue;
+	hr = ReadAttributeValue(rootTag, L"ShadowCopyFiles", shadowCopyFilesValue);
+	if (FAILED(hr))
+	{
+		// Parse error
+		return E_FAIL;
+	}
+	if (hr == S_FALSE)
+	{
+		shadowCopyFiles = false;
+		hr = S_OK;
+	}
+	else // attribute read OK
+	{
+		if (shadowCopyFilesValue.CompareNoCase(L"true") == 0)
+			shadowCopyFiles = true;
+		else
+			shadowCopyFiles = false;
+	}
+
+	return hr;
+}
+
+// Returns	S_OK if the attribute was found and read into the attributeValue string.
+//			S_FALSE if the attribute was not found at all
+//			E_FAIL if there was an XML syntax error in the tag.
+HRESULT ReadAttributeValue(CString tag, CString attributeName, CString& attributeValue)
+{
+	attributeName.Append(L"=");
+	int attributeNameLength = attributeName.GetLength();
+
+	int attributeNameStart = tag.Find(attributeName);
+	if (attributeNameStart == -1)
+	{
+		return S_FALSE;
+	}
+
+	TCHAR quoteChar = tag[attributeNameStart + attributeNameLength];
+	if (quoteChar != L'\'' && quoteChar != L'\"')
+	{
+		// XML syntax error - not a valid attribute.
+		return E_FAIL;
+	}
+
+	int attributeValueStart = attributeNameStart + attributeNameLength + 1;
+	int attributeValueEnd = tag.Find(quoteChar, attributeValueStart);
+	if (attributeValueEnd == -1)
+	{
+		// XML syntax error - not a valid attribute.
+		return E_FAIL;
+	}
+	attributeValue = tag.Mid(attributeValueStart, attributeValueEnd - attributeValueStart);
+	return S_OK;
+}
+
+HRESULT ReadDnaHeader(CString& header)
+{
+	// We find the .dna file and load a 1k string from the file.
+	// To locate the file:
+	// 1. First check for packed __MAIN__ DNA resource,
+	// 2. Else load file next to .xll file, 
+	// Else E_FAIL.
+	// This sequence matches the load sequence in ExcelDna.Integration.DnaLibrary.Initialize().
+	// NOTE: __MAIN__ DNA resource can not currently be compressed.
+	
+	USES_CONVERSION;
+	HRESULT hr;
+	const DWORD MAX_HEADER_LENGTH = 1024;
+	DWORD headerLength = 0;
+	BYTE headerBuffer[MAX_HEADER_LENGTH] ;
+
+	HRSRC hResDna = FindResource(hModuleCurrent, L"__MAIN__", L"DNA");
+	if (hResDna != NULL)
+	{
+		HGLOBAL hDna = LoadResource(hModuleCurrent, hResDna);
+		DWORD sizeDna = SizeofResource(hModuleCurrent, hResDna);
+		void* pDna = LockResource(hDna);
+		headerLength = min(sizeDna, MAX_HEADER_LENGTH);
+		CopyMemory(headerBuffer, pDna, headerLength);
+	}
+	else
+	{
+		CAtlFile dnaFile;
+		CPath dnaPath(AddInFullPath());
+		dnaPath.RenameExtension(L".dna");
+		if (!dnaPath.FileExists())
+		{
+			ShowMessage(IDS_MSG_HEADER_DNANOTFOUND, 
+			IDS_MSG_BODY_DNAPATHNOTEXIST, 
+			IDS_MSG_FOOTER_ENSUREDNAFILE,
+			hr);
+
+			return E_FAIL;
+		}
+		hr = dnaFile.Create(dnaPath, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
+		if (FAILED(hr))
+		{
+			ShowMessage(IDS_MSG_HEADER_DNAPROBLEM, 
+			IDS_MSG_BODY_DNAOPENFAILED, 
+			IDS_MSG_FOOTER_UNEXPECTED,
+			hr);
+
+			return E_FAIL;
+		}
+		hr = dnaFile.Read((LPVOID)headerBuffer, MAX_HEADER_LENGTH, headerLength);
+		if (FAILED(hr))
+		{
+
+			ShowMessage(IDS_MSG_HEADER_DNAPROBLEM, 
+			IDS_MSG_BODY_DNAOPENFAILED, 
+			IDS_MSG_FOOTER_UNEXPECTED,
+			hr);
+
+			return E_FAIL;
+		}
+	}
+	if (IsBufferUTF8(headerBuffer, headerLength))
+	{
+		header = UTF8toUTF16(CStringA((char*)headerBuffer, headerLength));
+	}
+	else
+	{
+		header = CString((wchar_t*)headerBuffer, headerLength);
+	}
+	return S_OK;
+}
+
+BOOL IsBufferUTF8(BYTE* buffer, DWORD bufferLength)
+{
+	// Only UTF-8 and UTF-16 is supported (here)
+	// The check here is naive - does not read the xml processing instruction.
+	// CONSIDER: Use WIN32 API function IsTextUnicode ?
+
+	// Check for byte order marks.
+	if (bufferLength < 3)
+	{
+		// Doesn't matter - will fail later.
+		return true;
+	}
+	if (buffer[0] == 0xEF && buffer[1] == 0xBB && buffer[2] == 0xBF)
+	{
+		// Standard UTF-8 BOM
+		return true;
+	}
+	//if (buffer[0] == 0xFF && buffer[1] == 0xFE && buffer[2] == 0x00 && buffer[3] == 0x00)
+	//{
+	//	// UTF-32 LE
+	//	return false;
+	//}
+	//if (buffer[0] == 0x00 && buffer[1] == 0x00 && buffer[2] == 0xFE && buffer[3] == 0xFF)
+	//{
+	//	// UTF-32 BE
+	//	return false;
+	//}
+	if (buffer[0] == 0xFF && buffer[1] == 0xFE)
+	{
+		// UTF-16 LE
+		return false;
+	}
+	if (buffer[0] == 0xFE && buffer[1] == 0xFF)
+	{
+		// UTF-16 BE
+		return false;
+	}
+	// Might be ANSI or some other code page. Treated as UTF-8 here.
+	return true;
+}
+
+// Snippet from http://www.codeproject.com/KB/string/utfConvert.aspx
+CStringW UTF8toUTF16(const CStringA& utf8)
+{
+   CStringW utf16;
+   int len = MultiByteToWideChar(CP_UTF8, 0, utf8, -1, NULL, 0);
+   if (len>1)
+   { 
+      wchar_t *ptr = utf16.GetBuffer(len-1);
+      if (ptr) MultiByteToWideChar(CP_UTF8, 0, utf8, -1, ptr, len);
+      utf16.ReleaseBuffer();
+   }
+   return utf16;
 }

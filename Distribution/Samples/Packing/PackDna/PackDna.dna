@@ -1,4 +1,4 @@
-<DnaLibrary Name="PackDna" Language="CS">
+<DnaLibrary Name="PackDna" RuntimeVersion="v4.0" Language="CS">
 <![CDATA[
 	using System;
 	public class SomeClass
@@ -6,6 +6,11 @@
 		public static string PackDna()
 		{
 			return "Hello from PackDna!";
+		}
+
+		public static string PackRuntimeVersion()
+		{
+			return Environment.Version.ToString();
 		}
 	}
 ]]>

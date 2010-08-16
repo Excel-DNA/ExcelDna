@@ -1,0 +1,21 @@
+<DnaLibrary RuntimeVersion="v4.0" Name="CLR4 Sample" Language="CS">
+<![CDATA[
+
+using System;
+
+public class MyAddIn
+{
+	public static string TestCLR4()
+	{
+		return "Hello brave new world!";
+		
+	}
+
+	public static string RuntimeVersion()
+	{
+		return Environment.Version.ToString();
+	}
+}
+
+]]>
+</DnaLibrary>

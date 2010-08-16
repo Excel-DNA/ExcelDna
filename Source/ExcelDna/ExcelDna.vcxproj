@@ -79,7 +79,8 @@
       </DataExecutionPrevention>
       <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
       <TargetMachine>MachineX86</TargetMachine>
-      <ModuleDefinitionFile>ExcelDna.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>
+      </ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -106,7 +107,8 @@
       </DataExecutionPrevention>
       <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
       <TargetMachine>MachineX86</TargetMachine>
-      <ModuleDefinitionFile>ExcelDna.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>
+      </ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -125,6 +127,7 @@
     <ClInclude Include="DetectFx.h" />
     <ClInclude Include="ExcelDna.h" />
     <ClInclude Include="ExcelDnaLoader.h" />
+    <ClInclude Include="metahost_extract.h" />
     <ClInclude Include="mscorlib_extract.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
@@ -133,7 +136,6 @@
     <ResourceCompile Include="ExcelDna.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ExcelDna.def" />
     <None Include="Release\ExcelDna.Integration.dll" />
     <None Include="Release\ExcelDna.Loader.dll" />
   </ItemGroup>

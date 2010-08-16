@@ -1,3 +1,9 @@
+Version 0.27 (16 August 2010)
+-----------------------------
+* XML-based hierarchical CommandBars updated (thanks to Bertrand).
+* .Net 4.0 support: add RuntimeVersion="v4.0" to the DnaLibrary tag.
+* Shadow copy support: add ShadowCopyFiles="true" to the DnaLibrary tag.
+
 Version 0.26 (31 May 2010)
 -----------------------
 * Ribbon support for Excel 2007 and 2010 and CommandBars for pre-2007.

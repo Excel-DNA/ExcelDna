@@ -7,8 +7,7 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "afxres.h"
-
+#include "afxres.h"
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
@@ -40,7 +39,7 @@ BEGIN
     "#ifdef _DEBUG\r\n"
     "EXCELDNA.LOADER         ASSEMBLY                ""Debug\\\\ExcelDna.Loader.dll""\r\n"
     "EXCELDNA.INTEGRATION    ASSEMBLY                ""Debug\\\\ExcelDna.Integration.dll""\r\n"
-	"#else\r\n"
+    "#else\r\n"
     "EXCELDNA.LOADER         ASSEMBLY                ""Release\\\\ExcelDna.Loader.dll""\r\n"
     "EXCELDNA.INTEGRATION    ASSEMBLY                ""Release\\\\ExcelDna.Integration.dll""\r\n"
     "#endif\r\0"
@@ -55,8 +54,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,26,0,1
- PRODUCTVERSION 0,26,0,1
+ FILEVERSION 0,27,0,1
+ PRODUCTVERSION 0,27,0,1
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -71,15 +70,15 @@ BEGIN
     BEGIN
         BLOCK "080004b0"
         BEGIN
-            VALUE "Comments", "Unmanaged loader shim for ExcelDna Add-Ins"
+            VALUE "Comments", "Unmanaged loader shim for Excel-Dna Add-Ins"
             VALUE "CompanyName", "Govert van Drimmelen"
-            VALUE "FileDescription", "ExcelDna Dynamic Link Library"
-            VALUE "FileVersion", "0, 26, 0, 1"
+            VALUE "FileDescription", "Excel-Dna Dynamic Link Library"
+            VALUE "FileVersion", "0, 27, 0, 1"
             VALUE "InternalName", "ExcelDna"
             VALUE "LegalCopyright", "Copyright (C) 2005-2010 Govert van Drimmelen"
             VALUE "OriginalFilename", "ExcelDna.xll"
-            VALUE "ProductName", "ExcelDna Add-In Framework for Microsoft Excel"
-            VALUE "ProductVersion", "0, 26, 0, 1"
+            VALUE "ProductName", "Excel-Dna Add-In Framework for Microsoft Excel"
+            VALUE "ProductVersion", "0, 27, 0, 1"
         END
     END
     BLOCK "VarFileInfo"
@@ -101,9 +100,9 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSG_TEMPLATE        "%1\r\n%2\r\n%3\r\n%4\r\nThis add-in is built with ExcelDna and is being loaded from the following location:\r\n\t%5."
+    IDS_MSG_TEMPLATE        "%1\r\n%2\r\n%3\r\n%4\r\nThis add-in is built with Excel-Dna and is being loaded from the following location:\r\n\t%5."
     IDS_MSG_HEADER_NEEDCLR20 
-                            "This Excel add-in requires the Microsoft .NET Framework 2.0 or later.\r\n\r\nA problem occurred while attempting to load the .NET runtime:"
+                            "This Excel add-in requires the Microsoft .NET Framework 2.0, 3.0 or 3.5.\r\n\r\nA problem occurred while attempting to load the .NET runtime:"
     IDS_MSG_BODY_LOADMSCOREE 
                             "\tExcelClrLoader - Could not load library mscoree.dll.\r\nThis error can occur if the .NET framework is not installed."
     IDS_MSG_FOOTER_ENSURECLR20 
@@ -118,7 +117,7 @@ BEGIN
     IDS_MSG_BODY_OLDVERSION "Although the required runtime is installed, an older version has been loaded by Excel (only one version of the runtime can be loaded).\r\nThis is possible if another managed add-in caused the runtime to load, using the incorrectly installed AppPatch policy."
     IDS_MSG_FOOTER_OLDVERSION 
                             "Review the other managed Excel add-ins that are loaded, or ensure that the .NET 2.0 runtime loads by setting an appropriate 'supportedRuntime' entry in a configuration file for Excel (Excel.exe.config)."
-    IDS_MSG_BODY_NONET20    "The Microsoft .NET Framework 2.0 or later was not detected on this machine."
+    IDS_MSG_BODY_NONET20    "The Microsoft .NET Framework 2.0, 3.0 or 3.5 was not detected on this machine."
     IDS_MSG_BODY_NOCORBIND  "\tExcelClrLoader - Could not get proc address for CorBindToRuntimeEx."
     IDS_MSG_BODY_NOCORVERSION 
                             "\tExcelClrLoader - Could not get proc address for GetCORVersion."
@@ -149,10 +148,45 @@ BEGIN
     IDS_MSG_BODY_XLADDIN    "The type ExcelDna.Loader.XlAddIn could not be found."
     IDS_MSG_BODY_XLADDININIT 
                             "The ExcelDna.Loader.XlAddIn.Initialize call failed."
+    IDS_MSG_HEADER_NEEDCLR40 
+                            "This Excel add-in requires the Microsoft .NET Framework 4.\r\n\r\nA problem occurred while attempting to load the .NET runtime:"
+    IDS_MSG_FOOTER_ENSURECLR40 
+                            "\r\nPlease ensure that the Microsoft .NET Framework 4 is installed before loading the add-in."
+    IDS_MSG_BODY_NOCLRCREATEINSTANCE 
+                            "\tExcelClrLoader - Could not get proc address for CLRCreateInstance.\r\nThis problem usually indicates that the Microsoft .NET Framework 4 is not installed on this computer."
+    IDS_MSG_BODY_CLRCREATEINSTANCEFAILED 
+                            "\tExcelClrLoader - CLRCreateInstance failed."
+    IDS_MSG_HEADER_VERSIONLOADFAILED 
+                            "This Excel add-in requires the Microsoft .NET Framework.\r\n\r\nA problem occurred while attempting to load the requested version of the Microsoft .NET runtime:"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSG_BODY_METAHOSTGETRUNTIMEFAILED 
+                            "\tMetaHost could not load the requested version of the .Net runtime."
+    IDS_MSG_BODY_RUNTIMEGETINTERFACEFAILED 
+                            "\tThe .Net runtime interface could not be retrieved."
+    IDS_MSG_BODY_SHADOWCOPYFILES "ShadowCopyFiles could not be set."
+    IDS_MSG_FOOTER_ENSUREVERSION 
+                            "\r\nPlease ensure that the that the correct version if the Microsoft .NET Framework is requested by the add-in and that the required version is installed."
+    IDS_MSG_HEADER_DNANOTFOUND 
+                            "This Excel add-in requires an '<addin>.dna' configuration file which matched the '<addin>.xll' file.\r\n\r\nThe required '.dna' file could not be loaded from resources, and was not found in the file system:"
+    IDS_MSG_BODY_DNAPATHNOTEXIST 
+                            "\tFileExists failed when checking for '.dna' file."
+    IDS_MSG_FOOTER_ENSUREDNAFILE 
+                            "\r\nPlease ensure that the required '.dna' file exists in the same directory as the '.xll' add-in, and has the correct matching filename."
+    IDS_MSG_HEADER_DNAPROBLEM 
+                            "This Excel add-in requires an '<addin>.dna' configuration file which matches the '<addin>.xll' file (or an embedded resource with the '.dna' file contents).\r\n\r\nA problem occurred while reading the '.dna' file:"
+    IDS_MSG_BODY_DNAOPENFAILED "\tThe file could not be opened."
+    IDS_MSG_BODY_DNAPARSEFAILED 
+                            "\tThe xml content of the file was not valid. Error while parsing <DnaLibrary ...> tag."
+    IDS_MSG_BODY_DNAREADFAILED "\tThe file could not be read."
 END
 
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
+
+
 
 #ifndef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -165,8 +199,7 @@ EXCELDNA.INTEGRATION    ASSEMBLY                "Debug\\ExcelDna.Integration.dll
 #else
 EXCELDNA.LOADER         ASSEMBLY                "Release\\ExcelDna.Loader.dll"
 EXCELDNA.INTEGRATION    ASSEMBLY                "Release\\ExcelDna.Integration.dll"
-#endif
-
+#endif
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 

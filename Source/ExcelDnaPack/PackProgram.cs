@@ -132,7 +132,7 @@ found next to FirstAddin.dna.
 			}
 			byte[] dnaBytes = File.ReadAllBytes(dnaPath);
 			byte[] dnaContentForPacking = PackDnaLibrary(dnaBytes, dnaDirectory, ru);
-			ru.AddDnaFile(dnaContentForPacking, "__MAIN__"); // Name here must exactly match name in DnaLibrary.Initialize.
+			ru.AddDnaFileUncompressed(dnaContentForPacking, "__MAIN__"); // Name here must exactly match name in DnaLibrary.Initialize.
 			ru.EndUpdate();
 			Console.WriteLine("Completed Packing {0}.", xllOutputPath);
 #if DEBUG

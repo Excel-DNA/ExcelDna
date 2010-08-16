@@ -70,6 +70,12 @@ internal unsafe static class ResourceHelper
 			}
 		}
 
+        public void AddDnaFileUncompressed(byte[] dnaContent, string name)
+        {
+            Debug.Assert(name == name.ToUpperInvariant());
+            DoUpdateResource("DNA", name, dnaContent);
+        }
+
 		public void AddDnaFile(byte[] dnaContent, string name)
 		{
 			Debug.Assert(name == name.ToUpperInvariant());
