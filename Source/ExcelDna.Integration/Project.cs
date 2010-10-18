@@ -29,6 +29,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml.Serialization;
 
@@ -145,60 +146,100 @@ namespace ExcelDna.Integration
 
         private List<string> tempAssemblyPaths = new List<string>();
 
-        public List<Reference> GetReferences()
+        public List<string> GetReferencePaths(string pathResolveRoot)
         {
-            List<Reference> references = new List<Reference>();
+            List<string> refPaths = new List<string>();
 			if (References != null)
 			{
 				foreach (Reference rf in References)
 				{
-					if (rf.AssemblyPath != null && rf.AssemblyPath.StartsWith("packed:"))
-					{
-						string assName = rf.AssemblyPath.Substring(7);
-						string assPath = Path.GetTempFileName();
-						tempAssemblyPaths.Add(assPath);
-						File.WriteAllBytes(assPath, Integration.GetAssemblyBytes(assName));
-						references.Add(new Reference(assPath));
-					}
-					else
-					{
-						references.Add(rf);
-					}
+                    bool isResolved = false;
+                    if (rf.Path != null)
+                    {
+                        if (rf.Path.StartsWith("packed:"))
+                        {
+                            string assName = rf.Path.Substring(7);
+                            string assPath = Path.GetTempFileName();
+                            tempAssemblyPaths.Add(assPath);
+                            File.WriteAllBytes(assPath, Integration.GetAssemblyBytes(assName));
+                            refPaths.Add(assPath);
+                            isResolved = true;
+                        }
+                        else
+                        {
+                            // Call ResolvePath - check relative to pathResolveRoot and in framework directory.
+                            string refPath = DnaLibrary.ResolvePath(rf.Path, pathResolveRoot);
+                            if (!string.IsNullOrEmpty(refPath))
+                            {
+                                refPaths.Add(refPath);
+                                isResolved = true;
+                            }
+                        }
+                    }
+                    if (!isResolved && rf.Name != null)
+                    {
+                        // Try to resolve by Name
+                        #pragma warning disable 0618
+                        Assembly refAssembly = Assembly.LoadWithPartialName(rf.Name);
+                        #pragma warning restore 0618
+                        if (refAssembly != null)
+                        {
+                            if (!string.IsNullOrEmpty(refAssembly.Location))
+                            {
+                                refPaths.Add(refAssembly.Location);
+                                isResolved = true;
+                            }
+                        }
+                    }
+                    if (!isResolved)
+                    {
+                        // Must have been loaded by us from the packing....?
+                        Debug.Print("Assembly resolve failure - Reference Name: {0}, Path: {1}", rf.Name, rf.Path);
+                    }
+
 				}
 			}
             if (DefaultReferences)
             {
-                references.Add(new Reference("System.dll"));
-                references.Add(new Reference("System.Data.dll"));
-                references.Add(new Reference("System.Xml.dll"));
+                // CONSIDER: Should these be considered more carefully? I'm just putting in what the default templates in Visual Studio 2010 put in.
+                refPaths.Add("System.dll");
+                refPaths.Add("System.Data.dll");
+                refPaths.Add("System.Xml.dll");
+                if (Environment.Version.Major >= 4)
+                {
+                    refPaths.Add("System.Core.dll");
+                    refPaths.Add("System.Data.DataSetExtensions.dll");
+                    refPaths.Add("System.Xml.Linq.dll");
+                }
             }
             // DOCUMENT: Reference to the xll is always added
-            // Sort out "ExcelDna.Integration.dll"
-            // TODO: URGENT: Revisit this...
+            // Sort out "ExcelDna.Integration.dll" copy which causes problems
+            // TODO: URGENT: Revisit this... (don't know what to do yet - maybe full AssemblyName).
             string location = Assembly.GetExecutingAssembly().Location;
             if (location != "")
             {
-                references.Add(new Reference(location));
+                refPaths.Add(location);
             }
             else
             {
 				string assPath = Path.GetTempFileName();
                 tempAssemblyPaths.Add(assPath);
                 File.WriteAllBytes(assPath, Integration.GetAssemblyBytes("EXCELDNA.INTEGRATION"));
-                references.Add(new Reference(assPath));
+                refPaths.Add(assPath);
             }
 
 			Debug.WriteLine("Compiler References: ");
-			foreach (Reference rf in references)
+			foreach (string rfPath in refPaths)
 			{
-				Debug.WriteLine("\t" + rf.AssemblyPath);
+				Debug.WriteLine("\t" + rfPath);
 			}
 
-            return references;
+            return refPaths;
         }
 
         // TODO: Move compilation stuff elsewhere.
-		internal List<ExportedAssembly> GetAssemblies(string pathResolveRoot /*currently unused - for references?*/)
+        // TODO: Consider IronPython support: http://www.ironpython.info/index.php/Using_Compiled_Python_Classes_from_.NET/CSharp_IP_2.6
+		internal List<ExportedAssembly> GetAssemblies(string pathResolveRoot)
 		{
 			List<ExportedAssembly> list = new List<ExportedAssembly>();
 			// Dynamically compile this project to an in-memory assembly
@@ -232,6 +273,10 @@ namespace ExcelDna.Integration
                 if (DefaultImports)
                 {
                     string importsList = "Microsoft.VisualBasic,System,System.Collections,System.Collections.Generic,System.Data,System.Diagnostics,ExcelDna.Integration";
+                    if (Environment.Version.Major >= 4)
+                    {
+                        importsList += ",System.Linq,System.Xml.Linq";
+                    }
                     cp.CompilerOptions += " /imports:" + importsList;
                 }
             }
@@ -241,24 +286,21 @@ namespace ExcelDna.Integration
             }
             else if (provider.GetType().FullName == "Microsoft.FSharp.Compiler.CodeDom.FSharpCodeProvider")
             {
-                cp.CompilerOptions = " --nologo -I " + ProcessedExecutingDirectory;
+                cp.CompilerOptions = " --nologo -I " + ProcessedExecutingDirectory; // In F# 2.0, the --nologo is redundant - I leave it because it does no harm.
+
+                // FSharp 2.0 compiler will target .NET 4 unless we do something to ensure .NET 2.0.
+                // It seems adding an explicit reference to the .NET 2.0 version of mscorlib.dll is good enough.
+                if (Environment.Version.Major < 4)
+                {
+                    // Explicitly add a reference to the mscorlib version from the currently running .NET version
+                    string libPath = Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "mscorlib.dll");
+                    cp.ReferencedAssemblies.Add(libPath);
+                }
             }
 
-			List<Reference> references = GetReferences();
-			List<string> refNames = new List<string>();
-			foreach (Reference item in references)
-			{
-				if (item.AssemblyPath != null && item.AssemblyPath != "")
-				{
-					refNames.Add(item.AssemblyPath);
-				}
-				if (item.Name != null && item.Name != "")
-				{
-					refNames.Add(item.Name);
-				}
-			}
-
-			cp.ReferencedAssemblies.AddRange(refNames.ToArray());
+            // TODO: Consider what to do if we can't resolve some of the Reference paths -- do we try to compile anyway, throw an exception, ...what?
+			List<string> refPaths = GetReferencePaths(pathResolveRoot);
+			cp.ReferencedAssemblies.AddRange(refPaths.ToArray());
 
             List<string> sources = GetSourceItems().ConvertAll<string>(delegate(SourceItem item) { return item.Code.Trim(); });
 			CompilerResults cr = provider.CompileAssemblyFromSource(cp, sources.ToArray());
@@ -268,6 +310,7 @@ namespace ExcelDna.Integration
 				File.Delete(path);
 			}
 			tempAssemblyPaths.Clear();
+            
 
 			if (cr.Errors.HasErrors)
 			{
@@ -284,7 +327,7 @@ namespace ExcelDna.Integration
 			// TODO: How to remove again??
 			foreach (Reference r in References)
 			{
-				AssemblyReference.AddAssembly(r.AssemblyPath);
+				AssemblyReference.AddAssembly(r.Path);
 			}
 
 			list.Add(new ExportedAssembly(cr.CompiledAssembly, ExplicitExports));
@@ -340,13 +383,28 @@ namespace ExcelDna.Integration
                 try
                 {
                     // TODO: Reconsider how to support F#
+
+                    // This is my best plan to attempt 'future' compatibility.
+                    #pragma warning disable 0618
                     Assembly fsharp = Assembly.LoadWithPartialName("FSharp.Compiler.CodeDom" );
-                    return (CodeDomProvider)fsharp.CreateInstance("Microsoft.FSharp.Compiler.CodeDom.FSharpCodeProvider");
+                    #pragma warning restore 0618
+                    if (fsharp != null)
+                    {
+                        return (CodeDomProvider)fsharp.CreateInstance("Microsoft.FSharp.Compiler.CodeDom.FSharpCodeProvider");
+                    }
+                    else
+                    {
+                        Logging.LogDisplay.WriteLine("The F# code provider could not be loaded.");
+                        Logging.LogDisplay.WriteLine("Please ensure that both the F# Compiler and the F# PowerPack are installed.");
+                        Logging.LogDisplay.WriteLine("    The F# Compiler (August 2010 CTP) can be found at: http://go.microsoft.com/fwlink/?LinkId=151924.");
+                        Logging.LogDisplay.WriteLine("    The F# PowerPack can be found at: http://fsharppowerpack.codeplex.com/.");
+                        return null;
+                    }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // TODO: Log this error to the display?
-                    Debug.Fail("FSharp.Compiler.CodeDom could not be loaded.");
+                    Logging.LogDisplay.WriteLine("Error while loading F# code provider.");
+                    Logging.LogDisplay.WriteLine(" Exception: " + ex.Message);
                     return null;
                 }
             }
@@ -368,7 +426,8 @@ namespace ExcelDna.Integration
 			catch (Exception e)
 			{
 				Debug.Fail("Unknown Project Language: " + Language);
-				Logging.LogDisplay.WriteLine("Unknown Project Language: " + Language + " Exception: " + e.Message);
+				Logging.LogDisplay.WriteLine("Unknown Project Language: " + Language);
+                Logging.LogDisplay.WriteLine(" Exception: " + e.Message);
 			}
 			return null;
 		}

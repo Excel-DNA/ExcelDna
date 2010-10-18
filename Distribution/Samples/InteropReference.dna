@@ -1,0 +1,28 @@
+<DnaLibrary Language="VB">
+<Reference Name="Microsoft.Office.Interop.Excel" />
+<Reference Name="System.Windows.Forms" />
+
+<!-- <Reference Name="MyMathLib" /> -->
+<!-- <Reference Path="OtherLibs\MyOtherLib.dll" /> -->
+
+  <![CDATA[
+  Imports System.Windows.Forms
+  Imports Excel = Microsoft.Office.Interop.Excel
+
+  Public Module TestInterop
+
+	  <ExcelCommand(MenuText:="Say Hello")> _
+	  Public Sub ShowMessageBox()
+		
+      Dim app as Excel.Application
+      dim r as Excel.Range
+    
+      app  = ExcelDnaUtil.Application
+      r = app.Cells(1,1)
+    
+      MessageBox.Show("Hello from Excel version " & app.Version & ". Cell A1 contains: " & r.Value)
+	  End Sub
+
+  End Module
+  ]]>
+</DnaLibrary>

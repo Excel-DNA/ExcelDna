@@ -90,6 +90,16 @@ namespace ExcelDna.Integration
 			rectangles.Add(rect);
 		}
 
+        // TODO: Consider how to deal with invalid sheetName. I presume xlSheetId will fail.
+        // Perhaps throw a custom exception...?
+        public ExcelReference(int rowFirst, int rowLast, int columnFirst, int columnLast, string sheetName)
+        {
+            ExcelReference sheetRef = (ExcelReference)XlCall.Excel(XlCall.xlSheetId, sheetName);
+            this.sheetId = sheetRef.SheetId;
+            ExcelRectangle rect = new ExcelRectangle(rowFirst, rowLast, columnFirst, columnLast);
+            rectangles.Add(rect);
+        }
+
 		// THROWS: OverFlowException if the arguments exceed the allowed size
 		// or if the number of Inner References exceeds 65000
 		public void AddReference(int rowFirst, int rowLast, int columnFirst, int columnLast)

@@ -193,6 +193,15 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 		}
 	}
 
+	// Maybe for .NET 4 we need to make a sandboxed AppDomain.
+	// I think this is only possible from within managed code.
+	// So my plan is to make an additional loader AppDomain, that will create the sandboxed AppDomain,
+	// and return the AppDomainId. 
+	// We then call into the sandboxed AppDomain from the managed code.
+	// Still need to be able to unload from here....?
+
+	// Some ideas: http://www.mmowned.com/forums/world-of-warcraft/bots-programs/memory-editing/300096-net-managed-assembly-removal.html
+
 	IUnknown *pAppDomainUnk = NULL;
 	hr = pHost->CreateDomainEx(appDomainName, pAppDomainSetupUnk, 0, &pAppDomainUnk);
 	if (FAILED(hr) || pAppDomainUnk == NULL)
@@ -211,6 +220,9 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 	// Then if it does not work, we will try to load from a known resource in the .xll.
 
 	CComPtr<_Assembly> pExcelDnaLoaderAssembly;
+	CComSafeArray<BYTE> bytesLoader;
+	bool loadLoaderFromBytes = false;
+
 	hr = pAppDomain->Load_2(CComBSTR(L"ExcelDna.Loader"), &pExcelDnaLoaderAssembly);
 	if (FAILED(hr) || pExcelDnaLoaderAssembly == NULL)
 	{
@@ -227,7 +239,6 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 		void* pLoader = LockResource(hLoader);
 		ULONG sizeLoader = (ULONG)SizeofResource(hModuleCurrent, hResInfoLoader);
 		
-		CComSafeArray<BYTE> bytesLoader;
 		bytesLoader.Add(sizeLoader, (byte*)pLoader);
 
 		hr = pAppDomain->Load_3(bytesLoader, &pExcelDnaLoaderAssembly);
@@ -239,7 +250,9 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 						hr);
 			return 0;
 		}
+		loadLoaderFromBytes = true;
 
+		// Is this just for debugging?
 		CComBSTR pFullName;
 		hr = pExcelDnaLoaderAssembly->get_FullName(&pFullName);
 		if (FAILED(hr))
@@ -252,8 +265,66 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 		}
 	}
 	
+	CComPtr<_Type> pAppDomainHelperType;
+	hr = pExcelDnaLoaderAssembly->GetType_2(CComBSTR(L"ExcelDna.Loader.AppDomainHelper"), &pAppDomainHelperType);
+	if (FAILED(hr) || pAppDomainHelperType == NULL)
+	{
+		ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
+					IDS_MSG_BODY_XLADDIN, 
+					IDS_MSG_FOOTER_UNEXPECTED,
+					hr);
+		return 0;
+	}
+
+	CComSafeArray<VARIANT> sbArgs;
+	CComVariant sbRetVal;
+	CComVariant sbTarget;
+	hr = pAppDomainHelperType->InvokeMember_3(CComBSTR("CreateFullTrustSandbox"), (BindingFlags)(BindingFlags_Static | BindingFlags_Public | BindingFlags_InvokeMethod), NULL, sbTarget, sbArgs, &sbRetVal);
+	if (FAILED(hr))
+	{
+		ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
+					IDS_MSG_BODY_XLADDININIT, 
+					IDS_MSG_FOOTER_UNEXPECTED,
+					hr);
+		return 0;
+	}
+
+	CComQIPtr<_AppDomain> pSandbox(sbRetVal.punkVal);
+	CComBSTR sandboxName;
+	pSandbox->get_FriendlyName(&sandboxName);
+
+	// Now load the Loader assembly in the Sandboxed AppDomain, and call XlAddIn.Initialize.
+	CComPtr<_Assembly> pExcelDnaLoaderAssemblyInSandbox;
+	if (!loadLoaderFromBytes)
+	{
+		hr = pSandbox->Load_2(CComBSTR(L"ExcelDna.Loader"), &pExcelDnaLoaderAssemblyInSandbox);
+		if (FAILED(hr))
+		{
+			// Unexpected - it worked in our first AppDomain....?
+			ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
+						IDS_MSG_BODY_EXCELDNALOADER, 
+						IDS_MSG_FOOTER_UNEXPECTED,
+						hr);
+			return 0;
+		}
+	}
+	else
+	{
+		hr = pSandbox->Load_3(bytesLoader, &pExcelDnaLoaderAssemblyInSandbox);
+		if (FAILED(hr))
+		{
+			// Unexpected - it worked in our first AppDomain....?
+			ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
+						IDS_MSG_BODY_EXCELDNALOADER, 
+						IDS_MSG_FOOTER_UNEXPECTED,
+						hr);
+			return 0;
+		}
+	}
+
+
 	CComPtr<_Type> pXlAddInType;
-	hr = pExcelDnaLoaderAssembly->GetType_2(CComBSTR(L"ExcelDna.Loader.XlAddIn"), &pXlAddInType);
+	hr = pExcelDnaLoaderAssemblyInSandbox->GetType_2(CComBSTR(L"ExcelDna.Loader.XlAddIn"), &pXlAddInType);
 	if (FAILED(hr) || pXlAddInType == NULL)
 	{
 		ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
@@ -270,7 +341,7 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 	CComVariant initRetVal;
 	CComVariant target;
 	hr = pXlAddInType->InvokeMember_3(CComBSTR("Initialize"), (BindingFlags)(BindingFlags_Static | BindingFlags_Public | BindingFlags_InvokeMethod), NULL, target, initArgs, &initRetVal);
-	if (FAILED(hr) || initRetVal.boolVal == FALSE)
+	if (FAILED(hr))
 	{
 		ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
 					IDS_MSG_BODY_XLADDININIT, 
@@ -279,9 +350,12 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 		return 0;
 	}
 
-	pHost_ForUnload = pHost.Detach();
-	pAppDomain_ForUnload = (IUnknown*)pAppDomain.Detach();
+	// Unload the loader AppDomain.
+	pHost->UnloadDomain(pAppDomain);
 
+	// Keep references needed for later unload.
+	pAppDomain_ForUnload = (IUnknown*)pSandbox.Detach();
+	pHost_ForUnload = pHost.Detach();
 	return initRetVal.boolVal == 0 ? false : true;
 }
 
@@ -291,17 +365,25 @@ void XlLibraryUnload()
 {
 	if (pHost_ForUnload != NULL)
 	{
-		HRESULT hr = pHost_ForUnload->UnloadDomain(pAppDomain_ForUnload);
-		pAppDomain_ForUnload->Release();
-		pAppDomain_ForUnload = NULL;
+		if (pAppDomain_ForUnload != NULL)
+		{
+			HRESULT hr = pHost_ForUnload->UnloadDomain(pAppDomain_ForUnload);
+			pAppDomain_ForUnload->Release();
+			pAppDomain_ForUnload = NULL;
+			if (FAILED(hr))
+			{
+#if _DEBUG
+				DebugBreak();
+#endif
+			}
+		}
+		//else
+		//{
+			// Unload according to the AppDomainId.
+		//}
+
 		pHost_ForUnload->Release();
 		pHost_ForUnload = NULL;
-		if (FAILED(hr))
-		{
-#if _DEBUG
-			DebugBreak();
-#endif
-		}
 	}
 	// Also delete the temp .config file, if we made one.
 	if (tempConfigFileName != "")
@@ -309,7 +391,6 @@ void XlLibraryUnload()
 		DeleteTempFile(tempConfigFileName);
 		tempConfigFileName = "";
 	}
-
 }
 
 // Try to get the right version of the CLR running.
@@ -859,8 +940,7 @@ HRESULT ReadDnaHeader(CString& header)
 	// This sequence matches the load sequence in ExcelDna.Integration.DnaLibrary.Initialize().
 	// NOTE: __MAIN__ DNA resource can not currently be compressed.
 	
-	USES_CONVERSION;
-	HRESULT hr;
+	HRESULT hr = E_FAIL;
 	const DWORD MAX_HEADER_LENGTH = 1024;
 	DWORD headerLength = 0;
 	BYTE headerBuffer[MAX_HEADER_LENGTH] ;

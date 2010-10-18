@@ -1,7 +1,7 @@
 <DnaLibrary Name="ExcelDna Test AddIn">
 	<!-- This library has two projects, one in C#, the other in VB -->
 	<Project Language="CS">
-		<Reference AssemblyPath="System.Windows.Forms.dll"/>
+		<Reference Path="System.Windows.Forms.dll"/>
 			<![CDATA[
 			using System;
 			using System.Windows.Forms;
@@ -194,7 +194,7 @@
 			]]>
 	</Project>
 	<Project Language="VB">
-		<Reference AssemblyPath="System.Windows.Forms.dll"/>
+		<Reference Path="System.Windows.Forms.dll"/>
 				<![CDATA[
 				Imports System.Windows.Forms
 				
@@ -202,7 +202,7 @@
 					' Some functions might be quite slow, so should not calculate
 					' in the function wizard.
 					Function SlowFunction(val)
-						If Excel.IsInFunctionWizard() Then
+						If ExcelDnaUtil.IsInFunctionWizard() Then
 							SlowFunction = "#IN WIZARD"
 						Else
 							SlowFunction = val * 2

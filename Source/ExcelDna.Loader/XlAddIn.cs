@@ -30,6 +30,8 @@ using System.Text;
 using System.Reflection;
 using System.Runtime.Remoting;
 using System.Runtime.InteropServices;
+using System.Security;
+using System.Security.Permissions;
 
 namespace ExcelDna.Loader
 {
@@ -41,7 +43,8 @@ namespace ExcelDna.Loader
     internal struct XlAddInExportInfo
     {
         #pragma warning disable 0649 // Field 'field' is never assigned to, and will always have its default value 'value'
-        internal Int32 ExportInfoVersion; // Must be 1 for this version
+        internal Int32 ExportInfoVersion; // Must be 2 for this version
+        internal Int32 AppDomainId; // Id of the Sandbox AppDomain where the add-in runs.
         internal IntPtr /* PFN_SHORT_VOID */ pXlAutoOpen;
         internal IntPtr /* PFN_SHORT_VOID */ pXlAutoClose;
         internal IntPtr /* PFN_SHORT_VOID */ pXlAutoAdd;
@@ -66,18 +69,18 @@ namespace ExcelDna.Loader
         internal static IntPtr hModuleXll;
 
         static int xlCallVersion;
-
         static bool IsInitialized = false;
 
         #region Initialization
 
 		public static unsafe bool Initialize(int xlAddInExportInfoAddress, int hModuleXll, string pathXll)
         {
+            Debug.Print("Initialize - in sandbox AppDomain with Id: " + AppDomain.CurrentDomain.Id);
             Debug.Assert(xlAddInExportInfoAddress != 0);
             Debug.Print("InitializationInfo Address: 0x{0:x8}", xlAddInExportInfoAddress);
 			
 			XlAddInExportInfo* pXlAddInExportInfo = (XlAddInExportInfo*)xlAddInExportInfoAddress;
-            if (pXlAddInExportInfo->ExportInfoVersion != 1)
+            if (pXlAddInExportInfo->ExportInfoVersion != 2)
             {
                 Debug.Print("ExportInfoVersion not supported.");
                 return false;
@@ -538,6 +541,62 @@ namespace ExcelDna.Loader
         }
 
         #endregion
+    }
+
+    public static class AppDomainHelper
+    {
+        // This method is called from unmanaged code in a temporary AppDomain, just to be able to call
+        // the right AppDomain.CreateDomain overload.
+        // CONSIDER: Is there a way to call this method in the default AppDomain, with no side-effects?
+        public static unsafe AppDomain CreateFullTrustSandbox()
+        {
+            Debug.Print("CreateSandboxAndInitialize - in loader AppDomain with Id: " + AppDomain.CurrentDomain.Id);
+            PermissionSet pset = new PermissionSet(PermissionState.Unrestricted);
+            // pset.AddPermission(new SecurityPermission(SecurityPermissionFlag.Execution));
+
+            AppDomainSetup loaderAppDomainSetup = AppDomain.CurrentDomain.SetupInformation;
+            AppDomainSetup sandboxAppDomainSetup = new AppDomainSetup();
+            sandboxAppDomainSetup.ApplicationName = loaderAppDomainSetup.ApplicationName;
+            sandboxAppDomainSetup.ConfigurationFile = loaderAppDomainSetup.ConfigurationFile;
+            sandboxAppDomainSetup.ApplicationBase = loaderAppDomainSetup.ApplicationBase;
+            sandboxAppDomainSetup.ShadowCopyFiles = loaderAppDomainSetup.ShadowCopyFiles;
+            sandboxAppDomainSetup.ShadowCopyDirectories = loaderAppDomainSetup.ShadowCopyDirectories;
+
+            // create the sandboxed domain
+            AppDomain sandbox = AppDomain.CreateDomain(
+                "FullTrustSandbox_" + AppDomain.CurrentDomain.FriendlyName,
+                null,
+                sandboxAppDomainSetup,
+                pset);
+
+            Debug.Print("CreateFullTrustSandbox - sandbox AppDomain created. Id: " + sandbox.Id);
+
+            return sandbox;
+
+            //// NOOOOO - Can't do AppDomain.Load in different AppDomain.
+            //// Some ideas: 
+            //// 1. Find a useful system class to marshal.
+            //// 2. Return the AppDomain to the unmanaged code.
+            //// 3. 
+            //Assembly loaderInSandbox;
+            //try
+            //{
+            //    loaderInSandbox = sandbox.Load("ExcelDna.Loader");
+            //}
+            //catch
+            //{
+            //    // Try to load from resources.
+            //    byte[] loaderAssemblyBytes = AssemblyManager.GetResourceBytes("EXCELDNA.LOADER", 0);
+            //    loaderInSandbox = sandbox.Load(loaderAssemblyBytes);
+            //}
+
+            //object marshaledAddIn = sandbox.CreateInstanceAndUnwrap("ExcelDna.Loader", "ExcelDna.Loader.XlAddIn");
+            //Type addinInSandbox = loaderInSandbox.GetType("ExcelDna.Loader.XlAddIn");
+            //// object result = addinInSandbox.InvokeMember("Initialize", BindingFlags.Static | BindingFlags.Public | BindingFlags.InvokeMethod, null, null, new object[] { xlAddInExportInfoAddress, hModuleXll, pathXll });
+            //XlAddInExportInfo* pXlAddInExportInfo = (XlAddInExportInfo*)xlAddInExportInfoAddress;
+            //pXlAddInExportInfo->AppDomainId = sandbox.Id;
+            //return (bool)result;
+        }
     }
 }
 

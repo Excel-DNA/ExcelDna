@@ -22,13 +22,15 @@ ExcelDnaPack is a command-line utility to pack ExcelDna add-ins into a single .x
 Usage: ExcelDnaPack.exe dnaPath [/Y]
 
   dnaPath      The path to the primary .dna file for the ExcelDna add-in.
-  /Y           If output .xll exists, overwrite without prompting.
+  /Y           If the output .xll exists, overwrite without prompting.
 
 Example: ExcelDnaPack.exe MyAddins\FirstAddin.dna
-		 The packed add-in file will be created as MyAddins\FirstAddin.xll.
+		 The packed add-in file will be created as MyAddins\FirstAddin-packed.xll.
 
-The template add-in host file (always called ExcelDna.xll) and helper 
-assembly (ExcelDna.Integration.dll) are searched for 
+The template add-in host file (the copy of ExcelDna.xll renamed to FirstAddin.xll) is 
+searched for in the same directory as FirstAddin.dna.
+
+The Excel-Dna integration assembly (ExcelDna.Integration.dll) is searched for 
   1. in the same directory as the .dna file, and if not found there, 
   2. in the same directory as the ExcelDnaPack.exe file.
 
@@ -59,7 +61,7 @@ found next to FirstAddin.dna.
 //			string dnaFileName = Path.GetFileName(dnaPath);
 			string dnaFilePrefix = Path.GetFileNameWithoutExtension(dnaPath);
 			string configPath = Path.ChangeExtension(dnaPath, ".xll.config");
-
+            string xllInputPath = Path.Combine(dnaDirectory, dnaFilePrefix + ".xll");
 			string xllOutputPath = Path.Combine(dnaDirectory, dnaFilePrefix + "-packed.xll");
 
 			if (!File.Exists(dnaPath))
@@ -96,22 +98,29 @@ found next to FirstAddin.dna.
 			}
 
 			// Find ExcelDna.xll to use.
-			string xllInputPath;
-			xllInputPath = Path.Combine(dnaDirectory, "ExcelDna.xll");
-			if (!File.Exists(xllInputPath))
-			{
-				xllInputPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ExcelDna.xll");
-				if (!File.Exists(xllInputPath))
-				{
-					Console.WriteLine("Base add-in not found.\r\n\r\n" + usageInfo);
-					return;
-				}
-			}
+            // First try <MyAddin>.xll
+            if (!File.Exists(xllInputPath))
+            {
+                // CONSIDER: Maybe the next two (old) search locations should be deprecated?
+                // Then try one called ExcelDna.xll next to the .dna file
+                xllInputPath = Path.Combine(dnaDirectory, "ExcelDna.xll");
+                if (!File.Exists(xllInputPath))
+                {
+                    // Then try one called ExcelDna.xll next to the ExcelDnaPack.exe
+                    xllInputPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ExcelDna.xll");
+                    if (!File.Exists(xllInputPath))
+                    {
+                        Console.WriteLine("Base add-in not found.\r\n\r\n" + usageInfo);
+                        return;
+                    }
+                }
+            }
 			Console.WriteLine("Using base add-in " + xllInputPath);
 
 			File.Copy(xllInputPath, xllOutputPath, false);
 			ResourceHelper.ResourceUpdater ru = new ResourceHelper.ResourceUpdater(xllOutputPath);
 			// Take out Integration assembly - to be replaced by a compressed copy.
+            // CONSIDER: Maybe use the ExcelDna.Integration that is inside the <MyAddin>.xll
 			ru.RemoveResource("ASSEMBLY", "EXCELDNA.INTEGRATION");
             string integrationPath = DnaLibrary.ResolvePath("ExcelDna.Integration.dll", dnaDirectory);
 			string packedName = null;
@@ -192,57 +201,38 @@ found next to FirstAddin.dna.
 				if (rf.Pack)
 				{
 					string path = null;
-					if (rf.AssemblyPath != null)
+					if (rf.Path != null)
 					{
-						if (rf.AssemblyPath.StartsWith("packed:"))
+						if (rf.Path.StartsWith("packed:"))
 						{
 							break;
 						}
 
-                        path = dna.ResolvePath(rf.AssemblyPath);
-
-						if (path == null)
-						{
-							Console.WriteLine("  ~~> Assembly path {0} not resolved.", rf.AssemblyPath);
-							// Try Load as as last resort (and opportunity to load by FullName)
-							try
-							{
-								Assembly ass = Assembly.LoadWithPartialName(rf.AssemblyPath);
-								if (ass != null)
-								{
-									path = ass.Location;
-									Console.WriteLine("  ~~> Assembly {0} 'Load'ed from location {1}.", rf.AssemblyPath, path);
-								}
-							}
-							catch (Exception e)
-							{
-								Console.WriteLine("  ~~> Assembly {0} not 'Load'ed. Exception: {1}", rf.AssemblyPath, e);
-							}
-						}
-					}
+                        path = dna.ResolvePath(rf.Path);
+                        Console.WriteLine("  ~~> Assembly path {0} not resolved.", rf.Path);
+                    }
 					if (path == null && rf.Name != null)
 					{
-							if (path == null)
+						// Try Load as as last resort (and opportunity to load by FullName)
+						try
+                        {
+                            #pragma warning disable 0618
+                            Assembly ass = Assembly.LoadWithPartialName(rf.Name);
+                            #pragma warning restore 0618
+                            if (ass != null)
 							{
-								// Try Load as as last resort (and opportunity to load by FullName)
-								try
-								{
-									Assembly ass = Assembly.LoadWithPartialName(rf.Name);
-									if (ass != null)
-									{
-										path = ass.Location;
-										Console.WriteLine("  ~~> Assembly {0} loaded via partial name from {1}.", rf.Name, path);
-									}
-								}
-								catch (Exception e)
-								{
-									Console.WriteLine("  ~~> Assembly {0} not 'Load'ed. Exception: {1}", rf.AssemblyPath, e);
-								}
+								path = ass.Location;
+								Console.WriteLine("  ~~> Assembly {0} 'Load'ed from location {1}.", rf.Path, path);
 							}
 						}
+						catch (Exception e)
+						{
+							Console.WriteLine("  ~~> Assembly {0} not 'Load'ed. Exception: {1}", rf.Path, e);
+						}
+					}
 					if (path == null)
 					{
-						Console.WriteLine("  ~~> Reference with AssemblyPath: {0}, Name: {1} not found.", rf.AssemblyPath, rf.Name);
+						Console.WriteLine("  ~~> Reference with AssemblyPath: {0}, Name: {1} not found.", rf.Path, rf.Name);
 						break;
 					}
 					
@@ -250,7 +240,7 @@ found next to FirstAddin.dna.
 					string packedName = ru.AddAssembly(path);
 					if (packedName != null)
 					{
-						rf.AssemblyPath = "packed:" + packedName;
+						rf.Path = "packed:" + packedName;
 					}
 				}
 			}

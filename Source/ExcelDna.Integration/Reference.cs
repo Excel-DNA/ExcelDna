@@ -33,11 +33,35 @@ namespace ExcelDna.Integration
 	[XmlType(AnonymousType = true)]
 	public class Reference
 	{
-		[XmlAttribute]
-		public string AssemblyPath;
+        // DOCUMENT: AssemblyPath is obsolete, and only used as Path if the Path itself is null.
+        // If Path is empty or cannot be resolved to a real file, LoadWithPartialName is called with Name, so that Name="System.Windows.Forms" and "Microsoft.Office.Interop.Excel" will work.
 
-		[XmlAttribute]
-		public string Name;
+        [XmlAttribute]
+        public string Name;
+
+        [Obsolete("Please use Path attribute.")]
+        [XmlAttribute]
+        public string AssemblyPath;
+
+        private string _path;
+        [XmlAttribute]
+        public string Path
+        {
+            get
+            {
+                if (_path == null)
+                {
+                    #pragma warning disable 0618
+                    return AssemblyPath;
+                    #pragma warning restore 0618
+                }
+                return _path;
+            }
+            set
+            {
+                _path = value;
+            }
+        }
 
 		[XmlAttribute]
 		public bool Pack;
@@ -46,9 +70,9 @@ namespace ExcelDna.Integration
         {
         }
 
-        public Reference(string assemblyPath)
+        public Reference(string path)
         {
-            AssemblyPath = assemblyPath;
+            Path = path;
         }
 	}
 

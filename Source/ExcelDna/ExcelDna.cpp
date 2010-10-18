@@ -36,7 +36,8 @@ PFN thunks[EXPORT_COUNT];
 XlAddInExportInfo* CreateExportInfo()
 {
 	pExportInfo = new XlAddInExportInfo();
-	pExportInfo->ExportInfoVersion = 1;
+	pExportInfo->ExportInfoVersion = 2;
+	pExportInfo->AppDomainId = -1;
 	pExportInfo->pXlAutoOpen = NULL;
 	pExportInfo->pXlAutoClose = NULL;
 	pExportInfo->pXlAutoAdd = NULL;

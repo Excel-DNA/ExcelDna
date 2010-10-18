@@ -2,8 +2,16 @@
 <![CDATA[
 
 #light
+
+module fsExcelSample
+
 open ExcelDna.Integration
+
 let sayhello () = "Hello from F#"
+
+let foo() = 150
+
+let bar() = foo() * foo()
 
 [<ExcelFunction(Category="FSharp Functions", Description="FSharp function to add numbers")>]
 let add x y = x + y
@@ -11,6 +19,16 @@ let add x y = x + y
 let rec factorial = function 
    | x when (x > 1.0) -> (floor x) * factorial (x - 1.0)
    | _ -> 1.0
+
+
+[<ExcelCommand(MenuName="&FSharp Macros", MenuText="&Put some Values")>]
+let putSingle () = 
+    let refs = ExcelReference(0,0)
+    let v = 0
+    refs.SetValue(v) |> ignore
+    let refs2 = ExcelReference(1,1)
+    let v2 = 11
+    refs2.SetValue(v2) |> ignore
 
 ]]>
 </DnaLibrary>

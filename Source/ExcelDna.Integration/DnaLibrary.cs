@@ -28,12 +28,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml.Serialization;
 using System.Xml;
 using System.Xml.Schema;
 using ExcelDna.Integration.CustomUI;
 using System.Drawing;
+using System.Net;
 
 namespace ExcelDna.Integration
 {
@@ -93,6 +95,14 @@ namespace ExcelDna.Integration
         {
             get { return _RuntimeVersion; }
             set { _RuntimeVersion = value; }
+        }
+
+        private bool _ShadowCopyFiles = false;
+        [XmlAttribute]
+        public bool ShadowCopyFiles
+        {
+            get { return _ShadowCopyFiles; }
+            set { _ShadowCopyFiles = value; }
         }
 
         // Next bunch are abbreviations for Project contents
@@ -397,6 +407,32 @@ namespace ExcelDna.Integration
             currentLibrary = null;
         }
 
+        public static DnaLibrary LoadFrom(Uri uri)
+        {
+            DnaLibrary dnaLibrary;
+			XmlSerializer serializer = new Microsoft.Xml.Serialization.GeneratedAssembly.DnaLibrarySerializer();
+
+            // The uri might be file or http.
+            try
+            {
+                WebRequest req = WebRequest.CreateDefault(uri);
+                WebResponse res = req.GetResponse();
+                Stream s = res.GetResponseStream();
+                dnaLibrary = (DnaLibrary)serializer.Deserialize(s);
+            }
+            catch (Exception e)
+            {
+                string errorMessage = string.Format("There was an error while loading the .dna file from a Uri:\r\n{0}\r\n{1}\r\nUri:{2}", e.Message, e.InnerException != null ? e.InnerException.Message : string.Empty, uri.ToString());
+                Debug.WriteLine(errorMessage);
+                ExcelDna.Logging.LogDisplay.WriteLine(errorMessage);
+                return null;
+            }
+
+            dnaLibrary.dnaResolveRoot = null;
+            return dnaLibrary;
+
+        }
+
 		public static DnaLibrary LoadFrom(byte[] bytes, string pathResolveRoot)
 		{
 			DnaLibrary dnaLibrary;
@@ -515,8 +551,12 @@ namespace ExcelDna.Integration
         // 2. If the path is rooted, try the filename part relative to the .dna file location.
         //    If the path is not rooted, try the whole path relative to the .dna file location.
         // 3. Try step 2 against the appdomain.
+        // dnaDirectory can be null, in which case we don't check against it.
+        // This might be the case when we're loading from a Uri.
+        // CONSIDER: Should the Uri case be handled better?
         public static string ResolvePath(string path, string dnaDirectory)
         {
+
             Debug.Print("ResolvePath: Resolving {0} from DnaDirectory: {1}", path, dnaDirectory);
             if (File.Exists(path))
             {
@@ -524,48 +564,63 @@ namespace ExcelDna.Integration
                 return path;
             }
 
-            // Try relative to dna directory
-            string dnaPath;
-            if (Path.IsPathRooted(path))
+            string fileName = Path.GetFileName(path);
+            if (dnaDirectory != null)
             {
-                // It was a rooted path -- try locally instead
-                string fileName = Path.GetFileName(path);
-                dnaPath = Path.Combine(dnaDirectory, fileName);
+                // Try relative to dna directory
+                string dnaPath;
+                if (Path.IsPathRooted(path))
+                {
+                    // It was a rooted path -- try locally instead
+                    dnaPath = Path.Combine(dnaDirectory, fileName);
+                }
+                else
+                {
+                    // Not rooted - try a path relative to local directory
+                    dnaPath = System.IO.Path.Combine(dnaDirectory, path);
+                }
+                Debug.Print("ResolvePath: Checking at {0}", dnaPath);
+                if (File.Exists(dnaPath))
+                {
+                    Debug.Print("ResolvePath: Found at {0}", dnaPath);
+                    return dnaPath;
+                }
             }
-            else
-            {
-                // Not rooted - try a path relative to local directory
-                dnaPath = System.IO.Path.Combine(dnaDirectory, path);
-            }
-            Debug.Print("ResolvePath: Checking at {0}", dnaPath);
-            if (File.Exists(dnaPath))
-            {
-                Debug.Print("ResolvePath: Found at {0}", dnaPath);
-                return dnaPath;
-            }
-
             // try relative to AppDomain BaseDirectory
             string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            string basePath;
-            if (Path.IsPathRooted(path))
+            if (baseDirectory != dnaDirectory)
             {
-                string fileName = Path.GetFileName(path);
-                basePath = Path.Combine(baseDirectory, fileName);
-            }
-            else
-            {
-                basePath = System.IO.Path.Combine(baseDirectory, path);
+                string basePath;
+                if (Path.IsPathRooted(path))
+                {
+                    basePath = Path.Combine(baseDirectory, fileName);
+                }
+                else
+                {
+                    basePath = System.IO.Path.Combine(baseDirectory, path);
+                }
+                // ... and check again
+                Debug.Print("ResolvePath: Checking at {0}", basePath);
+                if (File.Exists(basePath))
+                {
+                    Debug.Print("ResolvePath: Found at {0}", basePath);
+                    return basePath;
+                }
             }
 
-            // Check again
-            Debug.Print("ResolvePath: Checking at {0}", basePath);
-            if (File.Exists(basePath))
+            // CONSIDER: Do we really need this? 
+            // - it is here mainly for backward compatibility, so that Path="System.Windows.Forms.dll" will still work.
+            // Try in .NET framework directory
+            // Last try - check in current version of .NET's directory, 
+            string frameworkBase = RuntimeEnvironment.GetRuntimeDirectory();
+            string frameworkPath = Path.Combine(frameworkBase, fileName);
+            if (File.Exists(frameworkPath))
             {
-                Debug.Print("ResolvePath: Found at {0}", basePath);
-                return basePath;
+                Debug.Print("ResolvePath: Found at {0}", frameworkPath);
+                return frameworkPath;
             }
 
-            // Else give up (maybe try GAC?)
+            // Else give up (maybe try load from GAC for assemblies?)
             Debug.Print("ResolvePath: Could not find {0} from DnaDirectory {1}", path, dnaDirectory);
             return null;
         }

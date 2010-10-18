@@ -56,13 +56,13 @@
             bag.Add(position);
           });
  
-          stopwatch.Stop();
- 
           var total = 0;
           foreach (var i in bag)
           {
             total += i;
           }
+
+          stopwatch.Stop();
  
           var elapsed = (double)stopwatch.ElapsedMilliseconds / 1000d;
           return "Position: " + total.ToString() + ", Seconds: " + elapsed.ToString();
