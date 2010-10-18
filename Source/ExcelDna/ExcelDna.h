@@ -43,6 +43,7 @@ typedef HRESULT (*PFN_HRESULT_VOID)();
 struct XlAddInExportInfo
 {
 	INT32 ExportInfoVersion;
+	DWORD AppDomainId;
 	PFN_SHORT_VOID				pXlAutoOpen;
 	PFN_SHORT_VOID				pXlAutoClose;
 	PFN_SHORT_VOID				pXlAutoAdd;
@@ -53,7 +54,7 @@ struct XlAddInExportInfo
 	PFN_LPXLOPER12_LPXLOPER12	pXlAddInManagerInfo12;
 	// The thunk table that hooks up the fxxx exports from the .xll with the marshaled function pointers.
 	INT32  ThunkTableLength;
-	PFN*  ThunkTable; // Actually (PFN ThunkTable[EXPORT_COUNT])
+	PFN*   ThunkTable; // Actually (PFN ThunkTable[EXPORT_COUNT])
 };
 
 XlAddInExportInfo* CreateExportInfo();

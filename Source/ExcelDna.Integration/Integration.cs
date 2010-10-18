@@ -45,8 +45,6 @@ namespace ExcelDna.Integration
 
     public static class Integration
     {
-
-
         private static TryExcelImplDelegate tryExcelImpl;
         internal static void SetTryExcelImpl(TryExcelImplDelegate d)
         {
@@ -118,7 +116,7 @@ namespace ExcelDna.Integration
 
         internal static byte[] GetImageBytes(string imageName)
         {
-            return getResourceBytesDelegate(imageName, 1);
+            return getResourceBytesDelegate(imageName, 2);
         }
 
         internal static void Initialize()

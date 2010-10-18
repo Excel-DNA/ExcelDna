@@ -33,6 +33,10 @@ using System.Text;
 // On 64-bit platform, I don't know what would be appropriate. Probably won't work. 
 // Packing and the like might be very different! 
 
+// NOTE: Check http://blogs.msdn.com/b/oldnewthing/archive/2009/08/13/9867383.aspx for 64-bit packing.
+//       and http://msdn.microsoft.com/en-us/library/ms973190.aspx for general guidance.
+
+
 // WARNING: The marshalers here are rather particular to the way they are used --
 //			mainly to marshal in the _reverse_ direction to what is expected.
 //			In particular, this means I allocate native memory only for return parameters
@@ -42,9 +46,6 @@ using System.Text;
 //			For this case there is the Cleanup stuff.
 //			The only exception to how I use this is for the object and object[] marshalling
 //			in the Excel4v function.
-
-// WARNING: Memory allocation needs fixing before any attempt at MultiThreading.
-//          Probably allocate instances per thread.... ?
 
 // TODO: Check what happens for re-entrancy, e.g. Calling a UDF from Excel.Excel4 !!
 
@@ -1167,12 +1168,22 @@ namespace ExcelDna.Loader
 
 				// Set up returned OPER
 				XlOper12* pOper = (XlOper12*)pNative;
-				pOper->xlType = XlType12.XlTypeArray;
-				pOper->arrayValue.Rows = rows;
-				pOper->arrayValue.Columns = columns;
-				pOper->arrayValue.pOpers = ((XlOper12*)pNative + 1);
+                            // Excel chokes badly on empty arrays (e.g. crash in function wizard) - rather return the default erro value, #VALUE!
+                if (rows * columns == 0)
+                {
+                    pOper->errValue = (ushort)IntegrationMarshalHelpers.ExcelError_ExcelErrorValue;
+                    pOper->xlType = XlType12.XlTypeError;
+                }
+                else
+                {
 
-				for (int i = 0; i < rows * columns; i++)
+                    pOper->xlType = XlType12.XlTypeArray;
+                    pOper->arrayValue.Rows = rows;
+                    pOper->arrayValue.Columns = columns;
+                    pOper->arrayValue.pOpers = ((XlOper12*)pNative + 1);
+                }
+                // This loop won't be entered in the empty-array case (rows * columns == 0)
+                for (int i = 0; i < rows * columns; i++)
 				{
 					// Get the right object out of the array
 					object obj;

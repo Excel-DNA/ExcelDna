@@ -43,9 +43,6 @@ using System.Text;
 //			The only exception to how I use this is for the object and object[] marshalling
 //			in the Excel4v function.
 
-// WARNING: Memory allocation needs fixing before any attempt at MultiThreading.
-//          Probably allocate instances per thread.... ?
-
 // TODO: Check what happens for re-entrancy, e.g. Calling a UDF from Excel.Excel4 !!
 
 // TODO: Marshalers should implement disposable pattern.
@@ -741,8 +738,14 @@ namespace ExcelDna.Loader
 		unsafe public object MarshalNativeToManaged(IntPtr pNativeData)
 		{
 			// Make a nice object from the native OPER
-			object managed;
-			XlOper* pOper = (XlOper*)pNativeData;
+            if (pNativeData == IntPtr.Zero)
+            {
+                // We don't expect this at all.
+                return IntegrationMarshalHelpers.GetExcelEmptyValue();
+            }
+
+            object managed;
+            XlOper* pOper = (XlOper*)pNativeData;
 			// Ignore any Free flags
 			XlType type = pOper->xlType & ~XlType.XlBitXLFree & ~XlType.XlBitDLLFree;
 			switch (type)
@@ -826,8 +829,15 @@ namespace ExcelDna.Loader
 											sheetId /*Current sheet (not Active sheet!)*/);
 					managed = sref;
 					break;
+                case 0:
+                    // We get type == 0 when a long (>255 char) string is embedded in an array.
+                    // To be consistent with the string handling, we set the value to #VALUE
+                    managed = IntegrationMarshalHelpers.GetExcelErrorObject(15 /* ExcelErrorValue */);
+                    break;
 				default:
-					managed = null;
+                    // Unexpected !? (BigData perhaps - How did it get here?)
+                    // We do #VALUE here too, rather than set to null.
+                    managed = IntegrationMarshalHelpers.GetExcelErrorObject(15 /* ExcelErrorValue */);
 					break;
 			}
 			return managed;
@@ -851,12 +861,6 @@ namespace ExcelDna.Loader
         static XlObjectArrayMarshaler instance2;	// For rank 2 arrays
 
         int rank;
-
-//        static XlObjectArrayMarshaler instance;
-//        int rank; // default set to 1 in constructor
-        // 13 November 2006 -- Cached instance for Excel4v call removed. Now allocated on stack.
-//		static ICustomMarshaler instanceExcel4v;
-
         List<XlObjectArrayMarshaler> nestedInstances = new List<XlObjectArrayMarshaler>();
 
 		bool isExcel4v;	// Used for calls to Excel4 -- flags that returned native data should look different
@@ -869,16 +873,6 @@ namespace ExcelDna.Loader
 		
         IntPtr pOperPointers; // Used for calls to Excel4v - points to the array of oper addresses
 
-        // 13 November 2006 -- Temporary for debugging crash scenario
-        // Add sizes so that we can zero out memory
-        //int cbNative;
-        //int cbNativeStrings;
-        //int cbNativeReferences;
-        //int cbOperPointers;
-
-
-        
-        
         public XlObjectArrayMarshaler()
         {
             this.rank = 0;  // Must be set before use.
@@ -965,6 +959,7 @@ namespace ExcelDna.Loader
 				throw new InvalidOperationException("Damaged XlObjectArrayMarshaler rank");
 			}
 
+            // Some counters for the multi-pass
             int cbNativeStrings = 0;
 			int numReferenceOpers = 0;
 			int numReferences = 0;
@@ -976,54 +971,64 @@ namespace ExcelDna.Loader
 
 			// Set up returned OPER
 			XlOper* pOper = (XlOper*)pNative;
-			pOper->xlType = XlType.XlTypeArray;
-			pOper->arrayValue.Rows = rows;
-			pOper->arrayValue.Columns = columns;
-			pOper->arrayValue.pOpers = ((XlOper*)pNative + 1);
+            // Excel chokes badly on empty arrays (e.g. crash in function wizard) - rather return the default erro value, #VALUE!
+            if (rows * columns == 0)
+            {
+                pOper->errValue = (ushort)IntegrationMarshalHelpers.ExcelError_ExcelErrorValue;
+                pOper->xlType = XlType.XlTypeError;
+            }
+            else
+            {
+                // Some contents to put into an array....
+                pOper->xlType = XlType.XlTypeArray;
+                pOper->arrayValue.Rows = rows;
+                pOper->arrayValue.Columns = columns;
+                pOper->arrayValue.pOpers = ((XlOper*)pNative + 1);
+            }
+            // This loop won't be entered in the empty-array case (rows * columns == 0)
+            for (int i = 0; i < rows * columns; i++)
+            {
+                // Get the right object out of the array
+                object obj;
+                if (rank == 1)
+                {
+                    obj = ((object[])ManagedObj)[i];
+                }
+                else
+                {
+                    int row = i / allColumns;
+                    int column = i % allColumns;
+                    obj = ((object[,])ManagedObj)[row, column];
+                }
 
-			for (int i = 0; i < rows * columns; i++)
-			{
-				// Get the right object out of the array
-				object obj;
-				if (rank == 1)
-				{
-					obj = ((object[])ManagedObj)[i];
-				}
-				else
-				{
-					int row = i / allColumns;
-					int column = i % allColumns;
-					obj = ((object[,])ManagedObj)[row, column];
-				}
+                // Get the right pOper
+                pOper = (XlOper*)pNative + i + 1;
 
-				// Get the right pOper
-				pOper = (XlOper*)pNative + i + 1;
-
-				// Set up the oper from the object
-				if (obj is double)
-				{
-					pOper->numValue = (double)obj;
-					pOper->xlType = XlType.XlTypeNumber;
-				}
-				else if (obj is string)
-				{
-					// We count all of the string lengths, 
+                // Set up the oper from the object
+                if (obj is double)
+                {
+                    pOper->numValue = (double)obj;
+                    pOper->xlType = XlType.XlTypeNumber;
+                }
+                else if (obj is string)
+                {
+                    // We count all of the string lengths, 
                     string str = (string)obj;
                     cbNativeStrings += Math.Min(str.Length, 255) + 1;
                     // mark the Oper as a string, and
                     // later allocate memory and return to fix pointers
                     pOper->xlType = XlType.XlTypeString;
                 }
-				else if (obj is DateTime)
-				{
-					pOper->numValue = ((DateTime)obj).ToOADate();
-					pOper->xlType = XlType.XlTypeNumber;
-				}
-				else if (IntegrationMarshalHelpers.IsExcelErrorObject(obj))
-				{
-					pOper->errValue = (ushort)IntegrationMarshalHelpers.ExcelErrorGetValue(obj);
-					pOper->xlType = XlType.XlTypeError;
-				}
+                else if (obj is DateTime)
+                {
+                    pOper->numValue = ((DateTime)obj).ToOADate();
+                    pOper->xlType = XlType.XlTypeNumber;
+                }
+                else if (IntegrationMarshalHelpers.IsExcelErrorObject(obj))
+                {
+                    pOper->errValue = (ushort)IntegrationMarshalHelpers.ExcelErrorGetValue(obj);
+                    pOper->xlType = XlType.XlTypeError;
+                }
                 else if (IntegrationMarshalHelpers.IsExcelMissingObject(ManagedObj))
                 {
                     pOper->xlType = XlType.XlTypeMissing;
@@ -1032,26 +1037,26 @@ namespace ExcelDna.Loader
                 {
                     pOper->xlType = XlType.XlTypeEmpty;
                 }
-				else if (obj is bool)
-				{
-					pOper->boolValue = (bool)obj ? (ushort)1 : (ushort)0;
-					pOper->xlType = XlType.XlTypeBoolean;
-				}
-				else if (obj is short)
-				{
-					pOper->numValue = (double)((short)obj); // int16 in XlOper
-					pOper->xlType = XlType.XlTypeNumber;
-				}
-				else if (obj is ushort)
-				{
-					pOper->numValue = (double)((ushort)obj);
-					pOper->xlType = XlType.XlTypeNumber;
-				}
-				else if (obj is int)
-				{
-					pOper->numValue = (double)((int)obj);
-					pOper->xlType = XlType.XlTypeNumber;
-				}
+                else if (obj is bool)
+                {
+                    pOper->boolValue = (bool)obj ? (ushort)1 : (ushort)0;
+                    pOper->xlType = XlType.XlTypeBoolean;
+                }
+                else if (obj is short)
+                {
+                    pOper->numValue = (double)((short)obj); // int16 in XlOper
+                    pOper->xlType = XlType.XlTypeNumber;
+                }
+                else if (obj is ushort)
+                {
+                    pOper->numValue = (double)((ushort)obj);
+                    pOper->xlType = XlType.XlTypeNumber;
+                }
+                else if (obj is int)
+                {
+                    pOper->numValue = (double)((int)obj);
+                    pOper->xlType = XlType.XlTypeNumber;
+                }
                 else if (obj is decimal)
                 {
                     pOper->numValue = (double)((decimal)obj);
@@ -1107,7 +1112,7 @@ namespace ExcelDna.Loader
                     pOper->errValue = (ushort)IntegrationMarshalHelpers.ExcelError_ExcelErrorValue;
                     pOper->xlType = XlType.XlTypeError;
                 }
-			} // end of first pass
+            } // end of first pass
 
 			// Now handle strings
 			if (cbNativeStrings > 0)

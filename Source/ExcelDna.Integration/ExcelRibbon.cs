@@ -23,7 +23,7 @@ namespace ExcelDna.Integration.CustomUI
     [ClassInterface(ClassInterfaceType.AutoDispatch)]
     public class ExcelRibbon : IDTExtensibility2, IRibbonExtensibility //, ICustomTaskPaneConsumer
     {
-        public const string NamespaceCustomUI2010 = @"http://schemas.microsoft.com/office/2009/01/customui";
+        public const string NamespaceCustomUI2010 = @"http://schemas.microsoft.com/office/2009/07/customui";
         public const string NamespaceCustomUI2007 = @"http://schemas.microsoft.com/office/2006/01/customui";
 
         internal DnaLibrary DnaLibrary { get; set; }

@@ -1,151 +1,116 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
 using System.Globalization;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading;
+using System.Windows.Forms;
 
 using ExcelDna.Integration;
-using System.IO;
 
 namespace ExcelDna.Logging
 {
 
     internal partial class LogDisplayForm : Form
     {
-        delegate void WriteLineDelegate(string messages);
-        WriteLineDelegate writelineDelegate;
+        [DllImport("user32.dll")]
+        static extern IntPtr SetFocus(IntPtr hWnd);
+        internal static LogDisplayForm _form;
 
-        IWin32Window _parentWindow;
-
-        public LogDisplayForm(IWin32Window parentWindow)
+        internal static void ShowForm()
         {
-            _parentWindow = parentWindow;
+            if (_form == null)
+            {
+                _form = new LogDisplayForm();
+            }
+            
+            if (_form.Visible == false)
+            {
+                _form.Show(null);
+                // SetFocus(ExcelDnaUtil.WindowHandle);
+            }
+        }
+
+        internal static void HideForm()
+        {
+            if (_form != null)
+            {
+                _form.Close();
+            }
+        }
+
+        System.Windows.Forms.Timer updateTimer;
+
+        internal LogDisplayForm()
+        {
             InitializeComponent();
-            // Force handle creation so we can can BeginInvoke before ever having shown the window.
-            CreateHandle();
             Text = DnaLibrary.CurrentLibraryName + " - Log Display";
-            writelineDelegate = this.WriteLine;
+            CenterToParent();
+            logMessages.VirtualListSize = LogDisplay.LogStrings.Count;
+            updateTimer = new System.Windows.Forms.Timer();
+            updateTimer.Interval = 250;
+            updateTimer.Tick += updateTimer_Tick;
+            updateTimer.Enabled = true;
         }
 
-
-        void ShowLogDisplay()
+        void updateTimer_Tick(object sender, EventArgs e)
         {
-            Text = DnaLibrary.CurrentLibraryName + " - Log Display";
-            if (!Visible)
+            try
             {
-                CenterToParent();
-                Show(_parentWindow);
-            }
-        }
-
-        void HideLogDisplay()
-        {
-            // How can we prevent Excel from also being pushed to back?
-            Hide();
-        }
-
-        private struct SyntaxHighlightingFormat
-        {
-            public SyntaxHighlightingFormat(string stringToMatch, Color color, FontStyle fontStyle)
-            {
-                StringToMatch = stringToMatch;
-                Color = color;
-                FontStyle = fontStyle;
-            }
-            readonly public string StringToMatch;
-            readonly public Color Color;
-            readonly public FontStyle FontStyle;
-        }
-
-        // When a format string is a substring of another, keep the latter first in the sequence!
-        private static IEnumerable<SyntaxHighlightingFormat> syntxHighlights = new SyntaxHighlightingFormat[]
-        {
-            new SyntaxHighlightingFormat("INTERNAL ERROR", Color.Red, FontStyle.Bold),
-            new SyntaxHighlightingFormat("ERROR", Color.Green, FontStyle.Bold)
-        };
-
-        static string lastMessage = null;
-
-        private void WriteLine(string message)
-        {
-            // We don't want to emit the same error message twice. NB Remember all this happens single-threaded!
-            if (string.IsNullOrEmpty(lastMessage) || lastMessage != message)
-            {
-                var oldLength = logMessages.Text.Length;
-                // Set default formatting
-                logMessages.SelectionStart = logMessages.Text.Length;
-                logMessages.SelectionLength = 0;
-                logMessages.SelectionColor = logMessages.ForeColor;
-                logMessages.SelectionFont = logMessages.Font;
-                logMessages.AppendText(message + "\r\n");
-                lastMessage = message;
-                foreach (var item in syntxHighlights)
+                if (LogDisplay.LogStringsUpdated)
                 {
-                    var stringToMatch = item.StringToMatch;
-                    if (message.StartsWith(stringToMatch, true, CultureInfo.InvariantCulture))
-                    {
-                        // Highlight
-                        logMessages.Focus();
-                        logMessages.SelectionStart = oldLength;
-                        logMessages.SelectionLength = stringToMatch.Length;
-                        logMessages.SelectionColor = item.Color;
-                        logMessages.SelectionFont = new Font(logMessages.Font, item.FontStyle);
-                        break;
-                    }
+                    // CONSIDER: There are some race conditions here 
+                    // - but I'd rather have some log mis-painting than deadlock between the UI thread and a calculation thread.
+                    logMessages.VirtualListSize = LogDisplay.LogStrings.Count;
+                    LogDisplay.LogStringsUpdated = false;
+                    //ClearCache();
+                    logMessages.Invalidate();
+                    logMessages.AutoResizeColumn(0, ColumnHeaderAutoResizeStyle.ColumnContent);
+                    // Debug.Print("LogDisplayForm.updateTimer_Tick - Updated to " + logMessages.VirtualListSize + " messages");
                 }
-                // Scroll to end and restore format defaults
-                logMessages.SelectionStart = logMessages.Text.Length;
-                logMessages.SelectionLength = 0;
-                logMessages.ScrollToCaret();
             }
-            ShowLogDisplay();
+            catch (Exception ex)
+            {
+                Debug.Print("Exception in updateTime_Tick: " + ex);
+            }
+        }
+
+        private ListViewItem MakeItem(int messageIndex)
+        {
+            string message;
+            try
+            {
+                message = LogDisplay.LogStrings[messageIndex];
+                if (message.Length > 259)
+                {
+                    message = message.Substring(0, 253) + " [...]";
+                }
+            }
+            catch
+            {
+                message = " ";
+            }
+
+            return new ListViewItem(message);
         }
 
         public void Clear()
         {
-            if (InvokeRequired)
-            {
-                Invoke((MethodInvoker)(delegate() { logMessages.Clear(); }));
-            }
-            else
-            {
-                logMessages.Clear();
-            }
+            logMessages.VirtualListSize = 0;
+            logMessages.AutoResizeColumn(0, ColumnHeaderAutoResizeStyle.ColumnContent);
         }
 
-        public void WriteLine(string format, params object[] args)
-        {
-            try
-            {
-                var message = String.Format(format, args);
-                if (InvokeRequired)
-                {
-                    Invoke(writelineDelegate, message);
-                }
-                else
-                {
-                    WriteLine(message);
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine("LogDisplayForm WriteLine failed: " + e);
-            }
-        }
-
-        // When a form is closed, the handle gets disposed of. This means a successive
-        // Show() call will recreate it in a potentially wrong thread. Esp. in 2007 this
-        // can easily happen in one of the recalc threads. Those threads block and wait for
-        // incoming calc requests, which means the form will block as well.
-        // The solution is to only hide the form. 
         private void LogDisplayForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            HideLogDisplay();
-            e.Cancel = true;
+            _form = null;
+            LogDisplay.IsFormVisible = false;
+            SetFocus(ExcelDnaUtil.WindowHandle);
         }
 
         private void btnSaveErrors_Click(object sender, EventArgs e)
@@ -157,39 +122,102 @@ namespace ExcelDna.Logging
             DialogResult result = sfd.ShowDialog();
             if (result == DialogResult.OK)
             {
-                File.WriteAllText(sfd.FileName, logMessages.Text);
+                File.WriteAllText(sfd.FileName, LogDisplay.GetAllText());
             }
         }
 
         private void btnClear_Click(object sender, EventArgs e)
         {
-            logMessages.Clear();
+            LogDisplay.Clear();
+            Clear();
         }
 
         private void LogDisplayForm_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Escape)
             {
-                HideLogDisplay();
+                Close();
             }
         }
 
-        private void logMessages_LinkClicked(object sender, LinkClickedEventArgs e)
+        private void btnCopy_Click(object sender, EventArgs e)
         {
-            System.Diagnostics.Process.Start(e.LinkText);
+            string allText = LogDisplay.GetAllText();
+            if (allText != null)
+            {
+                Clipboard.SetText(allText);
+            }
+        }
+
+        private void logMessages_RetrieveVirtualItem(object sender, RetrieveVirtualItemEventArgs e)
+        {
+            e.Item = MakeItem(e.ItemIndex);
+        }
+    }
+
+    public class MessageBufferChangedEventArgs : EventArgs
+    {
+        public enum MessageBufferChangeType
+        {
+            Clear,
+            RemoveFirst,
+            AddLast
+        }
+
+        public string AddedMessage { get; set; }
+
+        public MessageBufferChangeType ChangeType { get; set; }
+
+        public MessageBufferChangedEventArgs(MessageBufferChangeType changeType)
+        {
+            ChangeType = changeType;
+        }
+
+        public MessageBufferChangedEventArgs(string addedMessage)
+        {
+            ChangeType = MessageBufferChangeType.AddLast;
+            AddedMessage = addedMessage;
         }
     }
 
     public static class LogDisplay
     {
-        static LogDisplayForm _form;
+        internal static List<string> LogStrings;
+        internal static bool LogStringsUpdated;
+        const int maxLogSize = 10000;   // Max number of strings we'll allow in the buffer. Individual strings are unbounded.
+        internal static object SyncRoot = new object();
+        internal static bool IsFormVisible;
 
+        static SynchronizationContext _syncContext;
+
+        // This must be called on the main Excel thread.
         internal static void CreateInstance()
         {
-            if (_form == null)
+            LogStrings = new List<string>();
+            LogStringsUpdated = true;
+            _syncContext = SynchronizationContext.Current;
+            IsFormVisible = false;
+            if (_syncContext == null)
             {
-                _form = new LogDisplayForm(NativeWindow.FromHandle(ExcelDnaUtil.WindowHandle));
+                _syncContext = new WindowsFormsSynchronizationContext();
+                //Debug.Print("LogDisplay.CreateInstance - Creating SyncContext on thread: " + Thread.CurrentThread.ManagedThreadId);
             }
+        }
+
+        public static void Show()
+        {
+           _syncContext.Post(delegate(object state)
+                {
+                    LogDisplayForm.ShowForm();
+                }, null);
+        }
+
+        public static void Hide()
+        {
+            _syncContext.Post(delegate(object state)
+            {
+                LogDisplayForm.HideForm();
+            }, null);
         }
 
         [Obsolete("Rather use LogDisplay.Clear() and LogDisplay.WriteLine(...)")]
@@ -198,16 +226,57 @@ namespace ExcelDna.Logging
             WriteLine(text);
         }
 
+        // This might be called from any calculation thread - also displays the form.
         public static void WriteLine(string format, params object[] args)
         {
-            Debug.WriteLine("LogDisplay.WriteLine Start.");
-            _form.WriteLine(format, args);
-            Debug.WriteLine("LogDisplay.WriteLine Finished.");
+            //Debug.WriteLine("LogDisplay.WriteLine start on thread " + System.Threading.Thread.CurrentThread.ManagedThreadId);
+            lock (SyncRoot)
+            {
+                if (!IsFormVisible)
+                {
+                    Show();
+                    IsFormVisible = true;
+                }
+                RecordLine(format, args);
+            }
+            //Debug.WriteLine("LogDisplay.WriteLine completed in thread " + System.Threading.Thread.CurrentThread.ManagedThreadId);
+        }
+
+        // This might be called from any calculation thread
+        // Does not force a Show
+        public static void RecordLine(string format, params object[] args)
+        {
+            lock (SyncRoot)
+            {
+                if (LogStrings.Count > maxLogSize)
+                {
+                    LogStrings.RemoveAt(0);
+                }
+                string message = string.Format(format, args);
+                string[] messageLines = message.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                LogStrings.AddRange(messageLines);
+                LogStringsUpdated = true;
+            }
         }
 
         public static void Clear()
         {
-            _form.Clear();
+            lock (SyncRoot)
+            {
+                LogStrings.Clear();
+                LogStringsUpdated = true;
+            }
         }
+
+        internal static string GetAllText()
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (string msg in LogStrings)
+            {
+                sb.AppendLine(msg);
+            }
+            return sb.ToString();
+        }
+
     }
 }
