@@ -1,0 +1,1 @@
+One approach to object reference lifetime management in Excel is to use the RTD functionality introduced in Excel 2002. If you make each object a 'topic' in the RTD server, Excel is pretty good about notifying you (via the DisconnectData call) when the reference has been deleted. An outline of this approach is:

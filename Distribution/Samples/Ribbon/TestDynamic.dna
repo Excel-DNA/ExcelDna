@@ -1,0 +1,58 @@
+<DnaLibrary Name="Ribbon Tests" Language="C#">
+<Reference AssemblyPath="System.Windows.Forms.dll" />
+<![CDATA[
+
+
+using System;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
+using ExcelDna.Integration.CustomUI;
+
+// [ComVisible(true)]
+public class MyRibbon : ExcelRibbon
+{
+
+public override string GetCustomUI(string uiName)
+{
+MessageBox.Show("GetCustomUI called!");
+return 
+@"<customUI xmlns='http://schemas.microsoft.com/office/2006/01/customui' loadImage='LoadImage'>
+      <ribbon>
+        <tabs>
+          <tab id='CustomTab' label='My Dynamic Tab'>
+            <group id='SampleGroup' label='My Dynamic Sample Group'>
+              <button id='Button1' label='My Button Label' image='M' size='large' onAction='RunTagMacro' tag='ShowHelloMessage' />
+              <button id='Button2' label='My Second Button' image='M' size='normal' onAction='OnButtonPressed'/>
+            </group >
+          </tab>
+        </tabs>
+      </ribbon>
+    </customUI>";
+}
+
+public void OnButtonPressed(IRibbonControl control)
+{
+MessageBox.Show("Hello from control " + control.Id);
+}
+
+public static void ShowHelloMessage()
+{
+MessageBox.Show("Hello from 'ShowHelloMessage'.");
+}
+
+}
+ 
+
+public static class MyFunctions
+{
+public static string TestFunction()
+{
+return "Testing...OK";
+}
+
+} 
+
+]]>
+  <!-- Some images that can be used in the Ribbon ui -->
+  <Image Name="M" Path="M.png" Pack="true" />
+</DnaLibrary>

@@ -1,0 +1,185 @@
+<DnaLibrary Language="C#">
+    <Reference AssemblyPath="System.Windows.Forms.dll" />
+    <![CDATA[
+
+    using System;
+    using System.Collections.Generic;
+    using System.Text;
+    using System.Net;
+    using System.Runtime.InteropServices;
+    using System.Diagnostics;
+    using System.Windows.Forms;
+    using ExcelDna.Integration;
+    using ExcelDna.Integration.Rtd;
+
+    public delegate void InstrumentHandler(Instrument instrument);
+
+    public static class StaticIBag
+    {
+        [ExcelFunction(Description = "Get instrument data", Category = "RTD_Test")]
+        public static object GetInstrument(string Name, string Field)
+        {
+            object x = XlCall.RTD("StaticRTD", null, Name, Field);
+            return InstrumentBag.GetData(Name, Field);
+        }
+        [ExcelFunction(Description = "Set instrument data", Category = "RTD_Test")]
+        public static DateTime SetInstrument(string Name, object[] Fields, object[] Data)
+        {
+            InstrumentBag.SetData(Name, Fields, Data);
+            return DateTime.Now;
+        }
+    }
+
+    public static class InstrumentBag
+    {
+        private static Dictionary<string, Instrument> iInstruments = new Dictionary<string, Instrument>();
+        public static object GetData(string Name, string Field)
+        {
+            if (iInstruments.ContainsKey(Name)) { return ((Instrument)iInstruments[Name]).GetData(Field); }
+            { return null; }
+        }
+        public static void SetData(string Name, object[] Fields, object[] Data)
+        {
+            bool isUpdated = false;
+            if (iInstruments.ContainsKey(Name)==false)
+            {
+                iInstruments.Add(Name, new Instrument());
+            }
+            for (int i = 0; i <= Data.GetUpperBound(0); i++)
+            {
+                if
+(Convert.ToString(((Instrument)iInstruments[Name]).GetData(Convert.ToString(Fields[i]))) != Convert.ToString(Data[i]))
+                {
+ 
+((Instrument)iInstruments[Name]).SetData(Convert.ToString(Fields[i]),Data[i]);
+                    isUpdated = true;
+                }
+            }
+            if (isUpdated == true)
+{ UpdateInstrument((Instrument)iInstruments[Name]); }
+        }
+
+        public static void AddRTD(string Name, int TopicID)
+        {
+            if (iInstruments.ContainsKey(Name)) { ((Instrument)iInstruments[Name]).AddRTD(TopicID); }
+        }
+        public static void RemoveRTD(int TopicID)
+        {
+            foreach (KeyValuePair<string, Instrument> x in iInstruments)
+            {
+                if (x.Value.IsRTD(TopicID))
+                {
+                    x.Value.RemoveRTD(TopicID);
+                    break;
+                }
+            }
+        }
+        public static object[,] GetRTD(string Name)
+        {
+            if (iInstruments.ContainsKey(Name)) { return ((Instrument)iInstruments[Name]).GetRTD(); }
+            else { return null; }
+        }
+
+        public static event InstrumentHandler OnInstrumentUpdated;
+        public static void UpdateInstrument(Instrument instrument)
+        {
+            if (OnInstrumentUpdated != null)
+            {
+                OnInstrumentUpdated(instrument);
+            }
+        }
+    }
+
+    public class Instrument
+    {
+        private Dictionary<string, object> iData = new Dictionary<string, object>();
+        private List<int> iRTD = new List<int>();
+        public object GetData(string Field)
+        {
+            if (iData.ContainsKey(Field)) { return iData[Field]; }
+            else { return null; }
+        }
+        public void SetData(string Field, object Data)
+        {
+            if (iData.ContainsKey(Field)) { iData[Field] = Data; }
+            else { iData.Add(Field, Data); }
+        }
+        public bool IsRTD(int TopicID)
+        {
+            return iRTD.Contains(TopicID);
+        }
+        public void RemoveRTD(int TopicID)
+        {
+            if (iRTD.Contains(TopicID)) { iRTD.Remove(TopicID); }
+        }
+        public void AddRTD(int TopicID)
+        {
+            iRTD.Add(TopicID);
+        }
+        public object[,] GetRTD()
+        {
+            object[,] temp = new object[2, iRTD.Count];
+            for (int i = 0; i < iRTD.Count; i++)
+            {
+                temp[0, i] = iRTD[i];
+                temp[1, i] = DateTime.Now;
+            }
+            return temp;
+        }
+    }
+
+    public class StaticRTD : IRtdServer
+    {
+        private IRTDUpdateEvent callback;
+        object[,] tempdata = new object[1,1];
+
+        public object ConnectData(int topicID, ref Array Strings, ref bool GetNewValues)
+        {
+            if (Strings.Length != 2)
+            {
+                throw new Exception("Expecting INSTRUMENT and FIELD");
+            }
+            string name = Strings.GetValue(0) as string;
+            if (name == null || name.Length == 0)
+            {
+                throw new Exception("Expecting INSTRUMENT");
+            }
+            string field = Strings.GetValue(1) as string;
+            if (field == null || field.Length == 0)
+            {
+                throw new Exception("Expecting FIELD");
+            }
+            InstrumentBag.AddRTD(name, topicID);
+            return 1;
+        }
+        public void DisconnectData(int topicID)
+        {
+            InstrumentBag.RemoveRTD(topicID);
+        }
+        public int ServerStart(IRTDUpdateEvent CallbackObject)
+        {
+            InstrumentBag.OnInstrumentUpdated += new InstrumentHandler(InstrumentBagUpdated);
+            callback = CallbackObject;
+            return 1;
+        }
+        public void ServerTerminate()
+        {
+        }
+        public int Heartbeat()
+        {
+            return 1;
+        }
+        public Array RefreshData(ref int topicCount)
+        {
+            topicCount = tempdata.GetUpperBound(0)+1;
+            return tempdata;
+        }
+        private void InstrumentBagUpdated(Instrument instrument)
+        {
+            tempdata = instrument.GetRTD();
+            callback.UpdateNotify();
+        }
+    }
+
+  ]]>
+</DnaLibrary>

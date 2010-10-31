@@ -1,0 +1,70 @@
+<DnaLibrary Language="VB">
+<Reference AssemblyPath="System.Windows.Forms.dll" />
+
+<![CDATA[
+
+Imports System.Windows.Forms
+Imports ExcelDna.Integration
+
+Public Module RtdManager
+
+	
+	<ExcelCommand(MenuName:="Real-Time Update Manager", MenuText:="Set real-time updates to manual")> _ 
+	Sub SetManual() 
+		Dim app as Object
+
+		app = ExcelDnaUtil.Application
+		app.RTD.ThrottleInterval = -1
+		
+		MessageBox.Show("Real-time updates have been set to manual.", "Real-Time Update Manager")
+	End Sub 
+
+	<ExcelCommand(MenuName:="Real-Time Update Manager", MenuText:="Refresh real-time data")> _ 
+	Sub Refresh() 
+		Dim app as Object
+
+		app = ExcelDnaUtil.Application
+		app.RTD.RefreshData
+		
+		MessageBox.Show("RTD updates have been refreshed", "Real-Time Update Manager")
+	End Sub
+
+	<ExcelCommand(MenuName:="Real-Time Update Manager", MenuText:="Set real-time updates rate to 1 second")> _ 
+	Sub SetFastUpdateInterval() 
+		Dim app as Object
+
+		app = ExcelDnaUtil.Application
+		app.RTD.ThrottleInterval = 1000
+		
+		MessageBox.Show("Real-time updates have been set to 1 second.", "Real-Time Update Manager")
+	End Sub 
+
+	<ExcelCommand(MenuName:="Real-Time Update Manager", MenuText:="Reset real-time updates rate to default (2 seconds)")> _ 
+	Sub ResetUpdateInterval() 
+		Dim app as Object
+
+		app = ExcelDnaUtil.Application
+		app.RTD.ThrottleInterval = 2000
+		
+		MessageBox.Show("Real-time updates have been reset to 2 seconds.", "Real-Time Update Manager")
+	End Sub 
+End Module
+
+Public Class RtdManagerAddIn 
+	Implements IExcelAddIn
+	
+	Public Sub AutoOpen() Implements IExcelAddIn.AutoOpen
+		MessageBox.Show("Opening Real-Time Update Manager. Resetting real-time update rate to default (2 seconds).")
+
+		RtdManager.ResetUpdateInterval
+	End Sub
+
+	' CAREFUL: AutoClose is only called if the Add-In is reloaded, or if the add-in is removed from the add-ins list in the Add-In Manager.
+	' AutoClose is not called when Excel closes normally.
+	Public Sub AutoClose() Implements IExcelAddIn.AutoClose
+		MessageBox.Show("Closing Real-Time Update Manager.")
+	End Sub
+End Class
+
+]]>
+</DnaLibrary>
