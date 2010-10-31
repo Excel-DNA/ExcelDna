@@ -5,7 +5,7 @@ ExcelDna brings .NET to Excel power users and developers. The primary target is 
 
 ExcelDna is free for all use, and distributed under a permissive open-source license that also allows commercial use (the OSI approved zlib license).
 
-ExcelDna is developed using .NET 2.0, and users have to install the freely available .NET Framework 2.0 runtime. The integration is by an Excel Add-In (.xll) that exposes .NET code to Excel. The user code can be in text-based (.dna) script files (Visual Basic or C#), or compiled .NET libraries from any language.
+ExcelDna is developed using .NET 2.0, and users have to install the freely available .NET Framework 2.0 runtime (.NET 4 is also supported). The integration is by an Excel Add-In (.xll) that exposes .NET code to Excel. The user code can be in text-based (.dna) script files (Visual Basic, C# or F#), or compiled .NET libraries from any language.
 
 Current status
 --------------

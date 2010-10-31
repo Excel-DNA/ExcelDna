@@ -1,4 +1,4 @@
-To make the RTD examples work, make a copy of ExcelDna.xll in this directory, rename to TestRTD.xll, and open in Excel.
+To make the RTD examples work, make a copy of ExcelDna.xll in this directory, rename it to TestRTD.xll, and open in Excel.
 
 Some functions from the TestRTD.dna to try:
 (By default Excel will update every 2 seconds.)

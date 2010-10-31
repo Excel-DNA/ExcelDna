@@ -125,29 +125,41 @@ namespace ExcelDna.Integration
 		{
 			get
 			{
-				object application = null;
-				application = GetApplicationFromWindow();
-				if (application == null)
-				{
-					// I assume it failed because there was no workbook open
-					// Now make workbook with VBA sheet, according to some Google post
+                object application = null;
+                application = GetApplicationFromWindow();
+                if (application == null)
+                {
+                    // I assume it failed because there was no workbook open
+                    // Now make workbook with VBA sheet, according to some Google post
 
-					// CONSIDER: Alternative of sending WM_USER+18 to Excel - KB 147573
-					//           And trying to retrieve Excel from the ROT using GetActiveObject
-					//           Concern then is whether it is the right instance of the Excel.Application for this process.
+                    // CONSIDER: Alternative of sending WM_USER+18 to Excel - KB 147573
+                    //           And trying to retrieve Excel from the ROT using GetActiveObject
+                    //           Concern then is whether it is the right instance of the Excel.Application for this process.
 
-					// Create new workbook with the right stuff
-					XlCall.Excel(XlCall.xlcEcho, false);
-					XlCall.Excel(XlCall.xlcNew, 5);
-					XlCall.Excel(XlCall.xlcWorkbookInsert, 6);
 
-					application = GetApplicationFromWindow();
+                    // DOCUMENT: Under some circumstances, the C API and Automation interfaces are not available.
+                    //  This happens when there is no Workbook open in Excel.
+                    // We try a (possible) test for whether we can call the C API.
+                    object output;
+                    XlCall.XlReturn result = XlCall.TryExcel(XlCall.xlGetName, out output);
+                    if (result == XlCall.XlReturn.XlReturnFailed)
+                    {
+                        // no plan for getting Application.
+                        throw new InvalidOperationException("Excel API is unavailable - cannot retrieve Application object.");
+                    }
 
-					// Clean up
-					XlCall.Excel(XlCall.xlcFileClose, false);
-					XlCall.Excel(XlCall.xlcEcho, true);
-				}
-				return application;
+                    // Create new workbook with the right stuff
+                    XlCall.Excel(XlCall.xlcEcho, false);
+                    XlCall.Excel(XlCall.xlcNew, 5);
+                    XlCall.Excel(XlCall.xlcWorkbookInsert, 6);
+
+                    application = GetApplicationFromWindow();
+
+                    // Clean up
+                    XlCall.Excel(XlCall.xlcFileClose, false);
+                    XlCall.Excel(XlCall.xlcEcho, true);
+                }
+                return application;
 			}
 		}
 
@@ -169,24 +181,24 @@ namespace ExcelDna.Integration
 				}
 				return true;	// Continue enumerating
 			}, (IntPtr)0);
-			if (hWndChild != (IntPtr)0)
-			{
-				IntPtr pUnk = (IntPtr)0;
-				int hr = AccessibleObjectFromWindow(
-						hWndChild, OBJID_NATIVEOM,
-						IID_IDispatchBytes, ref pUnk);
-				if (hr >= 0)
-				{
-					object obj = Marshal.GetObjectForIUnknown(pUnk);
-					Marshal.Release(pUnk);
+            if (hWndChild != (IntPtr)0)
+            {
+                IntPtr pUnk = (IntPtr)0;
+                int hr = AccessibleObjectFromWindow(
+                        hWndChild, OBJID_NATIVEOM,
+                        IID_IDispatchBytes, ref pUnk);
+                if (hr >= 0)
+                {
+                    object obj = Marshal.GetObjectForIUnknown(pUnk);
+                    Marshal.Release(pUnk);
 
-					object app = obj.GetType().InvokeMember("Application", System.Reflection.BindingFlags.GetProperty, null, obj, null);
-					Marshal.ReleaseComObject(obj);
+                    object app = obj.GetType().InvokeMember("Application", System.Reflection.BindingFlags.GetProperty, null, obj, null);
+                    Marshal.ReleaseComObject(obj);
 
-					//							object ver = app.GetType().InvokeMember("Version", System.Reflection.BindingFlags.GetProperty, null, app, null);
-					return app;
-				}
-			}
+                    //							object ver = app.GetType().InvokeMember("Version", System.Reflection.BindingFlags.GetProperty, null, app, null);
+                    return app;
+                }
+            }
 			return null;
 		}
 

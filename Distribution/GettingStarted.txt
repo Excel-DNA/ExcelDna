@@ -4,7 +4,7 @@ Getting started with ExcelDNA
 Do this first:
 --------------
 
-* The .NET 2.0 runtime must be installed.
+* The .NET 2.0 runtime must be installed (or .NET 4 with additional settings).
 The .NET Framework Version 2.0 Redistributable Package is available from Microsoft here:
 http://www.microsoft.com/downloads/details.aspx?FamilyID=0856eacb-4362-4b0d-8edd-aab15c5e04f5&DisplayLang=en
 
@@ -19,7 +19,7 @@ http://www.microsoft.com/downloads/details.aspx?FamilyID=0856eacb-4362-4b0d-8edd
 	<DnaLibrary>
 	<![CDATA[
 	
-			Public Module MyFunctions
+		Public Module MyFunctions
 
 				Function AddThem(x, y)
 						AddThem = x + y
@@ -80,7 +80,7 @@ ExcelDna can also load any compiled .NET library. Public static functions with a
 	public class SomeClass
 	{
 
-			[ExcelFunction(Description="Multiplies two numbers", Category="Useful functions")]
+	    [ExcelFunction(Description="Multiplies two numbers", Category="Useful functions")]
 	    public static double MultiplyThem(double v1, double v2)
 	    {
         	return v1 * v2;

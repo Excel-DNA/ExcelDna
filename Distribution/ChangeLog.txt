@@ -1,18 +1,21 @@
-Version 0.28 (????)
--------------------
+Version 0.28 (31 October 2010)
+------------------------------
 * Added VS2008 solution and project files.
 * Fixed namespace for Excel 2010 Ribbon.
 * Explicitly create a FullTrust sandbox AppDomain for all add-ins. This makes loading of libraries over a network or http possible under .Net 4, and easier under .Net 2.0.
-* Added http://... support for loading ExternalLibraries  (TODO: Test)
-* Fixed packed image bug. (TODO: Test)
+* Added http://... support for loading ExternalLibraries.
+* Fixed packed image bug.
 * Fixed object[0] marshaling crash.
-* Changed LogDisplay to address freezing report. (TODO: Test)
+* Changed LogDisplay to address freezing report.
 * Added check for <MyAddin>.xll in packer.
-* Reference resolution modified 
+* BREAKING CHANGE! Reference resolution modified:
   - XML Attribute Reference.AssemblyPath renamed to Reference.Path, 
   - Reference resolution first probes using Reference.Path,
-  - then tries LoadWithPartialName is called with Reference.Name.
-* Better error handling when Assembly Load fails, e.g. ExternalLibrary failures.
+  - then LoadWithPartialName is called with Reference.Name.
+* Somehwat better error handling when Assembly Load fails, e.g. ExternalLibrary failures.
+* ExcelRibbon objects only instantiated in Excel 2007 and later.
+* ExcelCommandBarUtil to allow explicit load of command bars xml.
+* BREAKING CHANGE! IRibbonUI, IRibbonControl etc. moved to ExcelDna.Integration.CustomUI namespace to avoid type name clash in external libs.
 
 Version 0.27 (16 August 2010)
 -----------------------------

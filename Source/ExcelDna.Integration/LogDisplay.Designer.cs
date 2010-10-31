@@ -66,7 +66,7 @@ namespace ExcelDna.Logging
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(593, 243);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(622, 284);
             this.tableLayoutPanel1.TabIndex = 3;
             // 
             // btnCopy
@@ -91,7 +91,7 @@ namespace ExcelDna.Logging
             this.logMessages.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
             this.logMessages.Location = new System.Drawing.Point(3, 33);
             this.logMessages.Name = "logMessages";
-            this.logMessages.Size = new System.Drawing.Size(587, 207);
+            this.logMessages.Size = new System.Drawing.Size(616, 248);
             this.logMessages.TabIndex = 1;
             this.logMessages.UseCompatibleStateImageBehavior = false;
             this.logMessages.View = System.Windows.Forms.View.Details;
@@ -116,7 +116,7 @@ namespace ExcelDna.Logging
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.AutoScroll = true;
-            this.ClientSize = new System.Drawing.Size(603, 253);
+            this.ClientSize = new System.Drawing.Size(632, 294);
             this.Controls.Add(this.tableLayoutPanel1);
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;

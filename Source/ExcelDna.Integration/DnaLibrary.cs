@@ -33,9 +33,11 @@ using System.Text;
 using System.Xml.Serialization;
 using System.Xml;
 using System.Xml.Schema;
-using ExcelDna.Integration.CustomUI;
 using System.Drawing;
 using System.Net;
+
+using ExcelDna.Serialization;
+using ExcelDna.Integration.CustomUI;
 
 namespace ExcelDna.Integration
 {
@@ -346,7 +348,7 @@ namespace ExcelDna.Integration
                 {
                     if (xmlCustomUI.LocalName == "commandBars")
                     {
-                        ExcelCommandBars.LoadCommandBars(xmlCustomUI, this);
+                        ExcelCommandBarUtil.LoadCommandBars(xmlCustomUI, this.GetImage);
                     }
                 }
             }
@@ -356,7 +358,7 @@ namespace ExcelDna.Integration
         {
             // This is safe, even if no Com Add-Ins were loaded.
             ExcelComAddIn.UnloadComAddIns();
-            ExcelCommandBars.UnloadCommandBars();
+            ExcelCommandBarUtil.UnloadCommandBars();
         }
 
         // Statics
@@ -410,7 +412,7 @@ namespace ExcelDna.Integration
         public static DnaLibrary LoadFrom(Uri uri)
         {
             DnaLibrary dnaLibrary;
-			XmlSerializer serializer = new Microsoft.Xml.Serialization.GeneratedAssembly.DnaLibrarySerializer();
+			XmlSerializer serializer = new DnaLibrarySerializer();
 
             // The uri might be file or http.
             try
@@ -436,7 +438,7 @@ namespace ExcelDna.Integration
 		public static DnaLibrary LoadFrom(byte[] bytes, string pathResolveRoot)
 		{
 			DnaLibrary dnaLibrary;
-			XmlSerializer serializer = new Microsoft.Xml.Serialization.GeneratedAssembly.DnaLibrarySerializer();
+            XmlSerializer serializer = new DnaLibrarySerializer();
 
 			try
 			{
@@ -468,7 +470,7 @@ namespace ExcelDna.Integration
 
             try
             {
-				XmlSerializer serializer = new Microsoft.Xml.Serialization.GeneratedAssembly.DnaLibrarySerializer();
+                XmlSerializer serializer = new DnaLibrarySerializer();
 				using (FileStream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
                 {
                     dnaLibrary = (DnaLibrary)serializer.Deserialize(fileStream);
@@ -486,7 +488,7 @@ namespace ExcelDna.Integration
 		public static void Save(string fileName, DnaLibrary dnaLibrary)
 		{
 //			XmlSerializer serializer = new XmlSerializer(typeof(DnaLibrary));
-			XmlSerializer serializer = new Microsoft.Xml.Serialization.GeneratedAssembly.DnaLibrarySerializer(); 
+            XmlSerializer serializer = new DnaLibrarySerializer(); 
 			using (FileStream fileStream = new FileStream(fileName, FileMode.Truncate))
 			{
 				serializer.Serialize(fileStream, dnaLibrary);
@@ -496,7 +498,7 @@ namespace ExcelDna.Integration
 		public static byte[] Save(DnaLibrary dnaLibrary)
 		{
 			//			XmlSerializer serializer = new XmlSerializer(typeof(DnaLibrary));
-			XmlSerializer serializer = new Microsoft.Xml.Serialization.GeneratedAssembly.DnaLibrarySerializer();
+            XmlSerializer serializer = new DnaLibrarySerializer();
 			using (MemoryStream ms = new MemoryStream())
 			{
 				serializer.Serialize(ms, dnaLibrary);

@@ -44,7 +44,6 @@ namespace ExcelDna.Integration
             Type[] types = assembly.Assembly.GetTypes();
             foreach (Type t in types)
             {
-                // CONSIDER: Implement ExportAll="false" ?
                 // DOCUMENT: Exclude if not a class, not public, /*abstract,*/ an array,  
                 // open generic type or in "My" namespace.
                 // Some basic checks -- what else?
@@ -116,13 +115,16 @@ namespace ExcelDna.Integration
 		{
 			List<ExcelAddInInfo> addIns = new List<ExcelAddInInfo>();
             Type[] types = assembly.Assembly.GetTypes();
+            bool loadRibbons = (ExcelDnaUtil.ExcelVersion >= 12.0);
+
 			foreach (Type t in types)
 			{
                 try
                 {
+                    
                     Type addInType = t.GetInterface("ExcelDna.Integration.IExcelAddIn");
-                    bool isCustomUI = (t.BaseType == typeof(ExcelRibbon));
-                    if (addInType != null || isCustomUI)
+                    bool isRibbon = (t.BaseType == typeof(ExcelRibbon));
+                    if (addInType != null || (isRibbon && loadRibbons) )
                     {
                         ExcelAddInInfo info = new ExcelAddInInfo();
                         if (addInType != null)
@@ -130,7 +132,7 @@ namespace ExcelDna.Integration
                             info.AutoOpenMethod = addInType.GetMethod("AutoOpen");
                             info.AutoCloseMethod = addInType.GetMethod("AutoClose");
                         }
-                        info.IsCustomUI = isCustomUI;
+                        info.IsCustomUI = isRibbon;
                         info.Instance = Activator.CreateInstance(t);
                         addIns.Add(info);
                     }

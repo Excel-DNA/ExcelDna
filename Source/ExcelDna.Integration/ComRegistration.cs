@@ -33,11 +33,10 @@ using System.IO;
 using System.Xml;
 using System.Drawing;
 using Microsoft.Win32;
-using Microsoft.Office.Core;
-using Extensibility;
-//using Microsoft.Office.Interop.Excel;
 using ExcelDna.ComInterop;
 using ExcelDna.Integration.Rtd;
+using ExcelDna.Integration.CustomUI;
+using ExcelDna.Integration.Extensibility;
 
 using HRESULT = System.Int32;
 using IID = System.Guid;

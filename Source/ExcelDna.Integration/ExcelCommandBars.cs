@@ -6,15 +6,69 @@ using System.Xml.XPath;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Reflection;
-using Microsoft.Office.Core; // Not from PIA, but from ComInterop.cs
-using System.Diagnostics; 
+using System.Diagnostics;
+
+using ExcelDna.Serialization;
+using System.Xml.Serialization;
+using System.IO;
 
 namespace ExcelDna.Integration.CustomUI
 {
-    internal static class ExcelCommandBars
+    public delegate Bitmap GetImageDelegate(string imageName);
+
+    //public class ExcelCommandBars
+    //{
+    //    public ExcelCommandBars()
+    //    {
+    //    }
+
+    //    public virtual string GetCustomUI()
+    //    {
+    //    }
+
+    //    public virtual object GetImage(string imageName)
+    //    {
+
+    //    }
+
+    //    public CommandBarControls Controls
+    //    {
+    //        get
+    //        {
+    //        }
+    //    }
+    //}
+
+    public static class ExcelCommandBarUtil
     {
+        // List of loaded CustomUI 
         static List<XmlNode> loadedCustomUIs = new List<XmlNode>();
-        public static void LoadCommandBars(XmlNode xmlCustomUI, DnaLibrary dnaLibrary)
+
+        // Helper to call Application.CommandBars
+        public static CommandBars GetCommandBars()
+        {
+            Application excelApp = new Application(ExcelDnaUtil.Application);
+            return excelApp.CommandBars;
+        }
+
+        public static void LoadCommandBars(string xmlCustomUI)
+        {
+            LoadCommandBars(xmlCustomUI, delegate(string imageName) { return null; });
+        }
+
+        public static void LoadCommandBars(string xmlCustomUI, GetImageDelegate getImage)
+        {
+            string dnaLibraryWrapper = string.Format(@"<DnaLibrary><CustomUI>{0}</CustomUI></DnaLibrary>", xmlCustomUI);
+            using (var sr = new StringReader(dnaLibraryWrapper))
+            {
+                XmlSerializer serializer = new DnaLibrarySerializer();
+                // TODO: Check for and display errors....
+                DnaLibrary dnaLibrary = (DnaLibrary)serializer.Deserialize(sr);
+                LoadCommandBars(dnaLibrary.CustomUIs[0], getImage);
+            }
+        }
+
+        internal static void LoadCommandBars(XmlNode xmlCustomUI, GetImageDelegate getImage)
         {
             if (xmlCustomUI.NamespaceURI != "http://schemas.excel-dna.net/office/2003/01/commandbars")
             {
@@ -29,7 +83,7 @@ namespace ExcelDna.Integration.CustomUI
             loadedCustomUIs.Add(xmlCustomUI);
             try
             {
-                AddCommandBarControls(excelApp, xmlCustomUI.ChildNodes, dnaLibrary);
+                AddCommandBarControls(excelApp, xmlCustomUI.ChildNodes, getImage);
             }
             catch (Exception e)
             {
@@ -62,7 +116,7 @@ namespace ExcelDna.Integration.CustomUI
             loadedCustomUIs.Clear();
         }
 
-        private static void AddCommandBarControls(Application excelApp, XmlNodeList xmlNodes, DnaLibrary dnaLibrary)
+        private static void AddCommandBarControls(Application excelApp, XmlNodeList xmlNodes, GetImageDelegate getImage)
         {
             foreach (XmlNode childNode in xmlNodes)
             {
@@ -80,7 +134,7 @@ namespace ExcelDna.Integration.CustomUI
                     }
                     if (bar != null)
                     {
-                        AddControls(bar.Controls, childNode.ChildNodes, dnaLibrary);
+                        AddControls(bar.Controls, childNode.ChildNodes, getImage);
                     }
                     else
                     {
@@ -98,7 +152,7 @@ namespace ExcelDna.Integration.CustomUI
                         }
 
                         bar = excelApp.CommandBars.Add(barName, barPosition);
-                        AddControls(bar.Controls, childNode.ChildNodes, dnaLibrary);
+                        AddControls(bar.Controls, childNode.ChildNodes, getImage);
                     }
 
                 }
@@ -135,11 +189,11 @@ namespace ExcelDna.Integration.CustomUI
         }
 
 
-        private static void AddControls(CommandBarControls parentControls, XmlNodeList xmlNodes, DnaLibrary dnaLibrary)
+        private static void AddControls(CommandBarControls parentControls, XmlNodeList xmlNodes, GetImageDelegate getImage)
         {
             foreach (XmlNode childNode in xmlNodes)
             {
-                AddControl(parentControls, childNode, dnaLibrary);
+                AddControl(parentControls, childNode, getImage);
             }
         }
 
@@ -151,20 +205,20 @@ namespace ExcelDna.Integration.CustomUI
             }
         }
 
-        private static void AddControl(CommandBarControls parentControls, XmlNode xmlNode, DnaLibrary dnaLibrary)
+        private static void AddControl(CommandBarControls parentControls, XmlNode xmlNode, GetImageDelegate getImage)
         {
             CommandBarControl newControl;
             if (xmlNode.Name == "popup")
             {
                 string controlName = xmlNode.Attributes["caption"].Value;
                 newControl = parentControls.AddPopup(controlName);
-                ApplyControlAttributes(newControl, xmlNode, dnaLibrary);
-                AddControls(newControl.Controls, xmlNode.ChildNodes, dnaLibrary);
+                ApplyControlAttributes(newControl, xmlNode, getImage);
+                AddControls(newControl.Controls, xmlNode.ChildNodes, getImage);
             }
             else if (xmlNode.Name == "button")
             {
                 newControl = parentControls.AddButton();
-                ApplyControlAttributes(newControl, xmlNode, dnaLibrary);
+                ApplyControlAttributes(newControl, xmlNode, getImage);
             }
         }
 
@@ -188,15 +242,15 @@ namespace ExcelDna.Integration.CustomUI
         }
 
 
-        private static void ApplyControlAttributes(CommandBarControl control, XmlNode xmlNode, DnaLibrary dnaLibrary)
+        private static void ApplyControlAttributes(CommandBarControl control, XmlNode xmlNode, GetImageDelegate getImage)
         {
             foreach (XmlAttribute att in xmlNode.Attributes)
             {
-                ApplyControlAttribute(control, att.Name, att.Value, dnaLibrary);
+                ApplyControlAttribute(control, att.Name, att.Value, getImage);
             }
         }
 
-        private static void ApplyControlAttribute(CommandBarControl control, string attribute, string value, DnaLibrary dnaLibrary)
+        private static void ApplyControlAttribute(CommandBarControl control, string attribute, string value, GetImageDelegate getImage)
         {
             switch (attribute)
             {
@@ -274,7 +328,7 @@ namespace ExcelDna.Integration.CustomUI
                     }
                     break;
                 case "image":
-                    Bitmap image = dnaLibrary.GetImage(value);
+                    Bitmap image = getImage(value);
                     if (image != null)
                     {
                         control.SetButtonImage(image);
@@ -332,358 +386,356 @@ namespace ExcelDna.Integration.CustomUI
             //    return cd;
             //}
         }
-
-        private class CommandBar
+    }
+    public class CommandBar
+    {
+        object _object;
+        Type _type;
+        public CommandBar(object commandBar)
         {
-            object _object;
-            Type _type;
-            public CommandBar(object commandBar)
-            {
-                _object = commandBar;
-                _type = _object.GetType();
-            }
-
-            public CommandBarControls Controls
-            {
-                get
-                {
-                    object controls = _type.InvokeMember("Controls", BindingFlags.GetProperty, null, _object, null);
-                    return new CommandBarControls(controls);
-                }
-            }
-
-            public string Name
-            {
-                get
-                {
-                    object controls = _type.InvokeMember("Name", BindingFlags.GetProperty, null, _object, null);
-                    return controls.ToString();
-                }
-            }
-
-            public bool Visible
-            {
-                set 
-                {
-                    _type.InvokeMember("Visible", BindingFlags.SetProperty, null, _object, new object[] { value });
-                }
-            }
-
-
-            public void Delete()
-            {
-                _type.InvokeMember("Delete", BindingFlags.InvokeMethod, null, _object, null);
-            }
-
+            _object = commandBar;
+            _type = _object.GetType();
         }
 
-        private class CommandBars
+        public CommandBarControls Controls
         {
-            object _object;
-            Type _type;
-
-            public CommandBars(object commandBars)
+            get
             {
-                _object = commandBars;
-                _type = _object.GetType();
+                object controls = _type.InvokeMember("Controls", BindingFlags.GetProperty, null, _object, null);
+                return new CommandBarControls(controls);
             }
+        }
 
-            public CommandBar Add(string name, MsoBarPosition barPosition)
+        public string Name
+        {
+            get
             {
-                object commandBar = _type.InvokeMember("Add", BindingFlags.InvokeMethod, null, _object, new object[] { name, barPosition, Type.Missing, true });
-                CommandBar cb = new CommandBar(commandBar);
-                cb.Visible = true;
+                object controls = _type.InvokeMember("Name", BindingFlags.GetProperty, null, _object, null);
+                return controls.ToString();
+            }
+        }
+
+        public bool Visible
+        {
+            set 
+            {
+                _type.InvokeMember("Visible", BindingFlags.SetProperty, null, _object, new object[] { value });
+            }
+        }
+
+
+        public void Delete()
+        {
+            _type.InvokeMember("Delete", BindingFlags.InvokeMethod, null, _object, null);
+        }
+
+    }
+
+    public class CommandBars
+    {
+        object _object;
+        Type _type;
+
+        public CommandBars(object commandBars)
+        {
+            _object = commandBars;
+            _type = _object.GetType();
+        }
+
+        public CommandBar Add(string name, MsoBarPosition barPosition)
+        {
+            object commandBar = _type.InvokeMember("Add", BindingFlags.InvokeMethod, null, _object, new object[] { name, barPosition, Type.Missing, true });
+            CommandBar cb = new CommandBar(commandBar);
+            cb.Visible = true;
+            return new CommandBar(commandBar);
+        }
+
+        public CommandBar this[string name]
+        {
+            get
+            {
+                object commandBar = _type.InvokeMember("", BindingFlags.GetProperty, null, _object, new object[] { name });
                 return new CommandBar(commandBar);
             }
-
-            public CommandBar this[string name]
-            {
-                get
-                {
-                    object commandBar = _type.InvokeMember("", BindingFlags.GetProperty, null, _object, new object[] { name });
-                    return new CommandBar(commandBar);
-                }
-            }
-
-            public CommandBar this[int i]
-            {
-                get
-                {
-                    object commandBar = _type.InvokeMember("", BindingFlags.GetProperty, null, _object, new object[] { i });
-                    return new CommandBar(commandBar);
-                }
-            }
-
-            public int Count
-            {
-                get
-                {
-                    object i = _type.InvokeMember("Count", BindingFlags.GetProperty, null, _object, null);
-                    return Convert.ToInt32(i);
-                }
-            }
-
         }
 
-        private class CommandBarControl
+        public CommandBar this[int i]
         {
-            object _object;
-            Type _type;
-            public CommandBarControl(object commandBarControl)
+            get
             {
-                _object = commandBarControl;
-                _type = _object.GetType();
-            }
-
-            public CommandBarControls Controls
-            {
-                get
-                {
-                    object controls = _type.InvokeMember("Controls", BindingFlags.GetProperty, null, _object, null);
-                    return new CommandBarControls(controls);
-                }
-            }
-
-            public void SetButtonImage(Bitmap buttonImage)
-            {
-                Clipboard.SetImage(buttonImage);
-                Type t = _object.GetType();
-                t.InvokeMember("Style", BindingFlags.SetProperty, null, _object, new object[] { MsoButtonStyle.msoButtonIconAndCaption });
-                t.InvokeMember("PasteFace", BindingFlags.InvokeMethod, null, _object, null);
-            }
-
-            public int FaceId
-            {
-                get
-                {
-                    return (int)_type.InvokeMember("FaceId", BindingFlags.GetProperty, null, _object, null);
-                }
-                set
-                {
-                    _type.InvokeMember("FaceId", BindingFlags.SetProperty, null, _object, new object[] { value });
-                }
-            }
-
-            public string Caption
-            {
-                get
-                {
-                    return (string)_type.InvokeMember("Caption", BindingFlags.GetProperty, null, _object, null);
-                }
-                set
-                {
-                    _type.InvokeMember("Caption", BindingFlags.SetProperty, null, _object, new object[] { value });
-                }
-            }
-
-            public string Tag
-            {
-                get
-                {
-                    return (string)_type.InvokeMember("Tag", BindingFlags.GetProperty, null, _object, null);
-                }
-                set
-                {
-                    _type.InvokeMember("Tag", BindingFlags.SetProperty, null, _object, new object[] { value });
-                }
-            }
-
-            public string ShortcutText
-            {
-                get
-                {
-                    return (string)_type.InvokeMember("ShortcutText", BindingFlags.GetProperty, null, _object, null);
-                }
-                set
-                {
-                    _type.InvokeMember("ShortcutText", BindingFlags.SetProperty, null, _object, new object[] { value });
-                }
-            }
-
-            public string TooltipText
-            {
-                get
-                {
-                    return (string)_type.InvokeMember("TooltipText", BindingFlags.GetProperty, null, _object, null);
-                }
-                set
-                {
-                    _type.InvokeMember("TooltipText", BindingFlags.SetProperty, null, _object, new object[] { value });
-                }
-            }
-
-            public string OnAction
-            {
-                get
-                {
-                    return (string)_type.InvokeMember("OnAction", BindingFlags.GetProperty, null, _object, null);
-                }
-                set
-                {
-                    _type.InvokeMember("OnAction", BindingFlags.SetProperty, null, _object, new object[] { value });
-                }
-            }
-
-            public bool BeginGroup
-            {
-                get
-                {
-                    return (bool)_type.InvokeMember("BeginGroup", BindingFlags.GetProperty, null, _object, null);
-                }
-                set
-                {
-                    _type.InvokeMember("BeginGroup", BindingFlags.SetProperty, null, _object, new object[] { value });
-                }
-            }
-
-            public bool Enabled
-            {
-                get
-                {
-                    return (bool)_type.InvokeMember("Enabled", BindingFlags.GetProperty, null, _object, null);
-                }
-                set
-                {
-                    _type.InvokeMember("Enabled", BindingFlags.SetProperty, null, _object, new object[] { value });
-                }
-            }
-
-            public int Height
-            {
-                get
-                {
-                    return (int)_type.InvokeMember("Height", BindingFlags.GetProperty, null, _object, null);
-                }
-                set
-                {
-                    _type.InvokeMember("Height", BindingFlags.SetProperty, null, _object, new object[] { value });
-                }
-            }
-
-            public string HelpFile
-            {
-                get
-                {
-                    return (string)_type.InvokeMember("HelpFile", BindingFlags.GetProperty, null, _object, null);
-                }
-                set
-                {
-                    _type.InvokeMember("HelpFile", BindingFlags.SetProperty, null, _object, new object[] { value });
-                }
-            }
-
-            public int HelpContextId
-            {
-                get
-                {
-                    return (int)_type.InvokeMember("HelpContextId", BindingFlags.GetProperty, null, _object, null);
-                }
-                set
-                {
-                    _type.InvokeMember("HelpContextId", BindingFlags.SetProperty, null, _object, new object[] { value });
-                }
-            }
-
-            public MsoButtonStyle Style
-            {
-                get
-                {
-                    return (MsoButtonStyle)_type.InvokeMember("Style", BindingFlags.GetProperty, null, _object, null);
-                }
-                set
-                {
-                    _type.InvokeMember("Style", BindingFlags.SetProperty, null, _object, new object[] { value });
-                }
-            }
-            
-            public void Delete(object Temporary)
-            {
-                _type.InvokeMember("Delete", BindingFlags.InvokeMethod, null, _object, new object[] { Temporary });
+                object commandBar = _type.InvokeMember("", BindingFlags.GetProperty, null, _object, new object[] { i });
+                return new CommandBar(commandBar);
             }
         }
 
-        private class CommandBarControls
+        public int Count
         {
-            object _object;
-            Type _type;
-
-            public CommandBarControls(object commandBarControls)
-            {
-                _object = commandBarControls;
-                _type = _object.GetType();
-            }
-
-            public CommandBarControl this[string name]
-            {
-                get
-                {
-                    object commandBarControl = _type.InvokeMember("", BindingFlags.GetProperty, null, _object, new object[] { name });
-                    return new CommandBarControl(commandBarControl);
-                }
-            }
-
-            public CommandBarControl this[int id]
-            {
-                get
-                {
-                    object commandBarControl = _type.InvokeMember(
-                        "", BindingFlags.GetProperty, null, _object, new object[] { id });
-                    return new CommandBarControl(commandBarControl);
-                }
-            }
-
-            public int Count()
+            get
             {
                 object i = _type.InvokeMember("Count", BindingFlags.GetProperty, null, _object, null);
                 return Convert.ToInt32(i);
             }
+        }
 
-            private CommandBarControl Add(MsoControlType controlType, string name, object Id, object Parameter, object Before, object Temporary)
+    }
+
+    public class CommandBarControl
+    {
+        object _object;
+        Type _type;
+        public CommandBarControl(object commandBarControl)
+        {
+            _object = commandBarControl;
+            _type = _object.GetType();
+        }
+
+        public CommandBarControls Controls
+        {
+            get
             {
-                for (int i = 1; i <= Count(); i++)
-                {
-                    if (!String.IsNullOrEmpty(this[i].Caption))
-                        if (this[i].Caption.Replace("&", "") == name.Replace("&", ""))
-                            return this[i];
-                }
-
-                object /*CommandBarControl*/ newControl = _type.InvokeMember("Add", BindingFlags.InvokeMethod, null, _object,
-                    new object[] { controlType, Id, Parameter, Before, Temporary });
-                return new CommandBarControl(newControl);
-            }
-
-            public CommandBarControl AddButton()
-            {
-                return Add(MsoControlType.msoControlButton, "", 1, Type.Missing, Type.Missing, true);
-            }
-
-            public CommandBarControl AddPopup(string name)
-            {
-                return Add(MsoControlType.msoControlPopup, name, 1, Type.Missing, Type.Missing, true);
-            }
-
-
-            private void Remove(MsoControlType controlType, object id)
-            {
-                for (int i = 1; i <= Count(); i++)
-                {
-                    if (!String.IsNullOrEmpty(this[i].Caption))
-                        if (this[i].Caption.Replace("&", "") == id.ToString().Replace("&", ""))
-                            this[i].Delete(true);
-                }
-            }
-
-            public void RemoveButton()
-            {
-                Remove(MsoControlType.msoControlButton, 1);
-            }
-
-            public void RemovePopup(string name)
-            {
-                Remove(MsoControlType.msoControlPopup, name);
+                object controls = _type.InvokeMember("Controls", BindingFlags.GetProperty, null, _object, null);
+                return new CommandBarControls(controls);
             }
         }
 
+        public void SetButtonImage(Bitmap buttonImage)
+        {
+            Clipboard.SetImage(buttonImage);
+            Type t = _object.GetType();
+            t.InvokeMember("Style", BindingFlags.SetProperty, null, _object, new object[] { MsoButtonStyle.msoButtonIconAndCaption });
+            t.InvokeMember("PasteFace", BindingFlags.InvokeMethod, null, _object, null);
+        }
 
+        public int FaceId
+        {
+            get
+            {
+                return (int)_type.InvokeMember("FaceId", BindingFlags.GetProperty, null, _object, null);
+            }
+            set
+            {
+                _type.InvokeMember("FaceId", BindingFlags.SetProperty, null, _object, new object[] { value });
+            }
+        }
+
+        public string Caption
+        {
+            get
+            {
+                return (string)_type.InvokeMember("Caption", BindingFlags.GetProperty, null, _object, null);
+            }
+            set
+            {
+                _type.InvokeMember("Caption", BindingFlags.SetProperty, null, _object, new object[] { value });
+            }
+        }
+
+        public string Tag
+        {
+            get
+            {
+                return (string)_type.InvokeMember("Tag", BindingFlags.GetProperty, null, _object, null);
+            }
+            set
+            {
+                _type.InvokeMember("Tag", BindingFlags.SetProperty, null, _object, new object[] { value });
+            }
+        }
+
+        public string ShortcutText
+        {
+            get
+            {
+                return (string)_type.InvokeMember("ShortcutText", BindingFlags.GetProperty, null, _object, null);
+            }
+            set
+            {
+                _type.InvokeMember("ShortcutText", BindingFlags.SetProperty, null, _object, new object[] { value });
+            }
+        }
+
+        public string TooltipText
+        {
+            get
+            {
+                return (string)_type.InvokeMember("TooltipText", BindingFlags.GetProperty, null, _object, null);
+            }
+            set
+            {
+                _type.InvokeMember("TooltipText", BindingFlags.SetProperty, null, _object, new object[] { value });
+            }
+        }
+
+        public string OnAction
+        {
+            get
+            {
+                return (string)_type.InvokeMember("OnAction", BindingFlags.GetProperty, null, _object, null);
+            }
+            set
+            {
+                _type.InvokeMember("OnAction", BindingFlags.SetProperty, null, _object, new object[] { value });
+            }
+        }
+
+        public bool BeginGroup
+        {
+            get
+            {
+                return (bool)_type.InvokeMember("BeginGroup", BindingFlags.GetProperty, null, _object, null);
+            }
+            set
+            {
+                _type.InvokeMember("BeginGroup", BindingFlags.SetProperty, null, _object, new object[] { value });
+            }
+        }
+
+        public bool Enabled
+        {
+            get
+            {
+                return (bool)_type.InvokeMember("Enabled", BindingFlags.GetProperty, null, _object, null);
+            }
+            set
+            {
+                _type.InvokeMember("Enabled", BindingFlags.SetProperty, null, _object, new object[] { value });
+            }
+        }
+
+        public int Height
+        {
+            get
+            {
+                return (int)_type.InvokeMember("Height", BindingFlags.GetProperty, null, _object, null);
+            }
+            set
+            {
+                _type.InvokeMember("Height", BindingFlags.SetProperty, null, _object, new object[] { value });
+            }
+        }
+
+        public string HelpFile
+        {
+            get
+            {
+                return (string)_type.InvokeMember("HelpFile", BindingFlags.GetProperty, null, _object, null);
+            }
+            set
+            {
+                _type.InvokeMember("HelpFile", BindingFlags.SetProperty, null, _object, new object[] { value });
+            }
+        }
+
+        public int HelpContextId
+        {
+            get
+            {
+                return (int)_type.InvokeMember("HelpContextId", BindingFlags.GetProperty, null, _object, null);
+            }
+            set
+            {
+                _type.InvokeMember("HelpContextId", BindingFlags.SetProperty, null, _object, new object[] { value });
+            }
+        }
+
+        public MsoButtonStyle Style
+        {
+            get
+            {
+                return (MsoButtonStyle)_type.InvokeMember("Style", BindingFlags.GetProperty, null, _object, null);
+            }
+            set
+            {
+                _type.InvokeMember("Style", BindingFlags.SetProperty, null, _object, new object[] { value });
+            }
+        }
+            
+        public void Delete(object Temporary)
+        {
+            _type.InvokeMember("Delete", BindingFlags.InvokeMethod, null, _object, new object[] { Temporary });
+        }
     }
+
+    public class CommandBarControls
+    {
+        object _object;
+        Type _type;
+
+        public CommandBarControls(object commandBarControls)
+        {
+            _object = commandBarControls;
+            _type = _object.GetType();
+        }
+
+        public CommandBarControl this[string name]
+        {
+            get
+            {
+                object commandBarControl = _type.InvokeMember("", BindingFlags.GetProperty, null, _object, new object[] { name });
+                return new CommandBarControl(commandBarControl);
+            }
+        }
+
+        public CommandBarControl this[int id]
+        {
+            get
+            {
+                object commandBarControl = _type.InvokeMember(
+                    "", BindingFlags.GetProperty, null, _object, new object[] { id });
+                return new CommandBarControl(commandBarControl);
+            }
+        }
+
+        public int Count()
+        {
+            object i = _type.InvokeMember("Count", BindingFlags.GetProperty, null, _object, null);
+            return Convert.ToInt32(i);
+        }
+
+        private CommandBarControl Add(MsoControlType controlType, string name, object Id, object Parameter, object Before, object Temporary)
+        {
+            for (int i = 1; i <= Count(); i++)
+            {
+                if (!String.IsNullOrEmpty(this[i].Caption))
+                    if (this[i].Caption.Replace("&", "") == name.Replace("&", ""))
+                        return this[i];
+            }
+
+            object /*CommandBarControl*/ newControl = _type.InvokeMember("Add", BindingFlags.InvokeMethod, null, _object,
+                new object[] { controlType, Id, Parameter, Before, Temporary });
+            return new CommandBarControl(newControl);
+        }
+
+        public CommandBarControl AddButton()
+        {
+            return Add(MsoControlType.msoControlButton, "", 1, Type.Missing, Type.Missing, true);
+        }
+
+        public CommandBarControl AddPopup(string name)
+        {
+            return Add(MsoControlType.msoControlPopup, name, 1, Type.Missing, Type.Missing, true);
+        }
+
+
+        private void Remove(MsoControlType controlType, object id)
+        {
+            for (int i = 1; i <= Count(); i++)
+            {
+                if (!String.IsNullOrEmpty(this[i].Caption))
+                    if (this[i].Caption.Replace("&", "") == id.ToString().Replace("&", ""))
+                        this[i].Delete(true);
+            }
+        }
+
+        public void RemoveButton()
+        {
+            Remove(MsoControlType.msoControlButton, 1);
+        }
+
+        public void RemovePopup(string name)
+        {
+            Remove(MsoControlType.msoControlPopup, name);
+        }
+    }
+
 }

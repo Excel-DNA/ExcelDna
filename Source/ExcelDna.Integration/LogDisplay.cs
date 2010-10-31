@@ -41,6 +41,7 @@ namespace ExcelDna.Logging
         {
             if (_form != null)
             {
+                _form.updateTimer.Enabled = false;
                 _form.Close();
             }
         }
@@ -63,7 +64,7 @@ namespace ExcelDna.Logging
         {
             try
             {
-                if (LogDisplay.LogStringsUpdated)
+                if (!IsDisposed && updateTimer.Enabled && LogDisplay.LogStringsUpdated)
                 {
                     // CONSIDER: There are some race conditions here 
                     // - but I'd rather have some log mis-painting than deadlock between the UI thread and a calculation thread.
@@ -108,6 +109,7 @@ namespace ExcelDna.Logging
 
         private void LogDisplayForm_FormClosing(object sender, FormClosingEventArgs e)
         {
+            _form.updateTimer.Enabled = false;
             _form = null;
             LogDisplay.IsFormVisible = false;
             SetFocus(ExcelDnaUtil.WindowHandle);
