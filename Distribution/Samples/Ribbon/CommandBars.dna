@@ -1,0 +1,38 @@
+<DnaLibrary Name="Ribbon Tests">
+   <![CDATA[
+  
+
+  Public Module Module1
+    Function AddThem(x, y)
+	AddThem = x + y
+    End Function	
+
+    Sub ShowHelloMessage
+	MsgBox("Hello There!",,"ExcelDna CommandBars!")
+    End Sub
+  End Module
+
+]]>
+  <!-- Some images that can be used in the Ribbon ui -->
+  <Image Name="M" Path="M.png" Pack="true" />
+  
+  <CustomUI>
+    <!-- CommandBars Fallback for Excel version pre-2007, interpreted by ExcelDna (I just made up the namespace for future versioning) -->
+    <commandBars xmlns='http://schemas.excel-dna.net/office/2003/01/commandbars' >
+      <commandBar name='Worksheet Menu Bar'>
+        <!-- Here we add a top-level menu to the main Excel Worksheet menu -->
+        <popup caption='My Excel-Dna Menu' height='19'  >
+          <button caption='Say Hello' onAction='ShowHelloMessage' image='M' beginGroup='true'></button>
+          <button caption='Another Item...' enabled='false' tooltipText='In the tooltip?' />
+          <popup caption='My sub-menu' >
+            <button helpFile='xyz.hlp' faceId='123' helpContextId='134' caption='SubMenu Button' onAction='ShowHelloMessage'/>
+          </popup>
+        </popup>
+      </commandBar>
+      <commandBar name='Cell'>
+        <!-- Here we add a menu to the Excel context menu -->
+        <button caption='New context item' enabled='true' ShortcutText='CTRL+A' onAction="ShowHelloMessage"/>
+      </commandBar>
+    </commandBars>
+  </CustomUI>
+</DnaLibrary>
