@@ -213,8 +213,9 @@
 					' ExcelDna.Integration.ExcelDnaUtil.Application returns a reference
 					' to the Excel Application COM object.
 					' This can be used late-bound from VB, or using the PIA from C#
+					' WARNING: In user-defined functions this might be dangerous!!??
 					Function GetTheExcelVersion() as double
-						GetTheExcelVersion = Excel.Application.Version
+						GetTheExcelVersion = ExcelDnaUtil.Application.Version
 					End Function
 
           				Function GetTheExcelVersionFromExcelDna() as double
@@ -227,7 +228,7 @@
 						'XlCall.Excel(XlCall.xlcOnTime, DateTime.Now, "RingBell")
 
 						' This is not recommended, but it works for me.
-						Excel.Application.OnTime(DateTime.Now.AddSeconds(5), "RingBell")
+						ExcelDnaUtil.Application.OnTime(DateTime.Now.AddSeconds(5), "RingBell")
 						DoLater = "#WAIT!"
 					End Function
 

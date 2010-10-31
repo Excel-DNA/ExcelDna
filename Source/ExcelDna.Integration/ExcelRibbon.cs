@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Runtime.InteropServices;
-using Extensibility;
-using Microsoft.Office.Core;
 using System.Diagnostics;
 using System.IO;
 using System.Drawing;
 using System.Xml;
 using System.Reflection;
 using ExcelDna.ComInterop.ComRegistration;
+using ExcelDna.Integration.Extensibility;
 
 using HRESULT = System.Int32;
 using IID = System.Guid;
@@ -42,6 +41,8 @@ namespace ExcelDna.Integration.CustomUI
         public virtual void OnConnection(object Application, ext_ConnectMode ConnectMode, object AddInInst, ref Array custom)
         {
             Debug.Print("ExcelRibbon.OnConnection");
+            // TODO: Grab an Application reference here and keep around...?
+            //       (check that Excel shuts down if we do).
         }
 
         public virtual void OnDisconnection(ext_DisconnectMode RemoveMode, ref Array custom)

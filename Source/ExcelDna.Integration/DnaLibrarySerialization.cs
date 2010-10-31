@@ -5,7 +5,9 @@
 //#endif
 //[assembly:System.Reflection.AssemblyVersionAttribute("0.28.3942.38387")]
 //[assembly:System.Xml.Serialization.XmlSerializerVersionAttribute(ParentAssemblyId=@"a546b5ff-f351-4947-9491-c4ac689091a0,", Version=@"4.0.0.0")]
-namespace Microsoft.Xml.Serialization.GeneratedAssembly {
+//namespace Microsoft.Serialization.GeneratedAssembly
+namespace ExcelDna.Serialization
+{
 
     public class XmlSerializationWriterDnaLibrary : System.Xml.Serialization.XmlSerializationWriter {
 

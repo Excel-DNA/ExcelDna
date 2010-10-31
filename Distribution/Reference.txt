@@ -116,7 +116,8 @@ Helper classes
 --------------
 ExcelReference - contains a sheet reference. Get/SetValue to read/write to the cells.
 ExcelError - an enum listing the different Excel errors
-ExcelDnaUtils - contains Application property (for COM access), WindowHandle and IsInFunctionWizard, ExcelVersion, ExcelLimits.
+ExcelDnaUtil - contains Application property (for COM access), WindowHandle and IsInFunctionWizard, ExcelVersion, ExcelLimits.
+ExcelCOmmandBarUtil - has LoadCommandBars method to laod command bar xml from a string.
 
 Wrapper for the Excel 97 / Excel 2007 SDK API
 ---------------------------------------------

@@ -73,7 +73,12 @@ namespace ExcelDna.ComInterop
 // c:\Program Files\Microsoft Visual Studio 10.0\Visual Studio Tools for Office\PIA\Common\Extensibility.dll
 #endregion
 
-namespace Extensibility
+// Changed namespace to remove type name clash
+// The interfaces should still work fine due to the interface GUIDs
+// Someday we might add .NET 4 Type exuivalence to properly sort the problem out.
+
+// namespace Extensibility
+namespace ExcelDna.Integration.Extensibility
 {
     [ComImport]
     [Guid(ComAPI.gstrIDTExtensibility2)]
@@ -117,7 +122,13 @@ namespace Extensibility
 #region Assembly Office.dll, v2.0.50727
 // C:\WINDOWS\assembly\GAC_MSIL\Office\14.0.0.0__71e9bce111e9429c\Office.dll
 #endregion
-namespace Microsoft.Office.Core
+
+// Changed namespace to remove type name clash
+// The interfaces should still work fine due to the interface GUIDs
+// Someday we might add .NET 4 Type exuivalence to properly sort the problem out.
+
+//namespace Microsoft.Office.Core
+namespace ExcelDna.Integration.CustomUI
 {
     [ComImport]
     [Guid(ComAPI.gstrIRibbonExtensibility)]
@@ -165,19 +176,19 @@ namespace Microsoft.Office.Core
         void InvalidateControl([In, MarshalAs(UnmanagedType.BStr)] string ControlID);
     }
 
-    // Actually from System.Windows.Forms.UnsafeNativeMethods
-    [ComImport]
-    [Guid("7BF80981-BF32-101A-8BBB-00AA00300CAB")]
-    [InterfaceType(ComInterfaceType.InterfaceIsIDispatch)]
-    public interface IPictureDisp
-    {
-        IntPtr Handle { get; }
-        IntPtr HPal { get; }
-        short PictureType { get; }
-        int Width { get; }
-        int Height { get; }
-        void Render(IntPtr hdc, int x, int y, int cx, int cy, int xSrc, int ySrc, int cxSrc, int cySrc);
-    }
+    //// Actually from System.Windows.Forms.UnsafeNativeMethods
+    //[ComImport]
+    //[Guid("7BF80981-BF32-101A-8BBB-00AA00300CAB")]
+    //[InterfaceType(ComInterfaceType.InterfaceIsIDispatch)]
+    //public interface IPictureDisp
+    //{
+    //    IntPtr Handle { get; }
+    //    IntPtr HPal { get; }
+    //    short PictureType { get; }
+    //    int Width { get; }
+    //    int Height { get; }
+    //    void Render(IntPtr hdc, int x, int y, int cx, int cy, int xSrc, int ySrc, int cxSrc, int cySrc);
+    //}
 }
 
 #region Assembly Microsoft.Office.Interop.Excel.dll, v1.1.4322
@@ -287,9 +298,14 @@ namespace ExcelDna.Integration.Rtd
 // C:\WINDOWS\assembly\GAC\Office\12.0.0.0__71e9bce111e9429c\Office.dll
 #endregion
 
-namespace Microsoft.Office.Core
+// Changed namespace to remove type name clash
+// The interfaces should still work fine due to the interface GUIDs
+// Someday we might add .NET 4 Type exuivalence to properly sort the problem out.
+
+//namespace Microsoft.Office.Core
+namespace ExcelDna.Integration.CustomUI
 {
-    internal enum MsoBarPosition
+    public enum MsoBarPosition
     {
         msoBarLeft = 0,
         msoBarTop = 1,
@@ -300,7 +316,7 @@ namespace Microsoft.Office.Core
         msoBarMenuBar = 6
     }
 
-    internal enum MsoButtonStyle
+    public enum MsoButtonStyle
     {
         msoButtonAutomatic = 0,
         msoButtonIcon = 1,
