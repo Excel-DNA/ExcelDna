@@ -998,7 +998,7 @@ namespace ExcelDna.Loader
                 object obj;
                 if (rank == 1)
                 {
-                    obj = ((object[])ManagedObj)[i];
+                    obj = ((object[])ManagedObj)[columnBase + i];
                 }
                 else
                 {
