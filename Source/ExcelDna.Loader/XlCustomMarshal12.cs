@@ -1138,19 +1138,25 @@ namespace ExcelDna.Loader
 
 				int rows;
 				int columns; // those in the returned array
+                int rowBase;
+                int columnBase;
 				if (rank == 1)
 				{
 					object[] objects = (object[])ManagedObj;
 
 					rows = 1;
+                    rowBase = 0;
 					columns = objects.Length;
+                    columnBase = objects.GetLowerBound(0);
 				}
 				else if (rank == 2)
 				{
 					object[,] objects = (object[,])ManagedObj;
 
 					rows = objects.GetLength(0);
+                    rowBase = objects.GetLowerBound(0);
 					columns = objects.GetLength(1);
+                    columnBase = objects.GetLowerBound(0);
 				}
 				else
 				{
@@ -1195,7 +1201,7 @@ namespace ExcelDna.Loader
 					{
 						int row = i / columns;
 						int column = i % columns;
-						obj = ((object[,])ManagedObj)[row, column];
+						obj = ((object[,])ManagedObj)[rowBase + row, columnBase + column];
 					}
 
 					// Get the right pOper
@@ -1362,7 +1368,7 @@ namespace ExcelDna.Loader
 							{
 								int row = i / columns;
 								int column = i % columns;
-								str = (string)((object[,])ManagedObj)[row, column];
+								str = (string)((object[,])ManagedObj)[rowBase + row, columnBase + column];
 							}
 
 							XlString12* pdest = (XlString12*)pCurrent;
@@ -1410,7 +1416,7 @@ namespace ExcelDna.Loader
 							{
 								int row = i / columns;
 								int column = i % columns;
-								r = /*(ExcelReference)*/((object[,])ManagedObj)[row, column];
+								r = /*(ExcelReference)*/((object[,])ManagedObj)[rowBase + row, columnBase + column];
 							}
 
 							int refCount = IntegrationMarshalHelpers.ExcelReferenceGetRectangleCount(r); // r.InnerReferences.Count

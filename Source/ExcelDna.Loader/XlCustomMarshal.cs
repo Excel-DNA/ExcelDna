@@ -936,23 +936,29 @@ namespace ExcelDna.Loader
 			Reset(true);
 
 			ushort rows;
+            int rowBase;
 			ushort columns; // those in the returned array
+            int columnBase;
 			int allColumns;	// all in the managed array
 			if (rank == 1)
 			{
 				object[] objects = (object[])ManagedObj;
 
 				rows = 1;
+                rowBase = 0;
 				allColumns = objects.Length;
 				columns = (ushort)Math.Min(objects.Length, ushort.MaxValue);
+                columnBase = objects.GetLowerBound(0);
 			}
 			else if (rank == 2)
 			{
 				object[,] objects = (object[,])ManagedObj;
 
 				rows = (ushort)Math.Min(objects.GetLength(0), ushort.MaxValue);
+                rowBase = objects.GetLowerBound(0);
 				allColumns = objects.GetLength(1);
 				columns = (ushort)Math.Min(objects.GetLength(1), ushort.MaxValue);
+                columnBase = objects.GetLowerBound(1);
 			}
 			else
 			{
@@ -998,7 +1004,7 @@ namespace ExcelDna.Loader
                 {
                     int row = i / allColumns;
                     int column = i % allColumns;
-                    obj = ((object[,])ManagedObj)[row, column];
+                    obj = ((object[,])ManagedObj)[rowBase + row, columnBase + column];
                 }
 
                 // Get the right pOper
@@ -1137,7 +1143,7 @@ namespace ExcelDna.Loader
 						{
 							int row = i / allColumns;
 							int column = i % allColumns;
-							str = (string)((object[,])ManagedObj)[row, column];
+							str = (string)((object[,])ManagedObj)[rowBase + row, columnBase + column];
 						}
 
                         XlString* pXlString = (XlString*)pCurrent;
@@ -1185,7 +1191,7 @@ namespace ExcelDna.Loader
 						{
 							int row = i / allColumns;
 							int column = i % allColumns;
-							r = /*(ExcelReference)*/((object[,])ManagedObj)[row, column];
+							r = /*(ExcelReference)*/((object[,])ManagedObj)[rowBase + row, columnBase + column];
 						}
 
                         int refCount = IntegrationMarshalHelpers.ExcelReferenceGetRectangleCount(r); // r.InnerReferences.Count
