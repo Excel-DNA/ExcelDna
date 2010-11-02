@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Xml;
-using System.Xml.XPath;
-using System.Windows.Forms;
-using System.Drawing;
-using System.Reflection;
 using System.Diagnostics;
-
-using ExcelDna.Serialization;
-using System.Xml.Serialization;
+using System.Drawing;
 using System.IO;
+using System.Text;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
+using System.Xml;
+using System.Xml.Serialization;
+using System.Xml.XPath;
+using ExcelDna.Serialization;
 
 namespace ExcelDna.Integration.CustomUI
 {
@@ -188,7 +188,6 @@ namespace ExcelDna.Integration.CustomUI
             }
         }
 
-
         private static void AddControls(CommandBarControls parentControls, XmlNodeList xmlNodes, GetImageDelegate getImage)
         {
             foreach (XmlNode childNode in xmlNodes)
@@ -207,36 +206,38 @@ namespace ExcelDna.Integration.CustomUI
 
         private static void AddControl(CommandBarControls parentControls, XmlNode xmlNode, GetImageDelegate getImage)
         {
-            CommandBarControl newControl;
             if (xmlNode.Name == "popup")
             {
                 string controlName = xmlNode.Attributes["caption"].Value;
-                newControl = parentControls.AddPopup(controlName);
-                ApplyControlAttributes(newControl, xmlNode, getImage);
-                AddControls(newControl.Controls, xmlNode.ChildNodes, getImage);
+                CommandBarPopup newPopup = parentControls.AddPopup(controlName);
+                ApplyControlAttributes(newPopup, xmlNode, getImage);
+                AddControls(newPopup.Controls, xmlNode.ChildNodes, getImage);
             }
             else if (xmlNode.Name == "button")
             {
-                newControl = parentControls.AddButton();
-                ApplyControlAttributes(newControl, xmlNode, getImage);
+                CommandBarButton newButton = parentControls.AddButton();
+                ApplyControlAttributes(newButton, xmlNode, getImage);
             }
         }
 
         private static void RemoveControl(CommandBarControls parentControls, XmlNode xmlNode)
         {
-            string controlName = xmlNode.Attributes["caption"].Value;
             if (xmlNode.Name == "popup")
             {
-                CommandBarControl cb = parentControls[controlName];
-                RemoveControls(cb.Controls, xmlNode.ChildNodes);
-
-                if (cb.Controls.Count() == 0)
+                string controlName = xmlNode.Attributes["caption"].Value;
+                CommandBarPopup cb = (parentControls[controlName] as CommandBarPopup);
+                if (cb != null)
                 {
-                    cb.Delete(true);
+                    RemoveControls(cb.Controls, xmlNode.ChildNodes);
+                    if (cb.Controls.Count() == 0)
+                    {
+                        cb.Delete(true);
+                    }
                 }
             }
             if (xmlNode.Name == "button")
             {
+                string controlName = xmlNode.Attributes["caption"].Value;
                 parentControls[controlName].Delete(true);
             }
         }
@@ -314,36 +315,64 @@ namespace ExcelDna.Integration.CustomUI
                     control.TooltipText = value;
                     break;
                 case "shortcutText":
-                    control.ShortcutText = value;
-                    break;
-                case "faceId":
-                    int faceId;
-                    if (int.TryParse(value, out faceId))
+                    if (control is CommandBarButton)
                     {
-                        control.FaceId = faceId;
+                        (control as CommandBarButton).ShortcutText = value;
                     }
                     else
                     {
-                        Debug.Print("Could not parse 'faceId' attribute: {0}", value);
+                        Debug.Print("shortcutText only supported on Buttons");
+                    }
+                    break;
+                case "faceId":
+                    if (control is CommandBarButton)
+                    {
+                        int faceId;
+                        if (int.TryParse(value, out faceId))
+                        {
+                            (control as CommandBarButton).FaceId = faceId;
+                        }
+                        else
+                        {
+                            Debug.Print("Could not parse 'faceId' attribute: {0}", value);
+                        }
+                    }
+                    else
+                    {
+                        Debug.Print("faceif only supported on Buttons");
                     }
                     break;
                 case "image":
-                    Bitmap image = getImage(value);
-                    if (image != null)
+                    if (control is CommandBarButton)
                     {
-                        control.SetButtonImage(image);
+                        Bitmap image = getImage(value);
+                        if (image != null)
+                        {
+                            (control as CommandBarButton).SetButtonImage(image);
+                        }
+                        else
+                        {
+                            Debug.Print("Could not find or load image {0}", value);
+                        }
                     }
                     else
                     {
-                        Debug.Print("Could not find or load image {0}", value);
+                        Debug.Print("image only supported on Buttons");
                     }
                     break;
                 case "style":
                 case "MsoButtonStyle":  // Compatible with original style code.
-                    if (Enum.IsDefined(typeof(MsoButtonStyle), value))
-                        control.Style = (MsoButtonStyle)Enum.Parse(typeof(MsoButtonStyle), value, false);
+                    if (control is CommandBarButton)
+                    {
+                        if (Enum.IsDefined(typeof(MsoButtonStyle), value))
+                            (control as CommandBarButton).Style = (MsoButtonStyle)Enum.Parse(typeof(MsoButtonStyle), value, false);
+                        else
+                            (control as CommandBarButton).Style = MsoButtonStyle.msoButtonAutomatic;
+                    }
                     else
-                        control.Style = MsoButtonStyle.msoButtonAutomatic;
+                    {
+                        Debug.Print("style only supported on Buttons");
+                    }
                     break;
                 default:
                     Debug.Print("Unknown attribute '{0}' - ignoring.", attribute);
@@ -356,6 +385,7 @@ namespace ExcelDna.Integration.CustomUI
         {
             object _object;
             Type _type;
+            
             public Application(object application)
             {
                 _object = application;
@@ -370,31 +400,36 @@ namespace ExcelDna.Integration.CustomUI
                     return new CommandBars(commandBars);
                 }
             }
-
-            //public CommandBarControl AddCommandBarMenu(string commandBarName, int? before)
-            //{
-            //    CommandBarControl cd;
-            //    if (before == null)
-            //    {
-            //        cd = CommandBars[commandBarName].Controls.Add(MsoControlType.msoControlPopup, Type.Missing, Type.Missing, Type.Missing, true);
-            //    }
-            //    else
-            //    {
-            //        int b = (int)before;
-            //        cd = CommandBars[commandBarName].Controls.Add(MsoControlType.msoControlButton, Type.Missing, Type.Missing, b, true);
-            //    }
-            //    return cd;
-            //}
         }
     }
+
+    // Pattern for event handlers: myControl.GetType().GetEvent("Click").AddEventHandler(myControl, myControlHandler);
+    // - Nope - need to do explicit ConnectionPoints.... http://www.codeproject.com/KB/cs/zetalatebindingcomevents.aspx
+
+    // CommandBar events info: http://msdn.microsoft.com/en-us/library/aa189726(office.10).aspx
+    /*
+        The CommandBars collection and the CommandBarButton and CommandBarComboBox objects expose the following event procedures that you can use to run code in response to an event:
+
+        The CommandBars collection supports the OnUpdate event, which is triggered in response to changes made to a Microsoft® Office document that might affect the state of any visible command bar or command bar control. For example, the OnUpdate event occurs when a user changes the selection in an Office document. You can use this event to change the availability or state of command bars or command bar controls in response to actions taken by the user.
+        Note   The OnUpdate event can be triggered repeatedly in many different contexts. Any code you add to this event that does a lot of processing or performs a number of actions might affect the performance of your application.
+        The CommandBarButton control exposes a Click event that is triggered when a user clicks a command bar button. You can use this event to run code when the user clicks a command bar button.
+        The CommandBarComboBox control exposes a Change event that is triggered when a user makes a selection from a combo box control. You can use this method to take an action depending on what selection the user makes from a combo box control on a command bar.
+     */
+
     public class CommandBar
     {
         object _object;
         Type _type;
-        public CommandBar(object commandBar)
+        
+        internal CommandBar(object commandBar)
         {
             _object = commandBar;
             _type = _object.GetType();
+        }
+
+        public object GetComObject()
+        {
+            return _object;
         }
 
         public CommandBarControls Controls
@@ -417,12 +452,15 @@ namespace ExcelDna.Integration.CustomUI
 
         public bool Visible
         {
-            set 
+            get
+            {
+                return (bool)_type.InvokeMember("Visible", BindingFlags.GetProperty, null, _object, null);
+            }
+            set
             {
                 _type.InvokeMember("Visible", BindingFlags.SetProperty, null, _object, new object[] { value });
             }
         }
-
 
         public void Delete()
         {
@@ -436,10 +474,15 @@ namespace ExcelDna.Integration.CustomUI
         object _object;
         Type _type;
 
-        public CommandBars(object commandBars)
+        internal CommandBars(object commandBars)
         {
             _object = commandBars;
             _type = _object.GetType();
+        }
+
+        public object GetComObject()
+        {
+            return _object;
         }
 
         public CommandBar Add(string name, MsoBarPosition barPosition)
@@ -477,45 +520,82 @@ namespace ExcelDna.Integration.CustomUI
             }
         }
 
+        //public event EventHandler OnUpdate
+        //{
+        //    add
+        //    {
+        //    }
+        //    remove
+        //    {
+        //    }
+        //}
     }
 
     public class CommandBarControl
     {
-        object _object;
-        Type _type;
-        public CommandBarControl(object commandBarControl)
+        private static Guid guidCommandBarButton = new Guid("000C030E-0000-0000-C000-000000000046");
+        private static Guid guidCommandBarPopup = new Guid("000C030A-0000-0000-C000-000000000046");
+        private static Guid guidCommandBarComboBox = new Guid("000C030C-0000-0000-C000-000000000046");
+
+        internal protected object _object;
+        internal protected Type _type;
+        
+        internal CommandBarControl(object commandBarControl)
         {
             _object = commandBarControl;
             _type = _object.GetType();
         }
 
-        public CommandBarControls Controls
+        internal static CommandBarControl CreateCommandBarControl(MsoControlType controlType, object commandBarControl)
         {
-            get
+            if (controlType == MsoControlType.msoControlButton)
             {
-                object controls = _type.InvokeMember("Controls", BindingFlags.GetProperty, null, _object, null);
-                return new CommandBarControls(controls);
+                return new CommandBarButton(commandBarControl);
             }
+            if (controlType == MsoControlType.msoControlPopup)
+            {
+                return new CommandBarPopup(commandBarControl);
+            }
+            if (controlType == MsoControlType.msoControlComboBox)
+            {
+                return new CommandBarComboBox(commandBarControl);
+            }
+            return new CommandBarControl(commandBarControl);
         }
 
-        public void SetButtonImage(Bitmap buttonImage)
+        // In this case we check the interfaces for the right type
+        internal static CommandBarControl CreateCommandBarControl(object commandBarControl)
         {
-            Clipboard.SetImage(buttonImage);
-            Type t = _object.GetType();
-            t.InvokeMember("Style", BindingFlags.SetProperty, null, _object, new object[] { MsoButtonStyle.msoButtonIconAndCaption });
-            t.InvokeMember("PasteFace", BindingFlags.InvokeMethod, null, _object, null);
+            IntPtr pUnk = Marshal.GetIUnknownForObject(commandBarControl);
+            
+            IntPtr pButton;
+            Marshal.QueryInterface(pUnk, ref guidCommandBarButton, out pButton);
+            if (pButton != IntPtr.Zero)
+            {
+                return new CommandBarButton(commandBarControl);
+            }
+
+            IntPtr pPopup;
+            Marshal.QueryInterface(pUnk, ref guidCommandBarPopup, out pPopup);
+            if (pPopup != IntPtr.Zero)
+            {
+                return new CommandBarPopup(commandBarControl);
+            }
+
+            IntPtr pComboBox;
+            Marshal.QueryInterface(pUnk, ref guidCommandBarPopup, out pComboBox);
+            if (pComboBox != IntPtr.Zero)
+            {
+                return new CommandBarComboBox(commandBarControl);
+            }
+
+            return new CommandBarControl(commandBarControl);
         }
 
-        public int FaceId
+
+        public object GetComObject()
         {
-            get
-            {
-                return (int)_type.InvokeMember("FaceId", BindingFlags.GetProperty, null, _object, null);
-            }
-            set
-            {
-                _type.InvokeMember("FaceId", BindingFlags.SetProperty, null, _object, new object[] { value });
-            }
+            return _object;
         }
 
         public string Caption
@@ -539,18 +619,6 @@ namespace ExcelDna.Integration.CustomUI
             set
             {
                 _type.InvokeMember("Tag", BindingFlags.SetProperty, null, _object, new object[] { value });
-            }
-        }
-
-        public string ShortcutText
-        {
-            get
-            {
-                return (string)_type.InvokeMember("ShortcutText", BindingFlags.GetProperty, null, _object, null);
-            }
-            set
-            {
-                _type.InvokeMember("ShortcutText", BindingFlags.SetProperty, null, _object, new object[] { value });
             }
         }
 
@@ -638,15 +706,15 @@ namespace ExcelDna.Integration.CustomUI
             }
         }
 
-        public MsoButtonStyle Style
+        public bool Visible
         {
             get
             {
-                return (MsoButtonStyle)_type.InvokeMember("Style", BindingFlags.GetProperty, null, _object, null);
+                return (bool)_type.InvokeMember("Visible", BindingFlags.GetProperty, null, _object, null);
             }
             set
             {
-                _type.InvokeMember("Style", BindingFlags.SetProperty, null, _object, new object[] { value });
+                _type.InvokeMember("Visible", BindingFlags.SetProperty, null, _object, new object[] { value });
             }
         }
             
@@ -661,10 +729,15 @@ namespace ExcelDna.Integration.CustomUI
         object _object;
         Type _type;
 
-        public CommandBarControls(object commandBarControls)
+        internal CommandBarControls(object commandBarControls)
         {
             _object = commandBarControls;
             _type = _object.GetType();
+        }
+
+        public object GetComObject()
+        {
+            return _object;
         }
 
         public CommandBarControl this[string name]
@@ -672,7 +745,7 @@ namespace ExcelDna.Integration.CustomUI
             get
             {
                 object commandBarControl = _type.InvokeMember("", BindingFlags.GetProperty, null, _object, new object[] { name });
-                return new CommandBarControl(commandBarControl);
+                return CommandBarControl.CreateCommandBarControl(commandBarControl);
             }
         }
 
@@ -682,7 +755,7 @@ namespace ExcelDna.Integration.CustomUI
             {
                 object commandBarControl = _type.InvokeMember(
                     "", BindingFlags.GetProperty, null, _object, new object[] { id });
-                return new CommandBarControl(commandBarControl);
+                return CommandBarControl.CreateCommandBarControl(commandBarControl);
             }
         }
 
@@ -692,30 +765,45 @@ namespace ExcelDna.Integration.CustomUI
             return Convert.ToInt32(i);
         }
 
-        private CommandBarControl Add(MsoControlType controlType, string name, object Id, object Parameter, object Before, object Temporary)
+        public CommandBarControl Add(MsoControlType controlType, object Id, object Parameter, object Before, object Temporary)
         {
-            for (int i = 1; i <= Count(); i++)
+            return FindOrAdd(controlType, null, Id, Parameter, Before, Temporary);
+        }
+
+        internal CommandBarControl FindOrAdd(MsoControlType controlType, string name, object Id, object Parameter, object Before, object Temporary)
+        {
+            if (name != null)
             {
-                if (!String.IsNullOrEmpty(this[i].Caption))
-                    if (this[i].Caption.Replace("&", "") == name.Replace("&", ""))
-                        return this[i];
+                // Try to find an existing control with this name
+                string findName = name.Replace("&", "");
+                for (int i = 1; i <= Count(); i++)
+                {
+                    if (!String.IsNullOrEmpty(this[i].Caption))
+                        if (this[i].Caption.Replace("&", "") == findName)
+                            return this[i];
+                }
             }
 
             object /*CommandBarControl*/ newControl = _type.InvokeMember("Add", BindingFlags.InvokeMethod, null, _object,
                 new object[] { controlType, Id, Parameter, Before, Temporary });
-            return new CommandBarControl(newControl);
+
+            return CommandBarControl.CreateCommandBarControl(controlType, newControl);
         }
 
-        public CommandBarControl AddButton()
+        public CommandBarButton AddButton()
         {
-            return Add(MsoControlType.msoControlButton, "", 1, Type.Missing, Type.Missing, true);
+            return (CommandBarButton)Add(MsoControlType.msoControlButton, 1, Type.Missing, Type.Missing, true);
         }
 
-        public CommandBarControl AddPopup(string name)
+        public CommandBarPopup AddPopup(string name)
         {
-            return Add(MsoControlType.msoControlPopup, name, 1, Type.Missing, Type.Missing, true);
+            return (CommandBarPopup)FindOrAdd(MsoControlType.msoControlPopup, name, 1, Type.Missing, Type.Missing, true);
         }
 
+        public CommandBarComboBox AddComboBox()
+        {
+            return (CommandBarComboBox)Add(MsoControlType.msoControlComboBox, 1, Type.Missing, Type.Missing, true);
+        }
 
         private void Remove(MsoControlType controlType, object id)
         {
@@ -738,4 +826,158 @@ namespace ExcelDna.Integration.CustomUI
         }
     }
 
+    //public class CommandBarButtonClickEventArgs : EventArgs
+    //{
+    //    public bool CancelDefault;
+    //}
+
+    public class CommandBarButton : CommandBarControl
+    {
+        internal CommandBarButton(object CommandBarControl)
+            : base(CommandBarControl)
+        {
+        }
+
+        public void SetButtonImage(Bitmap buttonImage)
+        {
+            // IDataObject oldContent = Clipboard.GetDataObject();
+            Clipboard.SetImage(buttonImage);
+            Type t = _object.GetType();
+            t.InvokeMember("Style", BindingFlags.SetProperty, null, _object, new object[] { MsoButtonStyle.msoButtonIconAndCaption });
+            t.InvokeMember("PasteFace", BindingFlags.InvokeMethod, null, _object, null);
+            Clipboard.Clear();
+            // Clipboard.SetDataObject(oldContent);
+        }
+
+        public int FaceId
+        {
+            get
+            {
+                return (int)_type.InvokeMember("FaceId", BindingFlags.GetProperty, null, _object, null);
+            }
+            set
+            {
+                _type.InvokeMember("FaceId", BindingFlags.SetProperty, null, _object, new object[] { value });
+            }
+        }
+
+        public MsoButtonStyle Style
+        {
+            get
+            {
+                return (MsoButtonStyle)_type.InvokeMember("Style", BindingFlags.GetProperty, null, _object, null);
+            }
+            set
+            {
+                _type.InvokeMember("Style", BindingFlags.SetProperty, null, _object, new object[] { value });
+            }
+        }
+
+        public string ShortcutText
+        {
+            get
+            {
+                return (string)_type.InvokeMember("ShortcutText", BindingFlags.GetProperty, null, _object, null);
+            }
+            set
+            {
+                _type.InvokeMember("ShortcutText", BindingFlags.SetProperty, null, _object, new object[] { value });
+            }
+        }
+
+        //public event EventHandler<CommandBarButtonClickEventArgs> Click
+        //{
+        //    add
+        //    {
+        //    }
+        //    remove
+        //    {
+        //    }
+        //}
+    }
+
+    public class CommandBarPopup : CommandBarControl
+    {
+        public CommandBarPopup(object CommandBarControl)
+            : base(CommandBarControl)
+        {
+        }
+
+        public CommandBarControls Controls
+        {
+            get
+            {
+                object controls = _type.InvokeMember("Controls", BindingFlags.GetProperty, null, _object, null);
+                return new CommandBarControls(controls);
+            }
+        }
+    }
+
+    public class CommandBarComboBox : CommandBarControl
+    {
+        public CommandBarComboBox(object CommandBarControl)
+            : base(CommandBarControl)
+        {
+        }
+    }
+
+
+    //#region Assembly Office.dll, v1.1.4322
+    // C:\WINDOWS\assembly\GAC\Office\12.0.0.0__71e9bce111e9429c\Office.dll
+    //#endregion
+
+    //namespace Microsoft.Office.Core
+    public enum MsoBarPosition
+    {
+        msoBarLeft = 0,
+        msoBarTop = 1,
+        msoBarRight = 2,
+        msoBarBottom = 3,
+        msoBarFloating = 4,
+        msoBarPopup = 5,
+        msoBarMenuBar = 6
+    }
+
+    public enum MsoButtonStyle
+    {
+        msoButtonAutomatic = 0,
+        msoButtonIcon = 1,
+        msoButtonCaption = 2,
+        msoButtonIconAndCaption = 3,
+        msoButtonIconAndWrapCaption = 7,
+        msoButtonIconAndCaptionBelow = 11,
+        msoButtonWrapCaption = 14,
+        msoButtonIconAndWrapCaptionBelow = 15,
+    }
+
+    public enum MsoControlType
+    {
+        msoControlCustom = 0,
+        msoControlButton = 1,
+        msoControlEdit = 2,
+        msoControlDropdown = 3,
+        msoControlComboBox = 4,
+        msoControlButtonDropdown = 5,
+        msoControlSplitDropdown = 6,
+        msoControlOCXDropdown = 7,
+        msoControlGenericDropdown = 8,
+        msoControlGraphicDropdown = 9,
+        msoControlPopup = 10,
+        msoControlGraphicPopup = 11,
+        msoControlButtonPopup = 12,
+        msoControlSplitButtonPopup = 13,
+        msoControlSplitButtonMRUPopup = 14,
+        msoControlLabel = 15,
+        msoControlExpandingGrid = 16,
+        msoControlSplitExpandingGrid = 17,
+        msoControlGrid = 18,
+        msoControlGauge = 19,
+        msoControlGraphicCombo = 20,
+        msoControlPane = 21,
+        msoControlActiveX = 22,
+        msoControlSpinner = 23,
+        msoControlLabelEx = 24,
+        msoControlWorkPane = 25,
+        msoControlAutoCompleteCombo = 26,
+    }
 }

@@ -1,4 +1,4 @@
-Version 0.28 (31 October 2010)
+Version 0.28 (2 November 2010)
 ------------------------------
 * Added VS2008 solution and project files.
 * Fixed namespace for Excel 2010 Ribbon.
@@ -12,10 +12,12 @@ Version 0.28 (31 October 2010)
   - XML Attribute Reference.AssemblyPath renamed to Reference.Path, 
   - Reference resolution first probes using Reference.Path,
   - then LoadWithPartialName is called with Reference.Name.
-* Somehwat better error handling when Assembly Load fails, e.g. ExternalLibrary failures.
+* Somewhat better error handling when Assembly Load fails, e.g. ExternalLibrary failures.
 * ExcelRibbon objects only instantiated in Excel 2007 and later.
-* ExcelCommandBarUtil to allow explicit load of command bars xml.
+* Added ExcelCommandBarUtil to allow explicit load of command bars from xml string.
+* Made late-bound CommandBars API public.
 * BREAKING CHANGE! IRibbonUI, IRibbonControl etc. moved to ExcelDna.Integration.CustomUI namespace to avoid type name clash in external libs.
+* Fixed non-zero-base array marshaling.
 
 Version 0.27 (16 August 2010)
 -----------------------------

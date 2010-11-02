@@ -93,6 +93,6 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>copy $(TargetPath) $(SolutionDir)ExcelDna\$(ConfigurationName)\</PostBuildEvent>
+    <PostBuildEvent>copy "$(TargetPath)" "$(SolutionDir)ExcelDna\$(ConfigurationName)\"</PostBuildEvent>
   </PropertyGroup>
 </Project>
