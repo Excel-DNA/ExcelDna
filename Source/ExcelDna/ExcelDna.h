@@ -35,6 +35,7 @@ typedef short (*PFN_VOID_LPXLOPER)(void*);
 typedef short (*PFN_VOID_LPXLOPER12)(void*);
 typedef void* (*PFN_LPXLOPER_LPXLOPER)(void*);
 typedef void* (*PFN_LPXLOPER12_LPXLOPER12)(void*);
+typedef void (*PFN_PFNEXCEL12)(void*);
 typedef HRESULT (*PFN_GET_CLASS_OBJECT)(REFCLSID rclsid, REFIID riid, LPVOID* ppv);
 typedef HRESULT (*PFN_HRESULT_VOID)();
 
@@ -52,6 +53,7 @@ struct XlAddInExportInfo
 	PFN_VOID_LPXLOPER12			pXlAutoFree12;
 	PFN_LPXLOPER_LPXLOPER		pXlAddInManagerInfo;
 	PFN_LPXLOPER12_LPXLOPER12	pXlAddInManagerInfo12;
+	PFN_PFNEXCEL12				pSetExcel12EntryPt;
 	// The thunk table that hooks up the fxxx exports from the .xll with the marshaled function pointers.
 	INT32  ThunkTableLength;
 	PFN*   ThunkTable; // Actually (PFN ThunkTable[EXPORT_COUNT])

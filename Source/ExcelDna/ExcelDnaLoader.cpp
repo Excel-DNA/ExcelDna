@@ -350,8 +350,11 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 		return 0;
 	}
 
-	// Unload the loader AppDomain.
-	pHost->UnloadDomain(pAppDomain);
+	if (!pAppDomain.IsEqualObject(pSandbox))
+	{
+		// Unload the loader AppDomain.
+		pHost->UnloadDomain(pAppDomain);
+	}
 
 	// Keep references needed for later unload.
 	pAppDomain_ForUnload = (IUnknown*)pSandbox.Detach();

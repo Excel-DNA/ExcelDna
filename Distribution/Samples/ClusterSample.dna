@@ -1,0 +1,38 @@
+<DnaLibrary Name='ClusterSample' Language='C#'>
+<![CDATA[
+
+using ExcelDna.Integration;
+
+public static class TestFunctions
+{
+
+    public static double AddThem(double val1, double val2)
+    {
+        return val1 + val2;
+    }
+
+    [ExcelFunction(IsExceptionSafe=true, IsClusterSafe=true)]
+    public static double AddThemHPC(double val1, double val2)
+    {
+        return val1 + val2;
+    }
+    
+    [ExcelFunction(IsExceptionSafe=true, IsClusterSafe=true)]
+    public static string CheckRunningOnCluster()
+    {
+        XlCall.XlReturn retval;
+        object result;
+
+        retval = XlCall.TryExcel(XlCall.xlRunningOnCluster, out result);
+        
+        if (retval == XlCall.XlReturn.XlReturnSuccess)
+        {
+            return result.ToString();
+        }
+        
+        return "Error - not running on Excel 2010?";
+    }
+}
+
+]]>
+</DnaLibrary>

@@ -48,7 +48,9 @@ namespace ExcelDna.Integration
 			XlReturnStackOvfl = 16,       /* stack overflow */  
 			XlReturnFailed    = 32,       /* command failed */
 			XlReturnUncalced  = 64,       /* uncalced cell */
-            XlReturnNotThreadSafe = 128   /* not allowed during multi-threaded calc */
+            XlReturnNotThreadSafe = 128,   /* not allowed during multi-threaded calc */
+            XlReturnInvAsynchronousContext  = 256,  /* invalid asynchronous function handle */
+            XlReturnNotClusterSafe = 512  /* not supported on cluster */
 		}
 
 		/*
@@ -58,6 +60,15 @@ namespace ExcelDna.Integration
 		public static readonly int xlSpecial = 0x4000;
 		public static readonly int xlIntl = 0x2000;
 		public static readonly int xlPrompt = 0x1000;
+
+        /*
+        ** XLL events
+        **
+        ** Passed in to an xlEventRegister call to register a corresponding event.
+        */
+
+        public static readonly int xleventCalculationEnded = 1;    /* Fires at the end of calculation */
+        public static readonly int xleventCalculationCanceled = 2;    /* Fires when calculation is interrupted */
 
 		/*
 		** Auxiliary function numbers
@@ -72,13 +83,17 @@ namespace ExcelDna.Integration
 		public static readonly int xlSheetId =          (4  | xlSpecial);
 		public static readonly int xlSheetNm =          (5  | xlSpecial);
 		public static readonly int xlAbort =            (6  | xlSpecial);
-		public static readonly int xlGetInst =          (7  | xlSpecial);
+        public static readonly int xlGetInst =          (7  | xlSpecial);  /* Returns application's hinstance as an integer value, supported on 32-bit platform only */
 		public static readonly int xlGetHwnd =          (8  | xlSpecial);
 		public static readonly int xlGetName =          (9  | xlSpecial);
 		public static readonly int xlEnableXLMsgs =     (10 | xlSpecial);
 		public static readonly int xlDisableXLMsgs =    (11 | xlSpecial);
 		public static readonly int xlDefineBinaryName = (12 | xlSpecial);
 		public static readonly int xlGetBinaryName =    (13 | xlSpecial);
+        public static readonly int xlAsyncReturn =      (16 | xlSpecial);	/* Set return value from an asynchronous function call */
+        public static readonly int xlEventRegister =    (17 | xlSpecial);	/* Register an XLL event */
+        public static readonly int xlRunningOnCluster = (18 | xlSpecial);	/* Returns true if running on Compute Cluster */
+        public static readonly int xlGetInstPtr =       (19 | xlSpecial);	/* Returns application's hinstance as a handle, supported on both 32-bit and 64-bit platforms */
 
         /* edit modes */
 		public static readonly int xlModeReady = 0;	// not in edit mode
@@ -574,6 +589,68 @@ namespace ExcelDna.Integration
         public static readonly int xlfSumifs = 482;
         public static readonly int xlfAverageif = 483;
         public static readonly int xlfAverageifs = 484;
+        public static readonly int xlfAggregate = 485;
+        public static readonly int xlfBinom_dist = 486;
+        public static readonly int xlfBinom_inv = 487;
+        public static readonly int xlfConfidence_norm = 488;
+        public static readonly int xlfConfidence_t = 489;
+        public static readonly int xlfChisq_test = 490;
+        public static readonly int xlfF_test = 491;
+        public static readonly int xlfCovariance_p = 492;
+        public static readonly int xlfCovariance_s = 493;
+        public static readonly int xlfExpon_dist = 494;
+        public static readonly int xlfGamma_dist = 495;
+        public static readonly int xlfGamma_inv = 496;
+        public static readonly int xlfMode_mult = 497;
+        public static readonly int xlfMode_sngl = 498;
+        public static readonly int xlfNorm_dist = 499;
+        public static readonly int xlfNorm_inv = 500;
+        public static readonly int xlfPercentile_exc = 501;
+        public static readonly int xlfPercentile_inc = 502;
+        public static readonly int xlfPercentrank_exc = 503;
+        public static readonly int xlfPercentrank_inc = 504;
+        public static readonly int xlfPoisson_dist = 505;
+        public static readonly int xlfQuartile_exc = 506;
+        public static readonly int xlfQuartile_inc = 507;
+        public static readonly int xlfRank_avg = 508;
+        public static readonly int xlfRank_eq = 509;
+        public static readonly int xlfStdev_s = 510;
+        public static readonly int xlfStdev_p = 511;
+        public static readonly int xlfT_dist = 512;
+        public static readonly int xlfT_dist_2t = 513;
+        public static readonly int xlfT_dist_rt = 514;
+        public static readonly int xlfT_inv = 515;
+        public static readonly int xlfT_inv_2t = 516;
+        public static readonly int xlfVar_s = 517;
+        public static readonly int xlfVar_p = 518;
+        public static readonly int xlfWeibull_dist = 519;
+        public static readonly int xlfNetworkdays_intl = 520;
+        public static readonly int xlfWorkday_intl = 521;
+        public static readonly int xlfEcma_ceiling = 522;
+        public static readonly int xlfIso_ceiling = 523;
+        public static readonly int xlfBeta_dist = 525;
+        public static readonly int xlfBeta_inv = 526;
+        public static readonly int xlfChisq_dist = 527;
+        public static readonly int xlfChisq_dist_rt = 528;
+        public static readonly int xlfChisq_inv = 529;
+        public static readonly int xlfChisq_inv_rt = 530;
+        public static readonly int xlfF_dist = 531;
+        public static readonly int xlfF_dist_rt = 532;
+        public static readonly int xlfF_inv = 533;
+        public static readonly int xlfF_inv_rt = 534;
+        public static readonly int xlfHypgeom_dist = 535;
+        public static readonly int xlfLognorm_dist = 536;
+        public static readonly int xlfLognorm_inv = 537;
+        public static readonly int xlfNegbinom_dist = 538;
+        public static readonly int xlfNorm_s_dist = 539;
+        public static readonly int xlfNorm_s_inv = 540;
+        public static readonly int xlfT_test = 541;
+        public static readonly int xlfZ_test = 542;
+        public static readonly int xlfErf_precise = 543;
+        public static readonly int xlfErfc_precise = 544;
+        public static readonly int xlfGammaln_precise = 545;
+        public static readonly int xlfCeiling_precise = 546;
+        public static readonly int xlfFloor_precise = 547;
 
         /* Excel command numbers */
         public static readonly int xlcBeep = (0 | xlCommand);

@@ -2,6 +2,7 @@
 <![CDATA[
 using System;
 using ExcelDna.Integration;
+using ExcelDna.Logging;
 
 public class MyAddIn : IExcelAddIn
 {
@@ -13,19 +14,31 @@ public class MyAddIn : IExcelAddIn
 
 	private object ErrorHandler(object exceptionObject)
 	{
-		return ">>ERROR<< : " + exceptionObject.ToString();
+		ExcelReference caller = (ExcelReference)XlCall.Excel(XlCall.xlfCaller);
+
+		// Calling reftext here requires all functions to be marked IsMacroType=true, which is undesirable.
+		// A better plan would be to build the reference text oneself, using the RowFirst / ColumnFirst info
+		// Not sure where to find the SheetName then....
+		string callingName = (string)XlCall.Excel(XlCall.xlfReftext, caller, true);
+
+		LogDisplay.WriteLine(callingName + " Error: " + exceptionObject.ToString());
+
+		// return #VALUE into the cell anyway.
+		return ExcelError.ExcelErrorValue;
 	}
 		
 	public void AutoClose()
 	{
 	}
 
-	public static string SayHello()
+	[ExcelFunction(IsMacroType=true)]
+	public static double DoGood()
 	{
-		return "Hello from the ExceptionHandler Add-In!";
+		return 7;
 	}
 
-	public static string DoBadStuff()
+	[ExcelFunction(IsMacroType=true)]
+	public static double DoBad()
 	{
 		throw new InvalidOperationException("Don't be evil!");
 	}

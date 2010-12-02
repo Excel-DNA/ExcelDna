@@ -1,3 +1,8 @@
+Version 0.29 (?????)
+--------------------
+* Cluster-safe function support for Excel 2010 HPC Cluster Connector - mark functions as IsClusterSafe=true.
+* Fixed memory leak when getting SheetId for ExcelReference parameters.
+
 Version 0.28 (2 November 2010)
 ------------------------------
 * Added VS2008 solution and project files.

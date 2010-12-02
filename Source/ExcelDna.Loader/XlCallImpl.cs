@@ -91,15 +91,7 @@ namespace ExcelDna.Loader
             // Else Excel 12+
             if (Excel12v == null )
             {
-                try
-                {
-                    IntPtr hModuleProcess = GetModuleHandle(null);
-                    IntPtr pfnExcel12v = GetProcAddress(hModuleProcess, "MdCallBack12");
-                    Excel12v = (Excel12vDelegate)Marshal.GetDelegateForFunctionPointer(pfnExcel12v, typeof(Excel12vDelegate));
-                }
-                catch
-                {
-                }
+                FetchExcel12EntryPt();
                 if (Excel12v == null)
                 {
                     result = null;
@@ -108,6 +100,37 @@ namespace ExcelDna.Loader
             }
 
             return TryExcelImpl12(xlFunction, out result, parameters);
+        }
+
+        private static void FetchExcel12EntryPt()
+        {
+            if (Excel12v == null)
+            {
+                try
+                {
+                    IntPtr hModuleProcess = GetModuleHandle(null);
+                    IntPtr pfnExcel12v = GetProcAddress(hModuleProcess, "MdCallBack12");
+                    if (pfnExcel12v != IntPtr.Zero)
+                    {
+                        Excel12v = (Excel12vDelegate)Marshal.GetDelegateForFunctionPointer(pfnExcel12v, typeof(Excel12vDelegate));
+                    }
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        internal static void SetExcel12EntryPt(IntPtr pfnExcel12v)
+        {
+            Debug.Print("SetExcel12EntryPt called.");
+            FetchExcel12EntryPt();
+            if (Excel12v == null && pfnExcel12v != null)
+            {
+                Debug.Print("SetExcel12EntryPt - setting delegate.");
+                Excel12v = (Excel12vDelegate)Marshal.GetDelegateForFunctionPointer(pfnExcel12v, typeof(Excel12vDelegate));
+                Debug.Print("SetExcel12EntryPt - setting delegate OK? -  " + (Excel12v != null).ToString());
+            }
         }
 
         private unsafe static int TryExcelImpl4(int xlFunction, out object result, params object[] parameters)
@@ -165,6 +188,7 @@ namespace ExcelDna.Loader
 
         public unsafe static uint GetCurrentSheetId4()
         {
+            uint retval = 0;
             XlOper SRef = new XlOper();
             SRef.xlType = XlType.XlTypeSReference;
             //SRef.srefValue.Count = 1;
@@ -182,18 +206,29 @@ namespace ExcelDna.Loader
             xlReturn = Excel4v(xlSheetNm, pResultOper, 1, ppSRef);
             if (xlReturn == 0)
             {
-                XlOper ResultRef = new XlOper();
-                xlReturn = Excel4v(xlSheetId, &ResultRef, 1, (XlOper**)&(pResultOper));
-                if (xlReturn == 0 && ResultRef.xlType == XlType.XlTypeReference)
+                XlOper resultRef = new XlOper();
+                XlOper* pResultRef = &resultRef;
+                xlReturn = Excel4v(xlSheetId, pResultRef, 1, (XlOper**)&(pResultOper));
+
+                // Done with pResultOper - Free
+                Excel4v(xlFree, (XlOper*)IntPtr.Zero, 1, &pResultOper);
+
+                if (xlReturn == 0)
                 {
-                    return ResultRef.refValue.SheetId;
+                    if (resultRef.xlType == XlType.XlTypeReference)
+                    {
+                        return resultRef.refValue.SheetId;
+                    }
+                    // Done with ResultRef - Free it too
+                    Excel4v(xlFree, (XlOper*)IntPtr.Zero, 1, &pResultRef);
                 }
             }
-            return 0;
+            return retval;
         }
 
         public unsafe static uint GetCurrentSheetId12()
         {
+            uint retval = 0;
             XlOper12 SRef = new XlOper12();
             SRef.xlType = XlType12.XlTypeSReference;
             //SRef.srefValue.Count = 1;
@@ -211,26 +246,25 @@ namespace ExcelDna.Loader
             xlReturn = Excel12v(xlSheetNm, 1, ppSRef, pResultOper);
             if (xlReturn == 0)
             {
-                XlOper12 ResultRef = new XlOper12();
-                xlReturn = Excel12v(xlSheetId, 1, (XlOper12**)&(pResultOper), &ResultRef);
-                if (xlReturn == 0 && ResultRef.xlType == XlType12.XlTypeReference)
+                XlOper12 resultRef = new XlOper12();
+                XlOper12* pResultRef = &resultRef;
+                xlReturn = Excel12v(xlSheetId, 1, (XlOper12**)&(pResultOper), pResultRef);
+
+                // Done with pResultOper - Free
+                Excel12v(xlFree, 1, &pResultOper, (XlOper12*)IntPtr.Zero);
+
+                if (xlReturn == 0)
                 {
-                    return ResultRef.refValue.SheetId;
+                    if (resultRef.xlType == XlType12.XlTypeReference)
+                    {
+                        retval = resultRef.refValue.SheetId;
+                    }
+                    // Done with ResultRef - Free it too
+                    Excel12v(xlFree, 1, &pResultRef, (XlOper12*)IntPtr.Zero);
                 }
+                // CONSIDER: As a small optimisation, we could combine the two calls the xlFree. But then we'd have to manage an array here.
             }
-            return 0;
+            return retval;
         }
-
-		// An aborted attempt at getting the Marshaling to work automatically.
-		// The reference parameter doen't work as an object,
-		// since it need to be sent without the extra indirection.
-		//[DllImport("XLCALL32.DLL")]
-		//public static extern int Excel4v(int xlfn, 
-		//    [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(XlObjectMarshaler), MarshalCookie="Excel4v")] 
-		//    ref object operRes, 
-		//    int count, 
-		//    [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(XlObjectArrayMarshaler), MarshalCookie="Excel4v")] 
-		//    object[] opers);
-
 	}
 }

@@ -77,7 +77,12 @@ namespace ExcelDna.Integration
 		internal static void Initialize()
 		{
 			// Need to get window in a macro context, else the call to get the Excel version fails.
-			IntPtr unused = WindowHandle;
+            // Exception suppressor added here for HPC support - WindowHandle fails in that context.
+            try
+            {
+                IntPtr unused = WindowHandle;
+            }
+            catch { }
 		}
 
 		private static IntPtr _hWndExcel = IntPtr.Zero;
@@ -111,6 +116,7 @@ namespace ExcelDna.Integration
                     }
                     else
                     {
+                        // TODO: 64-BIT - Check - This is clearly wrong.
                         _hWndExcel = (IntPtr)(int)(double)XlCall.Excel(XlCall.xlGetHwnd);
                     }
 				}
@@ -270,20 +276,34 @@ namespace ExcelDna.Integration
 			{
 				if (_xlVersion == 0)
 				{
-					string versionString;
-					versionString = (string)XlCall.Excel(XlCall.xlfGetWorkspace, 2);
-					versionString = System.Text.RegularExpressions.Regex.Match(versionString, "^\\d+(\\.\\d+)?").Value;
-					double version;
-					if (!String.IsNullOrEmpty(versionString) &&
-						Double.TryParse(versionString, System.Globalization.NumberStyles.Any,
-										System.Globalization.CultureInfo.InvariantCulture, out version))
-					{
-						_xlVersion = version;
-					}
-					else
-					{
-						_xlVersion = 0.99;
-					}
+                    try
+                    {
+                        string versionString;
+                        versionString = (string)XlCall.Excel(XlCall.xlfGetWorkspace, 2);
+                        versionString = System.Text.RegularExpressions.Regex.Match(versionString, "^\\d+(\\.\\d+)?").Value;
+                        double version;
+                        if (!String.IsNullOrEmpty(versionString) &&
+                            Double.TryParse(versionString, System.Globalization.NumberStyles.Any,
+                                            System.Globalization.CultureInfo.InvariantCulture, out version))
+                        {
+                            _xlVersion = version;
+                        }
+                        else
+                        {
+                            _xlVersion = 0.99;
+                        }
+                    }
+                    catch (XlCallException)
+                    {
+                        // Maybe running on a Cluster
+                        object isRunningOnClusterResult;
+                        XlCall.XlReturn retval = XlCall.TryExcel(XlCall.xlRunningOnCluster, out isRunningOnClusterResult);
+                        if (retval == XlCall.XlReturn.XlReturnSuccess && (isRunningOnClusterResult is bool) && (bool)isRunningOnClusterResult)
+                        {
+                            // TODO: How to get the real version here...?
+                            _xlVersion = 14.0;
+                        }
+                    }
 				}
 				return _xlVersion;
 			}
