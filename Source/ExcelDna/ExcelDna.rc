@@ -7,8 +7,7 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "afxres.h"
-
+#include "afxres.h"
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
@@ -55,8 +54,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,28,0,3
- PRODUCTVERSION 0,28,0,3
+ FILEVERSION 0,29,0,5
+ PRODUCTVERSION 0,29,0,5
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -74,12 +73,12 @@ BEGIN
             VALUE "Comments", "Unmanaged loader shim for Excel-Dna Add-Ins"
             VALUE "CompanyName", "Govert van Drimmelen"
             VALUE "FileDescription", "Excel-Dna Dynamic Link Library"
-            VALUE "FileVersion", "0.28.0.3"
+            VALUE "FileVersion", "0.29.0.5"
             VALUE "InternalName", "ExcelDna"
             VALUE "LegalCopyright", "Copyright (C) 2005-2010 Govert van Drimmelen"
             VALUE "OriginalFilename", "ExcelDna.xll"
             VALUE "ProductName", "Excel-Dna Add-In Framework for Microsoft Excel"
-            VALUE "ProductVersion", "0.28.0.3"
+            VALUE "ProductVersion", "0.29.0.5"
         END
     END
     BLOCK "VarFileInfo"
@@ -200,8 +199,7 @@ EXCELDNA.INTEGRATION    ASSEMBLY                "Debug\\ExcelDna.Integration.dll
 #else
 EXCELDNA.LOADER         ASSEMBLY                "Release\\ExcelDna.Loader.dll"
 EXCELDNA.INTEGRATION    ASSEMBLY                "Release\\ExcelDna.Integration.dll"
-#endif
-
+#endif
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 

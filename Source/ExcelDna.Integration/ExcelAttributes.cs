@@ -38,6 +38,7 @@ namespace ExcelDna.Integration
 		public bool   IsExceptionSafe = false;
 		public bool   IsMacroType = false;
         public bool   IsThreadSafe = false;
+        public bool   IsClusterSafe = false;
 
 		public ExcelFunctionAttribute()
 		{

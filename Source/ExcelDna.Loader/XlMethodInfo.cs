@@ -54,6 +54,7 @@ namespace ExcelDna.Loader
 		public bool   IsExceptionSafe;
 		public bool   IsMacroType;
         public bool   IsThreadSafe; // For Functions only
+        public bool   IsClusterSafe;// For Functions only
 		public string HelpTopic;
 		public double RegisterId;
 
@@ -74,6 +75,7 @@ namespace ExcelDna.Loader
 			IsHidden = false;
 			IsMacroType = false;
             IsThreadSafe = false;
+            IsClusterSafe = false;
 
 			ShortCut = "";
 			// DOCUMENT: Default MenuName is the library name
@@ -207,6 +209,7 @@ namespace ExcelDna.Loader
                     bool isMacroType = (bool)attribType.GetField("IsMacroType").GetValue(attrib);
                     bool isHidden = (bool)attribType.GetField("IsHidden").GetValue(attrib);
                     bool isThreadSafe = (bool)attribType.GetField("IsThreadSafe").GetValue(attrib);
+                    bool isClusterSafe = (bool)attribType.GetField("IsClusterSafe").GetValue(attrib);
                     if (name != null)
                     {
                         Name = name;
@@ -228,6 +231,9 @@ namespace ExcelDna.Loader
                     IsMacroType = isMacroType;
                     IsHidden = isHidden;
                     IsThreadSafe = (!isMacroType && isThreadSafe);
+                    // DOCUMENT: IsClusterSafe function MUST NOT be marked as IsMacroType=true and MAY be marked as IsThreadSafe = true.
+                    //           [xlfRegister (Form 1) page in the Microsoft Excel 2010 XLL SDK Documentation]
+                    IsClusterSafe = (!isMacroType && isClusterSafe);
                 }
 
                 if (attribType.FullName == "ExcelDna.Integration.ExcelCommandAttribute")

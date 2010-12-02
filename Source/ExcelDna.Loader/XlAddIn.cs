@@ -53,6 +53,7 @@ namespace ExcelDna.Loader
         internal IntPtr /* PFN_VOID_LPXLOPER12 */   pXlAutoFree12;
         internal IntPtr /* PFN_LPXLOPER_LPXLOPER */ pXlAddInManagerInfo;
         internal IntPtr /* PFN_LPXLOPER12_LPXLOPER12 */ pXlAddInManagerInfo12;
+        internal IntPtr /* PFN_PFNEXCEL12 */ pSetExcel12EntryPt;
         internal Int32 ThunkTableLength;  // Must be EXPORT_COUNT
         internal IntPtr /*PFN*/ ThunkTable; // Actually (PFN ThunkTable[EXPORT_COUNT])
         #pragma warning restore 0649
@@ -75,12 +76,15 @@ namespace ExcelDna.Loader
 
 		public static unsafe bool Initialize(int xlAddInExportInfoAddress, int hModuleXll, string pathXll)
         {
+         
+            // File.AppendAllText(Path.ChangeExtension(pathXll, ".log"), string.Format("{0:u} XlAddIn.Initialize\r\n", DateTime.Now));
+
             Debug.Print("Initialize - in sandbox AppDomain with Id: " + AppDomain.CurrentDomain.Id);
             Debug.Assert(xlAddInExportInfoAddress != 0);
             Debug.Print("InitializationInfo Address: 0x{0:x8}", xlAddInExportInfoAddress);
 			
 			XlAddInExportInfo* pXlAddInExportInfo = (XlAddInExportInfo*)xlAddInExportInfoAddress;
-            if (pXlAddInExportInfo->ExportInfoVersion != 2)
+            if (pXlAddInExportInfo->ExportInfoVersion != 3)
             {
                 Debug.Print("ExportInfoVersion not supported.");
                 return false;
@@ -118,6 +122,10 @@ namespace ExcelDna.Loader
             GCHandle.Alloc(fnXlAddInManagerInfo12);
             pXlAddInExportInfo->pXlAddInManagerInfo12 = Marshal.GetFunctionPointerForDelegate(fnXlAddInManagerInfo12);
 
+            fn_void_intptr fnSetExcel12EntryPt = (fn_void_intptr)XlCallImpl.SetExcel12EntryPt;
+            GCHandle.Alloc(fnSetExcel12EntryPt);
+            pXlAddInExportInfo->pSetExcel12EntryPt = Marshal.GetFunctionPointerForDelegate(fnSetExcel12EntryPt);
+
             // Thunk table for registered functions
             thunkTableLength = pXlAddInExportInfo->ThunkTableLength;
             thunkTable = pXlAddInExportInfo->ThunkTable;
@@ -132,7 +140,12 @@ namespace ExcelDna.Loader
 			catch (Exception e)
 			{
 				Debug.WriteLine("XlAddIn: XLCallVer Exception: " + e);
-				return false;
+
+                // CONSIDER: Is this right / needed ?
+                // As a test for the HPC support, I ignore error here and just assume we are under new Excel.
+                // This will cause the common error here to get pushed to later ...
+                XlAddIn.xlCallVersion = 12;
+                // return false;
 			}
 			XlAddIn.hModuleXll = (IntPtr)hModuleXll;
             XlAddIn.pathXll = pathXll;
@@ -148,6 +161,9 @@ namespace ExcelDna.Loader
                 Debug.WriteLine("XlAddIn: Initialize Exception: " + e);
 				return false;
             }
+
+            // File.AppendAllText(Path.ChangeExtension(pathXll, ".log"), string.Format("{0:u} XlAddIn.Initialize OK\r\n", DateTime.Now));
+
             return true;
         }
 
@@ -211,26 +227,29 @@ namespace ExcelDna.Loader
 
         internal static short XlAutoOpen()
         {
+            // File.AppendAllText(Path.ChangeExtension(pathXll, ".log"), string.Format("{0:u} XlAddIn.XlAutoOpen\r\n", DateTime.Now));
+
             Debug.Print("AppDomain Id: " + AppDomain.CurrentDomain.Id + " (Default: " + AppDomain.CurrentDomain.IsDefaultAppDomain() + ")");
 			short result = 0;
             try
             {
                 Debug.WriteLine("In XlAddIn.XlAutoOpen");
                 DeInitializeIntegration();
-
+                // File.AppendAllText(Path.ChangeExtension(pathXll, ".log"), string.Format("{0:u} XlAddIn.XlAutoOpen - Done DeInitializeIntegration\r\n", DateTime.Now));
                 object xlCallResult;
                 XlCallImpl.TryExcelImpl(XlCallImpl.xlcMessage, out xlCallResult /*Ignore*/ , true, "Registering library " + pathXll);
-
+                // File.AppendAllText(Path.ChangeExtension(pathXll, ".log"), string.Format("{0:u} XlAddIn.XlAutoOpen - Done xlcMessage\r\n", DateTime.Now));
 				InitializeIntegration();
-
+                // File.AppendAllText(Path.ChangeExtension(pathXll, ".log"), string.Format("{0:u} XlAddIn.XlAutoOpen - Done InitializeIntegration\r\n", DateTime.Now));
                 // InitializeIntegration has loaded the DnaLibrary
                 IntegrationHelpers.DnaLibraryAutoOpen();
-
+                // File.AppendAllText(Path.ChangeExtension(pathXll, ".log"), string.Format("{0:u} XlAddIn.XlAutoOpen - Done DnaLibraryOpen\r\n", DateTime.Now));
                 result = 1; // All is OK
             }
             catch (Exception e)
             {
                 // TODO: What to do here - maybe prefer Trace...?
+                // File.AppendAllText(Path.ChangeExtension(pathXll, ".log"), string.Format("{0:u} XlAddIn.XlAutoOpen - Exception - {1}\r\n", DateTime.Now, e.ToString()));
                 Debug.WriteLine("ExcelDna.Loader.XlAddin.XlAutoOpen. Exception during Integration load: " + e.ToString());
 				string alertMessage = string.Format("A problem occurred while an add-in was being initialized (InitializeIntegration failed).\r\nThe add-in is built with ExcelDna and is being loaded from {0}", pathXll);
 				object xlCallResult;
@@ -243,6 +262,7 @@ namespace ExcelDna.Loader
                 object xlCallResult;
                 XlCallImpl.TryExcelImpl(XlCallImpl.xlcMessage, out xlCallResult /*Ignored*/ , false);
             }
+            // File.AppendAllText(Path.ChangeExtension(pathXll, ".log"), string.Format("{0:u} XlAddIn.XlAutoOpen Done - Result: {1}\r\n", DateTime.Now, result));
             return result;
         }
 
@@ -352,6 +372,7 @@ namespace ExcelDna.Loader
                 result = IntegrationMarshalHelpers.GetExcelErrorObject(IntegrationMarshalHelpers.ExcelError_ExcelErrorValue);
             return m.MarshalManagedToNative(result);
         }
+
         #endregion
 
         #region Managed Registration
@@ -398,6 +419,10 @@ namespace ExcelDna.Loader
 
             } // for each parameter
 
+            // TODO: Perhaps add a version check from Excel 2010 here - but xlCallVersion is still 12, so need other Excel version...
+            if (mi.IsClusterSafe)
+                functionType += "&"; 
+            
             if (mi.IsMacroType)
                 functionType += "#";
             else if (mi.IsThreadSafe && XlAddIn.xlCallVersion >= 12)
@@ -405,11 +430,11 @@ namespace ExcelDna.Loader
 
             if (mi.IsVolatile)
                 functionType += "!";
-            // DOCUMENT: If # is set and there is an R argument, 
-            // Excel considers the function volatile
+            // DOCUMENT: If # is set and there is an R argument, Excel considers the function volatile anyway.
             // You can call xlfVolatile, false in beginning of function to clear.
 
 			// DOCUMENT: There is a bug? in Excel 2007 that limits the total argumentname string to 255 chars.
+            // TODO: Check whether this is fixed in Excel 2010 yet.
 			// DOCUMENT: I truncate the argument string for all versions.
 			if (argumentNames.Length > 255)
 				argumentNames = argumentNames.Substring(0, 255);
@@ -442,12 +467,13 @@ namespace ExcelDna.Loader
             }
 
             // Make HelpTopic without full path relative to xllPath
-            if (mi.HelpTopic == null || mi.HelpTopic == "")
+            if (string.IsNullOrEmpty(mi.HelpTopic))
             {
                 helpTopic = mi.HelpTopic;
             }
             else
             {
+                // DOCUMENT: If HelpTopic is not rooted - it is expanded relative to .xll path.
                 if (Path.IsPathRooted(mi.HelpTopic))
                 {
                     helpTopic = mi.HelpTopic;
@@ -485,19 +511,26 @@ namespace ExcelDna.Loader
             {
                 object xlCallResult;
                 XlCallImpl.TryExcelImpl(XlCallImpl.xlfRegister, out xlCallResult, registerParameters);
-				//TODO: if (xlCallResult is ExcelErrorValue) { } .....
-                mi.RegisterId = (double)xlCallResult;
-                registeredMethods.Add(mi);
+                Debug.Print("Register - XllPath={0}, ProcName={1}, FunctionType={2}, MethodName={3} - Result={4}", registerParameters[0], registerParameters[1], registerParameters[2], registerParameters[3], xlCallResult);
+                if (xlCallResult is double)
+                {
+                    mi.RegisterId = (double)xlCallResult;
+                    registeredMethods.Add(mi);
+                    if (mi.IsCommand)
+                    {
+                        RegisterMenu(mi);
+                    }
+                }
+                else
+                {
+                    // TODO: What to do here? LogDisplay??
+                    Debug.Print("Registration Error! - Register call failed for method {0}", mi.Name);
+                }
             }
             catch (Exception e)
             {
-                // TODO: What to do here?
-                Debug.WriteLine(e.Message);
-            }
-
-            if (mi.IsCommand)
-            {
-                RegisterMenu(mi);
+                // TODO: What to do here? LogDisplay??
+                Debug.WriteLine("Registration Error! - " + e.Message);
             }
         }
 
@@ -550,28 +583,40 @@ namespace ExcelDna.Loader
         // CONSIDER: Is there a way to call this method in the default AppDomain, with no side-effects?
         public static unsafe AppDomain CreateFullTrustSandbox()
         {
-            Debug.Print("CreateSandboxAndInitialize - in loader AppDomain with Id: " + AppDomain.CurrentDomain.Id);
-            PermissionSet pset = new PermissionSet(PermissionState.Unrestricted);
-            // pset.AddPermission(new SecurityPermission(SecurityPermissionFlag.Execution));
+            try
+            {
+                Debug.Print("CreateSandboxAndInitialize - in loader AppDomain with Id: " + AppDomain.CurrentDomain.Id);
 
-            AppDomainSetup loaderAppDomainSetup = AppDomain.CurrentDomain.SetupInformation;
-            AppDomainSetup sandboxAppDomainSetup = new AppDomainSetup();
-            sandboxAppDomainSetup.ApplicationName = loaderAppDomainSetup.ApplicationName;
-            sandboxAppDomainSetup.ConfigurationFile = loaderAppDomainSetup.ConfigurationFile;
-            sandboxAppDomainSetup.ApplicationBase = loaderAppDomainSetup.ApplicationBase;
-            sandboxAppDomainSetup.ShadowCopyFiles = loaderAppDomainSetup.ShadowCopyFiles;
-            sandboxAppDomainSetup.ShadowCopyDirectories = loaderAppDomainSetup.ShadowCopyDirectories;
+                // Security Exception already occurs here...
+                // int callVer = XlCallImpl.XLCallVer();
 
-            // create the sandboxed domain
-            AppDomain sandbox = AppDomain.CreateDomain(
-                "FullTrustSandbox_" + AppDomain.CurrentDomain.FriendlyName,
-                null,
-                sandboxAppDomainSetup,
-                pset);
+                PermissionSet pset = new PermissionSet(PermissionState.Unrestricted);
+                // pset.AddPermission(new SecurityPermission(SecurityPermissionFlag.Execution));
 
-            Debug.Print("CreateFullTrustSandbox - sandbox AppDomain created. Id: " + sandbox.Id);
+                AppDomainSetup loaderAppDomainSetup = AppDomain.CurrentDomain.SetupInformation;
+                AppDomainSetup sandboxAppDomainSetup = new AppDomainSetup();
+                sandboxAppDomainSetup.ApplicationName = loaderAppDomainSetup.ApplicationName;
+                sandboxAppDomainSetup.ConfigurationFile = loaderAppDomainSetup.ConfigurationFile;
+                sandboxAppDomainSetup.ApplicationBase = loaderAppDomainSetup.ApplicationBase;
+                sandboxAppDomainSetup.ShadowCopyFiles = loaderAppDomainSetup.ShadowCopyFiles;
+                sandboxAppDomainSetup.ShadowCopyDirectories = loaderAppDomainSetup.ShadowCopyDirectories;
 
-            return sandbox;
+                // create the sandboxed domain
+                AppDomain sandbox = AppDomain.CreateDomain(
+                    "FullTrustSandbox_" + AppDomain.CurrentDomain.FriendlyName,
+                    null,
+                    sandboxAppDomainSetup,
+                    pset);
+
+                Debug.Print("CreateFullTrustSandbox - sandbox AppDomain created. Id: " + sandbox.Id);
+
+                return sandbox;
+            }
+            catch (Exception ex)
+            {
+                Debug.Print("Error during CreateFullTrustSandbox: " + ex.ToString());
+                return AppDomain.CurrentDomain;
+            }
 
             //// NOOOOO - Can't do AppDomain.Load in different AppDomain.
             //// Some ideas: 

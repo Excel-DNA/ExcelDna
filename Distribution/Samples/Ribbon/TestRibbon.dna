@@ -23,6 +23,7 @@
     ' Regular Macros can be called from the Ribbon using the onAction='RunTagMacro' helper,
     ' which calls a macro named in the tag attribute of a button.
     Sub ShowHelloMessage
+	XlCall.Excel(XlCall.xlfNote, "Hey there")
 	MsgBox("Hello There!",,"ExcelDna Ribbon!")
     End Sub
   End Module

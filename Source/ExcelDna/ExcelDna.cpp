@@ -36,7 +36,7 @@ PFN thunks[EXPORT_COUNT];
 XlAddInExportInfo* CreateExportInfo()
 {
 	pExportInfo = new XlAddInExportInfo();
-	pExportInfo->ExportInfoVersion = 2;
+	pExportInfo->ExportInfoVersion = 3;
 	pExportInfo->AppDomainId = -1;
 	pExportInfo->pXlAutoOpen = NULL;
 	pExportInfo->pXlAutoClose = NULL;
@@ -46,6 +46,7 @@ XlAddInExportInfo* CreateExportInfo()
 	pExportInfo->pXlAutoFree12 = NULL;
 	pExportInfo->pXlAddInManagerInfo = NULL;
 	pExportInfo->pXlAddInManagerInfo12 = NULL;
+	pExportInfo->pSetExcel12EntryPt = NULL;
 	pExportInfo->ThunkTableLength = EXPORT_COUNT;
 	pExportInfo->ThunkTable = (PFN*)thunks;
 	return pExportInfo;
@@ -199,6 +200,15 @@ extern "C"
 			result = pExportInfo->pXlAddInManagerInfo12(pXloper12);
 		}
 		return result;
+	}
+
+	__declspec(dllexport) void SetExcel12EntryPt(void* pexcel12New)
+	{
+		if (EnsureInitialized() && 
+			pExportInfo->pSetExcel12EntryPt != NULL)
+		{
+			pExportInfo->pSetExcel12EntryPt(pexcel12New);
+		}
 	}
 }
 

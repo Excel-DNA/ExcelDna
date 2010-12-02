@@ -184,7 +184,7 @@ namespace ExcelDna.Loader
 					}
 					else
 					{
-						// TODO: Consolidate with the above case?
+						// TODO: Consolidate with the above case? - NO! Cluster Connector does not allow OPER types
 						XlType = "E"; // double*
 						MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlDateTimeMarshaler));
 						DelegateParamType = typeof(object);

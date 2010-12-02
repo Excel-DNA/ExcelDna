@@ -36,7 +36,8 @@ namespace ExcelDna.Integration
 		ExcelErrorRef = 23,
 		ExcelErrorName = 29,
 		ExcelErrorNum = 36,
-		ExcelErrorNA = 42
+		ExcelErrorNA = 42,
+        ExcelErrorGettingData = 43
 	}
 
     public class ExcelMissing
