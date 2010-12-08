@@ -162,6 +162,7 @@ found next to FirstAddin.dna.
 					if (ext.Pack)
 					{
 						string path = dna.ResolvePath(ext.Path);
+                        Console.WriteLine("  ~~> ExternalLibrary path {0} resolved to {1}.", ext.Path, path);
 						if (Path.GetExtension(path).ToUpperInvariant() == ".DNA")
 						{
 							string name = Path.GetFileNameWithoutExtension(path).ToUpperInvariant() + "_" + lastPackIndex++ + ".DNA";
@@ -209,7 +210,7 @@ found next to FirstAddin.dna.
 						}
 
                         path = dna.ResolvePath(rf.Path);
-                        Console.WriteLine("  ~~> Assembly path {0} not resolved.", rf.Path);
+                        Console.WriteLine("  ~~> Assembly path {0} resolved to {1}.", rf.Path, path);
                     }
 					if (path == null && rf.Name != null)
 					{
@@ -222,17 +223,17 @@ found next to FirstAddin.dna.
                             if (ass != null)
 							{
 								path = ass.Location;
-								Console.WriteLine("  ~~> Assembly {0} 'Load'ed from location {1}.", rf.Path, path);
+								Console.WriteLine("  ~~> Assembly {0} 'Load'ed from location {1}.", rf.Name, path);
 							}
 						}
 						catch (Exception e)
 						{
-							Console.WriteLine("  ~~> Assembly {0} not 'Load'ed. Exception: {1}", rf.Path, e);
+							Console.WriteLine("  ~~> Assembly {0} not 'Load'ed. Exception: {1}", rf.Name, e);
 						}
 					}
 					if (path == null)
 					{
-						Console.WriteLine("  ~~> Reference with AssemblyPath: {0}, Name: {1} not found.", rf.Path, rf.Name);
+						Console.WriteLine("  ~~> Reference with Path: {0} and Name: {1} not found.", rf.Path, rf.Name);
 						break;
 					}
 					

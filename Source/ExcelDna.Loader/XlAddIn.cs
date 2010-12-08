@@ -32,6 +32,7 @@ using System.Runtime.Remoting;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Permissions;
+using System.Threading;
 
 namespace ExcelDna.Loader
 {
@@ -79,7 +80,7 @@ namespace ExcelDna.Loader
          
             // File.AppendAllText(Path.ChangeExtension(pathXll, ".log"), string.Format("{0:u} XlAddIn.Initialize\r\n", DateTime.Now));
 
-            Debug.Print("Initialize - in sandbox AppDomain with Id: " + AppDomain.CurrentDomain.Id);
+            Debug.Print("Initialize - in sandbox AppDomain with Id: {0}, running on thread: {1}", AppDomain.CurrentDomain.Id, Thread.CurrentThread.ManagedThreadId);
             Debug.Assert(xlAddInExportInfoAddress != 0);
             Debug.Print("InitializationInfo Address: 0x{0:x8}", xlAddInExportInfoAddress);
 			
@@ -224,9 +225,15 @@ namespace ExcelDna.Loader
         #endregion
 
         #region Managed Xlxxxx Functions
-
+        internal static bool xlAutoOpenRunning = false; // TODO: This is for HPC Testing.
         internal static short XlAutoOpen()
         {
+            if (xlAutoOpenRunning)
+            {
+                // File.AppendAllText(Path.ChangeExtension(pathXll, ".log"), string.Format("{0:u} XlAddIn.XlAutoOpen re-entered - returning 1\r\n", DateTime.Now));
+                return 1;
+            }
+            xlAutoOpenRunning = true;
             // File.AppendAllText(Path.ChangeExtension(pathXll, ".log"), string.Format("{0:u} XlAddIn.XlAutoOpen\r\n", DateTime.Now));
 
             Debug.Print("AppDomain Id: " + AppDomain.CurrentDomain.Id + " (Default: " + AppDomain.CurrentDomain.IsDefaultAppDomain() + ")");
@@ -263,6 +270,7 @@ namespace ExcelDna.Loader
                 XlCallImpl.TryExcelImpl(XlCallImpl.xlcMessage, out xlCallResult /*Ignored*/ , false);
             }
             // File.AppendAllText(Path.ChangeExtension(pathXll, ".log"), string.Format("{0:u} XlAddIn.XlAutoOpen Done - Result: {1}\r\n", DateTime.Now, result));
+            xlAutoOpenRunning = false;
             return result;
         }
 
@@ -419,8 +427,7 @@ namespace ExcelDna.Loader
 
             } // for each parameter
 
-            // TODO: Perhaps add a version check from Excel 2010 here - but xlCallVersion is still 12, so need other Excel version...
-            if (mi.IsClusterSafe)
+            if (mi.IsClusterSafe && ProcessHelper.SupportsClusterSafe)
                 functionType += "&"; 
             
             if (mi.IsMacroType)
@@ -642,6 +649,51 @@ namespace ExcelDna.Loader
             //pXlAddInExportInfo->AppDomainId = sandbox.Id;
             //return (bool)result;
         }
+    }
+
+    internal static class ProcessHelper
+    {
+        private static bool _isInitialized = false;
+        private static bool _isRunningOnCluster;
+        private static int _processMajorVersion;
+
+        public static bool IsRunningOnCluster
+        {
+            get
+            {
+                EnsureInitialized();
+                return _isRunningOnCluster;
+            }
+        }
+
+        public static int ProcessMajorVersion
+        {
+            get
+            {
+                EnsureInitialized();
+                return _processMajorVersion;
+            }
+        }
+
+        public static bool SupportsClusterSafe
+        {
+            get
+            {
+                return IsRunningOnCluster || (ProcessMajorVersion >= 14);
+            }
+        }
+
+        private static void EnsureInitialized()
+        {
+            if (!_isInitialized)
+            {
+                Process hostProcess = Process.GetCurrentProcess();
+                _isRunningOnCluster = (hostProcess.ProcessName.Equals("EXCEL.EXE", StringComparison.InvariantCultureIgnoreCase));
+                _processMajorVersion = hostProcess.MainModule.FileVersionInfo.FileMajorPart;
+
+                _isInitialized = true;
+            }
+        }            
     }
 }
 

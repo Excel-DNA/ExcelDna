@@ -99,6 +99,7 @@ ExcelFunctionAttribute - for user-defined functions
 	IsVolatile (! suffix)
 	IsMacroType (# suffix)
 	IsThreadSafe (??? suffix)
+	IsClusterSafe (& suffix)
 ExcelArgumentAttribute - for the arguments of user-defined functions
 	Name
 	Description
