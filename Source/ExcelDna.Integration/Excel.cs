@@ -298,7 +298,7 @@ namespace ExcelDna.Integration
                         // Maybe running on a Cluster
                         object isRunningOnClusterResult;
                         XlCall.XlReturn retval = XlCall.TryExcel(XlCall.xlRunningOnCluster, out isRunningOnClusterResult);
-                        if (retval == XlCall.XlReturn.XlReturnSuccess && (isRunningOnClusterResult is bool) && (bool)isRunningOnClusterResult)
+                        if (retval == XlCall.XlReturn.XlReturnSuccess && (isRunningOnClusterResult is string))
                         {
                             // TODO: How to get the real version here...?
                             _xlVersion = 14.0;

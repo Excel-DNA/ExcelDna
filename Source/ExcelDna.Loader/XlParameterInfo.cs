@@ -229,7 +229,14 @@ namespace ExcelDna.Loader
 			}
 			else if (type == typeof(object))
 			{
-				if (isReturnType || AllowReference)
+                // Before version 0.29 we had:
+                //    if (isReturnType || AllowReference)
+                //        XlType = "U"; // XLOPER
+                // and thus registered as U in most cases. 
+                // This does not work in HPC setting, and seems to have been a mistake anyway 
+                // - returning a reference always gives #VALUE
+
+                if (AllowReference)
 					XlType = "R"; // XLOPER
 				else
 					XlType = "P"; // OPER
@@ -464,7 +471,14 @@ namespace ExcelDna.Loader
             }
             else if (type == typeof(object))
             {
-                if (isReturnType || AllowReference)
+                // Before version 0.29 we had:
+                //    if (isReturnType || AllowReference)
+                //        XlType = "U"; // XLOPER
+                // and thus registered as U in most cases. 
+                // This does not work in HPC setting, and seems to have been a mistake anyway 
+                // - returning a reference always gives #VALUE
+            
+                if (AllowReference)
                     XlType = "U"; // XLOPER
                 else
                     XlType = "Q"; // OPER
