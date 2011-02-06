@@ -34,7 +34,7 @@ internal unsafe static class ResourceHelper
 		IntPtr lpData,
 		uint cbData);
 
-	[DllImport("KERNEL32.DLL")]
+	[DllImport("kernel32.dll")]
 	private static extern uint GetLastError();
 	internal unsafe class ResourceUpdater
 	{

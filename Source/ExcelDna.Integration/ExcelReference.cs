@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2010 Govert van Drimmelen
+  Copyright (C) 2005-2011 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -61,7 +61,7 @@ namespace ExcelDna.Integration
             }
         }
 		List<ExcelRectangle> rectangles = new List<ExcelRectangle>();
-		uint sheetId;
+		IntPtr sheetId;
 
 		public ExcelReference(int row, int column)
 			: this(row, row, column, column)
@@ -70,7 +70,7 @@ namespace ExcelDna.Integration
 
 		// DOCUMENT: If no SheetId is given, assume the Active (Front) Sheet
 		public ExcelReference(int rowFirst, int rowLast, int columnFirst, int columnLast) :
-			this(rowFirst, rowLast, columnFirst, columnLast, 0)
+			this(rowFirst, rowLast, columnFirst, columnLast, IntPtr.Zero)
 		{
 			try
 			{
@@ -83,7 +83,7 @@ namespace ExcelDna.Integration
 			}
 		}
 
-		public ExcelReference(int rowFirst, int rowLast, int columnFirst, int columnLast, uint sheetId)
+		public ExcelReference(int rowFirst, int rowLast, int columnFirst, int columnLast, IntPtr sheetId)
 		{
 			this.sheetId = sheetId;
 			ExcelRectangle rect = new ExcelRectangle(rowFirst, rowLast, columnFirst, columnLast);
@@ -130,7 +130,7 @@ namespace ExcelDna.Integration
 			get { return rectangles[0].ColumnLast; }
 		}
 
-		public uint SheetId
+		public IntPtr SheetId
 		{
 			get { return sheetId; }
 		}

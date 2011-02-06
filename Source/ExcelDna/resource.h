@@ -48,6 +48,8 @@
 #define IDS_MSG_BODY_DNAPARSEFAILED     153
 #define IDS_MSG_BODY_DNAOPENFAILED2     154
 #define IDS_MSG_BODY_DNAREADFAILED      154
+#define IDS_MSG_HEADER_64NET4           155
+#define IDS_MSG_BODY_64NET4             156
 
 // Next default values for new objects
 // 

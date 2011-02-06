@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2010 Govert van Drimmelen
+  Copyright (C) 2005-2011 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -25,7 +25,7 @@
 #pragma once
 
 // EXPORT_COUNT defines the size of the thunk table. 
-// Must match the number of functions exported in ExcelDna.cpp
+// Must match the number of functions exported in ExcelDna.cpp and JmpExports64.asm
 //#define EXPORT_COUNT 250
  #define EXPORT_COUNT 1000
 
