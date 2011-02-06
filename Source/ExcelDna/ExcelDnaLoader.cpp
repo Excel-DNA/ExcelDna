@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2010 Govert van Drimmelen
+  Copyright (C) 2005-2011 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -103,6 +103,17 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 		// Perhaps remember that we are not loaded?
 		return 0;
 	}
+#ifdef _M_X64
+	bool allowedVersion = clrVersion.CompareNoCase(L"v4.0") >= 0;
+	if (!allowedVersion)
+	{
+		ShowMessage(IDS_MSG_HEADER_64NET4, 
+					IDS_MSG_BODY_64NET4,
+					IDS_MSG_FOOTER_ENSUREVERSION,
+					hr);
+		return 0;
+	}
+#endif
 	hr = LoadClr(clrVersion, &pHost);
 	if (FAILED(hr) || pHost == NULL)
 	{
@@ -183,12 +194,21 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 	}
 
 	CComSafeArray<VARIANT> initArgs;
+#ifndef _M_X64
 	initArgs.Add(CComVariant((INT32)pExportInfo));
 	initArgs.Add(CComVariant((INT32)hModuleCurrent));
+#else
+	initArgs.Add(CComVariant((INT64)pExportInfo));
+	initArgs.Add(CComVariant((INT64)hModuleCurrent));
+#endif
 	initArgs.Add(CComVariant(addInFullPath.AllocSysString()));
 	CComVariant initRetVal;
 	CComVariant target;
-	hr = pXlAddInType->InvokeMember_3(CComBSTR("Initialize"), (BindingFlags)(BindingFlags_Static | BindingFlags_Public | BindingFlags_InvokeMethod), NULL, target, initArgs, &initRetVal);
+#ifndef _M_X64
+	hr = pXlAddInType->InvokeMember_3(CComBSTR("Initialize32"), (BindingFlags)(BindingFlags_Static | BindingFlags_Public | BindingFlags_InvokeMethod), NULL, target, initArgs, &initRetVal);
+#else
+	hr = pXlAddInType->InvokeMember_3(CComBSTR("Initialize64"), (BindingFlags)(BindingFlags_Static | BindingFlags_Public | BindingFlags_InvokeMethod), NULL, target, initArgs, &initRetVal);
+#endif
 	if (FAILED(hr))
 	{
 		ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 

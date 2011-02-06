@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2010 Govert van Drimmelen
+  Copyright (C) 2005-2011 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -91,14 +91,11 @@ namespace ExcelDna.Loader
 	[StructLayout(LayoutKind.Explicit)]
 	internal unsafe struct XlOper12
 	{
-        [StructLayout(LayoutKind.Explicit)]
+        [StructLayout(LayoutKind.Sequential)]
 		unsafe public struct XlOper12Array
 		{
-			[FieldOffset(0)]
 			public XlOper12* pOpers;
-			[FieldOffset(4)]
 			public int Rows;
-			[FieldOffset(8)]
 			public int Columns;
 		}
 
@@ -142,13 +139,11 @@ namespace ExcelDna.Loader
 			public XlRectangle12 Reference;
 		}
 
-		[StructLayout(LayoutKind.Explicit)]
+		[StructLayout(LayoutKind.Sequential)]
 		unsafe public struct XlReference12
 		{
-			[FieldOffset(0)]
 			public XlMultiRef12* pMultiRef;
-			[FieldOffset(4)]
-			public uint SheetId; // EXCEL2010: Actually a uint*
+			public IntPtr SheetId;
 		}
 
 		[FieldOffset(0)]
@@ -942,7 +937,7 @@ namespace ExcelDna.Loader
 						managed = r;
 						break;
 					case XlType12.XlTypeSReference:
-						uint sheetId = XlCallImpl.GetCurrentSheetId12();
+						IntPtr sheetId = XlCallImpl.GetCurrentSheetId12();
 						object /*ExcelReference*/ sref;
 						sref = IntegrationMarshalHelpers.CreateExcelReference(
 												pOper->srefValue.Reference.RowFirst,

@@ -1,5 +1,5 @@
 ﻿/*
-  Copyright (C) 2005-2010 Govert van Drimmelen
+  Copyright (C) 2005-2011 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -75,13 +75,23 @@ namespace ExcelDna.Loader
 
         #region Initialization
 
-		public static unsafe bool Initialize(int xlAddInExportInfoAddress, int hModuleXll, string pathXll)
+        public static bool Initialize32(int xlAddInExportInfoAddress, int hModuleXll, string pathXll)
+        {
+            return Initialize((IntPtr)xlAddInExportInfoAddress, (IntPtr)hModuleXll, pathXll);
+        }
+
+        public static bool Initialize64(long xlAddInExportInfoAddress, long hModuleXll, string pathXll)
+        {
+            return Initialize((IntPtr)xlAddInExportInfoAddress, (IntPtr)hModuleXll, pathXll);
+        }
+
+		private static unsafe bool Initialize(IntPtr xlAddInExportInfoAddress, IntPtr hModuleXll, string pathXll)
         {
          
             // File.AppendAllText(Path.ChangeExtension(pathXll, ".log"), string.Format("{0:u} XlAddIn.Initialize\r\n", DateTime.Now));
 
             Debug.Print("Initialize - in sandbox AppDomain with Id: {0}, running on thread: {1}", AppDomain.CurrentDomain.Id, Thread.CurrentThread.ManagedThreadId);
-            Debug.Assert(xlAddInExportInfoAddress != 0);
+            Debug.Assert(xlAddInExportInfoAddress != IntPtr.Zero);
             Debug.Print("InitializationInfo Address: 0x{0:x8}", xlAddInExportInfoAddress);
 			
 			XlAddInExportInfo* pXlAddInExportInfo = (XlAddInExportInfo*)xlAddInExportInfoAddress;
@@ -148,10 +158,10 @@ namespace ExcelDna.Loader
                 XlAddIn.xlCallVersion = 12;
                 // return false;
 			}
-			XlAddIn.hModuleXll = (IntPtr)hModuleXll;
+			XlAddIn.hModuleXll = hModuleXll;
             XlAddIn.pathXll = pathXll;
 
-            AssemblyManager.Initialize((IntPtr)hModuleXll, pathXll);
+            AssemblyManager.Initialize(hModuleXll, pathXll);
 
             try
             {

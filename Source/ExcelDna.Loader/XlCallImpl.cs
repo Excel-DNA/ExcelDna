@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2010 Govert van Drimmelen
+  Copyright (C) 2005-2011 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -186,9 +186,9 @@ namespace ExcelDna.Loader
             return xlReturn;
         }
 
-        public unsafe static uint GetCurrentSheetId4()
+        public unsafe static IntPtr GetCurrentSheetId4()
         {
-            uint retval = 0;
+            IntPtr retval = IntPtr.Zero;
             XlOper SRef = new XlOper();
             SRef.xlType = XlType.XlTypeSReference;
             //SRef.srefValue.Count = 1;
@@ -226,9 +226,9 @@ namespace ExcelDna.Loader
             return retval;
         }
 
-        public unsafe static uint GetCurrentSheetId12()
+        public unsafe static IntPtr GetCurrentSheetId12()
         {
-            uint retval = 0;
+            IntPtr retval = IntPtr.Zero;
             XlOper12 SRef = new XlOper12();
             SRef.xlType = XlType12.XlTypeSReference;
             //SRef.srefValue.Count = 1;

@@ -9,6 +9,6 @@ A ticking clock
 
 Live data from a file 
 ------------------------
-(change the contents of the file to see Excel update).
+(change the contents of the Test.xml file to see Excel update).
 =GetEurOnd()
 =GetTestItem("EUR/DEPO/ON")

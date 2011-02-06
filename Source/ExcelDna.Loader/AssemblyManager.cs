@@ -1,5 +1,5 @@
 ﻿/*
-  Copyright (C) 2005-2010 Govert van Drimmelen
+  Copyright (C) 2005-2011 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -139,19 +139,19 @@ namespace ExcelDna.Loader
 			IntPtr hModule,
 			string lpName,
 			string lpType);
-		[DllImport("KERNEL32.DLL", SetLastError = true)]
+        [DllImport("kernel32.dll", SetLastError = true)]
 		private static extern IntPtr LoadResource(
 			IntPtr hModule,
 			IntPtr hResInfo);
-		[DllImport("KERNEL32.DLL", SetLastError = true)]
+        [DllImport("kernel32.dll", SetLastError = true)]
 		private static extern IntPtr LockResource(
 			IntPtr hResData);
-		[DllImport("KERNEL32.DLL", SetLastError = true)]
+        [DllImport("kernel32.dll", SetLastError = true)]
 		private static extern uint SizeofResource(
 			IntPtr hModule,
 			IntPtr hResInfo);
 
-		[DllImport("KERNEL32.DLL")]
+        [DllImport("kernel32.dll")]
 		private static extern uint GetLastError();
 
 		// Load the resource, trying also as compressed if no uncompressed version is found.

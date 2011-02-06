@@ -7,7 +7,8 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "afxres.h"
+#include "afxres.h"
+
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
@@ -37,11 +38,11 @@ END
 3 TEXTINCLUDE 
 BEGIN
     "#ifdef _DEBUG\r\n"
-    "EXCELDNA.LOADER         ASSEMBLY                ""Debug\\\\ExcelDna.Loader.dll""\r\n"
-    "EXCELDNA.INTEGRATION    ASSEMBLY                ""Debug\\\\ExcelDna.Integration.dll""\r\n"
+    "EXCELDNA.LOADER         ASSEMBLY                ""..\\\\ExcelDna.Loader\\\\bin\\\\Debug\\\\ExcelDna.Loader.dll""\r\n"
+    "EXCELDNA.INTEGRATION    ASSEMBLY                ""..\\\\ExcelDna.Integration\\\\bin\\\\Debug\\\\ExcelDna.Integration.dll""\r\n"
     "#else\r\n"
-    "EXCELDNA.LOADER         ASSEMBLY                ""Release\\\\ExcelDna.Loader.dll""\r\n"
-    "EXCELDNA.INTEGRATION    ASSEMBLY                ""Release\\\\ExcelDna.Integration.dll""\r\n"
+    "EXCELDNA.LOADER         ASSEMBLY                ""..\\\\ExcelDna.Loader\\\\bin\\\\Release\\\\ExcelDna.Loader.dll""\r\n"
+    "EXCELDNA.INTEGRATION    ASSEMBLY                ""..\\\\ExcelDna.Integration\\\\bin\\\\Release\\\\ExcelDna.Integration.dll""\r\n"
     "#endif\r\0"
 END
 
@@ -54,8 +55,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,29,0,7
- PRODUCTVERSION 0,29,0,7
+ FILEVERSION 0,29,0,8
+ PRODUCTVERSION 0,29,0,8
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -73,12 +74,12 @@ BEGIN
             VALUE "Comments", "Unmanaged loader shim for Excel-Dna Add-Ins"
             VALUE "CompanyName", "Govert van Drimmelen"
             VALUE "FileDescription", "Excel-Dna Dynamic Link Library"
-            VALUE "FileVersion", "0.29.0.7"
+            VALUE "FileVersion", "0.29.0.8"
             VALUE "InternalName", "ExcelDna"
-            VALUE "LegalCopyright", "Copyright (C) 2005-2010 Govert van Drimmelen"
+            VALUE "LegalCopyright", "Copyright (C) 2005-2011 Govert van Drimmelen"
             VALUE "OriginalFilename", "ExcelDna.xll"
             VALUE "ProductName", "Excel-Dna Add-In Framework for Microsoft Excel"
-            VALUE "ProductVersion", "0.29.0.7"
+            VALUE "ProductVersion", "0.29.0.8"
         END
     END
     BLOCK "VarFileInfo"
@@ -100,7 +101,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSG_TEMPLATE        "%1\r\n%2\r\n%3\r\n%4\r\nThis add-in is built with Excel-Dna and is being loaded from the following location:\r\n\t%5."
+    IDS_MSG_TEMPLATE        "%1\r\n%2\r\n%3\r\n%4\r\nThis add-in is built with Excel-DNA and is being loaded from the following location:\r\n\t%5."
     IDS_MSG_HEADER_NEEDCLR20 
                             "This Excel add-in requires the Microsoft .NET Framework 2.0, 3.0 or 3.5.\r\n\r\nA problem occurred while attempting to load the .NET runtime:"
     IDS_MSG_BODY_LOADMSCOREE 
@@ -163,12 +164,12 @@ END
 STRINGTABLE
 BEGIN
     IDS_MSG_BODY_METAHOSTGETRUNTIMEFAILED 
-                            "\tMetaHost could not load the requested version of the .Net runtime."
+                            "\tMetaHost could not load the requested version of the .NET runtime.\r\n\r\nIf no version is specified in the <addin>.dna file, the host will attempt to load .NET version 2.0.\r\nTo load version 4, add a RuntimeVersion='v4.0' attribute to the DnaLibrary tag in the <addin>.dna file."
     IDS_MSG_BODY_RUNTIMEGETINTERFACEFAILED 
                             "\tThe .Net runtime interface could not be retrieved."
     IDS_MSG_BODY_SHADOWCOPYFILES "ShadowCopyFiles could not be set."
     IDS_MSG_FOOTER_ENSUREVERSION 
-                            "\r\nPlease ensure that the that the correct version if the Microsoft .NET Framework is requested by the add-in and that the required version is installed."
+                            "\r\nPlease ensure that the correct version of the Microsoft .NET Framework is requested by the add-in and that the required version is installed."
     IDS_MSG_HEADER_DNANOTFOUND 
                             "This Excel add-in requires an '<addin>.dna' configuration file which matched the '<addin>.xll' file.\r\n\r\nThe required '.dna' file could not be loaded from resources, and was not found in the file system:"
     IDS_MSG_BODY_DNAPATHNOTEXIST 
@@ -181,6 +182,8 @@ BEGIN
     IDS_MSG_BODY_DNAPARSEFAILED 
                             "\tThe xml content of the file was not valid. Error while parsing <DnaLibrary ...> tag."
     IDS_MSG_BODY_DNAREADFAILED "\tThe file could not be read."
+    IDS_MSG_HEADER_64NET4   "To load under the 64-bit version of Excel, this add-in must specify that version 4 of the Microsoft .NET Framework should be used."
+    IDS_MSG_BODY_64NET4     "Add a RuntimeVersion='v4.0' attribute to the DnaLibrary tag in the <addin>.dna file to indicate that .NET 4 must be loaded."
 END
 
 #endif    // English (United States) resources
@@ -194,12 +197,13 @@ END
 // Generated from the TEXTINCLUDE 3 resource.
 //
 #ifdef _DEBUG
-EXCELDNA.LOADER         ASSEMBLY                "Debug\\ExcelDna.Loader.dll"
-EXCELDNA.INTEGRATION    ASSEMBLY                "Debug\\ExcelDna.Integration.dll"
+EXCELDNA.LOADER         ASSEMBLY                "..\\ExcelDna.Loader\\bin\\Debug\\ExcelDna.Loader.dll"
+EXCELDNA.INTEGRATION    ASSEMBLY                "..\\ExcelDna.Integration\\bin\\Debug\\ExcelDna.Integration.dll"
 #else
-EXCELDNA.LOADER         ASSEMBLY                "Release\\ExcelDna.Loader.dll"
-EXCELDNA.INTEGRATION    ASSEMBLY                "Release\\ExcelDna.Integration.dll"
-#endif
+EXCELDNA.LOADER         ASSEMBLY                "..\\ExcelDna.Loader\\bin\\Release\\ExcelDna.Loader.dll"
+EXCELDNA.INTEGRATION    ASSEMBLY                "..\\ExcelDna.Integration\\bin\\Release\\ExcelDna.Integration.dll"
+#endif
+
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 
