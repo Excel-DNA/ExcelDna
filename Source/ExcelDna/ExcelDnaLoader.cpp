@@ -47,15 +47,16 @@ static CString tempConfigFileName = "";
 HRESULT LoadClr(CString clrVersion, ICorRuntimeHost **ppHost);
 HRESULT LoadClrMeta(CString clrVersion, ICLRMetaHost* pMetaHost, ICorRuntimeHost **ppHost);
 HRESULT LoadClr20(ICorRuntimeHost **ppHost);
-HRESULT LoadAppDomain(CComPtr<ICorRuntimeHost> pHost, CString addInFullPath, bool shadowCopyFiles, CComSafeArray<BYTE>& loaderBytes, bool& loadLoaderFromBytes, CComQIPtr<_AppDomain>& addInAppDomain, bool& unloadAppDomain);
+HRESULT LoadAppDomain(CComPtr<ICorRuntimeHost> pHost, CString addInFullPath, bool createSandboxedAppDomain, bool shadowCopyFiles, CComPtr<_Assembly>& loaderAssembly, CComQIPtr<_AppDomain>& addInAppDomain, bool& unloadAppDomain);
+HRESULT LoadLoaderIntoAppDomain(CComQIPtr<_AppDomain>& pAppDomain, CComPtr<_Assembly>& pLoaderAssembly, bool forceFromBytes);
 void ShowMessage(int headerId, int bodyId, int footerId, HRESULT hr = S_OK);
 CString AddInFullPath();
 HRESULT CreateTempFile(void* pBuffer, DWORD nBufSize, CString& fileName);
 HRESULT DeleteTempFile(CString fileName);
 
-HRESULT ReadClrOptions(CString& clrVersion, bool& shadowCopyFiles);
+HRESULT ReadClrOptions(CString& clrVersion, bool& shadowCopyFiles, bool& createSandboxedAppDomain);
 HRESULT ReadDnaHeader(CString& header);
-HRESULT ParseDnaHeader(CString header, CString& runtimeVersion, bool& shadowCopyFiles);
+HRESULT ParseDnaHeader(CString header, CString& runtimeVersion, bool& shadowCopyFiles, CString& createSandboxedAppDomain);
 HRESULT ReadAttributeValue(CString tag, CString attributeName, CString& attributeValue);
 
 BOOL IsRunningOnCluster();
@@ -95,8 +96,9 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 	CComPtr<ICorRuntimeHost> pHost;
 	CString clrVersion;
 	bool shadowCopyFiles;
+	bool createSandboxedAppDomain;
 	
-	hr = ReadClrOptions(clrVersion, shadowCopyFiles);
+	hr = ReadClrOptions(clrVersion, shadowCopyFiles, createSandboxedAppDomain);
 	if (FAILED(hr))
 	{
 		// SelectClrVersion shows diagnostic MessageBoxes if needed.
@@ -135,55 +137,22 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 
 	// Load (or find) the AppDomain that will contain the add-in
 	CString addInFullPath = AddInFullPath();
-	CComQIPtr<_AppDomain> appDomain;
-	CComSafeArray<BYTE> loaderBytes;
-	bool loadLoaderFromBytes;
+	CComQIPtr<_AppDomain> pAppDomain;
+	CComQIPtr<_Assembly> pLoaderAssembly;
 	bool unloadAppDomain;
 
-	hr = LoadAppDomain(pHost, addInFullPath, shadowCopyFiles, loaderBytes, loadLoaderFromBytes, appDomain, unloadAppDomain);
+	hr = LoadAppDomain(pHost, addInFullPath, createSandboxedAppDomain, shadowCopyFiles, pLoaderAssembly, pAppDomain, unloadAppDomain);
 	if (FAILED(hr))
 	{
 		// Message already shown by LoadAppDomain
 		return 0;
 	}
 
-	
-
     CComBSTR appDomainName;
-	appDomain->get_FriendlyName(&appDomainName);
-
-	// Now load the Loader assembly in the appropriate AppDomain, and call XlAddIn.Initialize.
-	CComPtr<_Assembly> pExcelDnaLoaderAssemblyInSandbox;
-	if (!loadLoaderFromBytes)
-	{
-		hr = appDomain->Load_2(CComBSTR(L"ExcelDna.Loader"), &pExcelDnaLoaderAssemblyInSandbox);
-		if (FAILED(hr))
-		{
-			// Unexpected - it worked in our first AppDomain....?
-			ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
-						IDS_MSG_BODY_EXCELDNALOADER, 
-						IDS_MSG_FOOTER_UNEXPECTED,
-						hr);
-			return 0;
-		}
-	}
-	else
-	{
-		hr = appDomain->Load_3(loaderBytes, &pExcelDnaLoaderAssemblyInSandbox);
-		if (FAILED(hr))
-		{
-			// Unexpected - it worked in our first AppDomain....?
-			ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
-						IDS_MSG_BODY_EXCELDNALOADER, 
-						IDS_MSG_FOOTER_UNEXPECTED,
-						hr);
-			return 0;
-		}
-	}
-
+	pAppDomain->get_FriendlyName(&appDomainName);
 
 	CComPtr<_Type> pXlAddInType;
-	hr = pExcelDnaLoaderAssemblyInSandbox->GetType_2(CComBSTR(L"ExcelDna.Loader.XlAddIn"), &pXlAddInType);
+	hr = pLoaderAssembly->GetType_2(CComBSTR(L"ExcelDna.Loader.XlAddIn"), &pXlAddInType);
 	if (FAILED(hr) || pXlAddInType == NULL)
 	{
 		ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
@@ -221,7 +190,7 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 	// Keep references needed for later host reference unload.
 	if (unloadAppDomain)
 	{
-		pAppDomain_ForUnload = (IUnknown*)appDomain.Detach();
+		pAppDomain_ForUnload = (IUnknown*)pAppDomain.Detach();
 	}
 	pHost_ForUnload = pHost.Detach();
 
@@ -509,14 +478,17 @@ HRESULT LoadClr20(ICorRuntimeHost **ppHost)
 	return hr;
 }
 
-HRESULT LoadAppDomain(CComPtr<ICorRuntimeHost> pHost, CString addInFullPath, bool shadowCopyFiles, CComSafeArray<BYTE>& loaderBytes, bool& loadLoaderFromBytes, CComQIPtr<_AppDomain>& addInAppDomain, bool& unloadAppDomain)
+HRESULT LoadAppDomain(CComPtr<ICorRuntimeHost> pHost, CString addInFullPath, bool createSandboxedAppDomain, bool shadowCopyFiles, CComPtr<_Assembly>& pLoaderAssembly , CComQIPtr<_AppDomain>& pAppDomain, bool& unloadAppDomain)
 {
 	HRESULT hr;
 	CPath xllDirectory(addInFullPath);
 	xllDirectory.RemoveFileSpec();
+	CComSafeArray<BYTE> loaderBytes;
+	unloadAppDomain = false;
 
 	if (IsRunningOnCluster())
 	{
+		// Need to load into default AppDomain due to configuration issues of the cluster host.
 		IUnknown *pAppDomainUnk = NULL;
 		hr = pHost->CurrentDomain(&pAppDomainUnk);
 		if (FAILED(hr) || pAppDomainUnk == NULL)
@@ -528,30 +500,18 @@ HRESULT LoadAppDomain(CComPtr<ICorRuntimeHost> pHost, CString addInFullPath, boo
 		
 			return E_FAIL;
 		}
-		// Can't set BaseDirectory, so always load the loader from bytes - for now.
-		// CONSIDER: Might load from a full path after our own probing...?
-		// Not sure why we'd bother.
-		HRSRC hResInfoLoader = FindResource(hModuleCurrent, L"EXCELDNA.LOADER", L"ASSEMBLY");
-		if (hResInfoLoader == NULL)
+		
+		hr = LoadLoaderIntoAppDomain(pAppDomain, pLoaderAssembly, /*forceFromBytes=*/ true);
+		if (FAILED(hr))
 		{
-			ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
-						IDS_MSG_BODY_MISSINGEXCELDNALOADER, 
-						IDS_MSG_FOOTER_UNEXPECTED,
-						hr);
+			// Already showed error message there.
 			return E_FAIL;
 		}
-		HGLOBAL hLoader = LoadResource(hModuleCurrent, hResInfoLoader);
-		void* pLoader = LockResource(hLoader);
-		ULONG sizeLoader = (ULONG)SizeofResource(hModuleCurrent, hResInfoLoader);
-		
-		loaderBytes.Add(sizeLoader, (byte*)pLoader);
-		loadLoaderFromBytes = true;
+		// Since we loaded into the default domain, don't unload the AppDomain later.
 		unloadAppDomain = false;
-		addInAppDomain = pAppDomainUnk;
-//		CComBSTR name;
-//		addInAppDomain->get_FriendlyName(&name);
 		return S_OK;
 	}
+	// End of RunningOnCluster path.
 
 	// Create and populate AppDomainSetup
 	CComPtr<IUnknown> pAppDomainSetupUnk;
@@ -586,8 +546,8 @@ HRESULT LoadAppDomain(CComPtr<ICorRuntimeHost> pHost, CString addInFullPath, boo
 		return E_FAIL;
 	}
 
-	// AppDomainSetup.ApplicationName = "ExcelDna: c:\MyAddins\MyAddIn.xll";
-	CComBSTR appDomainName = L"ExcelDna: ";
+	// AppDomainSetup.ApplicationName = "Excel-DNA: c:\MyAddins\MyAddIn.xll";
+	CComBSTR appDomainName = L"Excel-DNA: ";
 	appDomainName.Append(addInFullPath);
 	pAppDomainSetup->put_ApplicationName(appDomainName);
 
@@ -622,15 +582,6 @@ HRESULT LoadAppDomain(CComPtr<ICorRuntimeHost> pHost, CString addInFullPath, boo
 		}
 	}
 
-	// For .NET 4 we need to make a sandboxed AppDomain.
-	// I think this is only possible from within managed code.
-	// We make an additional loader AppDomain, that will create the sandboxed AppDomain,
-	// and return the AppDomainId. 
-	// We then call into the sandboxed AppDomain from the managed code.
-	// Still need to be able to unload from here....?
-
-	// Some ideas: http://www.mmowned.com/forums/world-of-warcraft/bots-programs/memory-editing/300096-net-managed-assembly-removal.html
-
 	IUnknown *pAppDomainUnk = NULL;
 	hr = pHost->CreateDomainEx(appDomainName, pAppDomainSetupUnk, 0, &pAppDomainUnk);
 	if (FAILED(hr) || pAppDomainUnk == NULL)
@@ -642,18 +593,77 @@ HRESULT LoadAppDomain(CComPtr<ICorRuntimeHost> pHost, CString addInFullPath, boo
 		return E_FAIL;
 	}
 
-	CComQIPtr<_AppDomain> pAppDomain(pAppDomainUnk);
+	pAppDomain = pAppDomainUnk;
 
-	// Load plan for ExcelDna.Loader:
-	// Try AppDomain.Load with the name ExcelDna.Loader.
-	// Then if it does not work, we will try to load from a known resource in the .xll.
-
-	CComPtr<_Assembly> pExcelDnaLoaderAssembly;
-	loadLoaderFromBytes = false;
-
-	hr = pAppDomain->Load_2(CComBSTR(L"ExcelDna.Loader"), &pExcelDnaLoaderAssembly);
-	if (FAILED(hr) || pExcelDnaLoaderAssembly == NULL)
+	hr = LoadLoaderIntoAppDomain(pAppDomain, pLoaderAssembly, /*forceLoadFromBytes=*/ false);
+	if (FAILED(hr))
 	{
+		// Already showed message.
+		return E_FAIL;
+	}
+	
+	if (createSandboxedAppDomain)
+	{
+		CComPtr<_Type> pAppDomainHelperType;
+		hr = pLoaderAssembly->GetType_2(CComBSTR(L"ExcelDna.Loader.AppDomainHelper"), &pAppDomainHelperType);
+		if (FAILED(hr) || pAppDomainHelperType == NULL)
+		{
+			ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
+						IDS_MSG_BODY_XLADDIN, 
+						IDS_MSG_FOOTER_UNEXPECTED,
+						hr);
+			return E_FAIL;
+		}
+
+		CComSafeArray<VARIANT> sbArgs;
+		CComVariant sbRetVal;
+		CComVariant sbTarget;
+		hr = pAppDomainHelperType->InvokeMember_3(CComBSTR("CreateFullTrustSandbox"), (BindingFlags)(BindingFlags_Static | BindingFlags_Public | BindingFlags_InvokeMethod), NULL, sbTarget, sbArgs, &sbRetVal);
+		if (FAILED(hr))
+		{
+			ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
+						IDS_MSG_BODY_XLADDININIT, 
+						IDS_MSG_FOOTER_UNEXPECTED,
+						hr);
+			return E_FAIL;
+		}
+
+		CComQIPtr<_AppDomain> pSandbox(sbRetVal.punkVal);
+		if (!pAppDomain.IsEqualObject(pSandbox))
+		{
+			// Unload the loader AppDomain.
+			pLoaderAssembly.Release();
+			pHost->UnloadDomain(pAppDomain);
+			pAppDomain.Release();
+			pAppDomain = pSandbox;
+
+			//  Sort out the LoaderAssembly in the sandbox.
+			hr = LoadLoaderIntoAppDomain(pAppDomain, pLoaderAssembly, /*forceLoadFromBytes=*/ false);
+			if (FAILED(hr))
+			{
+				// Already showed message.
+				return E_FAIL;
+			}
+		}
+	}
+	unloadAppDomain = true;
+	return S_OK;
+}
+
+HRESULT LoadLoaderIntoAppDomain(CComQIPtr<_AppDomain>& pAppDomain, CComPtr<_Assembly>& pLoaderAssembly, bool forceFromBytes)
+{
+	HRESULT hr;
+	CComSafeArray<BYTE> loaderBytes;
+	
+	if (!forceFromBytes)
+	{
+		// Try regular load first 
+		hr = pAppDomain->Load_2(CComBSTR(L"ExcelDna.Loader"), &pLoaderAssembly);
+	}
+
+	if (forceFromBytes || FAILED(hr) || pLoaderAssembly == NULL)
+	{
+		// Now try from resource bytes
 		HRSRC hResInfoLoader = FindResource(hModuleCurrent, L"EXCELDNA.LOADER", L"ASSEMBLY");
 		if (hResInfoLoader == NULL)
 		{
@@ -669,7 +679,7 @@ HRESULT LoadAppDomain(CComPtr<ICorRuntimeHost> pHost, CString addInFullPath, boo
 		
 		loaderBytes.Add(sizeLoader, (byte*)pLoader);
 
-		hr = pAppDomain->Load_3(loaderBytes, &pExcelDnaLoaderAssembly);
+		hr = pAppDomain->Load_3(loaderBytes, &pLoaderAssembly);
 		if (FAILED(hr))
 		{
 			ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
@@ -678,11 +688,10 @@ HRESULT LoadAppDomain(CComPtr<ICorRuntimeHost> pHost, CString addInFullPath, boo
 						hr);
 			return E_FAIL;
 		}
-		loadLoaderFromBytes = true;
 
 		// Is this just for debugging?
 		CComBSTR pFullName;
-		hr = pExcelDnaLoaderAssembly->get_FullName(&pFullName);
+		hr = pLoaderAssembly->get_FullName(&pFullName);
 		if (FAILED(hr))
 		{
 			ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
@@ -692,42 +701,6 @@ HRESULT LoadAppDomain(CComPtr<ICorRuntimeHost> pHost, CString addInFullPath, boo
 			return E_FAIL;
 		}
 	}
-	
-	CComPtr<_Type> pAppDomainHelperType;
-	hr = pExcelDnaLoaderAssembly->GetType_2(CComBSTR(L"ExcelDna.Loader.AppDomainHelper"), &pAppDomainHelperType);
-	if (FAILED(hr) || pAppDomainHelperType == NULL)
-	{
-		ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
-					IDS_MSG_BODY_XLADDIN, 
-					IDS_MSG_FOOTER_UNEXPECTED,
-					hr);
-		return E_FAIL;
-	}
-
-	CComSafeArray<VARIANT> sbArgs;
-	CComVariant sbRetVal;
-	CComVariant sbTarget;
-	hr = pAppDomainHelperType->InvokeMember_3(CComBSTR("CreateFullTrustSandbox"), (BindingFlags)(BindingFlags_Static | BindingFlags_Public | BindingFlags_InvokeMethod), NULL, sbTarget, sbArgs, &sbRetVal);
-	if (FAILED(hr))
-	{
-		ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
-					IDS_MSG_BODY_XLADDININIT, 
-					IDS_MSG_FOOTER_UNEXPECTED,
-					hr);
-		return E_FAIL;
-	}
-
-	CComQIPtr<_AppDomain> pSandbox(sbRetVal.punkVal);
-	addInAppDomain = pSandbox;
-
-	if (!pAppDomain.IsEqualObject(pSandbox))
-	{
-		// Unload the loader AppDomain.
-		pHost->UnloadDomain(pAppDomain);
-	}
-
-	unloadAppDomain = true;
-
 	return S_OK;
 }
 
@@ -933,15 +906,16 @@ BOOL IsRunningOnCluster()
 //	"v2.0" -> "v2.0.50727"
 //	"v4.0" -> "v4.0.30319"
 
-HRESULT ReadClrOptions(CString& clrVersion, bool& shadowCopyFiles)
+HRESULT ReadClrOptions(CString& clrVersion, bool& shadowCopyFiles, bool& createSandboxedAppDomain)
 {
 	HRESULT hr;
 	CString header;
+	CString createSandboxedAppDomainValue;
 
 	hr = ReadDnaHeader(header);	// Errors will be shown in there.
 	if (!FAILED(hr))
 	{
-		hr = ParseDnaHeader(header, clrVersion, shadowCopyFiles); // No errors yet.
+		hr = ParseDnaHeader(header, clrVersion, shadowCopyFiles, createSandboxedAppDomainValue); // No errors yet.
 		if (FAILED(hr))
 		{
 			// XML Parse error
@@ -957,11 +931,28 @@ HRESULT ReadClrOptions(CString& clrVersion, bool& shadowCopyFiles)
 		if (clrVersion == L"v2.0") clrVersion = L"v2.0.50727";
 		if (clrVersion == L"v4.0") clrVersion = L"v4.0.30319";
 
+		// Default sandboxedAppDomain options
+		if (createSandboxedAppDomainValue.CompareNoCase(L"true") == 0)
+		{
+			createSandboxedAppDomain = true;
+		}
+		else if (createSandboxedAppDomainValue.CompareNoCase(L"false") == 0)
+		{
+			createSandboxedAppDomain = false;
+		}
+		else
+		{
+			// Default => true under .NET >= 4.0, else false
+			if (clrVersion.CompareNoCase(L"v4.0") >= 0)
+				createSandboxedAppDomain = true;
+			else
+				createSandboxedAppDomain = false;
+		}
 	}
 	return hr;
 }
 
-HRESULT ParseDnaHeader(CString header, CString& runtimeVersion, bool& shadowCopyFiles)
+HRESULT ParseDnaHeader(CString header, CString& runtimeVersion, bool& shadowCopyFiles, CString& createSandboxedAppDomain)
 {
 	HRESULT hr;
 
@@ -1012,6 +1003,18 @@ HRESULT ParseDnaHeader(CString header, CString& runtimeVersion, bool& shadowCopy
 			shadowCopyFiles = true;
 		else
 			shadowCopyFiles = false;
+	}
+
+	hr = ReadAttributeValue(rootTag, L"CreateSandboxedAppDomain", createSandboxedAppDomain);
+	if (FAILED(hr))
+	{
+		// Parse error
+		return E_FAIL;
+	}
+	if (hr == S_FALSE)
+	{
+		createSandboxedAppDomain = "";
+		hr = S_OK;
 	}
 
 	return hr;
