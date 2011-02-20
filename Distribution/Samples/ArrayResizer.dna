@@ -166,14 +166,19 @@
         
         static void RunMacro(string macroName)
         {
+            object xlApp = null;	   
             try
             {
-                object xlApp = ExcelDnaUtil.Application;
+                xlApp = ExcelDnaUtil.Application;
                 xlApp.GetType().InvokeMember("Run", BindingFlags.InvokeMethod, null, xlApp, new object[] {macroName});
             }
             catch (TargetInvocationException tie)
             {
                 throw tie.InnerException;
+            }
+            finally
+            {
+                Marshal.ReleaseComObject(xlApp);
             }
         }
         

@@ -411,7 +411,17 @@ namespace ExcelDna.Loader
             SetJump(index, mi.FunctionPointer);
             String procName = String.Format("f{0}", index);
 
-            string functionType = mi.ReturnType == null ? "" : mi.ReturnType.XlType.ToString();
+            string functionType;
+            if ( mi.IsCommand)
+            {
+                if (mi.Parameters.Length == 0)
+                    functionType = "";  // OK since no other types will be added
+                else
+                    functionType = ">"; // Use the void / inplace indicator if needed.
+            }
+            else
+                functionType = mi.ReturnType.XlType;
+
             string argumentNames = "";
             bool showDescriptions = false;
             string[] argumentDescriptions = new string[mi.Parameters.Length];
@@ -592,24 +602,18 @@ namespace ExcelDna.Loader
 
         #endregion
     }
-
+    
     public static class AppDomainHelper
     {
         // This method is called from unmanaged code in a temporary AppDomain, just to be able to call
         // the right AppDomain.CreateDomain overload.
-        // CONSIDER: Is there a way to call this method in the default AppDomain, with no side-effects?
         public static unsafe AppDomain CreateFullTrustSandbox()
         {
             try
             {
                 Debug.Print("CreateSandboxAndInitialize - in loader AppDomain with Id: " + AppDomain.CurrentDomain.Id);
 
-                // Security Exception already occurs here...
-                // int callVer = XlCallImpl.XLCallVer();
-
                 PermissionSet pset = new PermissionSet(PermissionState.Unrestricted);
-                // pset.AddPermission(new SecurityPermission(SecurityPermissionFlag.Execution));
-
                 AppDomainSetup loaderAppDomainSetup = AppDomain.CurrentDomain.SetupInformation;
                 AppDomainSetup sandboxAppDomainSetup = new AppDomainSetup();
                 sandboxAppDomainSetup.ApplicationName = loaderAppDomainSetup.ApplicationName;
@@ -620,7 +624,7 @@ namespace ExcelDna.Loader
 
                 // create the sandboxed domain
                 AppDomain sandbox = AppDomain.CreateDomain(
-                    "FullTrustSandbox_" + AppDomain.CurrentDomain.FriendlyName,
+                    "FullTrustSandbox(" + AppDomain.CurrentDomain.FriendlyName + ")",
                     null,
                     sandboxAppDomainSetup,
                     pset);
@@ -635,29 +639,6 @@ namespace ExcelDna.Loader
                 return AppDomain.CurrentDomain;
             }
 
-            //// NOOOOO - Can't do AppDomain.Load in different AppDomain.
-            //// Some ideas: 
-            //// 1. Find a useful system class to marshal.
-            //// 2. Return the AppDomain to the unmanaged code.
-            //// 3. 
-            //Assembly loaderInSandbox;
-            //try
-            //{
-            //    loaderInSandbox = sandbox.Load("ExcelDna.Loader");
-            //}
-            //catch
-            //{
-            //    // Try to load from resources.
-            //    byte[] loaderAssemblyBytes = AssemblyManager.GetResourceBytes("EXCELDNA.LOADER", 0);
-            //    loaderInSandbox = sandbox.Load(loaderAssemblyBytes);
-            //}
-
-            //object marshaledAddIn = sandbox.CreateInstanceAndUnwrap("ExcelDna.Loader", "ExcelDna.Loader.XlAddIn");
-            //Type addinInSandbox = loaderInSandbox.GetType("ExcelDna.Loader.XlAddIn");
-            //// object result = addinInSandbox.InvokeMember("Initialize", BindingFlags.Static | BindingFlags.Public | BindingFlags.InvokeMethod, null, null, new object[] { xlAddInExportInfoAddress, hModuleXll, pathXll });
-            //XlAddInExportInfo* pXlAddInExportInfo = (XlAddInExportInfo*)xlAddInExportInfoAddress;
-            //pXlAddInExportInfo->AppDomainId = sandbox.Id;
-            //return (bool)result;
         }
     }
 

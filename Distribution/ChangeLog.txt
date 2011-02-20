@@ -1,10 +1,12 @@
-Version 0.29 (6 February 2010)
-------------------------------
+Version 0.29 (20 February 2010)
+-------------------------------
 * Support for the 64-bit version of Excel 2010 with the .Net 4 runtime.
 * ArrayResizer sample added.
 * BREAKING CHANGE! SheetId in the ExcelReference type is now an IntPtr.
 * Cluster-safe function support for Excel 2010 HPC Cluster Connector - mark functions as IsClusterSafe=true.
 * Fixed memory leak when getting SheetId for ExcelReference parameters.
+* Allow macros with parameters.
+* Only create sandboxed AppDomain under .NET 4 (or if explicitly requested with CreateSandboxedAppDomain='true' attribute on DnaLibrary tag in .dna file).
 
 Version 0.28 (2 November 2010)
 ------------------------------

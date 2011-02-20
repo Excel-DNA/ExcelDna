@@ -107,6 +107,15 @@ namespace ExcelDna.Integration
             set { _ShadowCopyFiles = value; }
         }
 
+        // If not ('true' or 'false') the sandbox is created only under runtime versions >= 4
+        private string _CreateSandboxedAppDomain;
+        [XmlAttribute]
+        public string CreateSandboxedAppDomain
+        {
+            get { return _CreateSandboxedAppDomain; }
+            set { _CreateSandboxedAppDomain = value; }
+        }
+
         // Next bunch are abbreviations for Project contents
         private List<Reference> _References;
         [XmlElement("Reference", typeof(Reference))]
