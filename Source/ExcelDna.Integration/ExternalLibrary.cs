@@ -60,6 +60,14 @@ namespace ExcelDna.Integration
 			set { _Pack = value; }
 		}
 
+        private bool _LoadFromBytes = false;
+        [XmlAttribute]
+        public bool LoadFromBytes
+        {
+            get { return _LoadFromBytes; }
+            set { _LoadFromBytes = value; }
+        }
+
 		private bool _ExplicitExports = false;
 		[XmlAttribute]
 		public bool ExplicitExports
@@ -162,9 +170,19 @@ namespace ExcelDna.Integration
 				}
 				else
 				{
+                    Assembly assembly;
 					// Load as a regular assembly
+                    if (LoadFromBytes)
+                    {
+                        byte[] bytes = File.ReadAllBytes(resolvedPath);
+                        assembly = Assembly.Load(bytes);
+                    }
+                    else
+                    {
+                        assembly = Assembly.LoadFrom(resolvedPath);
+                    }
 					// CONSIDER: Rather load into the Load context?
-                    list.Add(new ExportedAssembly(Assembly.LoadFrom(resolvedPath), ExplicitExports));
+                    list.Add(new ExportedAssembly(assembly, ExplicitExports));
 					return list;
 				}
 			}

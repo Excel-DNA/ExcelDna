@@ -17,6 +17,13 @@
     public static class TestRtdFunctions
     {
 
+        [ExcelFunction(Name = "Test")] 
+        public static object[,] Test(string name) 
+        { 
+            object result = XlCall.RTD("MyRTDServers.TimeServer", null, "NOW");
+            return new object[,] {{result}}; 
+        } 
+    
       public static object WhatTimeIsIt()
       {
         return XlCall.RTD("MyRTDServers.TimeServer", null, "NOW");

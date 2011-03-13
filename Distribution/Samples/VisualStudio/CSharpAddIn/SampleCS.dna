@@ -1,0 +1,3 @@
+﻿<DnaLibrary Name="Sample Excel-DNA Library in C#" RuntimeVersion="v4.0">
+	<ExternalLibrary Path="CSharpAddIn.dll" LoadFromBytes="true" />
+</DnaLibrary>

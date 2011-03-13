@@ -39,7 +39,8 @@ namespace ExcelDna.Integration
         [XmlAttribute]
         public string Name;
 
-        [Obsolete("Please use Path attribute.")]
+        // [Obsolete("Please use Path attribute.")]
+        // (Can't mark it as Obsolete since serilizer will then ignore, breaking backward compatibility.)
         [XmlAttribute]
         public string AssemblyPath;
 
@@ -51,9 +52,7 @@ namespace ExcelDna.Integration
             {
                 if (_path == null)
                 {
-                    #pragma warning disable 0618
                     return AssemblyPath;
-                    #pragma warning restore 0618
                 }
                 return _path;
             }

@@ -1,5 +1,5 @@
-Version 0.29 (20 February 2010)
--------------------------------
+Version 0.29 (????)
+-------------------
 * Support for the 64-bit version of Excel 2010 with the .Net 4 runtime.
 * ArrayResizer sample added.
 * BREAKING CHANGE! SheetId in the ExcelReference type is now an IntPtr.
@@ -7,6 +7,12 @@ Version 0.29 (20 February 2010)
 * Fixed memory leak when getting SheetId for ExcelReference parameters.
 * Allow macros with parameters.
 * Only create sandboxed AppDomain under .NET 4 (or if explicitly requested with CreateSandboxedAppDomain='true' attribute on DnaLibrary tag in .dna file).
+* Add Path attribute to SourceItem tag to allow external source.
+* Add LoadFromBytes attribute to ExternalLibrary tag to prevent locking of .dll.
+
+* TODO: Exception in RTD servers crash Excel.
+
+
 
 Version 0.28 (2 November 2010)
 ------------------------------
