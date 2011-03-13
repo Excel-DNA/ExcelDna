@@ -214,16 +214,16 @@ namespace ExcelDna.Integration
 			//       for international versions.
 			IntPtr hWndMain = WindowHandle;
 			bool inFunctionWizard = false;
+            StringBuilder cname = new StringBuilder(256);
+            StringBuilder title = new StringBuilder(256);
 			EnumWindows(delegate(IntPtr hWndEnum, IntPtr param)
 			{
 				// Check the window class
-				StringBuilder cname = new StringBuilder(256);
 				GetClassNameW(hWndEnum, cname, cname.Capacity);
 				if (cname.ToString().StartsWith("bosa_sdm_XL"))
 				{
 					if (GetParent(hWndEnum) == hWndMain)
 					{
-						StringBuilder title = new StringBuilder(256);
 						GetWindowTextW(hWndEnum, title, title.Capacity);
 						if (!title.ToString().Contains("Replace"))
 							inFunctionWizard = true; // will also work for older versions where paste box had no title

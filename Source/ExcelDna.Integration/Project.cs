@@ -134,14 +134,27 @@ namespace ExcelDna.Integration
         }
 
         // Get projects explicit and implicitly present in the library
-        private List<SourceItem> GetSourceItems()
+        private List<string> GetSources(string pathResolveRoot)
         {
-            List<SourceItem> sourceItems = new List<SourceItem>();
+            List<string> sources = new List<string>();
             if (SourceItems != null)
-                sourceItems.AddRange(SourceItems);
+            {
+                // Deal with explicit SourceItem tags.
+                foreach (SourceItem sourceItem in SourceItems)
+                {
+                    string source = sourceItem.GetSource(pathResolveRoot);
+                    if (!string.IsNullOrEmpty(source))
+                    {
+                        sources.Add(source.Trim());
+                    }
+                }
+            }
+            // Implicit Source
             if (Code != null && Code.Trim() != "")
-                sourceItems.Add(new SourceItem(Code));
-            return sourceItems;
+            {
+                sources.Add(Code.Trim());
+            }
+            return sources;
         }
 
         private List<string> tempAssemblyPaths = new List<string>();
@@ -302,7 +315,8 @@ namespace ExcelDna.Integration
 			List<string> refPaths = GetReferencePaths(pathResolveRoot);
 			cp.ReferencedAssemblies.AddRange(refPaths.ToArray());
 
-            List<string> sources = GetSourceItems().ConvertAll<string>(delegate(SourceItem item) { return item.Code.Trim(); });
+            List<string> sources = GetSources(pathResolveRoot);
+            
 			CompilerResults cr = provider.CompileAssemblyFromSource(cp, sources.ToArray());
 
 			foreach (string path in tempAssemblyPaths)

@@ -183,14 +183,14 @@
         }
         
         const uint RPC_E_SERVERCALL_RETRYLATER = 0x8001010A; 
-        const uint RPC_E_CANTCALLOUT_INASYNCCALL = 0x800AC472; 
+        const uint VBA_E_IGNORE = 0x800AC472; 
         static bool IsRetry(COMException e) 
         { 
             uint errorCode = (uint)e.ErrorCode; 
             switch(errorCode) 
             { 
                 case RPC_E_SERVERCALL_RETRYLATER: 
-                case RPC_E_CANTCALLOUT_INASYNCCALL: 
+                case VBA_E_IGNORE: 
                     return true; 
                 default: 
                     return false; 

@@ -28,6 +28,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using System.IO;
 
 namespace ExcelDna.Integration
 {
@@ -50,6 +51,31 @@ namespace ExcelDna.Integration
 			get { return _Code; }
 			set	{ _Code = value; }
 		}
+
+        private string _Path;
+        [XmlAttribute]
+        public string Path
+        {
+            get { return _Path; }
+            set { _Path = value; }
+        }
+
+        // Returns the resulting source for this SourceItem.
+        // If Path is filled in, and file exists, takes source from there.
+        // Else returns Code value.
+        public string GetSource(string pathResolveRoot)
+        {
+            if (!string.IsNullOrEmpty(Path))
+            {
+                // Try to read from a file.
+                string resolvedPath = DnaLibrary.ResolvePath(Path, pathResolveRoot);
+                if (resolvedPath != null)
+                {
+                    return File.ReadAllText(resolvedPath).Trim();
+                }
+            }
+            return Code;
+        }
 
         public SourceItem()
         {

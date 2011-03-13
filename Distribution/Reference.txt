@@ -212,6 +212,7 @@ DnaLibrary
 	RuntimeVersion
 ....
 Project*
+	SourceItem*
 Image*
 CustomUI*
 

@@ -1,0 +1,22 @@
+<DnaLibrary>
+<![CDATA[
+
+Public Module Test
+
+    <ExcelCommand(MenuName:="Test", MenuText:="Set with C API")> _
+    Sub SetValueAPI()
+        Dim target as ExcelReference = New ExcelReference(0,0)
+        target.SetValue("The quick brown fox ...")
+    End Sub
+    
+    <ExcelCommand(MenuName:="Test", MenuText:="Set with COM")> _
+    Sub SetValueCOM()
+        Dim app as Object = ExcelDnaUtil.Application
+        app.Range("A2").Value = "The rain in spain ..."
+    End Sub
+    
+
+End Module
+
+]]>
+</DnaLibrary>
