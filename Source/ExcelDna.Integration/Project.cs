@@ -159,7 +159,7 @@ namespace ExcelDna.Integration
 
         private List<string> tempAssemblyPaths = new List<string>();
 
-        public List<string> GetReferencePaths(string pathResolveRoot)
+        public List<string> GetReferencePaths(string pathResolveRoot, CodeDomProvider provider)
         {
             List<string> refPaths = new List<string>();
 			if (References != null)
@@ -223,6 +223,10 @@ namespace ExcelDna.Integration
                     refPaths.Add("System.Core.dll");
                     refPaths.Add("System.Data.DataSetExtensions.dll");
                     refPaths.Add("System.Xml.Linq.dll");
+                    if (provider is Microsoft.CSharp.CSharpCodeProvider)
+                    {
+                        refPaths.Add("Microsoft.CSharp.dll");
+                    }
                 }
             }
             // DOCUMENT: Reference to the xll is always added
@@ -252,7 +256,7 @@ namespace ExcelDna.Integration
 
         // TODO: Move compilation stuff elsewhere.
         // TODO: Consider IronPython support: http://www.ironpython.info/index.php/Using_Compiled_Python_Classes_from_.NET/CSharp_IP_2.6
-		internal List<ExportedAssembly> GetAssemblies(string pathResolveRoot)
+		internal List<ExportedAssembly> GetAssemblies(string pathResolveRoot, DnaLibrary dnaLibrary)
 		{
 			List<ExportedAssembly> list = new List<ExportedAssembly>();
 			// Dynamically compile this project to an in-memory assembly
@@ -293,7 +297,11 @@ namespace ExcelDna.Integration
                     cp.CompilerOptions += " /imports:" + importsList;
                 }
             }
-            else if ( (provider is Microsoft.CSharp.CSharpCodeProvider) || (provider.GetType().FullName.ToLower().IndexOf(".jscript.") != -1))
+            else if (provider is Microsoft.CSharp.CSharpCodeProvider) 
+            {
+                cp.CompilerOptions = " /lib:" + ProcessedExecutingDirectory;
+            }
+            else if (provider.GetType().FullName.ToLower().IndexOf(".jscript.") != -1)
             {
                 cp.CompilerOptions = " /lib:" + ProcessedExecutingDirectory;
             }
@@ -312,7 +320,7 @@ namespace ExcelDna.Integration
             }
 
             // TODO: Consider what to do if we can't resolve some of the Reference paths -- do we try to compile anyway, throw an exception, ...what?
-			List<string> refPaths = GetReferencePaths(pathResolveRoot);
+			List<string> refPaths = GetReferencePaths(pathResolveRoot, provider);
 			cp.ReferencedAssemblies.AddRange(refPaths.ToArray());
 
             List<string> sources = GetSources(pathResolveRoot);
@@ -344,7 +352,7 @@ namespace ExcelDna.Integration
 				AssemblyReference.AddAssembly(r.Path);
 			}
 
-			list.Add(new ExportedAssembly(cr.CompiledAssembly, ExplicitExports));
+			list.Add(new ExportedAssembly(cr.CompiledAssembly, ExplicitExports, dnaLibrary));
 			return list;
 		}
 

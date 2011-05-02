@@ -714,6 +714,13 @@ namespace ExcelDna.Loader
                 pOper->xlType = XlType.XlTypeNumber;
                 return pNative;
             }
+            else if (ManagedObj is long)
+            {
+                XlOper* pOper = (XlOper*)pNative;
+                pOper->numValue = (double)((long)ManagedObj);
+                pOper->xlType = XlType.XlTypeNumber;
+                return pNative;
+            }
             // 13 November 2006 -- this marshaler is not used to set up the Excel4 return value anymore.
             //else if (ManagedObj == null)
             //{
@@ -1375,6 +1382,50 @@ namespace ExcelDna.Loader
             catch
             {
                 // This case is where the range of the decimal is exceeded.
+                // By returning null, the unboxing code will fail,
+                // causing a runtime exception that is caught and returned as a #Value error.
+                return null;
+            }
+        }
+
+        public void CleanUpManagedData(object ManagedObj) { }
+        public void CleanUpNativeData(IntPtr pNativeData) { } // Can't do anything useful here, as the managed to native marshaling is for a return parameter.
+        public int GetNativeDataSize() { return -1; }
+    }
+
+    // We would prefer to get a double, but need to take 
+    // XlOper to ensure marshaling
+    public unsafe class XlLongParameterMarshaler : ICustomMarshaler
+    {
+        static ICustomMarshaler instance;
+
+        public XlLongParameterMarshaler()
+        {
+        }
+
+        public static ICustomMarshaler GetInstance(string marshalCookie)
+        {
+            if (instance == null)
+                instance = new XlLongParameterMarshaler();
+            return instance;
+        }
+
+        public IntPtr MarshalManagedToNative(object ManagedObj)
+        {
+            // Not working in this direction at the moment
+            throw new NotImplementedException("This marshaler only used for native to managed parameter marshaling.");
+            //return null;
+        }
+
+        public object MarshalNativeToManaged(IntPtr pNativeData)
+        {
+            try
+            {
+                return (long)*((double*)pNativeData);
+            }
+            catch
+            {
+                // This case is where the range of the long is exceeded.
                 // By returning null, the unboxing code will fail,
                 // causing a runtime exception that is caught and returned as a #Value error.
                 return null;

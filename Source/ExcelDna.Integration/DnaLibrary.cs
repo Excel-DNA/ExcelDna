@@ -38,6 +38,8 @@ using System.Net;
 
 using ExcelDna.Serialization;
 using ExcelDna.Integration.CustomUI;
+using ExcelDna.Integration.Rtd;
+using ExcelDna.ComInterop;
 
 namespace ExcelDna.Integration
 {
@@ -73,6 +75,10 @@ namespace ExcelDna.Integration
                     _XllPath = (string)XlCall.Excel(XlCall.xlGetName);
                 }
                 return _XllPath;
+            }
+            set
+            {
+                _XllPath = value;
             }
         }
 
@@ -216,12 +222,12 @@ namespace ExcelDna.Integration
 				{
 					foreach (ExternalLibrary lib in ExternalLibraries)
 					{
-                        assemblies.AddRange(lib.GetAssemblies(pathResolveRoot));
+                        assemblies.AddRange(lib.GetAssemblies(pathResolveRoot, this));
 					}
 				}
 				foreach (Project proj in GetProjects())
 				{
-                    assemblies.AddRange(proj.GetAssemblies(pathResolveRoot));
+                    assemblies.AddRange(proj.GetAssemblies(pathResolveRoot, this));
 				}
 			}
 			catch (Exception e)
@@ -234,36 +240,38 @@ namespace ExcelDna.Integration
         // Managed AddIns related to this DnaLibrary
         // Kept so that AutoClose can be called later.
         [XmlIgnore]
-        private List<AssemblyLoader.ExcelAddInInfo> _AddIns = new List<AssemblyLoader.ExcelAddInInfo>();
+        private List<AssemblyLoader.ExcelAddInInfo> _addIns = new List<AssemblyLoader.ExcelAddInInfo>();
+        [XmlIgnore]
+        private List<MethodInfo> _methods = new List<MethodInfo>();
 
+        // The idea is that initialize compiles, loads and sorts out the assemblies,
+        //    but does not depend on any calls to Excel.
+        // Then Initialize can be called during RTD registration or loading, 
+        //    without 'AutoOpening' the add-in
+        internal void Initialize()
+        {
+            // Get MethodsInfos and AddIn classes from assemblies
+            List<Type> rtdServerTypes = new List<Type>();
+            List<ExcelComClassType> comClassTypes = new List<ExcelComClassType>();
+
+            // Recursively get assemblies down .dna tree.
+            List<ExportedAssembly> assemblies = GetAssemblies(dnaResolveRoot);
+            AssemblyLoader.ProcessAssemblies(assemblies, _methods, _addIns, rtdServerTypes, comClassTypes);
+
+            // Register RTD Server Types immediately
+            ExcelRtd.RegisterRtdServerTypes(rtdServerTypes);
+
+            // Register COM Server Types immediately
+            ComServer.RegisterComClassTypes(comClassTypes);
+        }
+        
         internal void AutoOpen()
         {
-            List<MethodInfo> methods = new List<MethodInfo>();
-
-            // Get MethodsInfos and AddIn classes from assemblies
-            foreach (ExportedAssembly assembly in GetAssemblies(dnaResolveRoot))
-            {
-                try
-                {
-                    methods.AddRange(AssemblyLoader.GetExcelMethods(assembly));
-                }
-                catch (Exception e)
-                {
-                    // TODO: I still don't know how to do exceptions
-                    Debug.WriteLine(e.Message);
-                }
-                _AddIns.AddRange(AssemblyLoader.GetExcelAddIns(assembly));
-
-                // Register RTD Server Types
-                Dictionary<String, Type> rtdServerTypes = AssemblyLoader.GetRtdServerTypes(assembly);
-                Rtd.ExcelRtd.RegisterRtdServerTypes(rtdServerTypes);
-            }
-
-            // Register Methods
-            Integration.RegisterMethods(methods);
+            // Register my Methods
+            Integration.RegisterMethods(_methods);
 
             // Invoke AutoOpen in all assemblies
-            foreach (AssemblyLoader.ExcelAddInInfo addIn in _AddIns)
+            foreach (AssemblyLoader.ExcelAddInInfo addIn in _addIns)
             {
                 try
                 {
@@ -279,6 +287,7 @@ namespace ExcelDna.Integration
                 }
             }
 
+            // Load my UI
             LoadCustomUI();
         }
 
@@ -286,7 +295,7 @@ namespace ExcelDna.Integration
         {
             UnloadCustomUI();
 
-            foreach (AssemblyLoader.ExcelAddInInfo addIn in _AddIns)
+            foreach (AssemblyLoader.ExcelAddInInfo addIn in _addIns)
             {
                 try
                 {
@@ -301,7 +310,7 @@ namespace ExcelDna.Integration
                     Debug.WriteLine(e.Message);
                 }
             }
-            _AddIns.Clear();
+            _addIns.Clear();
         }
 
         internal void LoadCustomUI()
@@ -310,44 +319,45 @@ namespace ExcelDna.Integration
             if (ExcelDnaUtil.ExcelVersion >= 12.0)
             {
                 // Load ComAddIns
-                foreach (AssemblyLoader.ExcelAddInInfo addIn in _AddIns)
+                foreach (AssemblyLoader.ExcelAddInInfo addIn in _addIns)
                 {
                     if (addIn.IsCustomUI)
                     {
                         // Load ExcelRibbon classes
                         ExcelRibbon excelRibbon = addIn.Instance as ExcelRibbon;
-                        excelRibbon.DnaLibrary = this;
-                        ExcelComAddIn.LoadComAddIn(excelRibbon);
+                        excelRibbon.DnaLibrary = addIn.ParentDnaLibrary;
+                        ExcelComAddInHelper.LoadComAddIn(excelRibbon);
                         uiLoaded = true;
                     }
                 }
 
-                if (uiLoaded == false && CustomUIs != null)
-                {
-                    // Check whether we should add an empty ExcelCustomUI instance to load a Ribbon interface?
-                    bool loadEmptyAddIn = false;
-                    if (CustomUIs != null)
-                    {
-                        foreach (XmlNode xmlCustomUI in CustomUIs)
-                        {
-                            if (xmlCustomUI.LocalName == "customUI" &&
-                                (xmlCustomUI.NamespaceURI == ExcelRibbon.NamespaceCustomUI2007 ||
-                                 (ExcelDnaUtil.ExcelVersion >= 14.0 &&
-                                  xmlCustomUI.NamespaceURI == ExcelRibbon.NamespaceCustomUI2010)))
-                            {
-                                loadEmptyAddIn = true;
-                            }
-                            if (loadEmptyAddIn)
-                            {
-                                // There will be Ribbon xml to load. Make a temp add-in and load it.
-                                ExcelRibbon customUI = new ExcelRibbon();
-                                customUI.DnaLibrary = this;
-                                ExcelComAddIn.LoadComAddIn(customUI);
-                                uiLoaded = true;
-                            }
-                        }
-                    }
-                }
+                // CONSIDER: Really not sure if this is a good idea - seems to interfere with unloading somehow.
+                //if (uiLoaded == false && CustomUIs != null)
+                //{
+                //    // Check whether we should add an empty ExcelCustomUI instance to load a Ribbon interface?
+                //    bool loadEmptyAddIn = false;
+                //    if (CustomUIs != null)
+                //    {
+                //        foreach (XmlNode xmlCustomUI in CustomUIs)
+                //        {
+                //            if (xmlCustomUI.LocalName == "customUI" &&
+                //                (xmlCustomUI.NamespaceURI == ExcelRibbon.NamespaceCustomUI2007 ||
+                //                 (ExcelDnaUtil.ExcelVersion >= 14.0 &&
+                //                  xmlCustomUI.NamespaceURI == ExcelRibbon.NamespaceCustomUI2010)))
+                //            {
+                //                loadEmptyAddIn = true;
+                //            }
+                //            if (loadEmptyAddIn)
+                //            {
+                //                // There will be Ribbon xml to load. Make a temp add-in and load it.
+                //                ExcelRibbon customUI = new ExcelRibbon();
+                //                customUI.DnaLibrary = this;
+                //                ExcelComAddInHelper.LoadComAddIn(customUI);
+                //                uiLoaded = true;
+                //            }
+                //        }
+                //    }
+                //}
             }
 
             // should we load CommandBars?
@@ -366,31 +376,31 @@ namespace ExcelDna.Integration
         internal void UnloadCustomUI()
         {
             // This is safe, even if no Com Add-Ins were loaded.
-            ExcelComAddIn.UnloadComAddIns();
+            ExcelComAddInHelper.UnloadComAddIns();
             ExcelCommandBarUtil.UnloadCommandBars();
         }
 
         // Statics
-		private static DnaLibrary currentLibrary;
-		internal static void Initialize()
+		private static DnaLibrary rootLibrary;
+		internal static void InitializeRootLibrary(string xllPath)
 		{
             // Might be called more than once in a session
-            // e.g. if AddInManagerInfo is called, and then AutoOpen
-            // or if the add-in is opened more than once.
+            // if the add-in is opened more than once.
 
 			// Loads the primary .dna library
 			// Load sequence is:
 			// 1. Look for a packed .dna file named "__MAIN__" in the .xll.
 			// 2. Look for the .dna file in the same directory as the .xll file, with the same name and extension .dna.
 
-			Debug.WriteLine("Enter DnaLibrary.Initialize");
+			Debug.WriteLine("Enter DnaLibrary.InitializeRootLibrary");
+            XllPath = xllPath;
             Logging.LogDisplay.CreateInstance();
 			byte[] dnaBytes = Integration.GetDnaFileBytes("__MAIN__");
 			if (dnaBytes != null)
 			{
 				Debug.WriteLine("Got Dna file from resources.");
                 string pathResolveRoot = Path.GetDirectoryName(DnaLibrary.XllPath);
-				currentLibrary = LoadFrom(dnaBytes, pathResolveRoot);
+				rootLibrary = LoadFrom(dnaBytes, pathResolveRoot);
 				// ... would have displayed error and returned null if there was an error.
 			}
 			else
@@ -398,16 +408,18 @@ namespace ExcelDna.Integration
 				Debug.WriteLine("No Dna file in resources - looking for file.");
 				// No packed .dna file found - load from a .dna file.
 				string dnaFileName = Path.ChangeExtension(XllPath, ".dna");
-				currentLibrary = LoadFrom(dnaFileName);
+				rootLibrary = LoadFrom(dnaFileName);
 				// ... would have displayed error and returned null if there was an error.
 			}
 
 			// If there have been problems, ensure that there is at lease some current library.
-			if (currentLibrary == null)
-			{
-				Debug.WriteLine("No Dna Library found.");
-				currentLibrary = new DnaLibrary();
-			}
+            if (rootLibrary == null)
+            {
+                Debug.WriteLine("No Dna Library found.");
+                rootLibrary = new DnaLibrary();
+            }
+
+            rootLibrary.Initialize();
 			Debug.WriteLine("Exit DnaLibrary.Initialize");
 		}
 
@@ -415,7 +427,7 @@ namespace ExcelDna.Integration
         {
             // Called to shut down the Add-In.
             // Free whatever possible
-            currentLibrary = null;
+            rootLibrary = null;
         }
 
         public static DnaLibrary LoadFrom(Uri uri)
@@ -464,7 +476,7 @@ namespace ExcelDna.Integration
 				return null;
 			}
             dnaLibrary.dnaResolveRoot = pathResolveRoot;
-			return dnaLibrary;
+            return dnaLibrary;
 		}
 
         public static DnaLibrary LoadFrom(string fileName)
@@ -487,7 +499,7 @@ namespace ExcelDna.Integration
             }
             catch (Exception e)
             {
-                ExcelDna.Logging.LogDisplay.WriteLine("There was an error while processing {0}:\r\n{1}\r\n{2}", fileName, e.Message, e.InnerException != null ? e.InnerException.Message : string.Empty);
+                ExcelDna.Logging.LogDisplay.WriteLine("There was an error during processing of {0}:\r\n{1}\r\n{2}", fileName, e.Message, e.InnerException != null ? e.InnerException.Message : string.Empty);
                 return null;
             }
             dnaLibrary.dnaResolveRoot = Path.GetDirectoryName(fileName);
@@ -517,13 +529,14 @@ namespace ExcelDna.Integration
 
 		public static DnaLibrary CurrentLibrary
 		{
-            // Might be called before Initialize
-            // e.g. if Excel called AddInManagerInfo before AutoOpen
+            // Should not be called before Initialize
 			get
 			{
-                if (currentLibrary == null)
-                    Initialize();
-				return currentLibrary;
+                if (rootLibrary == null)
+                {
+                    throw new InvalidOperationException("No CurrentLibrary set.");
+                }
+				return rootLibrary;
 			}
 		}
 
@@ -533,7 +546,7 @@ namespace ExcelDna.Integration
         {
             get
             {
-                if (currentLibrary == null) 
+                if (rootLibrary == null) 
                 {
                     string dllName = XllPath;
 					return Path.GetFileNameWithoutExtension(dllName);
@@ -740,6 +753,7 @@ public class CDataField : IXmlSerializable
     }
  */ 
  
+// Not sure if this is still valid - current version is not customised....?????
 // CAREFUL: Customization of the deserialization in this if clause....
 //else if (((object)Reader.LocalName == (object)id11_customUI /*&& (object)Reader.NamespaceURI == (object)id2_Item */))
 //{

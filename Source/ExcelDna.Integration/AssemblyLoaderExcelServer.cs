@@ -60,14 +60,78 @@ namespace ExcelDna.Integration
 	// and build the method information.
     internal class AssemblyLoaderExcelServer
     {
-        static internal List<MethodInfo> GetExcelMethods(Assembly assembly)
+
+        internal class ExcelServerInfo
         {
-            List<MethodInfo> methods = new List<MethodInfo>();
-            List<ExcelServerInfo> serverInfos = GetExcelServerMethods(assembly);
+            public object Instance;
+            public List<MethodInfo> Methods;
+        }
+
+        internal static void GetExcelServerInfos(Type t, object[] attribs, List<ExcelServerInfo> excelServerInfos)
+        {
+            bool isUdfClass = false;
+            foreach (object attrib in attribs)
+            {
+                Type attribType = attrib.GetType();
+                if (attribType.FullName == "Microsoft.Office.Excel.Server.Udf.UdfClassAttribute")
+                {
+                    // Candidate for export
+                    isUdfClass = true;
+                    break;
+                }
+            }
+            if (!isUdfClass) return;
+
+            // Instantiate -- the class must have a parameterless constructor
+            ConstructorInfo ci = t.GetConstructor(new Type[0]);
+            if (ci == null)
+            {
+                // Bad case
+                Debug.Print("ExcelDNA -> UdfClass: " + t.FullName + " has no parameterless constructor.");
+                return;
+            }
+
+            try
+            {
+                object instance = ci.Invoke(null);
+                ExcelServerInfo serverInfo = new ExcelServerInfo();
+                excelServerInfos.Add(serverInfo);
+                serverInfo.Instance = instance;
+                serverInfo.Methods = new List<MethodInfo>();
+
+                // Now go through all the methods, finding those with the UdfMethod attribute
+                foreach (MethodInfo method in t.GetMethods(BindingFlags.Public | BindingFlags.Instance))
+                {
+                    // Simple check that this is a function
+                    if (method.ReturnType == typeof(void))
+                    {
+                        // Bad case
+                        Debug.Print("ExcelDNA -> UdfMethod: " + method.Name + " returns void.");
+                        continue;
+                    }
+
+                    foreach (object attrib in method.GetCustomAttributes(false))
+                    {
+                        // CONSIDER: Does this GetType() require that the assembly which defines
+                        // the attribute be available?
+                        Type attribType = attrib.GetType();
+
+                        if (attribType.FullName == "Microsoft.Office.Excel.Server.Udf.UdfMethodAttribute")
+                        {
+                            // Candidate for export
+                            serverInfo.Methods.Add(method);
+                        }
+                    }
+                }
+            }
+            catch { }
+        }
+
+        static internal void GetExcelServerMethods(List<ExcelServerInfo> serverInfos, List<MethodInfo> methods)
+        {
 
             // Prevent dynamic assembly if no Udf* methods
-            if (serverInfos.Count == 0)
-                return methods;
+            if (serverInfos.Count == 0) return;
 
             // Now we build a module with 
             AssemblyBuilder assemblyBuilder;
@@ -132,84 +196,6 @@ namespace ExcelDna.Integration
                     methods.Add(wrapperMethod);
                 }
             }
-            return methods;
-        }
-
-        private class ExcelServerInfo
-        {
-            public object Instance;
-            public List<MethodInfo> Methods;
-        }
-
-        static private List<ExcelServerInfo> GetExcelServerMethods(Assembly assembly)
-        {
-            List<Type> udfClasses = new List<Type>();
-            List<ExcelServerInfo> serverInfos = new List<ExcelServerInfo>();
-
-            Type[] types = assembly.GetTypes();
-            foreach (Type t in types)
-            {
-                foreach (object attrib in t.GetCustomAttributes(false))
-                {
-                    // CONSIDER: Does this GetType() require that the assembly which defines
-                    // the attribute be available?
-                    Type attribType = attrib.GetType();
-
-                    if (attribType.FullName == "Microsoft.Office.Excel.Server.Udf.UdfClassAttribute")
-                    {
-                        // Candidate for export
-                        udfClasses.Add(t);
-                    }
-                }
-            }
-
-            foreach (Type t in udfClasses)
-            {
-                // Instantiate -- the class must have a parameterless constructor
-                ConstructorInfo ci = t.GetConstructor(new Type[0]);
-                if (ci == null)
-                {
-                    // Bad case
-                    Debug.Print("ExcelDNA -> UdfClass: " + t.FullName + " has no parameterless constructor.");
-                    continue;
-                }
-
-                try
-                {
-                    object instance = ci.Invoke(null);
-                    ExcelServerInfo serverInfo = new ExcelServerInfo();
-                    serverInfos.Add(serverInfo);
-                    serverInfo.Instance = instance;
-                    serverInfo.Methods = new List<MethodInfo>();
-
-                    // Now go through all the methods, finding those with the UdfMethod attribute
-                    foreach (MethodInfo method in t.GetMethods(BindingFlags.Public | BindingFlags.Instance))
-                    {
-                        // Simple check that this is a function
-                        if (method.ReturnType == typeof(void))
-                        {
-                            // Bad case
-                            Debug.Print("ExcelDNA -> UdfMethod: " + method.Name + " returns void.");
-                            continue;
-                        }
-
-                        foreach (object attrib in method.GetCustomAttributes(false))
-                        {
-                            // CONSIDER: Does this GetType() require that the assembly which defines
-                            // the attribute be available?
-                            Type attribType = attrib.GetType();
-
-                            if (attribType.FullName == "Microsoft.Office.Excel.Server.Udf.UdfMethodAttribute")
-                            {
-                                // Candidate for export
-                                serverInfo.Methods.Add(method);
-                            }
-                        }
-                    }
-                }
-                catch { }
-            }
-            return serverInfos;
         }
     }
 }

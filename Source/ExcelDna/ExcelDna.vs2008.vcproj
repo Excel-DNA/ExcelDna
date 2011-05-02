@@ -68,6 +68,7 @@
 				OutputFile="$(OutDir)\$(ProjectName).xll"
 				LinkIncremental="2"
 				GenerateManifest="false"
+				ModuleDefinitionFile="ExcelDna.def"
 				DelayLoadDLLs=""
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
@@ -149,6 +150,7 @@
 				OutputFile="$(OutDir)\$(ProjectName).xll"
 				LinkIncremental="1"
 				GenerateManifest="false"
+				ModuleDefinitionFile="ExcelDna.def"
 				DelayLoadDLLs=""
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -196,6 +198,10 @@
 			</File>
 			<File
 				RelativePath=".\ExcelDna.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ExcelDna.def"
 				>
 			</File>
 			<File
@@ -250,6 +256,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\metahost_extract.h"
+				>
+			</File>
+			<File
 				RelativePath=".\mscorlib_extract.h"
 				>
 			</File>
@@ -272,14 +282,6 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\Release\ExcelDna.Integration.dll"
-			>
-		</File>
-		<File
-			RelativePath=".\Release\ExcelDna.Loader.dll"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>

@@ -29,9 +29,15 @@ using System.Reflection;
 
 namespace ExcelDna.Loader
 {
+    using HRESULT = System.Int32;
+    using IID = System.Guid;
+    using CLSID = System.Guid;
+    using System.Runtime.InteropServices;
+
     // This class has a friend in XlCustomMarshal.
     internal static class IntegrationHelpers
     {
+
         static Type integrationType;
         static MethodInfo addCommandMenu;
         static MethodInfo removeCommandMenus;
@@ -68,14 +74,41 @@ namespace ExcelDna.Loader
             integrationType.InvokeMember("DnaLibraryAutoClose", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, null);
         }
 
+        // TODO: Move this around a bit to clean up.
+        // No longer called from xlAddInManagerInfo(12)
         internal static string DnaLibraryGetName()
         {
             return (string)integrationType.InvokeMember("DnaLibraryGetName", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, null);
         }
 
-        internal static void InitializeIntegration()
+        internal static HRESULT DllRegisterServer()
         {
-            integrationType.InvokeMember("Initialize", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, null);
+            return (HRESULT)integrationType.InvokeMember("DllRegisterServer", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, null);
+        }
+
+        internal static HRESULT DllUnregisterServer()
+        {
+            return (HRESULT)integrationType.InvokeMember("DllUnregisterServer", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, null);
+        }
+
+        internal static HRESULT DllGetClassObject(CLSID clsid, IID iid, out IntPtr ppunk)
+        //internal static HRESULT DllGetClassObject(ref Guid clsid, ref Guid iid, out object ppunk)
+        {
+            HRESULT result;
+            object[] args = new object[] {clsid, iid, null};
+            result = (HRESULT)integrationType.InvokeMember("DllGetClassObject", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, args);
+            ppunk = (IntPtr)args[2];
+            return result;
+        }
+
+        internal static HRESULT DllCanUnloadNow()
+        {
+            return (HRESULT)integrationType.InvokeMember("DllCanUnloadNow", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, null);
+        }
+
+        internal static void InitializeIntegration(string xllPath)
+        {
+            integrationType.InvokeMember("Initialize", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] {xllPath});        
         }
 
         internal static void DeInitializeIntegration()

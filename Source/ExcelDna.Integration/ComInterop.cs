@@ -10,17 +10,26 @@ using HRESULT = System.Int32;
 using IID     = System.Guid;
 using CLSID   = System.Guid;
 using DWORD   = System.UInt32;
+using System.Runtime.CompilerServices;
+using System.Reflection;
+using System.Collections;
+using System.Threading;
 
 namespace ExcelDna.ComInterop
 {
     internal class ComAPI
     {
         public const HRESULT S_OK = 0;
+        public const HRESULT S_FALSE = 1;
         public const HRESULT CLASS_E_NOAGGREGATION = unchecked((int)0x80040110);
+        public const HRESULT CLASS_E_CLASSNOTAVAILABLE = unchecked((int)0x80040111);
+        public const HRESULT E_INVALIDARG = unchecked((int)0x80070057);
         public const HRESULT E_NOINTERFACE = unchecked((int)0x80004002);
+        public const HRESULT E_UNEXPECTED = unchecked((int)0x8000FFFF);
         public const string gstrIUnknown = "00000000-0000-0000-C000-000000000046";
         public static readonly Guid guidIUnknown = new Guid(gstrIUnknown);
         public const string gstrIClassFactory = "00000001-0000-0000-C000-000000000046";
+        public static readonly Guid guidIClassFactory = new Guid(gstrIClassFactory);
         public const string gstrIDTExtensibility2 = "B65AD801-ABAF-11D0-BB8B-00A0C90F2744";
         public static readonly Guid guidIDTExtensibility2 = new Guid(gstrIDTExtensibility2);
         public const string gstrIRibbonExtensibility = "000C0396-0000-0000-C000-000000000046";
@@ -63,6 +72,9 @@ namespace ExcelDna.ComInterop
 
         [DllImport("Ole32.dll")]
         public static extern HRESULT CreateFileMoniker(string pathName, out IMoniker ppmk);
+
+        [DllImport("ole32.dll")]
+        public static extern HRESULT CLSIDFromProgID([MarshalAs(UnmanagedType.LPWStr)] string progId, out Guid clsid);
     }
 }
 
@@ -147,7 +159,7 @@ namespace ExcelDna.Integration.CustomUI
     internal interface ICustomTaskPaneConsumer
     {
         [DispId(1)]
-        void CTPFactoryAvailable(IntPtr /*ICTPFactory*/ CTPFactoryInst);
+        void CTPFactoryAvailable([In, MarshalAs(UnmanagedType.Interface)] ICTPFactory CTPFactoryInst);
     }
 
     [ComImport]
@@ -189,6 +201,326 @@ namespace ExcelDna.Integration.CustomUI
     //    int Height { get; }
     //    void Render(IntPtr hdc, int x, int y, int cx, int cy, int xSrc, int ySrc, int cxSrc, int cySrc);
     //}
+
+    // CONSIDER: Review all these CustomTaskPane declarations
+    //           - horribly copied and hacked together from the office PIA.
+    // Anyway - not late-bound like everything else - just for supporting the two events
+    [ComImport, Guid("000C033D-0000-0000-C000-000000000046"), TypeLibType((short)0x10c0)]
+    public interface ICTPFactory
+    {
+        [return: MarshalAs(UnmanagedType.Interface)]
+        [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(1)]
+        CustomTaskPane CreateCTP([In, MarshalAs(UnmanagedType.BStr)] string CTPAxID, [In, MarshalAs(UnmanagedType.BStr)] string CTPTitle, [In, Optional, MarshalAs(UnmanagedType.Struct)] object CTPParentWindow);
+    }
+
+    public enum MsoCTPDockPosition
+    {
+        msoCTPDockPositionLeft,
+        msoCTPDockPositionTop,
+        msoCTPDockPositionRight,
+        msoCTPDockPositionBottom,
+        msoCTPDockPositionFloating
+    }
+
+    public enum MsoCTPDockPositionRestrict
+    {
+        msoCTPDockPositionRestrictNone,
+        msoCTPDockPositionRestrictNoChange,
+        msoCTPDockPositionRestrictNoHorizontal,
+        msoCTPDockPositionRestrictNoVertical
+    }
+
+    // CONSIDER: SHould we be worried about set/get order? (see Adam Nathan page 991)
+    [ComImport, Guid("000C033B-0000-0000-C000-000000000046"), TypeLibType((short)0x10c0), DefaultMember("Title")]
+    public interface ICustomTaskPane
+    {
+        [DispId(0)]
+        string Title { [return: MarshalAs(UnmanagedType.BStr)] [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(0)] get; }
+        [DispId(1)]
+        object Application { [return: MarshalAs(UnmanagedType.IDispatch)] [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(1)] get; }
+        [DispId(2)]
+        object Window { [return: MarshalAs(UnmanagedType.IDispatch)] [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(2)] get; }
+        [DispId(3)]
+        bool Visible { [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(3)] get; [param: In] [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(3)] set; }
+        [DispId(4)]
+        object ContentControl { [return: MarshalAs(UnmanagedType.IDispatch)] [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(4)] get; }
+        [DispId(5)]
+        int Height { [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(5)] get; [param: In] [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(5)] set; }
+        [DispId(6)]
+        int Width { [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(6)] get; [param: In] [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(6)] set; }
+        [DispId(7)]
+        MsoCTPDockPosition DockPosition { [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(7)] get; [param: In] [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(7)] set; }
+        [DispId(8)]
+        MsoCTPDockPositionRestrict DockPositionRestrict { [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(8)] get; [param: In] [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(8)] set; }
+        [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(9)]
+        void Delete();
+    }
+
+    [ComImport, TypeLibType((short)0x1010), InterfaceType((short)2), Guid("000C033C-0000-0000-C000-000000000046")]
+    internal interface _CustomTaskPaneEvents
+    {
+        [PreserveSig, MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(1)]
+        void VisibleStateChange([In, MarshalAs(UnmanagedType.Interface)] CustomTaskPane CustomTaskPaneInst);
+        [PreserveSig, MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(2)]
+        void DockPositionStateChange([In, MarshalAs(UnmanagedType.Interface)] CustomTaskPane CustomTaskPaneInst);
+    }
+
+    // Awesome write-up for COM events: http://blogs.msdn.com/b/varunsekhri/archive/2007/09/18/how-do-we-talk-with-com-the-language-of-events-and-delegates.aspx
+
+    [ComVisible(false)]
+    public delegate void CustomTaskPaneEvents_DockPositionStateChangeEventHandler([In, MarshalAs(UnmanagedType.Interface)] CustomTaskPane CustomTaskPaneInst);
+    [ComVisible(false)]
+    public delegate void CustomTaskPaneEvents_VisibleStateChangeEventHandler([In, MarshalAs(UnmanagedType.Interface)] CustomTaskPane CustomTaskPaneInst);
+
+    [ComEventInterface(typeof(_CustomTaskPaneEvents), typeof(_CustomTaskPaneEvents_EventProvider)), TypeLibType((short)0x10), ComVisible(false)]
+    public interface ICustomTaskPaneEvents
+    {
+        // Events
+        event CustomTaskPaneEvents_DockPositionStateChangeEventHandler DockPositionStateChange;
+        event CustomTaskPaneEvents_VisibleStateChangeEventHandler VisibleStateChange;
+    }
+
+    [ComImport, TypeLibType((short)0x10d0), Guid("8A64A872-FC6B-4D4A-926E-3A3689562C1C")]
+    internal interface CustomTaskPaneEvents
+    {
+        [PreserveSig, MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(1)]
+        void VisibleStateChange([In, MarshalAs(UnmanagedType.Interface)] CustomTaskPane CustomTaskPaneInst);
+        [PreserveSig, MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(2)]
+        void DockPositionStateChange([In, MarshalAs(UnmanagedType.Interface)] CustomTaskPane CustomTaskPaneInst);
+    }
+
+    internal sealed class _CustomTaskPaneEvents_EventProvider : ICustomTaskPaneEvents, IDisposable
+    {
+        private bool _disposed;
+
+        // Fields
+        private ArrayList m_aEventSinkHelpers;
+        private IConnectionPoint m_ConnectionPoint;
+        private IConnectionPointContainer m_ConnectionPointContainer;
+
+        // Methods
+        public _CustomTaskPaneEvents_EventProvider(object obj1)
+        {
+            _disposed = false;
+            this.m_ConnectionPointContainer = (IConnectionPointContainer)obj1;
+        }
+
+        event CustomTaskPaneEvents_DockPositionStateChangeEventHandler ICustomTaskPaneEvents.DockPositionStateChange
+        {
+            add
+            {
+                Monitor.Enter(this);
+                try
+                {
+                    if (this.m_ConnectionPoint == null)
+                    {
+                        this.Init();
+                    }
+                    _CustomTaskPaneEvents_SinkHelper customTaskPaneEvents_SinkHelper = new _CustomTaskPaneEvents_SinkHelper();
+                    int dwCookie = 0;
+                    this.m_ConnectionPoint.Advise((object)customTaskPaneEvents_SinkHelper, out dwCookie);
+                    customTaskPaneEvents_SinkHelper.m_dwCookie = dwCookie;
+                    customTaskPaneEvents_SinkHelper.m_DockPositionStateChangeDelegate = value;
+                    this.m_aEventSinkHelpers.Add((object)customTaskPaneEvents_SinkHelper);
+                }
+                finally
+                {
+                    Monitor.Exit(this);
+                }
+            }
+            remove
+            {
+                Monitor.Enter(this);
+                try
+                {
+                    int count = this.m_aEventSinkHelpers.Count;
+                    if (count > 0)
+                    {
+                        _CustomTaskPaneEvents_SinkHelper customTaskPaneEvents_SinkHelper;
+                        for (int i = 0; i < count; i++)
+                        {
+                            customTaskPaneEvents_SinkHelper = (_CustomTaskPaneEvents_SinkHelper)m_aEventSinkHelpers[i];
+                            if (customTaskPaneEvents_SinkHelper.m_DockPositionStateChangeDelegate != null && customTaskPaneEvents_SinkHelper.m_DockPositionStateChangeDelegate.Equals((object)value))
+                            {
+                                m_aEventSinkHelpers.RemoveAt(i);
+                                m_ConnectionPoint.Unadvise(customTaskPaneEvents_SinkHelper.m_dwCookie);
+                                if (m_aEventSinkHelpers.Count == 0)
+                                {
+                                    Marshal.ReleaseComObject(this.m_ConnectionPoint);
+                                    m_ConnectionPoint = null;
+                                    m_aEventSinkHelpers = null;
+                                }
+                            }
+                        }
+                    }
+                }
+                finally
+                {
+                    Monitor.Exit(this);
+                }
+            }
+        }
+
+        event CustomTaskPaneEvents_VisibleStateChangeEventHandler ICustomTaskPaneEvents.VisibleStateChange
+        {
+            add
+            {
+                Monitor.Enter(this);
+                try
+                {
+                    if (this.m_ConnectionPoint == null)
+                    {
+                        this.Init();
+                    }
+                    _CustomTaskPaneEvents_SinkHelper customTaskPaneEvents_SinkHelper = new _CustomTaskPaneEvents_SinkHelper();
+                    int dwCookie = 0;
+                    this.m_ConnectionPoint.Advise((object)customTaskPaneEvents_SinkHelper, out dwCookie);
+                    customTaskPaneEvents_SinkHelper.m_dwCookie = dwCookie;
+                    customTaskPaneEvents_SinkHelper.m_VisibleStateChangeDelegate = value;
+                    this.m_aEventSinkHelpers.Add((object)customTaskPaneEvents_SinkHelper);
+                }
+                finally
+                {
+                    Monitor.Exit(this);
+                }
+            }
+            remove
+            {
+                Monitor.Enter(this);
+                try
+                {
+                    int count = this.m_aEventSinkHelpers.Count;
+                    if (count > 0)
+                    {
+                        _CustomTaskPaneEvents_SinkHelper customTaskPaneEvents_SinkHelper;
+                       for (int i = 0; i < count; i++)
+                       {
+                            customTaskPaneEvents_SinkHelper = (_CustomTaskPaneEvents_SinkHelper)m_aEventSinkHelpers[i];
+                            if (customTaskPaneEvents_SinkHelper.m_VisibleStateChangeDelegate != null && customTaskPaneEvents_SinkHelper.m_VisibleStateChangeDelegate.Equals((object)value))
+                            {
+                                m_aEventSinkHelpers.RemoveAt(i);
+                                m_ConnectionPoint.Unadvise(customTaskPaneEvents_SinkHelper.m_dwCookie);
+                                if (m_aEventSinkHelpers.Count == 0)
+                                {
+                                    Marshal.ReleaseComObject(this.m_ConnectionPoint);
+                                    m_ConnectionPoint = null;
+                                    m_aEventSinkHelpers = null;
+                                }
+                            }
+                        }
+                    }
+                }
+                finally
+                {
+                    Monitor.Exit(this);
+                }
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            // Not thread-safe...
+            if (!_disposed)
+            {
+                // if (disposing)
+                // {
+                //     // Here comes explicit free of other managed disposable objects.
+                // }
+
+                // Here comes clean-up
+                Cleanup();
+                _disposed = true;
+            }
+        }
+
+        ~_CustomTaskPaneEvents_EventProvider()
+        {
+            Dispose(false);
+        }
+
+        void Cleanup()
+        {
+            Monitor.Enter(this);
+            try
+            {
+                if (this.m_ConnectionPoint != null)
+                {
+                    int count = this.m_aEventSinkHelpers.Count;
+                    int num2 = 0;
+                    if (0 < count)
+                    {
+                        do
+                        {
+                            _CustomTaskPaneEvents_SinkHelper helper = (_CustomTaskPaneEvents_SinkHelper)this.m_aEventSinkHelpers[num2];
+                            this.m_ConnectionPoint.Unadvise(helper.m_dwCookie);
+                            num2++;
+                        }
+                        while (num2 < count);
+                    }
+                    Marshal.ReleaseComObject(this.m_ConnectionPoint);
+                }
+            }
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                Monitor.Exit(this);
+            }
+        }
+
+        private void Init()
+        {
+            IConnectionPoint ppCP = null;
+            byte[] b = new byte[] { 60, 3, 12, 0, 0, 0, 0, 0, 0xc0, 0, 0, 0, 0, 0, 0, 70 };
+            Guid riid = new Guid(b);
+            this.m_ConnectionPointContainer.FindConnectionPoint(ref riid, out ppCP);
+            this.m_ConnectionPoint = ppCP;
+            this.m_aEventSinkHelpers = new ArrayList();
+        }
+    }
+
+    [ClassInterface(ClassInterfaceType.None)]
+    internal sealed class _CustomTaskPaneEvents_SinkHelper : _CustomTaskPaneEvents
+    {
+        // Fields
+        public int m_dwCookie = 0;
+        public CustomTaskPaneEvents_DockPositionStateChangeEventHandler m_DockPositionStateChangeDelegate = null;
+        public CustomTaskPaneEvents_VisibleStateChangeEventHandler m_VisibleStateChangeDelegate = null;
+
+        // Methods
+        internal _CustomTaskPaneEvents_SinkHelper()
+        {
+        }
+
+        public void DockPositionStateChange(CustomTaskPane pane1)
+        {
+            if (this.m_DockPositionStateChangeDelegate != null)
+            {
+                this.m_DockPositionStateChangeDelegate(pane1);
+            }
+        }
+
+        public void VisibleStateChange(CustomTaskPane pane1)
+        {
+            if (this.m_VisibleStateChangeDelegate != null)
+            {
+                this.m_VisibleStateChangeDelegate(pane1);
+            }
+        }
+    }
+
+    [ComImport, Guid("000C033B-0000-0000-C000-000000000046")]
+    public interface CustomTaskPane : ICustomTaskPane, ICustomTaskPaneEvents
+    {
+    }
+
 }
 
 #region Assembly Microsoft.Office.Interop.Excel.dll, v1.1.4322

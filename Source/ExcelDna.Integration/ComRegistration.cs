@@ -34,6 +34,7 @@ using System.Xml;
 using System.Drawing;
 using Microsoft.Win32;
 using ExcelDna.ComInterop;
+using ExcelDna.Integration;
 using ExcelDna.Integration.Rtd;
 using ExcelDna.Integration.CustomUI;
 using ExcelDna.Integration.Extensibility;
@@ -42,13 +43,77 @@ using HRESULT = System.Int32;
 using IID = System.Guid;
 using CLSID = System.Guid;
 using DWORD = System.UInt32;
-using ExcelDna.Integration;
 
 namespace ExcelDna.ComInterop.ComRegistration
 {
+    // This implements a COM class factory for the given type
+    // with some customization to allow wrapping of Rtd servers.
+    [ComVisible(true)]
+    [ClassInterface(ClassInterfaceType.None)]
+    internal class ClassFactory : ComAPI.IClassFactory
+    {
+        private ExcelComClassType _comClass;
+
+        public ClassFactory(Type type)
+        {
+            _comClass = new ExcelComClassType 
+            {
+                Type = type,
+                IsRtdServer = false
+            };
+        }
+
+        public ClassFactory(ExcelComClassType excelComClassType)
+        {
+            _comClass = excelComClassType;
+        }
+
+        public HRESULT CreateInstance([In] IntPtr pUnkOuter, [In] ref IID riid, [Out] out IntPtr ppvObject)
+        {
+            ppvObject = IntPtr.Zero;
+            object instance = Activator.CreateInstance(_comClass.Type);
+
+            if (_comClass.IsRtdServer)
+            {
+                // wrap instance in RtdWrapper
+                RtdServerWrapper rtdServerWrapper = new RtdServerWrapper(instance, _comClass.ProgId);
+                instance = rtdServerWrapper;
+            }
+
+            if (pUnkOuter != IntPtr.Zero)
+            {
+                // For now no aggregation support - could do Marshal.CreateAggregatedObject?
+                return ComAPI.CLASS_E_NOAGGREGATION;
+            }
+            if (riid == ComAPI.guidIUnknown)
+            {
+                ppvObject = Marshal.GetIUnknownForObject(instance);
+            }
+            else
+            {
+                ppvObject = Marshal.GetIUnknownForObject(instance);
+                HRESULT hrQI = Marshal.QueryInterface(ppvObject, ref riid, out ppvObject);
+                Marshal.Release(ppvObject);
+                if (hrQI != ComAPI.S_OK)
+                {
+                    return ComAPI.E_NOINTERFACE;
+                }
+            }
+            return ComAPI.S_OK;
+        }
+
+        public int LockServer(bool fLock)
+        {
+            //Debug.Fail("LockServer not implemented yet....?");
+            //throw new NotImplementedException();
+            return ComAPI.S_OK;
+        }
+    }
+
     // This is a class factory that serve as a singleton 'factory' for a given object
     // - it will return exactly that object when CreateInstance is called 
     // (checking interface support).
+    // Used for the RTD classes.
     [ComVisible(true)]
     [ClassInterface(ClassInterfaceType.None)]
     internal class SingletonClassFactory : ComAPI.IClassFactory
@@ -60,13 +125,13 @@ namespace ExcelDna.ComInterop.ComRegistration
             _instance = instance;
         }
 
-        public int CreateInstance([In] IntPtr pUnkOuter, [In] ref IID riid, [Out] out IntPtr ppvObject)
+        public HRESULT CreateInstance([In] IntPtr pUnkOuter, [In] ref IID riid, [Out] out IntPtr ppvObject)
         {
             ppvObject = IntPtr.Zero;
             if (pUnkOuter != IntPtr.Zero)
             {
                 // For now no aggregation support - could do Marshal.CreateAggregatedObject?
-                Marshal.ThrowExceptionForHR(ComAPI.CLASS_E_NOAGGREGATION);
+                return ComAPI.CLASS_E_NOAGGREGATION;
             }
             if (riid == ComAPI.guidIUnknown)
             {
@@ -82,7 +147,7 @@ namespace ExcelDna.ComInterop.ComRegistration
             }
             else // Unsupported interface for us.
             {
-                Marshal.ThrowExceptionForHR(ComAPI.E_NOINTERFACE);
+                return ComAPI.E_NOINTERFACE;
             }
             return ComAPI.S_OK;
         }
@@ -203,6 +268,41 @@ namespace ExcelDna.ComInterop.ComRegistration
         }
     }
 
+    internal class ClassFactoryRegistration : Registration
+    {
+        private const DWORD CLSCTX_INPROC_SERVER = 0x1;
+        private const DWORD REGCLS_SINGLEUSE = 0;
+        private const DWORD REGCLS_MULTIPLEUSE = 1;
+
+        private DWORD _classRegister;
+
+        public ClassFactoryRegistration(Type type, CLSID clsId)
+        {
+            ClassFactory factory = new ClassFactory(type);
+            IntPtr pFactory = Marshal.GetIUnknownForObject(factory);
+            HRESULT result = ComAPI.CoRegisterClassObject(ref clsId, pFactory,
+                                CLSCTX_INPROC_SERVER, REGCLS_MULTIPLEUSE, out _classRegister);
+
+            if (result != ComAPI.S_OK)
+            {
+                throw new InvalidOperationException("CoRegisterClassObject failed.");
+            }
+        }
+
+        protected override void Deregister()
+        {
+            if (_classRegister != 0)
+            {
+                HRESULT result = ComAPI.CoRevokeClassObject(_classRegister);
+                if (result != ComAPI.S_OK)
+                {
+                    Debug.Print("ClassFactory deregistration failed. Result: {0}", result);
+                }
+                _classRegister = 0;
+            }
+        }
+    }
+
     internal class SingletonClassFactoryRegistration : Registration
     {
         private const DWORD CLSCTX_INPROC_SERVER = 0x1;
@@ -212,13 +312,15 @@ namespace ExcelDna.ComInterop.ComRegistration
         private object _instance;
         private DWORD _classRegister;
 
-        public SingletonClassFactoryRegistration(CLSID clsId, object instance)
+        public SingletonClassFactoryRegistration(object instance, CLSID clsId)
         {
             _instance = instance;
             SingletonClassFactory factory = new SingletonClassFactory(instance);
             IntPtr pFactory = Marshal.GetIUnknownForObject(factory);
+            // In versions < 0.29 we registered as REGCLS_SINGLEUSE even though it is not supposed to work for inproc servers.
+            // It seems to do no harm to keep the ClassObject around.
             HRESULT result = ComAPI.CoRegisterClassObject(ref clsId, pFactory,
-                                CLSCTX_INPROC_SERVER, REGCLS_SINGLEUSE, out _classRegister);
+                                CLSCTX_INPROC_SERVER, REGCLS_MULTIPLEUSE, out _classRegister);
 
             if (result != ComAPI.S_OK)
             {

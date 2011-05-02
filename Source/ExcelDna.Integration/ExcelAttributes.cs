@@ -79,7 +79,7 @@ namespace ExcelDna.Integration
         public bool IsExceptionSafe = false;
 
         [Obsolete("ExcelFunctions can be declared hidden, not ExcelCommands.")]
-		public bool   IsHidden = false;
+		public bool IsHidden = false;
 
 		public ExcelCommandAttribute()
 		{
@@ -91,4 +91,11 @@ namespace ExcelDna.Integration
 		}
 	}
 
+    [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
+    public class ExcelComClassAttribute : Attribute
+    {
+        public ExcelComClassAttribute()
+        {
+        }
+    }
 }

@@ -38,50 +38,71 @@ namespace ExcelDna.Integration
 	// and build the method information.
 	internal class AssemblyLoader
 	{
-        static public List<MethodInfo> GetExcelMethods(ExportedAssembly assembly)
+        // Consolidated processing so we only have a single pass through the types.
+        // CONSIDER: This is pretty ugly right now (both the flow and the names.)
+        //           Try some fancy visitor pattern?
+        public static void ProcessAssemblies(
+                    List<ExportedAssembly> assemblies,
+                    List<MethodInfo> methods,
+                    List<ExcelAddInInfo> addIns,
+                    List<Type> rtdServerTypes,
+                    List<ExcelComClassType> comClassTypes)
         {
-            List<MethodInfo> methods = new List<MethodInfo>();
-            Type[] types = assembly.Assembly.GetTypes();
-            foreach (Type t in types)
-            {
-                // DOCUMENT: Exclude if not a class, not public, /*abstract,*/ an array,  
-                // open generic type or in "My" namespace.
-                // Some basic checks -- what else?
-                // TODO: Sort out exactly which types to export.
-                if (!t.IsClass || !t.IsPublic ||
-                    /*t.IsAbstract ||*/ t.IsArray ||
-                    (t.IsGenericType && t.ContainsGenericParameters) ||
-                    t.Namespace == "My")
-                {
-                    // Bad cases
-                    Debug.Print("ExcelDNA -> Inappropriate Type: " + t.FullName);
-                    continue;
-                }
+            List<AssemblyLoaderExcelServer.ExcelServerInfo> excelServerInfos = new List<AssemblyLoaderExcelServer.ExcelServerInfo>();
+            bool loadRibbons = (ExcelDnaUtil.ExcelVersion >= 12.0);
 
-                MethodInfo[] mis = t.GetMethods(BindingFlags.Public | BindingFlags.Static);
-				if (assembly.ExplicitExports)
-				{
-					// Filter list first
-					foreach (MethodInfo mi in mis)
-					{
-						if (IsMethodMarkedForExport(mi))
-						{
-							methods.Add(mi);
-						}
-					}
-				}
-				else
-				{
-					// Add all the methods found
-					methods.AddRange(mis);
-				}
+            foreach (ExportedAssembly assembly in assemblies)
+            {
+                Type[] types = assembly.Assembly.GetTypes();
+                bool explicitExports = assembly.ExplicitExports;
+                foreach (Type type in types)
+                {
+                    object[] attribs = type.GetCustomAttributes(false);
+                    bool isRtdServer;
+                    GetExcelMethods(type, explicitExports, methods);
+                    AssemblyLoaderExcelServer.GetExcelServerInfos(type, attribs, excelServerInfos);
+                    GetExcelAddIns(assembly, type, loadRibbons, addIns);
+                    GetRtdServerTypes(type, rtdServerTypes, out isRtdServer);
+                    GetComClassTypes(type, attribs, isRtdServer, comClassTypes);
+                }
+            }
+            // Sigh. Excel server (service?) stuff is till ugly - but no reeal reason to remove it yet.
+            AssemblyLoaderExcelServer.GetExcelServerMethods(excelServerInfos, methods);
+        }
+
+        static void GetExcelMethods(Type t, bool explicitExports, List<MethodInfo> excelMethods)
+        {
+            // DOCUMENT: Exclude if not a class, not public, /*abstract,*/ an array,  
+            // open generic type or in "My" namespace.
+            // Some basic checks -- what else?
+            // TODO: Sort out exactly which types to export.
+            if (!t.IsClass || !t.IsPublic ||
+                /*t.IsAbstract ||*/ t.IsArray ||
+                (t.IsGenericType && t.ContainsGenericParameters) ||
+                t.Namespace == "My")
+            {
+                // Bad cases
+                Debug.Print("ExcelDNA -> Inappropriate Type: " + t.FullName);
+                return;
             }
 
-            // This is temporary support for Excel Server
-            // TODO: How to make sure this adds no overhead? 
-            // Maybe add a new attribute to ExternalLibrary?
-            methods.AddRange(AssemblyLoaderExcelServer.GetExcelMethods(assembly.Assembly));
-            return methods;
+            MethodInfo[] mis = t.GetMethods(BindingFlags.Public | BindingFlags.Static);
+            if (explicitExports)
+            {
+                // Filter list first
+                foreach (MethodInfo mi in mis)
+                {
+                    if (IsMethodMarkedForExport(mi))
+                    {
+                        excelMethods.Add(mi);
+                    }
+                }
+            }
+            else
+            {
+                // Add all the methods found
+                excelMethods.AddRange(mis);
+            }
         }
 
 		// CAUTION: This check needs to match the usage in ExcelDna.Loader.XlMethodInfo.SetAttributeInfo()
@@ -109,40 +130,34 @@ namespace ExcelDna.Integration
             public MethodInfo AutoCloseMethod;
             public bool IsCustomUI;
             public object Instance;
+            public DnaLibrary ParentDnaLibrary;
         }
 
-		static public List<ExcelAddInInfo> GetExcelAddIns(ExportedAssembly assembly)
+		static public void GetExcelAddIns(ExportedAssembly assembly, Type t, bool loadRibbons, List<ExcelAddInInfo> addIns)
 		{
-			List<ExcelAddInInfo> addIns = new List<ExcelAddInInfo>();
-            Type[] types = assembly.Assembly.GetTypes();
-            bool loadRibbons = (ExcelDnaUtil.ExcelVersion >= 12.0);
-
-			foreach (Type t in types)
-			{
-                try
+            try
+            {
+                Type addInType = t.GetInterface("ExcelDna.Integration.IExcelAddIn");
+                bool isRibbon = (t.BaseType == typeof(ExcelRibbon));
+                if (addInType != null || (isRibbon && loadRibbons) )
                 {
-                    
-                    Type addInType = t.GetInterface("ExcelDna.Integration.IExcelAddIn");
-                    bool isRibbon = (t.BaseType == typeof(ExcelRibbon));
-                    if (addInType != null || (isRibbon && loadRibbons) )
+                    ExcelAddInInfo info = new ExcelAddInInfo();
+                    if (addInType != null)
                     {
-                        ExcelAddInInfo info = new ExcelAddInInfo();
-                        if (addInType != null)
-                        {
-                            info.AutoOpenMethod = addInType.GetMethod("AutoOpen");
-                            info.AutoCloseMethod = addInType.GetMethod("AutoClose");
-                        }
-                        info.IsCustomUI = isRibbon;
-                        info.Instance = Activator.CreateInstance(t);
-                        addIns.Add(info);
+                        info.AutoOpenMethod = addInType.GetMethod("AutoOpen");
+                        info.AutoCloseMethod = addInType.GetMethod("AutoClose");
                     }
+                    info.IsCustomUI = isRibbon;
+                    info.Instance = Activator.CreateInstance(t);
+                    info.ParentDnaLibrary = assembly.ParentDnaLibrary;
+                    addIns.Add(info);
                 }
-                catch (Exception e) // I think only CreateInstance can throw an exception here...
-                {
-                    Debug.Print("GetExcelAddIns CreateInstance problem for type: {0} - exception: {1}", t.FullName, e);
-                }
-			}
-			return addIns;
+            }
+            catch (Exception e) // I think only CreateInstance can throw an exception here...
+            {
+                Debug.Print("GetExcelAddIns CreateInstance problem for type: {0} - exception: {1}", t.FullName, e);
+            }
+
 		}
 
         // DOCUMENT: We register types that implement an interface with the IRtdServer Guid. These include
@@ -150,33 +165,84 @@ namespace ExcelDna.Integration
         //           "ExcelDna.Integration.Rtd.IRtdServer".
         // The RTD server can be accessed using the ExcelDnaUtil.RTD function under the 
         // FullName of the type, or under the ProgId defined in an attribute, if there is one.
-        static public Dictionary<string, Type> GetRtdServerTypes(ExportedAssembly assembly)
+        static public void GetRtdServerTypes(Type t, List<Type> rtdServerTypes, out bool isRtdServer)
         {
-			Dictionary<string, Type> rtdServerTypes = new Dictionary<string, Type>();
-            Type[] types = assembly.Assembly.GetTypes();
-            foreach (Type t in types)
+            isRtdServer = false;
+            Type[] itfs = t.GetInterfaces();
+            foreach (Type itf in itfs)
             {
-                Type[] itfs = t.GetInterfaces();
-                foreach (Type itf in itfs)
+                if (itf.GUID == ComAPI.guidIRtdServer)
                 {
-                    if (itf.GUID == ComAPI.guidIRtdServer)
-                    {
-                        object[] attrs = t.GetCustomAttributes(typeof(ProgIdAttribute), false);
-                        if (attrs.Length >= 1)
-                        {
-                            ProgIdAttribute progIdAtt = (ProgIdAttribute)attrs[0];
-                            rtdServerTypes[progIdAtt.Value] = t;
-                        }
-                        rtdServerTypes[t.FullName] = t;
-                    }
+                    //object[] attrs = t.GetCustomAttributes(typeof(ProgIdAttribute), false);
+                    //if (attrs.Length >= 1)
+                    //{
+                    //    ProgIdAttribute progIdAtt = (ProgIdAttribute)attrs[0];
+                    //    rtdServerTypes[progIdAtt.Value] = t;
+                    //}
+                    //rtdServerTypes[t.FullName] = t;
+                    rtdServerTypes.Add(t);
+                    isRtdServer = true;
                 }
-                //if (t.GetInterface("ExcelDna.Integration.Rtd.IRtdServer") != null ||
-                //    t.GetInterface("Microsoft.Office.Interop.Excel.IRtdServer") != null)
-                //{
-                //}
             }
-            return rtdServerTypes;
         }
 
+        // DOCUMENT: We register types that
+        //           (implement IRtdServer OR are marked with the [ExcelComClass] attribute), 
+        //           AND are marked with a [ProgId] attribute, 
+        //           AND are marked with a [Guid] attribute.
+        // CONSIDER: Maybe not require it to be marked with all of these - e.g. we can generate a Guid.
+        // CONSIDER: IRtdServer classes too.
+        static public void GetComClassTypes(Type type, object[] attributes, bool isRtdServer, List<ExcelComClassType> comClassTypes)
+        {
+            bool isExcelComClass = false;
+            // Check for [ExcelComClass] by name - still worried about ExcelDna.Integration identity.
+            foreach (object attrib in attributes)
+            {
+                Type attribType = attrib.GetType();
+                if (attribType.FullName == "ExcelDna.Integration.ExcelComClassAttribute")
+                {
+                    isExcelComClass = true;
+                    break;
+                }
+            }
+            if (isExcelComClass || isRtdServer)
+            {
+                string progId;
+                Guid clsId;
+                    
+                object[] attrs = type.GetCustomAttributes(typeof(ProgIdAttribute), false);
+                if (attrs.Length == 0)
+                {
+                    // No ProgId attribute - skip this type.
+                    return;
+                }
+                else
+                {
+                    ProgIdAttribute progIdAtt = (ProgIdAttribute)attrs[0];
+                    progId = progIdAtt.Value;
+                }
+                    
+                attrs = type.GetCustomAttributes(typeof(GuidAttribute), false);
+                if (attrs.Length == 0)
+                {
+                    // No Guid attribute - skip this type.
+                    return;
+                }
+                else
+                {
+                    GuidAttribute guidAtt = (GuidAttribute)attrs[0];
+                    clsId = new Guid(guidAtt.Value);
+                }
+
+                ExcelComClassType comClassType = new ExcelComClassType
+                {
+                    Type = type,
+                    ClsId = clsId,
+                    ProgId = progId,
+                    IsRtdServer = isRtdServer
+                };
+                comClassTypes.Add(comClassType);
+            }
+        }
 	}
 }

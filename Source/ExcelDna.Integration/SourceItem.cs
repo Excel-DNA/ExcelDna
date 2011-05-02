@@ -29,6 +29,7 @@ using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
 using System.IO;
+using System.Diagnostics;
 
 namespace ExcelDna.Integration
 {
@@ -69,7 +70,11 @@ namespace ExcelDna.Integration
             {
                 // Try to read from a file.
                 string resolvedPath = DnaLibrary.ResolvePath(Path, pathResolveRoot);
-                if (resolvedPath != null)
+                if (resolvedPath == null)
+                {
+                    Debug.Print("Source path {0} could not be resolved.", Path);
+                }
+                else
                 {
                     return File.ReadAllText(resolvedPath).Trim();
                 }
