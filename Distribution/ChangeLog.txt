@@ -1,18 +1,21 @@
-Version 0.29 (????)
--------------------
-* Support for the 64-bit version of Excel 2010 with the .Net 4 runtime.
-* ArrayResizer sample added.
-* BREAKING CHANGE! SheetId in the ExcelReference type is now an IntPtr.
-* Cluster-safe function support for Excel 2010 HPC Cluster Connector - mark functions as IsClusterSafe=true.
+Version 0.29 (2 May 2011)
+-------------------------
+* BREAKING CHANGE! Changed SheetId in the ExcelReference type to an IntPtr.
+* Added support for the 64-bit version of Excel 2010 with the .Net 4 runtime.
+* Added Cluster-safe function support for Excel 2010 HPC Cluster Connector - mark functions as IsClusterSafe=true.
+* Added CustomTaskPane support and sample.
+* Added COM server support for RTD servers and classes with [ExcelComClass] attribute. Supports Regsvr32 registration or by calling ComServer.DllRegisterServer. Allows direct RTD and VBA object instantiation.
+* Added support for macros with parameters.
+* Added ArrayResizer sample.
+* Added C# 4 dynamic type sample.
+* Added Path attribute to SourceItem tag to allow external source.
+* Added LoadFromBytes attribute to ExternalLibrary tag to prevent locking of .dll.
+* Added /O output path option to ExcelDnaPack.
+* Added 'before' option to CommandBars xml.
+* Added Int64 support for parameters and return values.
+* Changed initialization - only create sandboxed AppDomain under .NET 4 (or if explicitly requested with CreateSandboxedAppDomain='true' attribute on DnaLibrary tag in .dna file).
 * Fixed memory leak when getting SheetId for ExcelReference parameters.
-* Allow macros with parameters.
-* Only create sandboxed AppDomain under .NET 4 (or if explicitly requested with CreateSandboxedAppDomain='true' attribute on DnaLibrary tag in .dna file).
-* Add Path attribute to SourceItem tag to allow external source.
-* Add LoadFromBytes attribute to ExternalLibrary tag to prevent locking of .dll.
-
-* TODO: Exception in RTD servers crash Excel.
-
-
+* Fixed Ribbon RunTagMacro when no Workbook open.
 
 Version 0.28 (2 November 2010)
 ------------------------------

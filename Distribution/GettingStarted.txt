@@ -1,5 +1,5 @@
-Getting started with ExcelDNA
-=============================
+Getting started with Excel-DNA
+==============================
 
 Do this first:
 --------------
@@ -98,6 +98,12 @@ c:\windows\microsoft.net\framework\v2.0.50727\csc.exe /target:library /reference
 	</DnaLibrary>
 
 * Reload the .xll and check =MultiplyThem(2,3)
+* To support .NET 4 assemblies, add a RuntimeVersion="v4.0" attribute to the DnaLibrary tag:
+
+	<DnaLibrary RuntimeVersion="v4.0">
+		<ExternalLibrary Path="TestLib.dll" />
+	</DnaLibrary>
+
 
 4. Additional samples
 ---------------------

@@ -25,7 +25,13 @@ Target .NET Version
 
 Debugging
 ---------
-Breakpoints work best when I attach the debugger to the running process.
+Easiest debugging is to put the full path to Excel.exe (e.g. C:\Program Files\Microsoft Office\Office14\Excel.exe) into 
+   Project Properties -> Debugging tab, Start external program:.
+In the Command line arguments: box, enter the full path to SampleCS.xll, 
+or jsut File->Open the SampleCS.xll when Excel is running.
+Then start debugging with F5.
+
+You can also attach the debugger to a running instance of the Excel process.
 Do the following:
 1. Build the project.
 2. Start Excel externally.

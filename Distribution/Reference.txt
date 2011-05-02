@@ -27,6 +27,29 @@ My goal for the multi-version customUI support is to allow you to create a singl
 	for each version. The idea is not to make a unified customization layer - the add-in could contain
 	different code for different versions.
 
+Custom Task Panes
+=================
+Support under ExcelDna.Integration.CustomUI.
+The CustomTaskPane class defines the interfaces related to CTP's.
+A CTP must contain a UserControl (derived from System.Windows.Forms.UserControl).
+Create a new CustomTaskPane containing an instance of MyUserControl by calling:
+CustomTaskPane myCTP = CustomTaskPaneFactory.CreateCustomTaskPane(typeof(MyUserControl), myTitle);
+
+COM server support
+==================
+The following classes are supported for direct COM server access:
+- Classes that are COM visible, have ProgId and Guid attributes, AND
+- either implement IRtdServer (the real one or from Excel-DNA ) OR are decorated with an [ExcelComClass] attribute.
+
+These classes can be persistently registered by calling "Regsvr32 <MyAddin>.xll" or by ComServer.DllRegisterServer(), and 
+unregistered by "Regsvr32 /u <MyAddin>.xll or by ComServer.DllUnregisterServer().
+
+Such classes can be accessed directly as RTD servers or from VBA using CreateObject("MyServer.ItsProgId"), and will be loaded in the add-in's AppDomain.
+(The add-in need not be loaded for registered classes to be accessed through COM.)
+
+There is no special support for COM type libraries yet.
+(These can be created from compiled assemblies using TlbExp, and could even be embedded as resources into the .xll.)
+
 Packing
 =======
 ExcelDnaPack can pack the .dna files and dependent assemblies into a single .xll file.
@@ -51,6 +74,7 @@ Int32 (int)
 Int16 (short)
 UInt16 (ushort)
 Decimal
+Int64 (long)
 
 incoming function parameters of type Object will only arrive as one of the following:
 Double
@@ -80,6 +104,7 @@ Int32 (int)
 Int16 (short)
 UInt16 (ushort)
 Decimal
+Int64 (long)
 otherwise return #VALUE! error
 
 return values of type Object[] and Object[,] are processed as arrays of the type Object, containing a mixture of the above, excluding the array types.
@@ -112,13 +137,15 @@ ExcelCommandAttribute - for macro commands
 	MenuName (default is library name)
 	MenuText
 	IsHidden
+ExcelComClassAttribute
 
 Helper classes
 --------------
 ExcelReference - contains a sheet reference. Get/SetValue to read/write to the cells.
 ExcelError - an enum listing the different Excel errors
 ExcelDnaUtil - contains Application property (for COM access), WindowHandle and IsInFunctionWizard, ExcelVersion, ExcelLimits.
-ExcelCOmmandBarUtil - has LoadCommandBars method to laod command bar xml from a string.
+ExcelCommandBarUtil - has LoadCommandBars method to laod command bar xml from a string.
+CustomTaskPaneFactory - creates CustomTaskPanes.
 
 Wrapper for the Excel 97 / Excel 2007 SDK API
 ---------------------------------------------
@@ -135,6 +162,7 @@ Excel COM interface access
 ==========================
 ExcelDna.Integration.ExcelDnaUtils.Application returns the Excel Application COM object.
 From VB this can be used late-bound quite easily.
+From C# 4 late-binding through the dynamic 'type' is recommended.
 
 Default references and imports
 ==============================
@@ -149,7 +177,7 @@ For RuntimeVersion="v4.0" the following are added too:
 System.Core.dll
 System.Data.DataExtensions.dll
 System.Xml.Linq.dll
-
+Microsoft.CSharp.dll (C# projects only)
 
 For VB projects, the following imports are added, unless a DefaultImports="false" attribute is set on the <Project>:
 Microsoft.VisualBasic
@@ -210,6 +238,7 @@ DnaLibrary
 	Description
 	Language
 	RuntimeVersion
+	CompilerVersion
 ....
 Project*
 	SourceItem*
