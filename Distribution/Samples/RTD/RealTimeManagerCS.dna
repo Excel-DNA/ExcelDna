@@ -1,0 +1,84 @@
+<DnaLibrary Language="C#">
+<Reference AssemblyPath="System.Windows.Forms.dll" />
+
+<![CDATA[
+
+using System;
+using System.Reflection;
+using System.Windows.Forms;
+using ExcelDna.Integration;
+
+public static class RtdManager
+{
+	[ExcelCommand(MenuName="Real-Time Update Manager", MenuText="Set real-time updates to manual")]
+	public static void SetManual()
+    {
+		object app;
+        object rtd;
+
+		app = ExcelDnaUtil.Application;
+		rtd = app.GetType().InvokeMember("RTD", BindingFlags.GetProperty, null, app, null);
+        rtd.GetType().InvokeMember("ThrottleInterval", BindingFlags.SetProperty, null, rtd, new object[] {-1});
+		
+		MessageBox.Show("Real-time updates have been set to manual.", "Real-Time Update Manager");
+	}
+
+	[ExcelCommand(MenuName="Real-Time Update Manager", MenuText="Refresh real-time data")]
+	public static void Refresh() 
+    {
+		object app;
+        object rtd;
+
+		app = ExcelDnaUtil.Application;
+		rtd = app.GetType().InvokeMember("RTD", BindingFlags.GetProperty, null, app, null);
+        rtd.GetType().InvokeMember("RefreshData", BindingFlags.InvokeMethod, null, rtd, null);
+		
+		MessageBox.Show("RTD updates have been refreshed", "Real-Time Update Manager");
+	}
+
+	[ExcelCommand(MenuName="Real-Time Update Manager", MenuText="Set real-time updates rate to 1 second")]
+	public static void SetFastUpdateInterval() 
+    {
+		object app;
+        object rtd;
+
+		app = ExcelDnaUtil.Application;
+		rtd = app.GetType().InvokeMember("RTD", BindingFlags.GetProperty, null, app, null);
+        rtd.GetType().InvokeMember("ThrottleInterval", BindingFlags.SetProperty, null, rtd, new object[] {1000});
+		
+		MessageBox.Show("Real-time updates have been set to 1 second.", "Real-Time Update Manager");
+	}
+
+	[ExcelCommand(MenuName="Real-Time Update Manager", MenuText="Reset real-time updates rate to default (2 seconds)")]
+	public static void ResetUpdateInterval() 
+    {
+		object app;
+        object rtd;
+
+		app = ExcelDnaUtil.Application;
+		rtd = app.GetType().InvokeMember("RTD", BindingFlags.GetProperty, null, app, null);
+        rtd.GetType().InvokeMember("ThrottleInterval", BindingFlags.SetProperty, null, rtd, new object[] {2000});
+		
+		MessageBox.Show("Real-time updates have been reset to 2 seconds.", "Real-Time Update Manager");
+	}
+}
+
+public class RtdManagerAddIn : IExcelAddIn
+{	
+	public void AutoOpen()
+	{
+        MessageBox.Show("Opening Real-Time Update Manager. Resetting real-time update rate to default (2 seconds).");
+
+		RtdManager.ResetUpdateInterval();
+	}
+
+	// CAREFUL: AutoClose is only called if the Add-In is reloaded, or if the add-in is removed from the add-ins list in the Add-In Manager.
+	// AutoClose is not called when Excel closes normally.
+	public void AutoClose()
+    {
+		MessageBox.Show("Closing Real-Time Update Manager.");
+	}
+}
+
+]]>
+</DnaLibrary>

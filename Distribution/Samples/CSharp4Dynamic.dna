@@ -1,0 +1,30 @@
+<DnaLibrary RuntimeVersion="v4.0" Name="C# 4 dynamic type test" Language="C#">
+<![CDATA[
+
+using System;
+using ExcelDna.Integration;
+
+public class MyAddIn
+{
+	public static string ExcelVersion()
+	{
+		dynamic xlApp = ExcelDnaUtil.Application;
+        return xlApp.Version;
+	}
+
+    [ExcelCommand(MenuName="Test C# 4", MenuText="Add Worksheet")]
+	public static void AddWorksheet()
+	{
+		dynamic xlApp = ExcelDnaUtil.Application;
+        dynamic sheet2 = xlApp.ActiveWorkbook.Worksheets("Sheet2");
+        dynamic newSheet = xlApp.ActiveWorkbook.Worksheets.Add(After: sheet2);
+        newSheet.Name = "New Sheet";
+        dynamic range = newSheet.Range("A1:B2");
+        range.Value = new object[,] {{1, "Hello"}, {2, "Goodbye"}};
+        
+        newSheet.Cells(2, 5).Value = DateTime.Now;
+	}
+}
+
+]]>
+</DnaLibrary>

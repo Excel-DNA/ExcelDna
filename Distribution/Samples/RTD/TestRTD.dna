@@ -51,6 +51,12 @@
 
   namespace MyRTDServers
   {
+
+    // Need ProgId and Guid here to support direct =RTD(...).
+    // Call Regsvr32 <MyAddin>.xll 
+    // or ComServer.DllRegisterServer() 
+    // to register.
+    // [ProgId("TestComServer.TimeServer"), Guid("069F88AB-840D-4149-A33F-286BDD69CE48")]
     public class TimeServer : IRtdServer
     {
         private IRTDUpdateEvent _callback;

@@ -1,0 +1,105 @@
+<DnaLibrary Language="C#" >
+<Reference Name="System.Windows.Forms" />
+<Reference Name="System.Drawing" />
+<![CDATA[    
+using System;
+using System.Windows.Forms;
+
+using ExcelDna.Integration;
+using ExcelDna.Integration.CustomUI;
+
+
+/////////////// Define the backing class for the Ribbon ///////////////////////////
+// Would need to be marked with [ComVisible(true)] if in a project that is marked as [assembly:ComVisible(false)] which is the default for VS projects.
+public class MyRibbon : ExcelRibbon
+{
+    public void OnShowCTP(IRibbonControl control)
+    {
+        CTPManager.ShowCTP();
+    }
+    
+        
+    public void OnDeleteCTP(IRibbonControl control)
+    {
+        CTPManager.DeleteCTP();
+    }
+}
+
+/////////////// Define the UserControl to display on the CTP ///////////////////////////
+// Would need to be marked with [ComVisible(true)] if in a project that is marked as [assembly:ComVisible(false)] which is the default for VS projects.
+public class MyUserControl : UserControl
+{
+    public Label TheLabel;
+    public MyUserControl()
+    {
+        TheLabel = new Label();
+        TheLabel.Text = "My First CTP!";
+        TheLabel.Location = new System.Drawing.Point(20, 20);
+        TheLabel.Size = new System.Drawing.Size(200, 60);
+        
+        Controls.Add(TheLabel);
+    }
+}
+
+/////////////// Helper class to manage CTP ///////////////////////////
+internal static class CTPManager
+{
+    static CustomTaskPane ctp;
+
+    public static void ShowCTP()
+    {
+        if (ctp == null)
+        {
+            // Make a new one using ExcelDna.Integration.CustomUI.CustomTaskPaneFactory 
+            ctp = CustomTaskPaneFactory.CreateCustomTaskPane(typeof(MyUserControl), "My Super Task Pane");
+            ctp.Visible = true;
+            ctp.DockPosition = MsoCTPDockPosition.msoCTPDockPositionLeft;
+            ctp.DockPositionStateChange += ctp_DockPositionStateChange;
+            ctp.VisibleStateChange += ctp_VisibleStateChange;
+        }
+        else
+        {
+            // Just show it again
+            ctp.Visible = true;
+        }
+    }
+
+
+  public static void DeleteCTP()
+    {
+      if (ctp != null)
+      {
+        // Could hide instead, by calling ctp.Visible = false;
+        ctp.Delete();
+        ctp = null;
+      }
+    }
+    
+    static void ctp_VisibleStateChange(CustomTaskPane CustomTaskPaneInst)
+    {
+        MessageBox.Show("Visibility changed to " + CustomTaskPaneInst.Visible);
+    }
+
+    static void ctp_DockPositionStateChange(CustomTaskPane CustomTaskPaneInst)
+    {
+        ((MyUserControl)ctp.ContentControl).TheLabel.Text = "Moved to " + CustomTaskPaneInst.DockPosition.ToString();
+    }
+}
+]]>
+
+<CustomUI>
+    <customUI xmlns='http://schemas.microsoft.com/office/2006/01/customui' loadImage='LoadImage'>
+      <ribbon>
+        <tabs>
+          <tab id='CustomTab' label='Custom Task Pane Test'>
+            <group id='SampleGroup' label='CTP Control'>
+              <button id='Button1' label='Show CTP' image='M' size='large' onAction='OnShowCTP' />
+              <button id='Button2' label='Delete CTP' image='M' size='large' onAction='OnDeleteCTP' />
+            </group >
+          </tab>
+        </tabs>
+      </ribbon>
+    </customUI>
+</CustomUI>
+
+</DnaLibrary>

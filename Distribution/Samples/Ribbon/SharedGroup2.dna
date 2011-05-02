@@ -1,0 +1,50 @@
+<DnaLibrary Name="Ribbon Tests - Shared Group 2">
+   <![CDATA[
+  
+  Imports ExcelDna.Integration.CustomUI
+
+  ' Can make a class that implements ExcelDna.Integration.CustomUI.ExcelRibbon
+  ' to get full Ribbon access.
+  Public Class MyRibbon
+    Inherits ExcelRibbon
+    
+    Public Sub  OnButtonPressed(control as IRibbonControl)
+        MsgBox("My Button Pressed in AddIn 2 on control " & control.Id,,"ExcelDna Ribbon!")
+    End Sub
+  End Class
+
+
+  Public Module Module1
+    Function AddThem(x, y)
+	AddThem = x + y
+    End Function	
+
+    ' Regular Macros can be called from the Ribbon using the onAction='RunTagMacro' helper,
+    ' which calls a macro named in the tag attribute of a button.
+    Sub ShowHelloMessage
+	MsgBox("Hello There!",,"ExcelDna Ribbon!")
+    End Sub
+  End Module
+
+]]>
+  <!-- Some images that can be used in the Ribbon ui -->
+  <Image Name="M" Path="M.png" Pack="true" />
+  <CustomUI>
+<customUI xmlns="http://schemas.microsoft.com/office/2006/01/customui" 
+  xmlns:x="myNameSpace" >
+  <ribbon>
+    <tabs>
+      <tab idMso="TabAddIns">
+        <group idQ="x:Contoso" label="Contoso">
+          <button id="C2" label="Contoso Button 2" size="large" 
+            imageMso="FileSave" onAction="OnButtonPressed" />
+        </group>	
+      </tab>
+    </tabs>
+  </ribbon>
+</customUI>
+
+
+
+  </CustomUI>
+</DnaLibrary>

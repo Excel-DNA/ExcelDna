@@ -1,0 +1,110 @@
+<DnaLibrary Name="Optional and defaultValue arguments" Language="C#">
+<!--
+There is currently no special support in Excel-DNA for optional parameters or default values. 
+This example shows how to implement these by changing your parameter type to be 'object' and then dealing with the different options explicitly.
+You can do the check and replace with a default value quite easily in some helper functions. 
+
+Over time this issue is sure to be addressed, but because there is a workaround that gives your users the default-value behaviour with a little bit of extra work in the implementation,  it is not right at the top of the priority list.
+Also, I'm not entirely sure how best the different cases should be handled, so I leave it in your hands to decide how a string or error value should be handled in your function.
+
+Some test formulae:
+   =TestDefault(2, 3)
+   =TestDefault(2)
+   =TestHello("John")
+   =TestHello()
+   =TestBestDayEver(TODAY())
+   =TestBestDayEver()
+-->
+
+<![CDATA[
+    using System;
+    using ExcelDna.Integration;
+
+    // Some sample functions
+    public class MyFunctions
+    {
+        public static double TestDefault(double x, object yArg)
+        {
+            double y = Optional.Check(yArg, 17.0);
+            
+            return x + y;
+        }
+        
+        public static string TestHello(object nameArg)
+        {
+            string name = Optional.Check(nameArg, " Unknown person!?");
+            
+            return "Hello " + name;
+        }
+        
+        public static string TestBestDayEver(object dateArg)
+        {
+            DateTime date = Optional.Check(dateArg, DateTime.Now);
+            
+            return "My best day ever: " + date.ToString("dd MMMM yyyy");
+        }
+        
+    
+    }
+    
+    // The helper class
+    internal static class Optional
+    {
+        internal static string Check(object arg, string defaultValue)
+        {
+            if (arg is string)
+                return (string)arg;
+            else if (arg is ExcelMissing)
+                return defaultValue;
+            else
+                return arg.ToString();  // Or whatever you want to do here....
+
+            // Perhaps check for other types and do whatever you think is right ....
+            //else if (arg is double)
+            //    return "Double: " + (double)arg;
+            //else if (arg is bool)
+            //    return "Boolean: " + (bool)arg;
+            //else if (arg is ExcelError)
+            //    return "ExcelError: " + arg.ToString();
+            //else if (arg is object[,])
+            //    // The object array returned here may contain a mixture of types,
+            //    // reflecting the different cell contents.
+            //    return string.Format("Array[{0},{1}]", 
+            //      ((object[,])arg).GetLength(0), ((object[,])arg).GetLength(1));
+            //else if (arg is ExcelEmpty)
+            //    return "<<Empty>>"; // Would have been null
+            //else if (arg is ExcelReference)
+            //  // Calling xlfRefText here requires IsMacroType=true for this function.
+			//				return "Reference: " + 
+            //                     XlCall.Excel(XlCall.xlfReftext, arg, true);
+			//			else
+			//				return "!? Unheard Of ?!";
+        }        
+
+        internal static double Check(object arg, double defaultValue)
+        {
+            if (arg is double)
+                return (double)arg;
+            else if (arg is ExcelMissing)
+                return defaultValue;
+            else
+                throw new ArgumentException();  // Will return #VALUE to Excel
+                
+        }
+        
+        // This one is more tricky - we have to do the double->Date conversions ourselves
+        internal static DateTime Check(object arg, DateTime defaultValue)
+        {
+            if (arg is double)
+                return DateTime.FromOADate((double)arg);    // Here is the conversion
+            else if (arg is string)
+                return DateTime.Parse((string)arg);
+            else if (arg is ExcelMissing)
+                return defaultValue;
+                
+            else 
+                throw new ArgumentException();  // Or defaultValue or whatever
+        }
+    }
+]]>
+</DnaLibrary>
