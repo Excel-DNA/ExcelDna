@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace ExcelDna.Integration
 {
@@ -77,7 +78,8 @@ namespace ExcelDna.Integration
 		internal static void Initialize()
 		{
 			// Need to get window in a macro context, else the call to get the Excel version fails.
-            // Exception suppressor added here for HPC support - WindowHandle fails in that context.
+            // Exception suppressor added here for HPC support and for RegSvr32 registration
+            // - WindowHandle fails in these contexts.
             try
             {
                 IntPtr unused = WindowHandle;
@@ -124,14 +126,20 @@ namespace ExcelDna.Integration
 			}
 		}
 
+        [ThreadStatic]
+        private static object _application;
         // CONSIDER: If we do load a COM Add-in for the Ribbon, should we keep that Application object 
         // around for convenience?
-        // CONSIDER: Keep a WeakReference cache, just for performance?
+        // CONSIDER: Keep a WeakReference cache (per thread...), just for performance?
 		public static object Application
 		{
 			get
 			{
-                object application = null;
+                // Check for a cached one set by a ComAddIn.
+                if (_application != null) return _application;
+
+                // Don't cache the one we get from the Window, it keeps Excel alive!
+                object application;
                 application = GetApplicationFromWindow();
                 if (application == null)
                 {
@@ -167,6 +175,11 @@ namespace ExcelDna.Integration
                 }
                 return application;
 			}
+            internal set
+            {
+                // Should only be set from Com Add-in connect.
+                _application = value;
+            }
 		}
 
 		private static object GetApplicationFromWindow()
@@ -198,7 +211,7 @@ namespace ExcelDna.Integration
                     object obj = Marshal.GetObjectForIUnknown(pUnk);
                     Marshal.Release(pUnk);
 
-                    object app = obj.GetType().InvokeMember("Application", System.Reflection.BindingFlags.GetProperty, null, obj, null);
+                    object app = obj.GetType().InvokeMember("Application", System.Reflection.BindingFlags.GetProperty, null, obj, null, new CultureInfo(1033));
                     Marshal.ReleaseComObject(obj);
 
                     //							object ver = app.GetType().InvokeMember("Version", System.Reflection.BindingFlags.GetProperty, null, app, null);
@@ -276,11 +289,11 @@ namespace ExcelDna.Integration
 			{
 				if (_xlVersion == 0)
 				{
-                    try
+                    object versionObject;
+                    XlCall.XlReturn retval = XlCall.TryExcel(XlCall.xlfGetWorkspace, out versionObject, 2);
+                    if (retval == XlCall.XlReturn.XlReturnSuccess)
                     {
-                        string versionString;
-                        versionString = (string)XlCall.Excel(XlCall.xlfGetWorkspace, 2);
-                        versionString = System.Text.RegularExpressions.Regex.Match(versionString, "^\\d+(\\.\\d+)?").Value;
+                        string versionString = System.Text.RegularExpressions.Regex.Match((string)versionObject, "^\\d+(\\.\\d+)?").Value;
                         double version;
                         if (!String.IsNullOrEmpty(versionString) &&
                             Double.TryParse(versionString, System.Globalization.NumberStyles.Any,
@@ -293,11 +306,11 @@ namespace ExcelDna.Integration
                             _xlVersion = 0.99;
                         }
                     }
-                    catch (XlCallException)
+                    else
                     {
                         // Maybe running on a Cluster
                         object isRunningOnClusterResult;
-                        XlCall.XlReturn retval = XlCall.TryExcel(XlCall.xlRunningOnCluster, out isRunningOnClusterResult);
+                        retval = XlCall.TryExcel(XlCall.xlRunningOnCluster, out isRunningOnClusterResult);
                         if (retval == XlCall.XlReturn.XlReturnSuccess && (isRunningOnClusterResult is string))
                         {
                             // TODO: How to get the real version here...?

@@ -118,8 +118,7 @@
       </DataExecutionPrevention>
       <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
       <TargetMachine>MachineX86</TargetMachine>
-      <ModuleDefinitionFile>
-      </ModuleDefinitionFile>
+      <ModuleDefinitionFile>ExcelDna.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -148,8 +147,7 @@
       <DataExecutionPrevention>
       </DataExecutionPrevention>
       <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
-      <ModuleDefinitionFile>
-      </ModuleDefinitionFile>
+      <ModuleDefinitionFile>ExcelDna.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -176,8 +174,7 @@
       </DataExecutionPrevention>
       <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
       <TargetMachine>MachineX86</TargetMachine>
-      <ModuleDefinitionFile>
-      </ModuleDefinitionFile>
+      <ModuleDefinitionFile>ExcelDna.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -203,13 +200,17 @@
       <DataExecutionPrevention>
       </DataExecutionPrevention>
       <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
-      <ModuleDefinitionFile>
-      </ModuleDefinitionFile>
+      <ModuleDefinitionFile>ExcelDna.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DetectFx.cpp" />
-    <ClCompile Include="ExcelDna.cpp" />
+    <ClCompile Include="ExcelDna.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="ExcelDnaLoader.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsManaged>
@@ -247,8 +248,7 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(FileName).obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml64 -c "-Fo$(IntDir)%(FileName).obj" "%(FullPath)"</Command>
     </CustomBuild>
-    <None Include="Release\ExcelDna.Integration.dll" />
-    <None Include="Release\ExcelDna.Loader.dll" />
+    <None Include="ExcelDna.def" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ExcelDna.Integration\ExcelDna.Integration.csproj">

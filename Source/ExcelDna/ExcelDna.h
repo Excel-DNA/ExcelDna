@@ -27,17 +27,18 @@
 // EXPORT_COUNT defines the size of the thunk table. 
 // Must match the number of functions exported in ExcelDna.cpp and JmpExports64.asm
 //#define EXPORT_COUNT 250
- #define EXPORT_COUNT 1000
+#define EXPORT_COUNT 1000
 
-typedef void (*PFN)();
-typedef short (*PFN_SHORT_VOID)();
-typedef short (*PFN_VOID_LPXLOPER)(void*);
-typedef short (*PFN_VOID_LPXLOPER12)(void*);
-typedef void* (*PFN_LPXLOPER_LPXLOPER)(void*);
-typedef void* (*PFN_LPXLOPER12_LPXLOPER12)(void*);
-typedef void (*PFN_PFNEXCEL12)(void*);
-typedef HRESULT (*PFN_GET_CLASS_OBJECT)(REFCLSID rclsid, REFIID riid, LPVOID* ppv);
-typedef HRESULT (*PFN_HRESULT_VOID)();
+// The function pointers will be exported from managed code in the StdCall convention.
+typedef void    (__stdcall *PFN)();
+typedef short   (__stdcall *PFN_SHORT_VOID)();
+typedef short   (__stdcall *PFN_VOID_LPXLOPER)(void*);
+typedef short   (__stdcall *PFN_VOID_LPXLOPER12)(void*);
+typedef void*   (__stdcall *PFN_LPXLOPER_LPXLOPER)(void*);
+typedef void*   (__stdcall *PFN_LPXLOPER12_LPXLOPER12)(void*);
+typedef void    (__stdcall *PFN_PFNEXCEL12)(void*);
+typedef HRESULT (__stdcall *PFN_GET_CLASS_OBJECT)(CLSID clsid, IID iid, LPVOID* ppv);
+typedef HRESULT (__stdcall *PFN_HRESULT_VOID)();
 
 // ExcelDna add-ins do not implement xlAutoRegister because all
 // registrations contain the signature from the start.
@@ -47,17 +48,17 @@ struct XlAddInExportInfo
 	DWORD AppDomainId;
 	PFN_SHORT_VOID				pXlAutoOpen;
 	PFN_SHORT_VOID				pXlAutoClose;
-	PFN_SHORT_VOID				pXlAutoAdd;
 	PFN_SHORT_VOID				pXlAutoRemove;
 	PFN_VOID_LPXLOPER			pXlAutoFree;
 	PFN_VOID_LPXLOPER12			pXlAutoFree12;
-	PFN_LPXLOPER_LPXLOPER		pXlAddInManagerInfo;
-	PFN_LPXLOPER12_LPXLOPER12	pXlAddInManagerInfo12;
 	PFN_PFNEXCEL12				pSetExcel12EntryPt;
+	PFN_HRESULT_VOID			pDllRegisterServer;
+	PFN_HRESULT_VOID			pDllUnregisterServer;
+	PFN_GET_CLASS_OBJECT		pDllGetClassObject;
+	PFN_HRESULT_VOID			pDllCanUnloadNow;
 	// The thunk table that hooks up the fxxx exports from the .xll with the marshaled function pointers.
 	INT32  ThunkTableLength;
-	PFN*   ThunkTable; // Actually (PFN ThunkTable[EXPORT_COUNT])
+	PFN*   ThunkTable;           // Actually (PFN ThunkTable[EXPORT_COUNT])
 };
 
 XlAddInExportInfo* CreateExportInfo();
-

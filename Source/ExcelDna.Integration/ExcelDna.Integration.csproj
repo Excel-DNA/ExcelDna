@@ -52,11 +52,13 @@
     <Compile Include="AssemblyReference.cs" />
     <Compile Include="ComRegistration.cs" />
     <Compile Include="ComInterop.cs" />
+    <Compile Include="ComServer.cs" />
     <Compile Include="ExcelCommandBars.cs" />
     <Compile Include="DnaLibrary.cs" />
     <Compile Include="DnaLibrarySerialization.cs" />
     <Compile Include="Excel.cs" />
     <Compile Include="ExcelAttributes.cs" />
+    <Compile Include="ExcelCustomTaskPane.cs" />
     <Compile Include="ExcelRibbon.cs" />
     <Compile Include="ExcelError.cs" />
     <Compile Include="ExcelReference.cs" />

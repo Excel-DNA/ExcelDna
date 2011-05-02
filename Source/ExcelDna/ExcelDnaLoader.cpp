@@ -50,14 +50,13 @@ HRESULT LoadClr20(ICorRuntimeHost **ppHost);
 HRESULT LoadAppDomain(CComPtr<ICorRuntimeHost> pHost, CString addInFullPath, bool createSandboxedAppDomain, bool shadowCopyFiles, CComPtr<_Assembly>& loaderAssembly, CComQIPtr<_AppDomain>& addInAppDomain, bool& unloadAppDomain);
 HRESULT LoadLoaderIntoAppDomain(CComQIPtr<_AppDomain>& pAppDomain, CComPtr<_Assembly>& pLoaderAssembly, bool forceFromBytes);
 void ShowMessage(int headerId, int bodyId, int footerId, HRESULT hr = S_OK);
-CString AddInFullPath();
 HRESULT CreateTempFile(void* pBuffer, DWORD nBufSize, CString& fileName);
 HRESULT DeleteTempFile(CString fileName);
 
-HRESULT ReadClrOptions(CString& clrVersion, bool& shadowCopyFiles, bool& createSandboxedAppDomain);
-HRESULT ReadDnaHeader(CString& header);
-HRESULT ParseDnaHeader(CString header, CString& runtimeVersion, bool& shadowCopyFiles, CString& createSandboxedAppDomain);
-HRESULT ReadAttributeValue(CString tag, CString attributeName, CString& attributeValue);
+HRESULT GetClrOptions(CString& clrVersion, bool& shadowCopyFiles, bool& createSandboxedAppDomain);
+HRESULT GetDnaHeader(bool showErrors, CString& header);
+HRESULT ParseDnaHeader(CString header, CString& addInName, CString& runtimeVersion, bool& shadowCopyFiles, CString& createSandboxedAppDomain);
+HRESULT GetAttributeValue(CString tag, CString attributeName, CString& attributeValue);
 
 BOOL IsRunningOnCluster();
 
@@ -98,7 +97,7 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 	bool shadowCopyFiles;
 	bool createSandboxedAppDomain;
 	
-	hr = ReadClrOptions(clrVersion, shadowCopyFiles, createSandboxedAppDomain);
+	hr = GetClrOptions(clrVersion, shadowCopyFiles, createSandboxedAppDomain);
 	if (FAILED(hr))
 	{
 		// SelectClrVersion shows diagnostic MessageBoxes if needed.
@@ -136,7 +135,7 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 	}
 
 	// Load (or find) the AppDomain that will contain the add-in
-	CString addInFullPath = AddInFullPath();
+	CString addInFullPath = GetAddInFullPath();
 	CComQIPtr<_AppDomain> pAppDomain;
 	CComQIPtr<_Assembly> pLoaderAssembly;
 	bool unloadAppDomain;
@@ -347,6 +346,9 @@ HRESULT LoadClrMeta(CString clrVersion, ICLRMetaHost* pMetaHost, ICorRuntimeHost
 	}
 	else
 	{
+		// Test for mixed file binding issue - try before or after the GetInterface call?
+		// Discussed here: http://exceldna.codeplex.com/discussions/253974
+		//		HRESULT hrbind = pRuntimeInfo->BindAsLegacyV2Runtime();
 		hr = pRuntimeInfo->GetInterface(CLSID_CorRuntimeHost, IID_ICorRuntimeHost, (LPVOID*)ppHost); 
 		if (FAILED(hr))
 		{
@@ -360,6 +362,7 @@ HRESULT LoadClrMeta(CString clrVersion, ICLRMetaHost* pMetaHost, ICorRuntimeHost
 		else
 		{
 			hr = S_OK;
+		
 		}
 	}
 	return hr;
@@ -500,7 +503,8 @@ HRESULT LoadAppDomain(CComPtr<ICorRuntimeHost> pHost, CString addInFullPath, boo
 		
 			return E_FAIL;
 		}
-		
+		// Assignment does QueryInterface
+		pAppDomain = pAppDomainUnk;
 		hr = LoadLoaderIntoAppDomain(pAppDomain, pLoaderAssembly, /*forceFromBytes=*/ true);
 		if (FAILED(hr))
 		{
@@ -757,7 +761,7 @@ void ShowMessage(int headerId, int bodyId, int footerId, HRESULT hr)
 	HWND hwndExcel = FindCurrentExcelWindow();
 	try
 	{
-		CString addInFullPath = AddInFullPath();
+		CString addInFullPath = GetAddInFullPath();
 
 		CPath addInFileName = addInFullPath;
 		addInFileName.StripPath();
@@ -788,7 +792,7 @@ void ShowMessage(int headerId, int bodyId, int footerId, HRESULT hr)
 	}
 }
 
-CString AddInFullPath()
+CString GetAddInFullPath()
 {
 	CString addInFullPath;
 	LPTSTR pBuffer = addInFullPath.GetBuffer(MAX_PATH);
@@ -898,6 +902,33 @@ BOOL IsRunningOnCluster()
 	return true;
 }
 
+HRESULT GetAddInName(CString& addInName)
+{
+	HRESULT hr;
+	CString header;
+	CString clrVersion;
+	bool shadowCopyFiles;
+	CString createSandboxedAppDomainValue;
+
+	hr = GetDnaHeader(false, header);	// Don't show errors here.
+	if (!FAILED(hr))
+	{
+		hr = ParseDnaHeader(header, addInName, clrVersion, shadowCopyFiles, createSandboxedAppDomainValue); // No errors yet.
+		if (FAILED(hr))
+		{
+			return E_FAIL;
+		}
+		if (addInName == "")
+		{
+			CPath xllPath(GetAddInFullPath());
+			xllPath.StripPath();
+			xllPath.RemoveExtension();
+			addInName = (CString)xllPath;
+		}
+	}
+	return hr;
+}
+
 // Decide what version of the CLR to load.
 // returns E_FAIL if no dna file information, 
 // else S_OK and clrVersion has a version string.
@@ -906,16 +937,17 @@ BOOL IsRunningOnCluster()
 //	"v2.0" -> "v2.0.50727"
 //	"v4.0" -> "v4.0.30319"
 
-HRESULT ReadClrOptions(CString& clrVersion, bool& shadowCopyFiles, bool& createSandboxedAppDomain)
+HRESULT GetClrOptions(CString& clrVersion, bool& shadowCopyFiles, bool& createSandboxedAppDomain)
 {
 	HRESULT hr;
 	CString header;
+	CString addInName;
 	CString createSandboxedAppDomainValue;
 
-	hr = ReadDnaHeader(header);	// Errors will be shown in there.
+	hr = GetDnaHeader(true, header);	// Errors will be shown in there.
 	if (!FAILED(hr))
 	{
-		hr = ParseDnaHeader(header, clrVersion, shadowCopyFiles, createSandboxedAppDomainValue); // No errors yet.
+		hr = ParseDnaHeader(header, addInName, clrVersion, shadowCopyFiles, createSandboxedAppDomainValue); // No errors yet.
 		if (FAILED(hr))
 		{
 			// XML Parse error
@@ -952,7 +984,7 @@ HRESULT ReadClrOptions(CString& clrVersion, bool& shadowCopyFiles, bool& createS
 	return hr;
 }
 
-HRESULT ParseDnaHeader(CString header, CString& runtimeVersion, bool& shadowCopyFiles, CString& createSandboxedAppDomain)
+HRESULT ParseDnaHeader(CString header, CString& addInName, CString& runtimeVersion, bool& shadowCopyFiles, CString& createSandboxedAppDomain)
 {
 	HRESULT hr;
 
@@ -973,7 +1005,7 @@ HRESULT ParseDnaHeader(CString header, CString& runtimeVersion, bool& shadowCopy
 	CString rootTag = header.Mid(rootTagStart, rootTagEnd - rootTagStart + 1);
 
 	// CONSIDER: Some checks, e.g. "v.X..."
-	hr = ReadAttributeValue(rootTag, L"RuntimeVersion", runtimeVersion);
+	hr = GetAttributeValue(rootTag, L"RuntimeVersion", runtimeVersion);
 	if (FAILED(hr))
 	{
 		// Parse error
@@ -986,7 +1018,7 @@ HRESULT ParseDnaHeader(CString header, CString& runtimeVersion, bool& shadowCopy
 	}
 
 	CString shadowCopyFilesValue;
-	hr = ReadAttributeValue(rootTag, L"ShadowCopyFiles", shadowCopyFilesValue);
+	hr = GetAttributeValue(rootTag, L"ShadowCopyFiles", shadowCopyFilesValue);
 	if (FAILED(hr))
 	{
 		// Parse error
@@ -1005,7 +1037,7 @@ HRESULT ParseDnaHeader(CString header, CString& runtimeVersion, bool& shadowCopy
 			shadowCopyFiles = false;
 	}
 
-	hr = ReadAttributeValue(rootTag, L"CreateSandboxedAppDomain", createSandboxedAppDomain);
+	hr = GetAttributeValue(rootTag, L"CreateSandboxedAppDomain", createSandboxedAppDomain);
 	if (FAILED(hr))
 	{
 		// Parse error
@@ -1017,13 +1049,26 @@ HRESULT ParseDnaHeader(CString header, CString& runtimeVersion, bool& shadowCopy
 		hr = S_OK;
 	}
 
+	hr = GetAttributeValue(rootTag, L"Name", addInName);
+	if (FAILED(hr))
+	{
+		// Parse error
+		return E_FAIL;
+	}
+	if (hr == S_FALSE)
+	{
+		addInName = "";
+		hr = S_OK;
+	}
 	return hr;
 }
 
 // Returns	S_OK if the attribute was found and read into the attributeValue string.
 //			S_FALSE if the attribute was not found at all
 //			E_FAIL if there was an XML syntax error in the tag.
-HRESULT ReadAttributeValue(CString tag, CString attributeName, CString& attributeValue)
+// TODO: There is a bug here - I don't check the character before attributeName starts, so I also match XXXName="NotMyName"
+//		 For not the .dna schema does not define any conflicts here, but it's not great.
+HRESULT GetAttributeValue(CString tag, CString attributeName, CString& attributeValue)
 {
 	attributeName.Append(L"=");
 	int attributeNameLength = attributeName.GetLength();
@@ -1052,7 +1097,7 @@ HRESULT ReadAttributeValue(CString tag, CString attributeName, CString& attribut
 	return S_OK;
 }
 
-HRESULT ReadDnaHeader(CString& header)
+HRESULT GetDnaHeader(bool showErrors, CString& header)
 {
 	// We find the .dna file and load a 1k string from the file.
 	// To locate the file:
@@ -1079,36 +1124,41 @@ HRESULT ReadDnaHeader(CString& header)
 	else
 	{
 		CAtlFile dnaFile;
-		CPath dnaPath(AddInFullPath());
+		CPath dnaPath(GetAddInFullPath());
 		dnaPath.RenameExtension(L".dna");
 		if (!dnaPath.FileExists())
 		{
-			ShowMessage(IDS_MSG_HEADER_DNANOTFOUND, 
-			IDS_MSG_BODY_DNAPATHNOTEXIST, 
-			IDS_MSG_FOOTER_ENSUREDNAFILE,
-			hr);
-
+			if (showErrors)
+			{
+				ShowMessage(IDS_MSG_HEADER_DNANOTFOUND, 
+				IDS_MSG_BODY_DNAPATHNOTEXIST, 
+				IDS_MSG_FOOTER_ENSUREDNAFILE,
+				hr);
+			}
 			return E_FAIL;
 		}
 		hr = dnaFile.Create(dnaPath, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
 		if (FAILED(hr))
 		{
-			ShowMessage(IDS_MSG_HEADER_DNAPROBLEM, 
-			IDS_MSG_BODY_DNAOPENFAILED, 
-			IDS_MSG_FOOTER_UNEXPECTED,
-			hr);
-
+			if (showErrors)
+			{
+				ShowMessage(IDS_MSG_HEADER_DNAPROBLEM, 
+				IDS_MSG_BODY_DNAOPENFAILED, 
+				IDS_MSG_FOOTER_UNEXPECTED,
+				hr);
+			}
 			return E_FAIL;
 		}
 		hr = dnaFile.Read((LPVOID)headerBuffer, MAX_HEADER_LENGTH, headerLength);
 		if (FAILED(hr))
 		{
-
-			ShowMessage(IDS_MSG_HEADER_DNAPROBLEM, 
-			IDS_MSG_BODY_DNAOPENFAILED, 
-			IDS_MSG_FOOTER_UNEXPECTED,
-			hr);
-
+			if (showErrors)
+			{
+				ShowMessage(IDS_MSG_HEADER_DNAPROBLEM, 
+				IDS_MSG_BODY_DNAOPENFAILED, 
+				IDS_MSG_FOOTER_UNEXPECTED,
+				hr);
+			}
 			return E_FAIL;
 		}
 	}

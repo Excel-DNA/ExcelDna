@@ -26,10 +26,47 @@
 #include "ExcelDna.h"
 #include "ExcelDnaLoader.h"
 
+// Minial parts of XLOPER types, 
+// used only for xlAddInManagerInfo(12). Really.
+struct XLOPER
+{
+	union
+	{
+		double num;					/* xltypeNum */
+		void* str;					/* xltypeStr */
+		WORD err;					/* xltypeErr */
+	} val;
+	WORD xltype; // Should be at offset 8 bytes
+};
+
+struct XLOPER12
+{
+	union
+	{
+		double num;					/* xltypeNum */
+		void* str;					/* xltypeStr */
+		int err;					/* xltypeErr */
+		struct
+		{
+			double unused1;
+			double unused2;
+			double unused3;
+		} unused;
+	} val;
+	DWORD xltype; // Should be at offset 24 bytes
+};
+#define xltypeNum  1;
+#define xltypeStr  2;
+#define xltypeErr  16;
+#define xlerrValue 15
+
 // The one and only ExportInfo
 XlAddInExportInfo* pExportInfo = NULL;
-// Flag to coordinate close and remove.
+// Flag to coordinate load/unload close and remove.
+HMODULE lockModule;
+bool locked = false;
 bool removed = false;
+
 // The actual thunk table 
 extern "C" 
 {
@@ -39,17 +76,18 @@ extern "C"
 XlAddInExportInfo* CreateExportInfo()
 {
 	pExportInfo = new XlAddInExportInfo();
-	pExportInfo->ExportInfoVersion = 3;
+	pExportInfo->ExportInfoVersion = 5;
 	pExportInfo->AppDomainId = -1;
 	pExportInfo->pXlAutoOpen = NULL;
 	pExportInfo->pXlAutoClose = NULL;
-	pExportInfo->pXlAutoAdd = NULL;
 	pExportInfo->pXlAutoRemove = NULL;
 	pExportInfo->pXlAutoFree = NULL;
 	pExportInfo->pXlAutoFree12 = NULL;
-	pExportInfo->pXlAddInManagerInfo = NULL;
-	pExportInfo->pXlAddInManagerInfo12 = NULL;
 	pExportInfo->pSetExcel12EntryPt = NULL;
+	pExportInfo->pDllRegisterServer = NULL;
+	pExportInfo->pDllUnregisterServer = NULL;
+	pExportInfo->pDllGetClassObject = NULL;
+	pExportInfo->pDllCanUnloadNow = NULL;
 	pExportInfo->ThunkTableLength = EXPORT_COUNT;
 	pExportInfo->ThunkTable = (PFN*)thunks;
 	return pExportInfo;
@@ -86,32 +124,54 @@ void Uninitialize()
 	}
 }
 
+// Ensure that the library stays loaded.
+// May be called many times, but should keep opened only until unlocked once.
+void LockModule()
+{
+	if (!locked)
+	{
+		CPath xllPath(GetAddInFullPath());
+		xllPath.StripPath();
+		lockModule = LoadLibrary(xllPath);
+		locked = true;
+	}
+}
+
+// Allow the library to be unloaded.
+void UnlockModule()
+{
+	if (locked)
+	{
+		FreeLibrary(lockModule);
+		locked = false;
+	}
+}
+
+// Standard DLL entry point.
+BOOL __stdcall DllMain( HMODULE hModule,
+						DWORD  ul_reason_for_call,
+						LPVOID lpReserved
+						)
+{
+	switch (ul_reason_for_call)
+	{
+	case DLL_PROCESS_ATTACH:
+		LoaderInitialize(hModule);
+		break;
+	case DLL_THREAD_ATTACH:
+	case DLL_THREAD_DETACH:
+		break;
+	case DLL_PROCESS_DETACH:
+		LoaderUnload();
+		break;
+	}
+	return TRUE;
+}
+
 extern "C"
 {
-	// Standard DLL entry point.
-	BOOL __stdcall DllMain( HMODULE hModule,
-						   DWORD  ul_reason_for_call,
-						   LPVOID lpReserved
-						 )
-	{
-		switch (ul_reason_for_call)
-		{
-		case DLL_PROCESS_ATTACH:
-			LoaderInitialize(hModule);
-			break;
-		case DLL_THREAD_ATTACH:
-		case DLL_THREAD_DETACH:
-			break;
-		case DLL_PROCESS_DETACH:
-			LoaderUnload();
-			break;
-		}
-		return TRUE;
-	}
-
-
 	// Excel Add-In standard exports
-	__declspec(dllexport) short xlAutoOpen()
+	short __stdcall xlAutoOpen()
 	{
 		short result = 0;
 		if (EnsureInitialized() && 
@@ -119,11 +179,12 @@ extern "C"
 		{
 			result = pExportInfo->pXlAutoOpen();
 			removed = false;
+			LockModule();
 		}
 		return result;
 	}
 
-	__declspec(dllexport) short xlAutoClose()
+	short __stdcall xlAutoClose()
 	{
 		short result = 0;
 		if (EnsureInitialized() && 
@@ -138,23 +199,28 @@ extern "C"
 				Uninitialize();
 				// Complete the clean-up by unloading AppDomain
 				XlLibraryUnload();
+				// ...and allowing the .xll to be unloaded
+				UnlockModule();
 			}
 		}
 		return result;
 	}
 	
-	__declspec(dllexport) short xlAutoAdd()
-	{
-		short result = 0;
-		if (EnsureInitialized() && 
-			pExportInfo->pXlAutoAdd != NULL)
-		{
-			result = pExportInfo->pXlAutoAdd();
-		}
-		return result;
-	}
+	// Since v0.29 loading is much more expensive, so I want to reduce the number of times we load.
+	// We've never used or exposed xlAutoAdd to Excel-DNA addins, so no harm in disabling for now.
+	// To add back, also uncomment in the ExcelDna.def file.
+	//short __stdcall xlAutoAdd()
+	//{
+	//	short result = 0;
+	//	if (EnsureInitialized() && 
+	//		pExportInfo->pXlAutoAdd != NULL)
+	//	{
+	//		result = pExportInfo->pXlAutoAdd();
+	//	}
+	//	return result;
+	//}
 
-	__declspec(dllexport) short xlAutoRemove()
+	short __stdcall xlAutoRemove()
 	{
 		short result = 0;
 		if (EnsureInitialized() && 
@@ -166,16 +232,15 @@ extern "C"
 		return result;
 	}
 
-	__declspec(dllexport) void xlAutoFree(void* pXloper)
+	void __stdcall xlAutoFree(void* pXloper)
 	{
-		if (pExportInfo != NULL && 
-			pExportInfo->pXlAutoFree != NULL)
+		if (pExportInfo != NULL && pExportInfo->pXlAutoFree != NULL)
 		{
 			pExportInfo->pXlAutoFree(pXloper);
 		}
 	}
 
-	__declspec(dllexport) void xlAutoFree12(void* pXloper12)
+	void __stdcall xlAutoFree12(void* pXloper12)
 	{
 		if (pExportInfo != NULL && pExportInfo->pXlAutoFree12 != NULL)
 		{
@@ -183,29 +248,67 @@ extern "C"
 		}
 	}
 
-	__declspec(dllexport) void* xlAddInManagerInfo(void* pXloper)
+	XLOPER* __stdcall xlAddInManagerInfo(XLOPER* pXloper)
 	{
-		void* result = NULL;
-		if (EnsureInitialized() && 
-			pExportInfo->pXlAddInManagerInfo != NULL)
+		static XLOPER result;
+		static char name[256];
+
+		// Return error by default
+		result.xltype = xltypeErr;
+		result.val.err = xlerrValue;
+
+		if (pXloper->xltype == 1 && pXloper->val.num == 1.0)
 		{
-			result = pExportInfo->pXlAddInManagerInfo(pXloper);
+			CString addInNameW;
+			HRESULT hr = GetAddInName(addInNameW);
+			if (!FAILED(hr))
+			{
+				CStringA addInName(addInNameW);
+				byte length = (byte)min(addInName.GetLength(), 255);
+				name[0] = (char)length;
+				const char* pAddInName = addInName;
+				char* pName = (char*)name + 1;
+				CStringA::CopyChars(pName, 255, pAddInName, length);
+
+				result.xltype = xltypeStr;
+				result.val.str = name;
+			}
 		}
-		return result;
+
+		return &result;
 	}
 
-	__declspec(dllexport) void* xlAddInManagerInfo12(void* pXloper12)
+	XLOPER12* __stdcall xlAddInManagerInfo12(XLOPER12* pXloper)
 	{
-		void* result = NULL;
-		if (EnsureInitialized() && 
-			pExportInfo->pXlAddInManagerInfo12 != NULL)
+		static XLOPER12 result;
+		static wchar_t name[256];
+
+		// Return error by default
+		result.xltype = xltypeErr;
+		result.val.err = xlerrValue;
+
+		if (pXloper->xltype == 1 && pXloper->val.num == 1.0)
 		{
-			result = pExportInfo->pXlAddInManagerInfo12(pXloper12);
+			CString addInName;
+			HRESULT hr = GetAddInName(addInName);
+			if (!FAILED(hr))
+			{
+				// We could probably use CString as is (maybe with truncation)!?
+				int length = (int)min(addInName.GetLength(), 255);
+				name[0] = (wchar_t)length;
+				const wchar_t* pAddInName = addInName;
+				wchar_t* pName = (wchar_t*)name + 1;
+				CString::CopyChars(pName, 255, pAddInName, length);
+				result.xltype = xltypeStr;
+				result.val.str = name;
+			}
 		}
-		return result;
+
+		return &result;
 	}
 
-	__declspec(dllexport) void SetExcel12EntryPt(void* pexcel12New)
+	// Support for Excel 2010 SDK - used when loading under HPC XLL Host
+	void __stdcall SetExcel12EntryPt(void* pexcel12New)
 	{
 		if (EnsureInitialized() && 
 			pExportInfo->pSetExcel12EntryPt != NULL)
@@ -213,15 +316,65 @@ extern "C"
 			pExportInfo->pSetExcel12EntryPt(pexcel12New);
 		}
 	}
+
+	// We are also a COM Server, to support the =RTD(...) worksheet function and VBA ComServer integration.
+	HRESULT __stdcall DllRegisterServer()
+	{
+		HRESULT result = E_UNEXPECTED;
+		if (EnsureInitialized() && 
+			pExportInfo->pDllRegisterServer != NULL)
+		{
+			result = pExportInfo->pDllRegisterServer();
+		}
+		return result;
+	}
+
+	HRESULT __stdcall DllUnregisterServer()
+	{
+		HRESULT result = E_UNEXPECTED;
+		if (EnsureInitialized() && 
+			pExportInfo->pDllUnregisterServer != NULL)
+		{
+			result = pExportInfo->pDllUnregisterServer();
+		}
+		return result;
+	}
+	
+	HRESULT __stdcall DllGetClassObject(REFCLSID clsid, REFIID iid, void** ppv)
+	{
+		HRESULT result = E_UNEXPECTED;
+		GUID cls = clsid;
+		GUID i = iid;
+		if (EnsureInitialized() && 
+			pExportInfo->pDllGetClassObject != NULL)
+		{
+
+			result = pExportInfo->pDllGetClassObject(cls, i, ppv);
+		}
+		return result;
+	}
+
+	HRESULT __stdcall DllCanUnloadNow()
+	{
+		HRESULT result = S_OK;
+		if (EnsureInitialized() && 
+			pExportInfo->pDllCanUnloadNow != NULL)
+		{
+			result = pExportInfo->pDllCanUnloadNow();
+		}
+		return result;
+	}
 }
 
 
 #ifndef _M_X64
 // The dll export implementation that jmps to thunk in the thunktable
+// For x64 this is implemented in JmpExports64.asm
+
 // Use extern so that functions are not decorated when exported.
 // naked ensures no prologue or epilogue generated by the compiler 
 // - jump directly to unmanaged thunk at offset i
-#define expf(i) extern "C" __declspec(dllexport,naked) void f##i(void){	__asm jmp thunks + i * 4 /* sizeof(PFN)*/ }
+#define expf(i) extern "C" __declspec(dllexport,naked) void f##i(void){	__asm jmp thunks + i * 4 /* sizeof(PFN) (only used on 32-bit) */ }
 
 // Declare the functions -- NOTE: list here must go from 0 to EXPORT_COUNT-1
 expf(0)

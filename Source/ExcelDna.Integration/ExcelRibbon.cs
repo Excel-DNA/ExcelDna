@@ -14,17 +14,14 @@ using HRESULT = System.Int32;
 using IID = System.Guid;
 using CLSID = System.Guid;
 using DWORD = System.UInt32;
+using System.Globalization;
 
 namespace ExcelDna.Integration.CustomUI
 {
     [ComVisible(true)]
-    //    [Guid("4B0C96EC-9740-4F78-8396-84B0FABB0E74")]
     [ClassInterface(ClassInterfaceType.AutoDispatch)]
-    public class ExcelRibbon : IDTExtensibility2, IRibbonExtensibility //, ICustomTaskPaneConsumer
+    public class ExcelComAddIn : IDTExtensibility2 
     {
-        public const string NamespaceCustomUI2010 = @"http://schemas.microsoft.com/office/2009/07/customui";
-        public const string NamespaceCustomUI2007 = @"http://schemas.microsoft.com/office/2006/01/customui";
-
         internal DnaLibrary DnaLibrary { get; set; }
         private string _progId;
         protected string ProgId
@@ -40,31 +37,43 @@ namespace ExcelDna.Integration.CustomUI
         #region IDTExtensibility2 interface - not used by ExcelDna
         public virtual void OnConnection(object Application, ext_ConnectMode ConnectMode, object AddInInst, ref Array custom)
         {
-            Debug.Print("ExcelRibbon.OnConnection");
-            // TODO: Grab an Application reference here and keep around...?
-            //       (check that Excel shuts down if we do).
+            Debug.Print("ExcelComAddIn.OnConnection");
+    
+            
+            // Grab an Application reference here and keep around...?
+            // TODO: Check that Excel shuts down in various settings.
+            ExcelDnaUtil.Application = Application;
         }
 
         public virtual void OnDisconnection(ext_DisconnectMode RemoveMode, ref Array custom)
         {
-            Debug.Print("ExcelRibbon.OnDisconnection");
+            Debug.Print("ExcelComAddIn.OnDisconnection");
         }
 
         public virtual void OnAddInsUpdate(ref Array custom)
         {
-            Debug.Print("ExcelRibbon.OnAddInsUpdate");
+            Debug.Print("ExcelComAddIn.OnAddInsUpdate");
         }
 
         public virtual void OnStartupComplete(ref Array custom)
         {
-            Debug.Print("ExcelRibbon.OnStartupComplete");
+            Debug.Print("ExcelComAddIn.OnStartupComplete");
         }
 
         public virtual void OnBeginShutdown(ref Array custom)
         {
-            Debug.Print("ExcelRibbon.OnBeginShutdown");
+            Debug.Print("ExcelComAddIn.OnBeginShutdown");
         }
         #endregion
+    }
+
+    [ComVisible(true)]
+    //    [Guid("4B0C96EC-9740-4F78-8396-84B0FABB0E74")]
+    [ClassInterface(ClassInterfaceType.AutoDispatch)]
+    public class ExcelRibbon : ExcelComAddIn, IRibbonExtensibility //, ICustomTaskPaneConsumer
+    {
+        public const string NamespaceCustomUI2010 = @"http://schemas.microsoft.com/office/2009/07/customui";
+        public const string NamespaceCustomUI2007 = @"http://schemas.microsoft.com/office/2006/01/customui";
 
         public virtual string GetCustomUI(string RibbonID)
         {
@@ -81,7 +90,7 @@ namespace ExcelDna.Integration.CustomUI
             // (not sure how to future-proof...)
 
             Dictionary<string, string> customUIs = new Dictionary<string, string>();
-            foreach (XmlNode customUI in DnaLibrary.CustomUIs)
+            foreach (XmlNode customUI in this.DnaLibrary.CustomUIs)
             {
                 customUIs[customUI.NamespaceURI] = customUI.OuterXml;
             }
@@ -125,93 +134,83 @@ namespace ExcelDna.Integration.CustomUI
         {
             if (!string.IsNullOrEmpty(control.Tag))
             {
+                // CONSIDER: Is this a danger for shutting down - surely not...?
                 object app = ExcelDnaUtil.Application;
-                app.GetType().InvokeMember("Run", BindingFlags.InvokeMethod, null, app, new object[] { control.Tag });
-                //object result;
-                //XlCall.TryExcel(XlCall.xlcRun, out result, control.Tag);
+                app.GetType().InvokeMember("Run", BindingFlags.InvokeMethod, null, app, new object[] { control.Tag }, new System.Globalization.CultureInfo(1033));
             }
         }
-
-        // For CustomTaskPane stuff
-        // TODO: ActiveX -> WPF without Windows.Forms....?
-        //public virtual void CTPFactoryAvailable([In, MarshalAs(UnmanagedType.IUnknown)] object /*ICTPFactory*/ CTPFactoryInst)
-        //{
-        //    // throw new NotImplementedException();
-        //}
     }
 
-    internal static class ExcelComAddIn
+    public static class ExcelComAddInHelper
     {
         // Com Add-ins loaded for Ribbons.
         static List<object> loadedComAddIns = new List<object>();
 
-        public static void LoadComAddIn(ExcelRibbon addIn)
+        public static void LoadComAddIn(ExcelComAddIn addIn)
         {
             // We pick a new Guid as ClassId for this add-in.
             CLSID clsId = Guid.NewGuid();
             // and make the ProgId from this Guid - max 39 chars....
-            string progId = "Ribbon." + clsId.ToString("N");
+            string progId = "AddIn." + clsId.ToString("N");
             addIn.SetProgId(progId);
             // Put together some nicer descriptions for the Add-ins dialog.
-            string friendlyName = addIn.DnaLibrary.Name + " (Ribbon Helper)";
-            string description = string.Format("Dynamically created COM Add-in to load Ribbon interface for the Excel Add-in {0}, located at {1}.", addIn.DnaLibrary.Name, DnaLibrary.XllPath);
+            string friendlyName;
+            if (addIn is ExcelRibbon)
+                friendlyName = addIn.DnaLibrary.Name + " (Ribbon Helper)";
+            else if (addIn is ExcelCustomTaskPaneAddIn)
+                friendlyName = addIn.DnaLibrary.Name + " (Custom Task Pane Helper)";
+            else 
+                friendlyName = addIn.DnaLibrary.Name + " (COM Add-in Helper)";
+            string description = string.Format("Dynamically created COM Add-in to load custom UI for the Excel Add-in {0}, located at {1}.", addIn.DnaLibrary.Name, DnaLibrary.XllPath);
 
             try
             {
                 Debug.Print("Getting Application object");
                 object app = ExcelDnaUtil.Application;
+                Type appType = app.GetType();
                 Debug.Print("Got Application object: " + app.GetType().ToString());
+
+                CultureInfo ci = new CultureInfo(1033);
 
                 object excelComAddIns;
                 object comAddIn;
-                using (SingletonClassFactoryRegistration regClassFactory = new SingletonClassFactoryRegistration(clsId, addIn))
+                using (SingletonClassFactoryRegistration regClassFactory = new SingletonClassFactoryRegistration(addIn, clsId))
+                using (ProgIdRegistration regProgId = new ProgIdRegistration(progId, clsId))
+                using (ComAddInRegistration regComAddIn = new ComAddInRegistration(progId, friendlyName, description))
                 {
-                    using (ProgIdRegistration regProgId = new ProgIdRegistration(progId, clsId))
-                    {
-                        using (ComAddInRegistration regComAddIn = new ComAddInRegistration(progId, friendlyName, description))
-                        {
-                            excelComAddIns = app.GetType().InvokeMember("COMAddIns", BindingFlags.GetProperty, null, app, null);
+                    excelComAddIns = appType.InvokeMember("COMAddIns", BindingFlags.GetProperty, null, app, null, ci);
 //                            Debug.Print("Got COMAddins object: " + excelComAddIns.GetType().ToString());
-                            app.GetType().InvokeMember("Update", BindingFlags.InvokeMethod, null, excelComAddIns, null);
+                    appType.InvokeMember("Update", BindingFlags.InvokeMethod, null, excelComAddIns, null, ci);
 //                            Debug.Print("Updated COMAddins object with AddIn registered");
-                            comAddIn = excelComAddIns.GetType().InvokeMember("Item", BindingFlags.InvokeMethod, null, excelComAddIns, new object[] { progId });
+                    comAddIn = excelComAddIns.GetType().InvokeMember("Item", BindingFlags.InvokeMethod, null, excelComAddIns, new object[] { progId }, ci);
 //                            Debug.Print("Got the COMAddin object: " + comAddIn.GetType().ToString());
 
-                            // At this point Excel knows how to load our add-in by CLSID, so we could clean up the 
-                            // registry aggressively, before the actual (dangerous?) loading starts.
-                            // But this seems to lead to some distress - Excel has some assertion checked when 
-                            // it updates the LoadBehavior after a successful load....
-                            comAddIn.GetType().InvokeMember("Connect", BindingFlags.SetProperty, null, comAddIn, new object[] { true });
+                    // At this point Excel knows how to load our add-in by CLSID, so we could clean up the 
+                    // registry aggressively, before the actual (dangerous?) loading starts.
+                    // But this seems to lead to some distress - Excel has some assertion checked when 
+                    // it updates the LoadBehavior after a successful load....
+                    comAddIn.GetType().InvokeMember("Connect", BindingFlags.SetProperty, null, comAddIn, new object[] { true }, ci);
 //                            Debug.Print("COMAddin is loaded.");
-                            loadedComAddIns.Add(comAddIn);
-                        }
-                    }
-
-                    // Here we have already removed the Excel AddIn entry, and the ProgId.
-                    // Loading the add-in still works fine, but Excel seems to get a bit distressed, as it wants to write 
-                    // a LoadBehavior entry to the registry, but will fail.
-
-                    //comAddIn.GetType().InvokeMember("Connect", BindingFlags.SetProperty, null, comAddIn, new object[] { true });
-                    //Debug.Print("COMAddin is loaded.");
-                    //loadedComAddIns.Add(comAddIn);
+                    loadedComAddIns.Add(comAddIn);
                 }
-
-                // app.GetType().InvokeMember("Update", BindingFlags.InvokeMethod, null, excelComAddIns, null);
-                // Debug.Print("Updated COMAddins object with AddIn loaded and de-registered.");
             }
             catch (Exception e)
             {
                 Debug.Print("LoadComAddIn exception: " + e.ToString());
+                // CONSIDER: How to deal with errors here...? For now I just re-raise the exception.
+                throw;
             }
         }
 
-        public static void UnloadComAddIns()
+        internal static void UnloadComAddIns()
         {
+            CultureInfo ci = new CultureInfo(1033);
             foreach (object comAddIn in loadedComAddIns)
             {
-                comAddIn.GetType().InvokeMember("Connect", System.Reflection.BindingFlags.SetProperty, null, comAddIn, new object[] { false });
+                comAddIn.GetType().InvokeMember("Connect", System.Reflection.BindingFlags.SetProperty, null, comAddIn, new object[] { false }, ci);
                 Debug.Print("COMAddin is unloaded.");
             }
         }
     }
+
 }

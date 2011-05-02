@@ -59,7 +59,7 @@ namespace ExcelDna.Integration.CustomUI
         public static void LoadCommandBars(string xmlCustomUI, GetImageDelegate getImage)
         {
             string dnaLibraryWrapper = string.Format(@"<DnaLibrary><CustomUI>{0}</CustomUI></DnaLibrary>", xmlCustomUI);
-            using (var sr = new StringReader(dnaLibraryWrapper))
+            using (StringReader sr = new StringReader(dnaLibraryWrapper))
             {
                 XmlSerializer serializer = new DnaLibrarySerializer();
                 // TODO: Check for and display errors....
@@ -209,13 +209,15 @@ namespace ExcelDna.Integration.CustomUI
             if (xmlNode.Name == "popup")
             {
                 string controlName = xmlNode.Attributes["caption"].Value;
-                CommandBarPopup newPopup = parentControls.AddPopup(controlName);
+                object before = ReadControlBeforeAttribute(xmlNode);
+                CommandBarPopup newPopup = parentControls.AddPopup(controlName, before);
                 ApplyControlAttributes(newPopup, xmlNode, getImage);
                 AddControls(newPopup.Controls, xmlNode.ChildNodes, getImage);
             }
             else if (xmlNode.Name == "button")
             {
-                CommandBarButton newButton = parentControls.AddButton();
+                object before = ReadControlBeforeAttribute(xmlNode);
+                CommandBarButton newButton = parentControls.AddButton(before);
                 ApplyControlAttributes(newButton, xmlNode, getImage);
             }
         }
@@ -242,6 +244,27 @@ namespace ExcelDna.Integration.CustomUI
             }
         }
 
+        private static object ReadControlBeforeAttribute(XmlNode xmlNode)
+        {
+            // Before is one of the parameters of CommandBarControls.Add. If not set, we'll pass Missing.Value.
+            // We also allow this to be a string... e.g. "Help"
+            object before = Missing.Value;
+            XmlAttribute beforeAttribute = xmlNode.Attributes["before"];
+            if (beforeAttribute != null && !string.IsNullOrEmpty(beforeAttribute.Value))
+            {
+                int beforeValue;
+                if (int.TryParse(beforeAttribute.Value, out beforeValue))
+                {
+                    return beforeValue;
+                }
+                else
+                {
+                    // Assume it is a string referring to a control
+                    return beforeAttribute.Value;
+                }
+            }
+            return before;
+        }
 
         private static void ApplyControlAttributes(CommandBarControl control, XmlNode xmlNode, GetImageDelegate getImage)
         {
@@ -339,7 +362,7 @@ namespace ExcelDna.Integration.CustomUI
                     }
                     else
                     {
-                        Debug.Print("faceif only supported on Buttons");
+                        Debug.Print("faceId only supported on Buttons");
                     }
                     break;
                 case "image":
@@ -717,6 +740,14 @@ namespace ExcelDna.Integration.CustomUI
                 _type.InvokeMember("Visible", BindingFlags.SetProperty, null, _object, new object[] { value });
             }
         }
+
+        public int Index
+        {
+            get
+            {
+                return (int)_type.InvokeMember("Index", BindingFlags.GetProperty, null, _object, null);
+            }
+        }
             
         public void Delete(object Temporary)
         {
@@ -778,9 +809,11 @@ namespace ExcelDna.Integration.CustomUI
                 string findName = name.Replace("&", "");
                 for (int i = 1; i <= Count(); i++)
                 {
-                    if (!String.IsNullOrEmpty(this[i].Caption))
-                        if (this[i].Caption.Replace("&", "") == findName)
-                            return this[i];
+                    CommandBarControl control = this[i];
+                    string caption = control.Caption;
+                    if (!String.IsNullOrEmpty(caption))
+                        if (caption.Replace("&", "") == findName)
+                            return control;
                 }
             }
 
@@ -790,19 +823,72 @@ namespace ExcelDna.Integration.CustomUI
             return CommandBarControl.CreateCommandBarControl(controlType, newControl);
         }
 
+        // Normalizes the before value.
+        // If before is missing or an int, already OK.
+        // If it is a string, find the control in this collection and return its index.
+        private object FindControlIndexBefore(object before /* should be int or Missing or string referring to control in this collection */)
+        {
+            if (before is Missing || before is int)
+            {
+                return before;
+            }
+
+            object beforeIndex = Missing.Value;
+            if (before is string)
+            {
+                for (int i = 1; i <= Count(); i++)
+                {
+                    CommandBarControl control = this[i];
+                    string caption = control.Caption;
+                    if (!String.IsNullOrEmpty(caption))
+                    {
+                        if (caption.Replace("&", "") == ((string)before).Replace("&", ""))
+                        {
+                            // This is the one!
+                            beforeIndex = i;
+                            break;
+                        }
+                    }
+                }
+            }
+            return beforeIndex;
+        }
+
         public CommandBarButton AddButton()
         {
-            return (CommandBarButton)Add(MsoControlType.msoControlButton, 1, Type.Missing, Type.Missing, true);
+            return AddButton(Type.Missing);
+        }
+
+        // before should be int or Missing or string referring to control in this collection
+        public CommandBarButton AddButton(object before)
+        {
+            object beforeIndex = FindControlIndexBefore(before);
+            return (CommandBarButton)Add(MsoControlType.msoControlButton, 1, Type.Missing, beforeIndex, true);
         }
 
         public CommandBarPopup AddPopup(string name)
         {
-            return (CommandBarPopup)FindOrAdd(MsoControlType.msoControlPopup, name, 1, Type.Missing, Type.Missing, true);
+            return AddPopup(name, Type.Missing);
         }
+
+        // before should be int or Missing or string referring to control in this collection
+        public CommandBarPopup AddPopup(string name, object before)
+        {
+            object beforeIndex = FindControlIndexBefore(before);
+            return (CommandBarPopup)FindOrAdd(MsoControlType.msoControlPopup, name, 1, Type.Missing, beforeIndex, true);
+        }
+
 
         public CommandBarComboBox AddComboBox()
         {
-            return (CommandBarComboBox)Add(MsoControlType.msoControlComboBox, 1, Type.Missing, Type.Missing, true);
+            return AddComboBox(Type.Missing);
+        }
+        
+        // before should be int or Missing or string referring to control in this collection
+        public CommandBarComboBox AddComboBox(object before)
+        {
+            object beforeIndex = FindControlIndexBefore(before);
+            return (CommandBarComboBox)Add(MsoControlType.msoControlComboBox, 1, Type.Missing, beforeIndex, true);
         }
 
         private void Remove(MsoControlType controlType, object id)

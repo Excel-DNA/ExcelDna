@@ -354,6 +354,24 @@ namespace ExcelDna.Loader
                     BoxedValueType = typeof(decimal);
                 }
             }
+            else if (type == typeof(long))
+            {
+                // Just like decimal - change to double as well as we can.
+                if (isReturnType)
+                {
+                    XlType = "P"; // OPER
+                    MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObjectMarshaler));
+                    DelegateParamType = typeof(object);
+                    BoxedValueType = typeof(long);
+                }
+                else
+                {
+                    XlType = "E"; // double*
+                    MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlLongParameterMarshaler));
+                    DelegateParamType = typeof(object);
+                    BoxedValueType = typeof(long);
+                }
+            }
             else
 			{
 				// The function is bad and cannot be marshaled to Excel
@@ -594,6 +612,23 @@ namespace ExcelDna.Loader
                     MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlDecimalParameter12Marshaler));
                     DelegateParamType = typeof(object);
                     BoxedValueType = typeof(decimal);
+                }
+            }
+            else if (type == typeof(long))
+            {
+                if (isReturnType)
+                {
+                    XlType = "Q"; // OPER
+                    MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObject12Marshaler));
+                    DelegateParamType = typeof(object);
+                    BoxedValueType = typeof(long);
+                }
+                else
+                {
+                    XlType = "E"; // double*
+                    MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlLongParameter12Marshaler));
+                    DelegateParamType = typeof(object);
+                    BoxedValueType = typeof(long);
                 }
             }
             else

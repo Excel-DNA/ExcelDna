@@ -31,6 +31,11 @@ using System.Runtime.InteropServices;
 
 namespace ExcelDna.Integration
 {
+    using HRESULT = System.Int32;
+    using IID = System.Guid;
+    using CLSID = System.Guid;
+    using ExcelDna.ComInterop;
+
     // CAUTION: These functions are called _via reflection_ by
     // ExcelDna.Loader.XlLibrary to set up the link between the loader 
     // and the integration library.
@@ -119,10 +124,10 @@ namespace ExcelDna.Integration
             return getResourceBytesDelegate(imageName, 2);
         }
 
-        internal static void Initialize()
+        internal static void Initialize(string xllPath)
         {
-			ExcelDnaUtil.Initialize();
-            DnaLibrary.Initialize();
+			ExcelDnaUtil.Initialize();  // Set up window handle
+            DnaLibrary.InitializeRootLibrary(xllPath);
         }
 
         internal static void DeInitialize()
@@ -152,6 +157,28 @@ namespace ExcelDna.Integration
         internal static string DnaLibraryGetName()
         {
             return DnaLibrary.CurrentLibrary.Name;
+        }
+
+        // ComServer related exports just delegates to ComServer class.
+        internal static HRESULT DllRegisterServer()
+        {
+            return ComServer.DllRegisterServer();
+        }
+
+        internal static HRESULT DllUnregisterServer()
+        {
+            return ComServer.DllUnregisterServer();
+        }
+
+        // internal static HRESULT DllGetClassObject([In] ref CLSID rclsid, [In] ref IID riid, [Out, MarshalAs(UnmanagedType.Interface)] out object ppunk)
+        internal static HRESULT DllGetClassObject(Guid clsid, Guid iid, out IntPtr ppunk)
+        {
+            return ComServer.DllGetClassObject(clsid, iid, out ppunk);
+        }
+
+        internal static HRESULT DllCanUnloadNow()
+        {
+            return ComServer.DllCanUnloadNow();
         }
     }
 

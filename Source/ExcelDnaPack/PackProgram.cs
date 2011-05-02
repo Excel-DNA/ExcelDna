@@ -14,15 +14,16 @@ namespace ExcelDnaPack
 {
 	class PackProgram
 	{
-		static string usageInfo = 
+		static string usageInfo =
 @"ExcelDnaPack Usage
 ------------------
 ExcelDnaPack is a command-line utility to pack ExcelDna add-ins into a single .xll file.
 
-Usage: ExcelDnaPack.exe dnaPath [/Y]
+Usage: ExcelDnaPack.exe dnaPath [/O outputPath] [/Y] 
 
   dnaPath      The path to the primary .dna file for the ExcelDna add-in.
   /Y           If the output .xll exists, overwrite without prompting.
+  /O outPath   Output path - default is <dnaPath>-packed.xll.
 
 Example: ExcelDnaPack.exe MyAddins\FirstAddin.dna
 		 The packed add-in file will be created as MyAddins\FirstAddin-packed.xll.
@@ -36,6 +37,7 @@ The Excel-Dna integration assembly (ExcelDna.Integration.dll) is searched for
 
 ExcelDnaPack will also pack the configuration file FirstAddin.xll.config if it is 
 found next to FirstAddin.dna.
+Other assemblies are packed is marked with Pack=""true"" in the .dna file.
 ";
 		
 		static void Main(string[] args)
@@ -63,15 +65,39 @@ found next to FirstAddin.dna.
 			string configPath = Path.ChangeExtension(dnaPath, ".xll.config");
             string xllInputPath = Path.Combine(dnaDirectory, dnaFilePrefix + ".xll");
 			string xllOutputPath = Path.Combine(dnaDirectory, dnaFilePrefix + "-packed.xll");
+            bool overwrite = false;
 
 			if (!File.Exists(dnaPath))
 			{
 				Console.Write("Add-in .dna file " + dnaPath + " not found.\r\n\r\n" + usageInfo);
 				return;
 			}
+
+            // TODO: Replace with an args-parsing routine.
+            if (args.Length > 1)
+            {
+                for (int i = 1; i < args.Length; i++)
+                {
+                    if (args[i].ToUpper() == "/O")
+                    {
+                        if (i >= args.Length - 1)
+                        {
+                            // Too few args.
+                            Console.Write("Invalid command-line arguments.\r\n\r\n" + usageInfo);
+                            return;
+                        }
+                        xllOutputPath = args[i + 1];
+                    }
+                    else if (args[i].ToUpper() == "/Y")
+                    {
+                        overwrite = true;
+                    }
+                }
+            }
+
 			if (File.Exists(xllOutputPath))
 			{
-				if (args.Length == 1)
+				if (overwrite == false)
 				{
 					Console.Write("Output .xll file " + xllOutputPath + " already exists. Overwrite? [Y/N] ");
 					string response = Console.ReadLine();
@@ -80,10 +106,6 @@ found next to FirstAddin.dna.
 						Console.WriteLine("\r\nNot overwriting existing file.\r\nExiting ExcelDnaPack.");
 						return;
 					}
-				}
-				else if (args[1].ToUpper() != "/Y")
-				{
-					Console.Write("Invalid command-line arguments.\r\n\r\n" + usageInfo);
 				}
 
 				try
@@ -155,9 +177,15 @@ found next to FirstAddin.dna.
 		static byte[] PackDnaLibrary(byte[] dnaContent, string dnaDirectory, ResourceHelper.ResourceUpdater ru)
 		{
 			DnaLibrary dna = DnaLibrary.LoadFrom(dnaContent, dnaDirectory);
+            if (dna == null)
+            {
+                // TODO: Better error handling here.
+                Console.WriteLine(".dna file could not be loaded. Possibly malformed xml content? Aborting.");
+                Environment.Exit(1);
+            }
 			if (dna.ExternalLibraries != null)
 			{
-				foreach (var ext in dna.ExternalLibraries)
+				foreach (ExternalLibrary ext in dna.ExternalLibraries)
 				{
 					if (ext.Pack)
 					{
@@ -183,7 +211,7 @@ found next to FirstAddin.dna.
 			}
 			// Collect the list of all the references.
 			List<Reference> refs = new List<Reference>();
-			foreach (var proj in dna.GetProjects())
+			foreach (Project proj in dna.GetProjects())
 			{
 				if (proj.References != null)
 				{
@@ -191,13 +219,13 @@ found next to FirstAddin.dna.
 				}
 			}
 			// Fix-up if Reference is not part of a project, but just used to add an assembly for packing.
-			foreach (var rf in dna.References)
+			foreach (Reference rf in dna.References)
 			{
 				if (!refs.Contains(rf))
 					refs.Add(rf);
 			}
 			// Now pack the references
-			foreach (var rf in refs)
+			foreach (Reference rf in refs)
 			{
 				if (rf.Pack)
 				{

@@ -9,11 +9,13 @@ namespace ExcelDna.Integration
 	{
 		internal Assembly Assembly;
 		internal bool     ExplicitExports;
+        internal DnaLibrary ParentDnaLibrary;
 
-		internal ExportedAssembly(Assembly assembly, bool explicitExports)
+		internal ExportedAssembly(Assembly assembly, bool explicitExports, DnaLibrary parentDnaLibrary)
 		{
 			this.Assembly = assembly;
 			this.ExplicitExports = explicitExports;
+            this.ParentDnaLibrary = parentDnaLibrary;
 		}
 	}
 }

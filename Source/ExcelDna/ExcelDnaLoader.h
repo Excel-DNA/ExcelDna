@@ -29,3 +29,7 @@ void LoaderUnload();
 
 bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo);
 void XlLibraryUnload();
+
+CString GetAddInFullPath();
+HRESULT GetAddInName(CString& addInName);
+

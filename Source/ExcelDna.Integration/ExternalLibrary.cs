@@ -76,7 +76,7 @@ namespace ExcelDna.Integration
 			set { _ExplicitExports = value; }
 		}
 
-		internal List<ExportedAssembly> GetAssemblies(string pathResolveRoot)
+		internal List<ExportedAssembly> GetAssemblies(string pathResolveRoot, DnaLibrary dnaLibrary)
 		{
 			List<ExportedAssembly> list = new List<ExportedAssembly>();
 
@@ -102,7 +102,7 @@ namespace ExcelDna.Integration
 					else
 					{
 						byte[] rawAssembly = Integration.GetAssemblyBytes(resourceName);
-						list.Add(new ExportedAssembly(Assembly.Load(rawAssembly), ExplicitExports));
+						list.Add(new ExportedAssembly(Assembly.Load(rawAssembly), ExplicitExports, dnaLibrary));
 						return list;
 					}
 				}
@@ -140,7 +140,7 @@ namespace ExcelDna.Integration
                             else
                             {
                                 // Load as a regular assembly 
-                                list.Add(new ExportedAssembly(Assembly.LoadFrom(Path), ExplicitExports));
+                                list.Add(new ExportedAssembly(Assembly.LoadFrom(Path), ExplicitExports, dnaLibrary));
                                 return list;
                             }
                         }
@@ -175,14 +175,24 @@ namespace ExcelDna.Integration
                     if (LoadFromBytes)
                     {
                         byte[] bytes = File.ReadAllBytes(resolvedPath);
-                        assembly = Assembly.Load(bytes);
+
+                        string pdbPath = System.IO.Path.ChangeExtension(resolvedPath, "pdb");
+                        if (File.Exists(pdbPath))
+                        {
+                            byte[] pdbBytes = File.ReadAllBytes(pdbPath);
+                            assembly = Assembly.Load(bytes, pdbBytes);
+                        }
+                        else
+                        {
+                            assembly = Assembly.Load(bytes);
+                        }
                     }
                     else
                     {
                         assembly = Assembly.LoadFrom(resolvedPath);
                     }
 					// CONSIDER: Rather load into the Load context?
-                    list.Add(new ExportedAssembly(assembly, ExplicitExports));
+                    list.Add(new ExportedAssembly(assembly, ExplicitExports, dnaLibrary));
 					return list;
 				}
 			}
