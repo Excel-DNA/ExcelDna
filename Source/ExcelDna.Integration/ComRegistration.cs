@@ -235,7 +235,7 @@ namespace ExcelDna.ComInterop.ComRegistration
         {
             ProgId = progId;
             // Register the ProgId for CLSIDFromProgID.
-            Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\" + ProgId + @"\CLSID", null, clsId.ToString("B"), RegistryValueKind.String);
+            Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\" + ProgId + @"\CLSID", null, clsId.ToString("B").ToUpperInvariant(), RegistryValueKind.String);
         }
 
         protected override void Deregister()
@@ -253,18 +253,24 @@ namespace ExcelDna.ComInterop.ComRegistration
             private set;
         }
 
-        public ClsIdRegistration(CLSID clsId)
+        public ClsIdRegistration(CLSID clsId, string progId)
         {
             ClsId = clsId;
+            string clsIdString = clsId.ToString("B").ToUpperInvariant();
             // Register the CLSID
             //Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\CLSID\" + clsId.ToString("B"), null, "Excel RTD Helper Class", RegistryValueKind.String);
-            Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\CLSID\" + clsId.ToString("B") + @"\InProcServer32", null, DnaLibrary.XllPath, RegistryValueKind.String);
+            Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\CLSID\" + clsIdString + @"\InProcServer32", null, DnaLibrary.XllPath, RegistryValueKind.String);
+            Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\CLSID\" + clsIdString + @"\InProcServer32", "ThreadingModel", "Both", RegistryValueKind.String);
+            if (!string.IsNullOrEmpty(progId))
+            {
+                Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\CLSID\" + clsIdString + @"\ProgID", null, progId, RegistryValueKind.String);
+            }
         }
 
         protected override void Deregister()
         {
             // Deregister the ProgId for CLSIDFromProgID.
-            Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\CLSID\" + ClsId.ToString("B"));
+            Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\CLSID\" + ClsId.ToString("B").ToUpperInvariant());
         }
     }
 

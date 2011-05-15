@@ -112,7 +112,11 @@ namespace ExcelDna.Logging
             _form.updateTimer.Enabled = false;
             _form = null;
             LogDisplay.IsFormVisible = false;
-            SetFocus(ExcelDnaUtil.WindowHandle);
+            try
+            {
+                SetFocus(ExcelDnaUtil.WindowHandle);
+            }
+            catch { }   // Probably not in Excel !?
         }
 
         private void btnSaveErrors_Click(object sender, EventArgs e)

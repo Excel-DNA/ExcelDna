@@ -100,6 +100,14 @@ namespace ExcelDna.Integration
 			set { _ExplicitExports = value; }
 		}
 
+        private bool _ComServer = false;
+        [XmlAttribute]
+        public bool ComServer
+        {
+            get { return _ComServer; }
+            set { _ComServer = value; }
+        }
+
         private List<SourceItem> _SourceItems;
         [XmlElement("SourceItem", typeof(SourceItem))]
 		public List<SourceItem> SourceItems
@@ -352,7 +360,8 @@ namespace ExcelDna.Integration
 				AssemblyReference.AddAssembly(r.Path);
 			}
 
-			list.Add(new ExportedAssembly(cr.CompiledAssembly, ExplicitExports, dnaLibrary));
+            // TODO: Create TypeLib for execution-time compiled assemblies.
+			list.Add(new ExportedAssembly(cr.CompiledAssembly, ExplicitExports, ComServer, true, null, dnaLibrary));
 			return list;
 		}
 

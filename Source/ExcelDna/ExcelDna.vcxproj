@@ -120,6 +120,11 @@
       <TargetMachine>MachineX86</TargetMachine>
       <ModuleDefinitionFile>ExcelDna.def</ModuleDefinitionFile>
     </Link>
+    <PostBuildEvent>
+      <Command>copy $(SolutionDir)\ExcelDna.Integration\bin\debug\ExcelDna.Integration.* $(TargetDir)
+copy $(SolutionDir)\ExcelDna.Loader\bin\debug\ExcelDna.Loader.* $(TargetDir)
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

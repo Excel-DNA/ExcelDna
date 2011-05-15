@@ -87,7 +87,7 @@ namespace ExcelDna.Integration.Rtd
             loadedRtdServers[progId] = progIdRegistered;
             using (SingletonClassFactoryRegistration regClassFactory = new SingletonClassFactoryRegistration(rtdServerWrapper, clsId))
             using (ProgIdRegistration regProgId = new ProgIdRegistration(progIdRegistered, clsId))
-            using (ClsIdRegistration regClsId = new ClsIdRegistration(clsId))
+            using (ClsIdRegistration regClsId = new ClsIdRegistration(clsId, progIdRegistered))
             {
                 return CallRTD(progIdRegistered, null, topics);
             }

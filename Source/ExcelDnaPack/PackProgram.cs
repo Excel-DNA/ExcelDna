@@ -206,7 +206,42 @@ Other assemblies are packed is marked with Pack=""true"" in the .dna file.
 								ext.Path = "packed:" + packedName;
 							}
 						}
+                        if (ext.ComServer == true)
+                        {
+                            // Check for a TypeLib to pack
+                            //string tlbPath = dna.ResolvePath(ext.TypeLibPath);
+                            string resolvedTypeLibPath = null;
+                            if (!string.IsNullOrEmpty(ext.TypeLibPath))
+                            {
+                                resolvedTypeLibPath = dna.ResolvePath(ext.TypeLibPath); // null is unresolved
+                                if (resolvedTypeLibPath == null)
+                                {
+                                    // Try relative to .dll
+                                    resolvedTypeLibPath = DnaLibrary.ResolvePath(ext.TypeLibPath, System.IO.Path.GetDirectoryName(path) ); // null is unresolved
+                                    if (resolvedTypeLibPath == null)
+                                    {
+                                        Console.WriteLine("!!! ExternalLibrary TypeLib path {0} could not be resolved.", ext.TypeLibPath);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                // Check for .tlb
+                                string tlbCheck = System.IO.Path.ChangeExtension(path, "tlb");
+                                if (System.IO.File.Exists(tlbCheck))
+                                {
+                                    resolvedTypeLibPath = tlbCheck;
+                                }
+                            }
+                            if (resolvedTypeLibPath != null)
+                            {
+                                Console.WriteLine("  ~~> ExternalLibrary typelib path {0} resolved to {1}.", ext.TypeLibPath, resolvedTypeLibPath);
+                                int packedIndex = ru.AddTypeLib(File.ReadAllBytes(resolvedTypeLibPath));
+                                ext.TypeLibPath = "packed:" + packedIndex.ToString();
+                            }
+                        }
 					}
+                    
 				}
 			}
 			// Collect the list of all the references.

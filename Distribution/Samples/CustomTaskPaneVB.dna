@@ -1,0 +1,77 @@
+<DnaLibrary Language="VB">
+<Reference Path="System.Windows.Forms.dll"/>
+<Reference Path="System.Drawing.dll"/>
+<![CDATA[
+Imports ExcelDna.Integration.CustomUI
+Imports System.Drawing
+Imports System.Windows.Forms
+
+' Define the backing class for the Ribbon 
+' Would need to be marked with [ComVisible(true)] if in a project that is marked as [assembly:ComVisible(false)] which is the default for VS projects.
+Public Class MyRibbon
+    Inherits ExcelDna.Integration.CustomUI.ExcelRibbon
+    
+    Private ctp As CustomTaskPane
+    
+    Public Shared Sub ctp_VisibleStateChange(ctp As CustomTaskPane)
+    	MsgBox("Visibility changed to " & ctp.Visible)
+    End Sub
+    
+    Public Shared Sub ctp_DockPositionStateChange(ctp As CustomTaskPane)
+    	Dim ctrl As MyUserControl
+    	ctrl = CType(ctp.ContentControl, MyUserControl)
+    	ctrl.TheLabel.Text = "Moved to " & ctp.DockPosition.ToString()
+    End Sub
+    
+	Public Sub OnShowCTP(ByVal control As IRibbonControl)
+		If ctp Is Nothing Then
+    		ctp = CustomTaskPaneFactory.CreateCustomTaskPane(Type.GetType("MyUserControl"), "My Super Custom Task Pane!")
+    		ctp.Visible = True
+    		ctp.DockPosition = MsoCTPDockPosition.msoCTPDockPositionLeft
+    		AddHandler ctp.DockPositionStateChange, AddressOf ctp_DockPositionStateChange
+    		AddHandler ctp.VisibleStateChange, AddressOf ctp_VisibleStateChange
+		Else
+			ctp.Visible = True
+		End If
+    End Sub
+    
+    Public Sub OnDeleteCTP(ByVal control As IRibbonControl)
+    	If Not ctp Is Nothing Then
+    		ctp.Delete
+    		ctp = Nothing
+    	End If
+    End Sub
+End Class
+
+' Define the UserControl to display on the CTP ///////////////////////////
+' Would need to be marked with [ComVisible(true)] if in a project that is marked as [assembly:ComVisible(false)] which is the default for VS projects.
+Public Class MyUserControl
+	Inherits System.Windows.Forms.UserControl
+	
+	Public TheLabel As System.Windows.Forms.Label
+	Public Sub New()
+		TheLabel = New System.Windows.Forms.Label()
+		TheLabel.Text = "My First CTP!"
+		TheLabel.Location = New System.Drawing.Point(20,20)
+		TheLabel.Size = New System.Drawing.Size(200,60)
+		Controls.Add(TheLabel)
+	End Sub
+End Class	
+]]>
+
+<CustomUI>
+<customUI xmlns="http://schemas.microsoft.com/office/2006/01/customui">
+  <ribbon>
+    <tabs>
+      <tab id="tab1" label="Custom Task Pane Test">
+        <group id="SampleGroup" label="CTP Control">
+		  <button id="Button1" label="Show CTP" onAction="OnShowCTP" imageMso="AcceptInvitation" size="large" />
+		  <button id="Button2" label="Delete CTP" onAction="OnDeleteCTP" imageMso="DeclineInvitation" size="large" />
+        </group>
+      </tab>
+    </tabs>
+  </ribbon>
+</customUI>
+</CustomUI>
+
+</DnaLibrary>

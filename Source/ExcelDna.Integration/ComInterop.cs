@@ -75,6 +75,9 @@ namespace ExcelDna.ComInterop
 
         [DllImport("ole32.dll")]
         public static extern HRESULT CLSIDFromProgID([MarshalAs(UnmanagedType.LPWStr)] string progId, out Guid clsid);
+
+        [DllImport("oleaut32.dll")]
+        public static extern HRESULT LoadTypeLib([MarshalAs(UnmanagedType.LPWStr)] string fileName, out ITypeLib typeLib);
     }
 }
 

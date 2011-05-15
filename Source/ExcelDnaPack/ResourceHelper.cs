@@ -34,10 +34,20 @@ internal unsafe static class ResourceHelper
 		IntPtr lpData,
 		uint cbData);
 
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool UpdateResource(
+        IntPtr hUpdate,
+        string lpType,
+        IntPtr intResource,
+        ushort wLanguage,
+        IntPtr lpData,
+        uint cbData);
+
 	[DllImport("kernel32.dll")]
 	private static extern uint GetLastError();
 	internal unsafe class ResourceUpdater
 	{
+        int typelibIndex = 0;
 		IntPtr _hUpdate;
 		List<object> updateData = new List<object>();
 
@@ -94,6 +104,24 @@ internal unsafe static class ResourceHelper
 		{
 			DoUpdateResource("CONFIG", name, configContent);
 		}
+
+        public int AddTypeLib(byte[] data)
+        {
+            string typeName = "TYPELIB";
+            typelibIndex++;
+
+            Console.WriteLine(string.Format("  ->  Updating typelib: Type: {0}, Index: {1}, Length: {2}", typeName, typelibIndex, data.Length));
+            GCHandle pinHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
+            updateData.Add(pinHandle);
+
+            bool result = ResourceHelper.UpdateResource(_hUpdate, typeName, (IntPtr)typelibIndex, localeNeutral, pinHandle.AddrOfPinnedObject(), (uint)data.Length);
+            if (!result)
+            {
+                throw new Win32Exception();
+            }
+
+            return typelibIndex;
+        }
 
 		public void DoUpdateResource(string typeName, string name, byte[] data)
 		{

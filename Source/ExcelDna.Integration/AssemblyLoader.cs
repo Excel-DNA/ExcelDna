@@ -57,13 +57,21 @@ namespace ExcelDna.Integration
                 bool explicitExports = assembly.ExplicitExports;
                 foreach (Type type in types)
                 {
-                    object[] attribs = type.GetCustomAttributes(false);
-                    bool isRtdServer;
-                    GetExcelMethods(type, explicitExports, methods);
-                    AssemblyLoaderExcelServer.GetExcelServerInfos(type, attribs, excelServerInfos);
-                    GetExcelAddIns(assembly, type, loadRibbons, addIns);
-                    GetRtdServerTypes(type, rtdServerTypes, out isRtdServer);
-                    GetComClassTypes(type, attribs, isRtdServer, comClassTypes);
+                    try
+                    {
+                        object[] attribs = type.GetCustomAttributes(false);
+                        bool isRtdServer;
+                        GetExcelMethods(type, explicitExports, methods);
+                        AssemblyLoaderExcelServer.GetExcelServerInfos(type, attribs, excelServerInfos);
+                        GetExcelAddIns(assembly, type, loadRibbons, addIns);
+                        GetRtdServerTypes(type, rtdServerTypes, out isRtdServer);
+                        GetComClassTypes(assembly, type, attribs, isRtdServer, comClassTypes);
+                    }
+                    catch (Exception e)
+                    {
+                        // TODO: This is unexpected - raise to LogDisplay?
+                        Debug.Print("Type {0} could not be analysed. Error: {1}", type.FullName, e.ToString()); 
+                    }
                 }
             }
             // Sigh. Excel server (service?) stuff is till ugly - but no reeal reason to remove it yet.
@@ -186,60 +194,56 @@ namespace ExcelDna.Integration
             }
         }
 
-        // DOCUMENT: We register types that
-        //           (implement IRtdServer OR are marked with the [ExcelComClass] attribute), 
-        //           AND are marked with a [ProgId] attribute, 
-        //           AND are marked with a [Guid] attribute.
-        // CONSIDER: Maybe not require it to be marked with all of these - e.g. we can generate a Guid.
-        // CONSIDER: IRtdServer classes too.
-        static public void GetComClassTypes(Type type, object[] attributes, bool isRtdServer, List<ExcelComClassType> comClassTypes)
+        // DOCUMENT: We register ComVisible types that
+        //           (implement IRtdServer OR are in ExternalLibraries marked ComServer='true'
+        static public void GetComClassTypes(ExportedAssembly assembly, Type type, object[] attributes, bool isRtdServer, List<ExcelComClassType> comClassTypes)
         {
-            bool isExcelComClass = false;
-            // Check for [ExcelComClass] by name - still worried about ExcelDna.Integration identity.
-            foreach (object attrib in attributes)
+            if (!Marshal.IsTypeVisibleFromCom(type))
             {
-                Type attribType = attrib.GetType();
-                if (attribType.FullName == "ExcelDna.Integration.ExcelComClassAttribute")
-                {
-                    isExcelComClass = true;
-                    break;
-                }
+                return;
             }
-            if (isExcelComClass || isRtdServer)
+
+            if (isRtdServer || assembly.ComServer)
             {
                 string progId;
                 Guid clsId;
-                    
-                object[] attrs = type.GetCustomAttributes(typeof(ProgIdAttribute), false);
-                if (attrs.Length == 0)
+
+                // Check for public default constructor
+                if (type.GetConstructor(BindingFlags.Public | BindingFlags.Instance, null, Type.EmptyTypes, null) == null)
                 {
-                    // No ProgId attribute - skip this type.
+                    // No use to us here - won't be able to construct.
                     return;
+                }
+
+                if (assembly.IsDynamic)
+                {
+                    // Check that we have an explicit Guid attribute
+                    object[] attrs = type.GetCustomAttributes(typeof(GuidAttribute), false);
+                    if (attrs.Length == 0)
+                    {
+                        // No Guid attribute - skip this type.
+                        return;
+                    }
+                    else
+                    {
+                        GuidAttribute guidAtt = (GuidAttribute)attrs[0];
+                        clsId = new Guid(guidAtt.Value);
+                    }
                 }
                 else
                 {
-                    ProgIdAttribute progIdAtt = (ProgIdAttribute)attrs[0];
-                    progId = progIdAtt.Value;
+                    clsId = Marshal.GenerateGuidForType(type);
                 }
-                    
-                attrs = type.GetCustomAttributes(typeof(GuidAttribute), false);
-                if (attrs.Length == 0)
-                {
-                    // No Guid attribute - skip this type.
-                    return;
-                }
-                else
-                {
-                    GuidAttribute guidAtt = (GuidAttribute)attrs[0];
-                    clsId = new Guid(guidAtt.Value);
-                }
+
+                progId = Marshal.GenerateProgIdForType(type);
 
                 ExcelComClassType comClassType = new ExcelComClassType
                 {
                     Type = type,
                     ClsId = clsId,
                     ProgId = progId,
-                    IsRtdServer = isRtdServer
+                    IsRtdServer = isRtdServer,
+                    TypeLibPath = assembly.TypeLibPath
                 };
                 comClassTypes.Add(comClassType);
             }
