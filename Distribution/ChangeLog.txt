@@ -1,10 +1,13 @@
-Version 0.29 (2 May 2011)
--------------------------
+Version 0.29 (15 May 2011)
+--------------------------
 * BREAKING CHANGE! Changed SheetId in the ExcelReference type to an IntPtr.
+* Changed initialization - only create sandboxed AppDomain under .NET 4 (or if explicitly requested with CreateSandboxedAppDomain='true' attribute on DnaLibrary tag in .dna file).
+* Fixed memory leak when getting SheetId for ExcelReference parameters.
+* Fixed Ribbon RunTagMacro when no Workbook open.
 * Added support for the 64-bit version of Excel 2010 with the .Net 4 runtime.
 * Added Cluster-safe function support for Excel 2010 HPC Cluster Connector - mark functions as IsClusterSafe=true.
 * Added CustomTaskPane support and sample.
-* Added COM server support for RTD servers and classes with [ExcelComClass] attribute. Supports Regsvr32 registration or by calling ComServer.DllRegisterServer. Allows direct RTD and VBA object instantiation.
+* Added COM server support for RTD servers and other ComVisible classes. Mark ExternalLibraries and Projects as ComServer="true" in the .dna file. Supports Regsvr32 registration or by calling ComServer.DllRegisterServer. Allows direct RTD and VBA object instantiation. Includes TypeLib registration and packing support.
 * Added support for macros with parameters.
 * Added ArrayResizer sample.
 * Added C# 4 dynamic type sample.
@@ -13,9 +16,7 @@ Version 0.29 (2 May 2011)
 * Added /O output path option to ExcelDnaPack.
 * Added 'before' option to CommandBars xml.
 * Added Int64 support for parameters and return values.
-* Changed initialization - only create sandboxed AppDomain under .NET 4 (or if explicitly requested with CreateSandboxedAppDomain='true' attribute on DnaLibrary tag in .dna file).
-* Fixed memory leak when getting SheetId for ExcelReference parameters.
-* Fixed Ribbon RunTagMacro when no Workbook open.
+
 
 Version 0.28 (2 November 2010)
 ------------------------------
@@ -45,7 +46,7 @@ Version 0.27 (16 August 2010)
 * Shadow copy support: add ShadowCopyFiles="true" to the DnaLibrary tag.
 
 Version 0.26 (31 May 2010)
------------------------
+--------------------------
 * Ribbon support for Excel 2007 and 2010 and CommandBars for pre-2007.
 * Dynamic RTD server support for Excel 2002 (Office XP) and later.
 * Minor changes to ensure consistent path resolution for References, ExternalLibraries and Images - paths are now checked relative to .dna file path, consistent with ExcelDnaPack.

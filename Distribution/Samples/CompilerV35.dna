@@ -1,5 +1,5 @@
 <DnaLibrary Name="CompilerV35 Sample" Language="CS" CompilerVersion="v3.5">
-<Reference AssemblyPath="System.Core.dll" />
+<Reference Name="System.Core" />
 <![CDATA[
 
 using System;

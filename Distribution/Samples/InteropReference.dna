@@ -1,5 +1,5 @@
 <DnaLibrary Language="VB">
-<Reference Name="xMicrosoft.Office.Interop.Excel" />
+<Reference Name="Microsoft.Office.Interop.Excel" />
 <Reference Name="System.Windows.Forms" />
 
 <!-- <Reference Name="MyMathLib" /> -->

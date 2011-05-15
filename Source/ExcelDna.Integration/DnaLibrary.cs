@@ -584,8 +584,9 @@ namespace ExcelDna.Integration
             Debug.Print("ResolvePath: Resolving {0} from DnaDirectory: {1}", path, dnaDirectory);
             if (File.Exists(path))
             {
-                Debug.Print("ResolvePath: Found at {0}", path);
-                return path;
+                string fullPath = Path.GetFullPath(path);
+                Debug.Print("ResolvePath: Found at {0}", fullPath);
+                return fullPath;
             }
 
             string fileName = Path.GetFileName(path);

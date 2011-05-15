@@ -1,0 +1,57 @@
+<DnaLibrary>
+
+<ExternalLibrary Path="CompiledLibs\SimpleComServer.dll" ComServer="true" Pack="true" />
+<ExternalLibrary Path="CompiledLibs\SimpleComServerVB.dll" ComServer="true" LoadFromBytes="true" Pack="true" />
+
+<Project Language="VB" ComServer="true">
+<![CDATA[
+    Imports System
+    Imports System.Runtime.InteropServices
+
+    Imports ExcelDna.Integration
+    Imports ExcelDna.ComInterop
+
+    ' Define a class that can be accessed from VBA
+    <Guid("5853FFC7-F965-4B6A-B470-A37C40FD5D5E")> _
+    Public Class MyComServer
+        Public SomeProperty As Double
+
+        Public Sub SetMultiplier(theValue As Double) 
+            TestAddIn.TheMultiplier = theValue
+        End Sub
+
+        Public Function GetMultiplier() As Double
+            Return TestAddIn.TheMultiplier
+        End Function
+
+        Public Function TheCalculation(theValue As Double) As Double
+            ' Call the UDF worksheet function directly.
+            Return TestAddIn.TheCalculation(theValue)
+        End Function
+    End Class
+
+    ' Define some worksheet function
+    Public Class TestAddIn
+        Friend Shared TheMultiplier As Double
+
+        Public Shared Function TheCalculation(theValue As Double) As Double
+            Return theValue * TheMultiplier
+        End Function
+
+        ' These two functions call ExcelDna.ComInterop.ComServer.(Un)RegisterServer
+        <ExcelCommand(MenuName:="COM Server Sample", MenuText:="Register Types for COM") > _
+        Public Shared Sub RegisterComServer()
+            ComServer.DllRegisterServer()
+        End Sub
+
+        <ExcelCommand(MenuName:="COM Server Sample", MenuText:="Unregister Types for COM") > _
+        Public Shared Sub UnregisterComServer()
+            ComServer.DllUnregisterServer()
+        End Sub
+
+    End Class
+
+]]>
+</Project>
+
+</DnaLibrary>

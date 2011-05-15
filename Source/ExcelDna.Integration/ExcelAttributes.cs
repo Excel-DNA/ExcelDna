@@ -90,12 +90,4 @@ namespace ExcelDna.Integration
 			Description = description;
 		}
 	}
-
-    [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    public class ExcelComClassAttribute : Attribute
-    {
-        public ExcelComClassAttribute()
-        {
-        }
-    }
 }

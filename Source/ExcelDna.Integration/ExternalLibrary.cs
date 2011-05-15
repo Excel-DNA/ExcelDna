@@ -34,7 +34,7 @@ using ExcelDna.Logging;
 
 namespace ExcelDna.Integration
 {
-	// TODO: Allow Com References/Exported Libraries
+	// TODO: Allow Com References (via TlbImp?)/Exported Libraries
 	// DOCUMENT When loading ExternalLibraries, we check first the path given in the Path attribute:
 	// if there is no such file, we try to find a file with the right name in the same 
 	// directory as the .xll.
@@ -51,6 +51,22 @@ namespace ExcelDna.Integration
 			get { return _Path; }
 			set { _Path = value; }
 		}
+
+        private string _TypeLibPath;
+        [XmlAttribute]
+        public string TypeLibPath
+        {
+            get { return _TypeLibPath; }
+            set { _TypeLibPath = value; }
+        }
+
+        private bool _ComServer;
+        [XmlAttribute]
+        public bool ComServer
+        {
+            get { return _ComServer; }
+            set { _ComServer = value; }
+        }
 
 		private bool _Pack = false;
 		[XmlAttribute]
@@ -102,7 +118,14 @@ namespace ExcelDna.Integration
 					else
 					{
 						byte[] rawAssembly = Integration.GetAssemblyBytes(resourceName);
-						list.Add(new ExportedAssembly(Assembly.Load(rawAssembly), ExplicitExports, dnaLibrary));
+                        // DOCUMENT: TypeLibPath which is a resource in a library is denoted as fileName.dll\4
+                        // For packed assemblies, we set TypeLibPath="packed:2"
+                        string typeLibPath = null;
+                        if (!string.IsNullOrEmpty(TypeLibPath) && TypeLibPath.StartsWith("packed:"))
+                        {
+                            typeLibPath = DnaLibrary.XllPath + @"\" + TypeLibPath.Substring(7);
+                        }
+						list.Add(new ExportedAssembly(Assembly.Load(rawAssembly), ExplicitExports, ComServer, false, typeLibPath, dnaLibrary));
 						return list;
 					}
 				}
@@ -139,8 +162,8 @@ namespace ExcelDna.Integration
                             }
                             else
                             {
-                                // Load as a regular assembly 
-                                list.Add(new ExportedAssembly(Assembly.LoadFrom(Path), ExplicitExports, dnaLibrary));
+                                // Load as a regular assembly - TypeLib not supported.
+                                list.Add(new ExportedAssembly(Assembly.LoadFrom(Path), ExplicitExports, ComServer, false, null, dnaLibrary));
                                 return list;
                             }
                         }
@@ -191,8 +214,25 @@ namespace ExcelDna.Integration
                     {
                         assembly = Assembly.LoadFrom(resolvedPath);
                     }
-					// CONSIDER: Rather load into the Load context?
-                    list.Add(new ExportedAssembly(assembly, ExplicitExports, dnaLibrary));
+                    string resolvedTypeLibPath = null;
+                    if (!string.IsNullOrEmpty(TypeLibPath))
+                    {
+                        resolvedTypeLibPath = DnaLibrary.ResolvePath(TypeLibPath, pathResolveRoot); // null is unresolved
+                        if (resolvedTypeLibPath == null && resolvedPath != null)
+                        {
+                            resolvedTypeLibPath = DnaLibrary.ResolvePath(TypeLibPath, System.IO.Path.GetDirectoryName(resolvedPath));
+                        }
+                    }
+                    else
+                    {
+                        // Check for .tlb with same name next to resolvedPath
+                        string tlbCheck = System.IO.Path.ChangeExtension(resolvedPath, "tlb");
+                        if (System.IO.File.Exists(tlbCheck))
+                        {
+                            resolvedTypeLibPath = tlbCheck;
+                        }
+                    }
+                    list.Add(new ExportedAssembly(assembly, ExplicitExports, ComServer, false, resolvedTypeLibPath, dnaLibrary));
 					return list;
 				}
 			}

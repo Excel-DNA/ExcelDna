@@ -3,26 +3,6 @@
 
 This sample creates a compiled library that will be loaded as an Excel add-in using the Excel-DNA runtime.
 
-Items in the sample
--------------------
-* CharpAddIn.sln - the solution file
-* CharpAddIn.csproj - the project file
-* Properties\AssemblyInfo.cs - project properties like version info
-* Readme.txt - this readme file
-* MyAddIn.cs - add-in source file with functions and macros
-* SampleCS.dna - Excel-DNA directive file. 
-  Copy to Output Directory: True
-
-* Reference to ..\..\..\ExcelDna.Integration.dll
-  Copy Local: False
-* Post-build event:
-  echo F | xcopy $(ProjectDir)..\..\..\ExcelDna.xll $(TargetDir)SampleCS.xll /C /Y
-
-Target .NET Version
--------------------
-* Target framework is .NET 4 in Project settings
-* RuntimeVersion="v4.0" set in SampleCS.dna.
-
 Debugging
 ---------
 Easiest debugging is to put the full path to Excel.exe (e.g. C:\Program Files\Microsoft Office\Office14\Excel.exe) into 
@@ -45,3 +25,23 @@ To make changes in the code without restarting Excel:
 2. Make changes and rebuild.
 3. Reload the add-in in Excel (File->Open ... SamplesCS.xll).
 4. Attach debugger again.
+
+Items in the sample
+-------------------
+* CharpAddIn.sln - the solution file
+* CharpAddIn.csproj - the project file
+* Properties\AssemblyInfo.cs - project properties like version info
+* Readme.txt - this readme file
+* MyAddIn.cs - add-in source file with functions and macros
+* SampleCS.dna - Excel-DNA directive file. 
+  Copy to Output Directory: True
+
+* Reference to ..\..\..\ExcelDna.Integration.dll
+  Copy Local: False
+* Post-build event:
+  echo F | xcopy $(ProjectDir)..\..\..\ExcelDna.xll $(TargetDir)SampleCS.xll /C /Y
+
+Target .NET Version
+-------------------
+* Target framework is .NET 4 in Project settings
+* RuntimeVersion="v4.0" set in SampleCS.dna.
