@@ -1,9 +1,10 @@
-Version 0.29 (15 May 2011)
+Version 0.29 (28 May 2011)
 --------------------------
 * BREAKING CHANGE! Changed SheetId in the ExcelReference type to an IntPtr.
 * Changed initialization - only create sandboxed AppDomain under .NET 4 (or if explicitly requested with CreateSandboxedAppDomain='true' attribute on DnaLibrary tag in .dna file).
 * Fixed memory leak when getting SheetId for ExcelReference parameters.
 * Fixed Ribbon RunTagMacro when no Workbook open.
+* Fixed Missing/Empty marshaling in XlCall.Excel calls under Excel 2003 and below.
 * Added support for the 64-bit version of Excel 2010 with the .Net 4 runtime.
 * Added Cluster-safe function support for Excel 2010 HPC Cluster Connector - mark functions as IsClusterSafe=true.
 * Added CustomTaskPane support and sample.

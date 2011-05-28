@@ -9,8 +9,8 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("ExcelDna Packing Tool")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Govert van Drimmelen")]
-[assembly: AssemblyProduct("ExcelDna Add-In Framework for Microsoft Excel")]
-[assembly: AssemblyCopyright("Copyright © 2010 Govert van Drimmelen")]
+[assembly: AssemblyProduct("Excel-DNA Add-In Framework for Microsoft Excel")]
+[assembly: AssemblyCopyright("Copyright © 2005-2011 Govert van Drimmelen")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -33,4 +33,4 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("0.29.*")]
-[assembly: AssemblyFileVersion("0.29.0.11")]
+[assembly: AssemblyFileVersion("0.29.0.12")]

@@ -1040,11 +1040,11 @@ namespace ExcelDna.Loader
                     pOper->errValue = (ushort)IntegrationMarshalHelpers.ExcelErrorGetValue(obj);
                     pOper->xlType = XlType.XlTypeError;
                 }
-                else if (IntegrationMarshalHelpers.IsExcelMissingObject(ManagedObj))
+                else if (IntegrationMarshalHelpers.IsExcelMissingObject(obj))
                 {
                     pOper->xlType = XlType.XlTypeMissing;
                 }
-                else if (IntegrationMarshalHelpers.IsExcelEmptyObject(ManagedObj))
+                else if (IntegrationMarshalHelpers.IsExcelEmptyObject(obj))
                 {
                     pOper->xlType = XlType.XlTypeEmpty;
                 }
