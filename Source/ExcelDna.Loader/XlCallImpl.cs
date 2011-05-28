@@ -166,7 +166,6 @@ namespace ExcelDna.Loader
             // Set up the memory to hold the result from the call
             XlOper12 resultOper = new XlOper12();
             resultOper.xlType = XlType12.XlTypeEmpty;
-            int i = sizeof(XlOper12);
             XlOper12* pResultOper = &resultOper;  // No need to pin for local struct
 
             // Special kind of ObjectArrayMarshaler for the parameters (rank 1)

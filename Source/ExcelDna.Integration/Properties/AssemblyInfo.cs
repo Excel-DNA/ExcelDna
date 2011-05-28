@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("Integration library for ExcelDna")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("ExcelDna")]
+[assembly: AssemblyProduct("Excel-DNA Add-In Framework for Microsoft Excel")]
 [assembly: AssemblyCopyright("Copyright © 2005-2011 Govert van Drimmelen")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -33,4 +33,4 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("0.29.*")]
-[assembly: AssemblyFileVersion("0.29.0.11")]
+[assembly: AssemblyFileVersion("0.29.0.12")]

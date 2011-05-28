@@ -37,18 +37,15 @@ CustomTaskPane myCTP = CustomTaskPaneFactory.CreateCustomTaskPane(typeof(MyUserC
 
 COM server support
 ==================
-The following classes are supported for direct COM server access:
-- Classes that are COM visible, have ProgId and Guid attributes, AND
-- either implement IRtdServer (the real one or from Excel-DNA ) OR are decorated with an [ExcelComClass] attribute.
+COM visible classes in ExternalLibrary tags marked ComServer='true', and COM visible classes that implement IRtdServer can be activated through the .xll directly. Even if the add-in is not loaded in Excel, such objects can be created in VBA.
 
-These classes can be persistently registered by calling "Regsvr32 <MyAddin>.xll" or by ComServer.DllRegisterServer(), and 
+These classes are (persistently) registered by calling "Regsvr32 <MyAddin>.xll" or by ComServer.DllRegisterServer(), and 
 unregistered by "Regsvr32 /u <MyAddin>.xll or by ComServer.DllUnregisterServer().
 
 Such classes can be accessed directly as RTD servers or from VBA using CreateObject("MyServer.ItsProgId"), and will be loaded in the add-in's AppDomain.
 (The add-in need not be loaded for registered classes to be accessed through COM.)
 
-There is no special support for COM type libraries yet.
-(These can be created from compiled assemblies using TlbExp, and could even be embedded as resources into the .xll.)
+A type library (.tlb) can be created for the assembly using tlbexp.exe, and will be registered if available. If the assembly is packed in the .xll, the type library will be packed too.
 
 Packing
 =======
