@@ -2,6 +2,7 @@
 <![CDATA[
 
 using System;
+using ExcelDna.Integration;
 
 public class MyAddIn
 {
@@ -14,6 +15,19 @@ public class MyAddIn
 	public static string RuntimeVersion()
 	{
 		return Environment.Version.ToString();
+	}
+
+	[ExcelCommand(MenuName="Net V 4", MenuText="Run the macro")]
+	public static void MyMacro()
+	{
+	   dynamic app = ExcelDnaUtil.Application;
+	   dynamic wb = app.ActiveWorkbook;
+	   dynamic ws = app.ActiveSheet;
+
+	   ws.Name = "New name";
+
+	   dynamic range = ws.Range["A1"];
+	   range.Formula = "=1+2";
 	}
 }
 

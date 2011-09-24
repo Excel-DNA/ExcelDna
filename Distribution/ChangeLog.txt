@@ -1,3 +1,9 @@
+Version 0.30 (??????)
+---------------------
+* Fixed LoadComAddIn error when using a direct ExcelComAddIn-derived class.
+* Fixed (Ribbon Helper) display in ribbon tooltips.
+* Fixed RTD / array formula activation bug.
+
 Version 0.29 (28 May 2011)
 --------------------------
 * BREAKING CHANGE! Changed SheetId in the ExcelReference type to an IntPtr.
@@ -17,7 +23,6 @@ Version 0.29 (28 May 2011)
 * Added /O output path option to ExcelDnaPack.
 * Added 'before' option to CommandBars xml.
 * Added Int64 support for parameters and return values.
-
 
 Version 0.28 (2 November 2010)
 ------------------------------

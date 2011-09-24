@@ -33,7 +33,7 @@
     
     public class Resizer
     {
-        static Queue<ExcelReference> ResizeJobs = new Queue<ExcelReference>();
+		static Queue<ExcelReference> ResizeJobs = new Queue<ExcelReference>();
         
         // This function will run in the UDF context.
         // Needs extra protection to allow multithreaded use.

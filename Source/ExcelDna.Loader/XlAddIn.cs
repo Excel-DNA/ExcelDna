@@ -262,9 +262,14 @@ namespace ExcelDna.Loader
                 object xlCallResult;
                 XlCallImpl.TryExcelImpl(XlCallImpl.xlcMessage, out xlCallResult /*Ignore*/ , true, "Registering library " + pathXll);
 				InitializeIntegration();
+                
+                // v. 30 - moved the setting of _opened before calling AutoOpen, 
+                // so that checking in DeInitializeIntegration does not prevent AutoOpen - unloading via xlAutoRemove from working.
+                _opened = true;
+
                 // InitializeIntegration has loaded the DnaLibrary
                 IntegrationHelpers.DnaLibraryAutoOpen();
-                _opened = true;
+
                 result = 1; // All is OK
             }
             catch (Exception e)

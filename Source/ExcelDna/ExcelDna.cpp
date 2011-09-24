@@ -26,7 +26,7 @@
 #include "ExcelDna.h"
 #include "ExcelDnaLoader.h"
 
-// Minial parts of XLOPER types, 
+// Minimal parts of XLOPER types, 
 // used only for xlAddInManagerInfo(12). Really.
 struct XLOPER
 {

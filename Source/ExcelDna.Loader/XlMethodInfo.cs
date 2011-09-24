@@ -332,6 +332,9 @@ namespace ExcelDna.Loader
                 && (IsCommand || ReturnType.BoxedValueType == null))
             {
                 // Create the delegate directly
+                // Tvw: Added this line to check for a DynamicMethod
+                if (targetMethod is DynamicMethod)
+                    return ((DynamicMethod)targetMethod).CreateDelegate(delegateType);
 				return Delegate.CreateDelegate(delegateType, targetMethod);
             }
 

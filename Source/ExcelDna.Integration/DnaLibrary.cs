@@ -22,7 +22,7 @@
   govert@icon.co.za
 */
 
-using System; 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -43,26 +43,26 @@ using ExcelDna.ComInterop;
 
 namespace ExcelDna.Integration
 {
-	[Serializable]
-	[XmlType(AnonymousType = true)]
-	[XmlRoot(Namespace = "", IsNullable = false)]
-	public class DnaLibrary
-	{
-		private List<ExternalLibrary> _ExternalLibraries;
-		[XmlElement("ExternalLibrary", typeof(ExternalLibrary))]
+    [Serializable]
+    [XmlType(AnonymousType = true)]
+    [XmlRoot(Namespace = "", IsNullable = false)]
+    public class DnaLibrary
+    {
+        private List<ExternalLibrary> _ExternalLibraries;
+        [XmlElement("ExternalLibrary", typeof(ExternalLibrary))]
         public List<ExternalLibrary> ExternalLibraries
-		{
-			get { return _ExternalLibraries; }
-			set	{ _ExternalLibraries = value; }
-		}
+        {
+            get { return _ExternalLibraries; }
+            set { _ExternalLibraries = value; }
+        }
 
-		private List<Project> _Projects;
-		[XmlElement("Project", typeof(Project))]
+        private List<Project> _Projects;
+        [XmlElement("Project", typeof(Project))]
         public List<Project> Projects
-		{
-			get { return _Projects; }
-			set { _Projects = value; }
-		}
+        {
+            get { return _Projects; }
+            set { _Projects = value; }
+        }
 
         private static string _XllPath = null;
         [XmlIgnore]
@@ -82,20 +82,20 @@ namespace ExcelDna.Integration
             }
         }
 
-		private string _Name;
-		[XmlAttribute]
-		public string Name
-		{
-			get
-			{
-				if (_Name == null || _Name == "")
-				{
-					_Name = Path.GetFileNameWithoutExtension(_XllPath);
-				}
-				return _Name;
-			}
-			set { _Name = value; }
-		}
+        private string _Name;
+        [XmlAttribute]
+        public string Name
+        {
+            get
+            {
+                if (_Name == null || _Name == "")
+                {
+                    _Name = Path.GetFileNameWithoutExtension(_XllPath);
+                }
+                return _Name;
+            }
+            set { _Name = value; }
+        }
 
         private string _RuntimeVersion; // default is effectively v2.0.50727 ?
         [XmlAttribute]
@@ -139,13 +139,13 @@ namespace ExcelDna.Integration
             set { _Language = value; }
         }
 
-		private string _CompilerVersion;
-		[XmlAttribute]
-		public string CompilerVersion
-		{
-			get { return _CompilerVersion; }
-			set { _CompilerVersion = value; }
-		}
+        private string _CompilerVersion;
+        [XmlAttribute]
+        public string CompilerVersion
+        {
+            get { return _CompilerVersion; }
+            set { _CompilerVersion = value; }
+        }
 
         private bool _DefaultReferences = true;
         [XmlAttribute]
@@ -163,16 +163,16 @@ namespace ExcelDna.Integration
             set { _DefaultImports = value; }
         }
 
-		// No ExplicitExports flag on the DnaLibrary (for now), because it might cause confusion when mixed with ExternalLibraries.
-		// Projects can be marked as ExplicitExports by adding an explicit <Project> tag.
-		//private bool _ExplicitExports = false;
-		//[XmlAttribute]
-		//public bool ExplicitExports
-		//{
-		//    get { return _ExplicitExports; }
-		//    set { _ExplicitExports = value; }
-		//}
-        
+        // No ExplicitExports flag on the DnaLibrary (for now), because it might cause confusion when mixed with ExternalLibraries.
+        // Projects can be marked as ExplicitExports by adding an explicit <Project> tag.
+        //private bool _ExplicitExports = false;
+        //[XmlAttribute]
+        //public bool ExplicitExports
+        //{
+        //    get { return _ExplicitExports; }
+        //    set { _ExplicitExports = value; }
+        //}
+
         private string _Code;
         [XmlText]
         public string Code
@@ -181,7 +181,7 @@ namespace ExcelDna.Integration
             set { _Code = value; }
         }
 
- 
+
         // DOCUMENT: The three different elements are their namespaces.
         //           The CustomUI and inner customUI are case sensitive.
         private List<XmlNode> _CustomUIs;
@@ -213,29 +213,29 @@ namespace ExcelDna.Integration
             return projects;
         }
 
-		internal List<ExportedAssembly> GetAssemblies(string pathResolveRoot)
-		{
+        internal List<ExportedAssembly> GetAssemblies(string pathResolveRoot)
+        {
             List<ExportedAssembly> assemblies = new List<ExportedAssembly>();
-			try
-			{
-				if (ExternalLibraries != null)
-				{
-					foreach (ExternalLibrary lib in ExternalLibraries)
-					{
+            try
+            {
+                if (ExternalLibraries != null)
+                {
+                    foreach (ExternalLibrary lib in ExternalLibraries)
+                    {
                         assemblies.AddRange(lib.GetAssemblies(pathResolveRoot, this));
-					}
-				}
-				foreach (Project proj in GetProjects())
-				{
+                    }
+                }
+                foreach (Project proj in GetProjects())
+                {
                     assemblies.AddRange(proj.GetAssemblies(pathResolveRoot, this));
-				}
-			}
-			catch (Exception e)
-			{
-				Logging.LogDisplay.WriteLine("Error while loading assemblies. Exception: " + e.Message);
-			}
-			return assemblies;
-		}
+                }
+            }
+            catch (Exception e)
+            {
+                Logging.LogDisplay.WriteLine("Error while loading assemblies. Exception: " + e.Message);
+            }
+            return assemblies;
+        }
 
         // Managed AddIns related to this DnaLibrary
         // Kept so that AutoClose can be called later.
@@ -264,7 +264,7 @@ namespace ExcelDna.Integration
             // Register COM Server Types immediately
             ComServer.RegisterComClassTypes(comClassTypes);
         }
-        
+
         internal void AutoOpen()
         {
             // Register my Methods
@@ -381,38 +381,38 @@ namespace ExcelDna.Integration
         }
 
         // Statics
-		private static DnaLibrary rootLibrary;
-		internal static void InitializeRootLibrary(string xllPath)
-		{
+        private static DnaLibrary rootLibrary;
+        internal static void InitializeRootLibrary(string xllPath)
+        {
             // Might be called more than once in a session
             // if the add-in is opened more than once.
 
-			// Loads the primary .dna library
-			// Load sequence is:
-			// 1. Look for a packed .dna file named "__MAIN__" in the .xll.
-			// 2. Look for the .dna file in the same directory as the .xll file, with the same name and extension .dna.
+            // Loads the primary .dna library
+            // Load sequence is:
+            // 1. Look for a packed .dna file named "__MAIN__" in the .xll.
+            // 2. Look for the .dna file in the same directory as the .xll file, with the same name and extension .dna.
 
-			Debug.WriteLine("Enter DnaLibrary.InitializeRootLibrary");
+            Debug.WriteLine("Enter DnaLibrary.InitializeRootLibrary");
             XllPath = xllPath;
             Logging.LogDisplay.CreateInstance();
-			byte[] dnaBytes = Integration.GetDnaFileBytes("__MAIN__");
-			if (dnaBytes != null)
-			{
-				Debug.WriteLine("Got Dna file from resources.");
+            byte[] dnaBytes = Integration.GetDnaFileBytes("__MAIN__");
+            if (dnaBytes != null)
+            {
+                Debug.WriteLine("Got Dna file from resources.");
                 string pathResolveRoot = Path.GetDirectoryName(DnaLibrary.XllPath);
-				rootLibrary = LoadFrom(dnaBytes, pathResolveRoot);
-				// ... would have displayed error and returned null if there was an error.
-			}
-			else
-			{
-				Debug.WriteLine("No Dna file in resources - looking for file.");
-				// No packed .dna file found - load from a .dna file.
-				string dnaFileName = Path.ChangeExtension(XllPath, ".dna");
-				rootLibrary = LoadFrom(dnaFileName);
-				// ... would have displayed error and returned null if there was an error.
-			}
+                rootLibrary = LoadFrom(dnaBytes, pathResolveRoot);
+                // ... would have displayed error and returned null if there was an error.
+            }
+            else
+            {
+                Debug.WriteLine("No Dna file in resources - looking for file.");
+                // No packed .dna file found - load from a .dna file.
+                string dnaFileName = Path.ChangeExtension(XllPath, ".dna");
+                rootLibrary = LoadFrom(dnaFileName);
+                // ... would have displayed error and returned null if there was an error.
+            }
 
-			// If there have been problems, ensure that there is at lease some current library.
+            // If there have been problems, ensure that there is at lease some current library.
             if (rootLibrary == null)
             {
                 Debug.WriteLine("No Dna Library found.");
@@ -420,8 +420,8 @@ namespace ExcelDna.Integration
             }
 
             rootLibrary.Initialize();
-			Debug.WriteLine("Exit DnaLibrary.Initialize");
-		}
+            Debug.WriteLine("Exit DnaLibrary.Initialize");
+        }
 
         internal static void DeInitialize()
         {
@@ -433,7 +433,7 @@ namespace ExcelDna.Integration
         public static DnaLibrary LoadFrom(Uri uri)
         {
             DnaLibrary dnaLibrary;
-			XmlSerializer serializer = new DnaLibrarySerializer();
+            XmlSerializer serializer = new DnaLibrarySerializer();
 
             // The uri might be file or http.
             try
@@ -456,43 +456,43 @@ namespace ExcelDna.Integration
 
         }
 
-		public static DnaLibrary LoadFrom(byte[] bytes, string pathResolveRoot)
-		{
-			DnaLibrary dnaLibrary;
+        public static DnaLibrary LoadFrom(byte[] bytes, string pathResolveRoot)
+        {
+            DnaLibrary dnaLibrary;
             XmlSerializer serializer = new DnaLibrarySerializer();
 
-			try
-			{
-				using (MemoryStream ms = new MemoryStream(bytes))
-				{
-					dnaLibrary = (DnaLibrary)serializer.Deserialize(ms);
-				}
-			}
-			catch (Exception e)
-			{
-				string errorMessage = string.Format("There was an error while processing DnaFile bytes:\r\n{0}\r\n{1}", e.Message, e.InnerException != null ? e.InnerException.Message : string.Empty);
-				Debug.WriteLine(errorMessage);
-				//ExcelDna.Logging.LogDisplay.SetText(errorMessage);
-				return null;
-			}
+            try
+            {
+                using (MemoryStream ms = new MemoryStream(bytes))
+                {
+                    dnaLibrary = (DnaLibrary)serializer.Deserialize(ms);
+                }
+            }
+            catch (Exception e)
+            {
+                string errorMessage = string.Format("There was an error while processing DnaFile bytes:\r\n{0}\r\n{1}", e.Message, e.InnerException != null ? e.InnerException.Message : string.Empty);
+                Debug.WriteLine(errorMessage);
+                //ExcelDna.Logging.LogDisplay.SetText(errorMessage);
+                return null;
+            }
             dnaLibrary.dnaResolveRoot = pathResolveRoot;
             return dnaLibrary;
-		}
+        }
 
         public static DnaLibrary LoadFrom(string fileName)
         {
             DnaLibrary dnaLibrary;
 
-			if (!File.Exists(fileName))
-			{
-				ExcelDna.Logging.LogDisplay.WriteLine("The required .dna script file {0} does not exist.", fileName);
-				return null;
-			}
+            if (!File.Exists(fileName))
+            {
+                ExcelDna.Logging.LogDisplay.WriteLine("The required .dna script file {0} does not exist.", fileName);
+                return null;
+            }
 
             try
             {
                 XmlSerializer serializer = new DnaLibrarySerializer();
-				using (FileStream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
+                using (FileStream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
                 {
                     dnaLibrary = (DnaLibrary)serializer.Deserialize(fileStream);
                 }
@@ -506,39 +506,39 @@ namespace ExcelDna.Integration
             return dnaLibrary;
         }
 
-		public static void Save(string fileName, DnaLibrary dnaLibrary)
-		{
-//			XmlSerializer serializer = new XmlSerializer(typeof(DnaLibrary));
-            XmlSerializer serializer = new DnaLibrarySerializer(); 
-			using (FileStream fileStream = new FileStream(fileName, FileMode.Truncate))
-			{
-				serializer.Serialize(fileStream, dnaLibrary);
-			}
-		}
-
-		public static byte[] Save(DnaLibrary dnaLibrary)
-		{
-			//			XmlSerializer serializer = new XmlSerializer(typeof(DnaLibrary));
+        public static void Save(string fileName, DnaLibrary dnaLibrary)
+        {
+            //			XmlSerializer serializer = new XmlSerializer(typeof(DnaLibrary));
             XmlSerializer serializer = new DnaLibrarySerializer();
-			using (MemoryStream ms = new MemoryStream())
-			{
-				serializer.Serialize(ms, dnaLibrary);
-				return ms.ToArray();
-			}
-		}
+            using (FileStream fileStream = new FileStream(fileName, FileMode.Truncate))
+            {
+                serializer.Serialize(fileStream, dnaLibrary);
+            }
+        }
 
-		public static DnaLibrary CurrentLibrary
-		{
+        public static byte[] Save(DnaLibrary dnaLibrary)
+        {
+            //			XmlSerializer serializer = new XmlSerializer(typeof(DnaLibrary));
+            XmlSerializer serializer = new DnaLibrarySerializer();
+            using (MemoryStream ms = new MemoryStream())
+            {
+                serializer.Serialize(ms, dnaLibrary);
+                return ms.ToArray();
+            }
+        }
+
+        public static DnaLibrary CurrentLibrary
+        {
             // Should not be called before Initialize
-			get
-			{
+            get
+            {
                 if (rootLibrary == null)
                 {
                     throw new InvalidOperationException("No CurrentLibrary set.");
                 }
-				return rootLibrary;
-			}
-		}
+                return rootLibrary;
+            }
+        }
 
         // Called during initialize when displaying log
         // TODO: Clean up - inserted to prevent recursion when displaying log during initialize
@@ -546,11 +546,11 @@ namespace ExcelDna.Integration
         {
             get
             {
-                if (rootLibrary == null) 
+                if (rootLibrary == null)
                 {
                     string dllName = XllPath;
-					return Path.GetFileNameWithoutExtension(dllName);
-				}
+                    return Path.GetFileNameWithoutExtension(dllName);
+                }
                 return CurrentLibrary.Name;
             }
         }
@@ -752,8 +752,8 @@ public class CDataField : IXmlSerializable
             throw new NotImplementedException("This method has not been implemented");
         }
     }
- */ 
- 
+ */
+
 // Not sure if this is still valid - current version is not customised....?????
 // CAREFUL: Customization of the deserialization in this if clause....
 //else if (((object)Reader.LocalName == (object)id11_customUI /*&& (object)Reader.NamespaceURI == (object)id2_Item */))
