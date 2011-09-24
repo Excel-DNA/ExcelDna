@@ -1,4 +1,4 @@
-<DnaLibrary Name="Ribbon Tests">
+<DnaLibrary Name="Ribbon Tests" Description="Ribbon Tests Description (not used)">
    <![CDATA[
   
   Imports Microsoft.Office.Core
@@ -40,6 +40,16 @@
     <!-- This will only be loaded for Excel 2010 because of the namespace -->
     <customUI xmlns='http://schemas.microsoft.com/office/2009/07/customui'>
       <ribbon>
+      <tabs>
+          <tab id='CustomTab' label='My Tab'>
+            <group id='SampleGroup' label='My Sample 2010 Group'>
+              <button id='Button1' label='My Button 2010 Label' image='M' size='large' onAction='RunTagMacro' tag='ShowHelloMessage'
+screentip="This is the screentip of button1" supertip="This is the supertip of button1"
+ />
+              <button id='Button2' label='My Second 2010 Button' image='M' size='normal' onAction='OnButtonPressed'/>
+            </group >
+          </tab>
+        </tabs>
       </ribbon>
     </customUI>
   </CustomUI>

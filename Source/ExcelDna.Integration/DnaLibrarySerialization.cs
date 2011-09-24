@@ -3,7 +3,7 @@
 //[assembly:System.Security.SecurityTransparent()]
 //[assembly:System.Security.SecurityRules(System.Security.SecurityRuleSet.Level1)]
 //#endif
-//[assembly:System.Reflection.AssemblyVersionAttribute("0.29.4149.41936")]
+//[assembly:System.Reflection.AssemblyVersionAttribute("0.30.4149.41936")]
 //[assembly:System.Xml.Serialization.XmlSerializerVersionAttribute(ParentAssemblyId=@"7efa5e05-327a-4ef9-8e40-0d7989f33977,", Version=@"4.0.0.0")]
 //namespace Microsoft.Xml.Serialization.GeneratedAssembly {
 namespace ExcelDna.Serialization {

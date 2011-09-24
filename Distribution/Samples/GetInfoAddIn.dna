@@ -23,6 +23,11 @@
 		    return XlCall.Excel(XlCall.xlfGetWorkbook, type_num, name_text);
                 }
 
+                [ExcelFunction(Description = "Returns the result of xlfGetWorkbook.", IsMacroType=false)]
+                public static object GetWorkbookActive(int type_num)
+                {                    
+		    return XlCall.Excel(XlCall.xlfGetWorkbook, type_num);
+                }
             }
 	]]>
 </DnaLibrary>

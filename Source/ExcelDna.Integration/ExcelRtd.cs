@@ -82,14 +82,18 @@ namespace ExcelDna.Integration.Rtd
             string progIdRegistered = "RtdSrv." + clsId.ToString("N");
             Debug.Print("RTD - Using ProgId: {0} for type: {1}", progIdRegistered, rtdServerType.FullName);
 
-            // Mark as loaded - ServerTerminate in the wrapper will remove.
-            // TODO: Consider multithread race condition...
-            loadedRtdServers[progId] = progIdRegistered;
             using (SingletonClassFactoryRegistration regClassFactory = new SingletonClassFactoryRegistration(rtdServerWrapper, clsId))
             using (ProgIdRegistration regProgId = new ProgIdRegistration(progIdRegistered, clsId))
             using (ClsIdRegistration regClsId = new ClsIdRegistration(clsId, progIdRegistered))
             {
-                return CallRTD(progIdRegistered, null, topics);
+                object result;
+                if (TryCallRTD(out result, progIdRegistered, null, topics))
+                {
+                    // Mark as loaded - ServerTerminate in the wrapper will remove.
+                    // TODO: Consider multithread race condition...
+                    loadedRtdServers[progId] = progIdRegistered;
+                }
+                return result;
             }
         }
 
@@ -105,9 +109,9 @@ namespace ExcelDna.Integration.Rtd
         //    return g;
         //}
 
-        private static object CallRTD(string progId, string server, params string[] topics)
+        // Returns true if the Excel call succeeded.
+        private static bool TryCallRTD(out object result, string progId, string server, params string[] topics)
         {
-            object result;
             object[] args = new object[topics.Length + 2];
             args[0] = progId;
             args[1] = null;
@@ -115,10 +119,18 @@ namespace ExcelDna.Integration.Rtd
             XlCall.XlReturn retval = XlCall.TryExcel(XlCall.xlfRtd, out result, args);
             if (retval == XlCall.XlReturn.XlReturnSuccess)
             {
-                return result;
+                return true;
             }
             Debug.Print("RTD Call failed. Excel returned {0}", retval);
-            return null;
+            result = null;
+            return false;
+        }
+
+        private static object CallRTD(string progId, string server, params string[] topics)
+        {
+            object result;
+            bool ignored = TryCallRTD(out result, progId, server, topics);
+            return result;
         }
 
         public static void UnregisterRTDServer(string progId)

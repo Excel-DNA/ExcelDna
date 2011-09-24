@@ -34,7 +34,7 @@ namespace ExcelDna.Integration.CustomUI
             _progId = progId;
         }
 
-        #region IDTExtensibility2 interface - not used by ExcelDna
+        #region IDTExtensibility2 interface
         public virtual void OnConnection(object Application, ext_ConnectMode ConnectMode, object AddInInst, ref Array custom)
         {
             Debug.Print("ExcelComAddIn.OnConnection");
@@ -156,7 +156,7 @@ namespace ExcelDna.Integration.CustomUI
             // Put together some nicer descriptions for the Add-ins dialog.
             string friendlyName;
             if (addIn is ExcelRibbon)
-                friendlyName = addIn.DnaLibrary.Name + " (Ribbon Helper)";
+                friendlyName = addIn.DnaLibrary.Name; // + " (Ribbon Helper)"; (No more - it is displayed in the Ribbon tooltip!)
             else if (addIn is ExcelCustomTaskPaneAddIn)
                 friendlyName = addIn.DnaLibrary.Name + " (Custom Task Pane Helper)";
             else 
