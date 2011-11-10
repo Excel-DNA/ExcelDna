@@ -3,6 +3,7 @@ Version 0.30 (??????)
 * Fixed LoadComAddIn error when using a direct ExcelComAddIn-derived class.
 * Fixed (Ribbon Helper) display in ribbon tooltips.
 * Fixed RTD / array formula activation bug.
+* Fixed IsMacroType=true reference argument sheet error (ExcelReference pointed to active sheet instead of current sheet).
 
 Version 0.29 (28 May 2011)
 --------------------------

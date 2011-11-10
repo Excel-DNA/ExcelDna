@@ -303,7 +303,8 @@ HRESULT LoadClr(CString clrVersion, ICorRuntimeHost **ppHost)
 					// We need .Net 4.0 but it is not installed
 					ShowMessage(IDS_MSG_HEADER_NEEDCLR40, 
 								IDS_MSG_BODY_CLRCREATEINSTANCEFAILED, 
-								IDS_MSG_FOOTER_ENSURECLR40 );
+								IDS_MSG_FOOTER_ENSURECLR40, 
+								hr );
 					hr = E_FAIL;
 				}
 				else
@@ -341,7 +342,8 @@ HRESULT LoadClrMeta(CString clrVersion, ICLRMetaHost* pMetaHost, ICorRuntimeHost
 		// I.e. we want 2.0 but only 4.0 is installed.
 		ShowMessage(IDS_MSG_HEADER_VERSIONLOADFAILED, 
 					IDS_MSG_BODY_METAHOSTGETRUNTIMEFAILED, 
-					IDS_MSG_FOOTER_ENSUREVERSION );
+					IDS_MSG_FOOTER_ENSUREVERSION, 
+					hr);
 		hr = E_FAIL;
 	}
 	else
@@ -355,7 +357,8 @@ HRESULT LoadClrMeta(CString clrVersion, ICLRMetaHost* pMetaHost, ICorRuntimeHost
 			// Not sure why this would happen???
 			ShowMessage( needNet40 ? IDS_MSG_HEADER_NEEDCLR40 : IDS_MSG_HEADER_NEEDCLR20, 
 						IDS_MSG_BODY_RUNTIMEGETINTERFACEFAILED, 
-						IDS_MSG_FOOTER_UNEXPECTED );
+						IDS_MSG_FOOTER_UNEXPECTED,
+						hr);
 
 			hr = E_FAIL;
 		}
@@ -405,7 +408,8 @@ HRESULT LoadClr20(ICorRuntimeHost **ppHost)
 				{
 					ShowMessage(IDS_MSG_HEADER_NEEDCLR20, 
 								IDS_MSG_BODY_NONET20,
-								IDS_MSG_FOOTER_ENSURECLR20);
+								IDS_MSG_FOOTER_ENSURECLR20,
+								hr);
 					hr = E_FAIL;
 				}
 				else
