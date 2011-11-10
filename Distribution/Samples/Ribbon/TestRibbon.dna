@@ -38,7 +38,7 @@
   <CustomUI>
     <!-- Inside here is the exact RibbonX xml passed to Excel -->
     <!-- This will only be loaded for Excel 2010 because of the namespace -->
-    <customUI xmlns='http://schemas.microsoft.com/office/2009/07/customui'>
+    <customUI xmlns='http://schemas.microsoft.com/office/2009/07/customui' loadImage='LoadImage'>
       <ribbon>
       <tabs>
           <tab id='CustomTab' label='My Tab'>

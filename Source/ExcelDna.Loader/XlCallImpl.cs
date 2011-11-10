@@ -70,7 +70,7 @@ namespace ExcelDna.Loader
         public static readonly int xlGetHwnd = (8 | xlSpecial);
         public static readonly int xlGetName = (9 | xlSpecial);
 
-		public static readonly int xlcAlert = (118 | xlCommand);
+        public static readonly int xlcAlert = (118 | xlCommand);
         public static readonly int xlcNew = (119 | xlCommand);
         public static readonly int xlcMessage = (122 | xlCommand);
         public static readonly int xlcEcho = (141 | xlCommand);
@@ -78,6 +78,7 @@ namespace ExcelDna.Loader
         public static readonly int xlcWorkbookInsert = (354 | xlCommand);
 
         public static readonly int xlfSetName = 88;
+        public static readonly int xlfCaller = 89;
         public static readonly int xlfRegister = 149;
         public static readonly int xlfUnregister = 201;
 
@@ -187,7 +188,13 @@ namespace ExcelDna.Loader
 
         public unsafe static IntPtr GetCurrentSheetId4()
         {
-            IntPtr retval = IntPtr.Zero;
+            // In a macro type function, xlSheetNm seems to return the Active sheet instead of the Current sheet.
+            // So we first try to get the Current sheet from the caller.
+            IntPtr retval = GetCallerSheetId4();
+            if (retval != IntPtr.Zero)
+                return retval;
+
+            // Else we try the old way.
             XlOper SRef = new XlOper();
             SRef.xlType = XlType.XlTypeSReference;
             //SRef.srefValue.Count = 1;
@@ -227,7 +234,13 @@ namespace ExcelDna.Loader
 
         public unsafe static IntPtr GetCurrentSheetId12()
         {
-            IntPtr retval = IntPtr.Zero;
+            // In a macro type function, xlSheetNm seems to return the Active sheet instead of the Current sheet.
+            // So we first try to get the Current sheet from the caller.
+            IntPtr retval = GetCallerSheetId12();
+            if (retval != IntPtr.Zero)
+                return retval;
+
+            // Else we try the old way.
             XlOper12 SRef = new XlOper12();
             SRef.xlType = XlType12.XlTypeSReference;
             //SRef.srefValue.Count = 1;
@@ -265,5 +278,42 @@ namespace ExcelDna.Loader
             }
             return retval;
         }
+
+        public unsafe static IntPtr GetCallerSheetId4()
+        {
+            IntPtr retval = IntPtr.Zero;
+            XlOper resultOper = new XlOper();
+            XlOper* pResultOper = &resultOper;
+            int xlReturn;
+            xlReturn = Excel4v(xlfCaller, pResultOper, 0, (XlOper**)IntPtr.Zero);
+            if (xlReturn == 0)
+            {
+                if (resultOper.xlType == XlType.XlTypeReference)
+                {
+                    retval = resultOper.refValue.SheetId;
+                    Excel4v(xlFree, (XlOper*)IntPtr.Zero, 1, &pResultOper);
+                }
+            }
+            return retval;
+        }
+
+        public unsafe static IntPtr GetCallerSheetId12()
+        {
+            IntPtr retval = IntPtr.Zero;
+            XlOper12 resultOper = new XlOper12();
+            XlOper12* pResultOper = &resultOper;
+            int xlReturn;
+            xlReturn = Excel12v(xlfCaller, 0, (XlOper12**)IntPtr.Zero, pResultOper);
+            if (xlReturn == 0)
+            {
+                if (resultOper.xlType == XlType12.XlTypeReference)
+                {
+                    retval = resultOper.refValue.SheetId;
+                    Excel12v(xlFree, 1, &pResultOper, (XlOper12*)IntPtr.Zero);
+                }
+            }
+            return retval;
+        }
+
 	}
 }

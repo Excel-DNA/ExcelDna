@@ -199,10 +199,10 @@ namespace ExcelDna.Integration
 					return false;	// Stop enumerating
 				}
 				return true;	// Continue enumerating
-			}, (IntPtr)0);
-            if (hWndChild != (IntPtr)0)
+			}, IntPtr.Zero);
+            if (hWndChild != IntPtr.Zero)
             {
-                IntPtr pUnk = (IntPtr)0;
+                IntPtr pUnk = IntPtr.Zero;
                 int hr = AccessibleObjectFromWindow(
                         hWndChild, OBJID_NATIVEOM,
                         IID_IDispatchBytes, ref pUnk);
