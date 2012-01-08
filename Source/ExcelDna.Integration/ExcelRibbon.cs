@@ -148,6 +148,10 @@ namespace ExcelDna.Integration.CustomUI
 
         public static void LoadComAddIn(ExcelComAddIn addIn)
         {
+            // If we are called without the addIn's DnaLibrary being set, default to the current library
+            if (addIn.DnaLibrary == null)
+                addIn.DnaLibrary = DnaLibrary.CurrentLibrary;
+
             // We pick a new Guid as ClassId for this add-in.
             CLSID clsId = Guid.NewGuid();
             // and make the ProgId from this Guid - max 39 chars....

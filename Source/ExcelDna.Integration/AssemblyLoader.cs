@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2011 Govert van Drimmelen
+  Copyright (C) 2005-2012 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -25,12 +25,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Reflection;
-using System.Reflection.Emit;
 using System.Runtime.InteropServices;
 using ExcelDna.ComInterop;
-using ExcelDna.Integration.CustomUI;
 
 namespace ExcelDna.Integration
 {
@@ -120,8 +117,8 @@ namespace ExcelDna.Integration
 			foreach (object att in atts)
 			{
 				Type attType = att.GetType();
-				if (attType.FullName == "ExcelDna.Integration.ExcelFunctionAttribute" ||
-					attType.FullName == "ExcelDna.Integration.ExcelCommandAttribute")
+                if (TypeHasAncestorWithFullName(attType, "ExcelDna.Integration.ExcelFunctionAttribute") ||
+                    TypeHasAncestorWithFullName(attType, "ExcelDna.Integration.ExcelCommandAttribute" ) )
 				{
 					return true;
 				}
@@ -129,7 +126,7 @@ namespace ExcelDna.Integration
 			return false;
 		}
 
-        // Some support for creating add-ins that are notified of open and close
+	    // Some support for creating add-ins that are notified of open and close
         // this allows the add-in to add menus, toolbar buttons etc.
         // Also records whether this class should be loaded as a ComAddIn (for the Ribbon).
         public class ExcelAddInInfo
@@ -146,7 +143,7 @@ namespace ExcelDna.Integration
             try
             {
                 Type addInType = t.GetInterface("ExcelDna.Integration.IExcelAddIn");
-                bool isRibbon = (t.BaseType == typeof(ExcelRibbon));
+                bool isRibbon = IsRibbonType(t);
                 if (addInType != null || (isRibbon && loadRibbons) )
                 {
                     ExcelAddInInfo info = new ExcelAddInInfo();
@@ -247,6 +244,31 @@ namespace ExcelDna.Integration
                 };
                 comClassTypes.Add(comClassType);
             }
+        }
+
+        static bool IsRibbonType(Type type)
+        {
+            // Ribbon type is one that has ExcelRibbon as an ancestor (but is not ExcelRibbon itself), is not abstract, and it's parent is not a ribbon type
+
+            // We are trying to prevent loading multiple copies of a ribbon along the inheritance hierarchy, 
+            // while still allowing some abstraction of Ribbon handling classes.
+
+            // Current design will load only the least-derived concrete class.
+
+            bool isRibbon = 
+                    type != null && 
+                    TypeHasAncestorWithFullName(type.BaseType, "ExcelDna.Integration.CustomUI.ExcelRibbon") &&
+                    !type.IsAbstract &&
+                    !IsRibbonType(type.BaseType);
+
+            return isRibbon;
+        }
+
+        private static bool TypeHasAncestorWithFullName(Type type, string fullName)
+        {
+            if (type == null) return false;
+            if (type.FullName == fullName) return true;
+            return TypeHasAncestorWithFullName(type.BaseType, fullName);
         }
 	}
 }

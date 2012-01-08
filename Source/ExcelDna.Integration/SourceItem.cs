@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2011 Govert van Drimmelen
+  Copyright (C) 2005-2012 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -61,6 +61,9 @@ namespace ExcelDna.Integration
             set { _Path = value; }
         }
 
+        [XmlAttribute]
+        public bool Pack;
+
         // Returns the resulting source for this SourceItem.
         // If Path is filled in, and file exists, takes source from there.
         // Else returns Code value.
@@ -68,15 +71,24 @@ namespace ExcelDna.Integration
         {
             if (!string.IsNullOrEmpty(Path))
             {
-                // Try to read from a file.
-                string resolvedPath = DnaLibrary.ResolvePath(Path, pathResolveRoot);
-                if (resolvedPath == null)
+                if (Path.StartsWith("packed:"))
                 {
-                    Debug.Print("Source path {0} could not be resolved.", Path);
+                    string resourceName = Path.Substring(7);
+                    byte[] sourceBytes = Integration.GetSourceBytes(resourceName);
+                    return Encoding.UTF8.GetString(sourceBytes);
                 }
                 else
                 {
-                    return File.ReadAllText(resolvedPath).Trim();
+                    // Try to read from a file.
+                    string resolvedPath = DnaLibrary.ResolvePath(Path, pathResolveRoot);
+                    if (resolvedPath == null)
+                    {
+                        Debug.Print("Source path {0} could not be resolved.", Path);
+                    }
+                    else
+                    {
+                        return File.ReadAllText(resolvedPath).Trim();
+                    }
                 }
             }
             return Code;

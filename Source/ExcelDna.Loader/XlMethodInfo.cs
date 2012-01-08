@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2011 Govert van Drimmelen
+  Copyright (C) 2005-2012 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -192,7 +192,8 @@ namespace ExcelDna.Loader
                 //}
                 
                 Type attribType = attrib.GetType();
-                if (attribType.FullName == "ExcelDna.Integration.ExcelFunctionAttribute")
+                // TODO: Add checks for attribType.BaseType ? (http://exceldna.codeplex.com/discussions/285228)
+                if (TypeHasAncestorWithFullName(attribType, "ExcelDna.Integration.ExcelFunctionAttribute"))
                 {
                     string name = (string)attribType.GetField("Name").GetValue(attrib);
                     string description = (string)attribType.GetField("Description").GetValue(attrib);
@@ -230,7 +231,7 @@ namespace ExcelDna.Loader
                     IsClusterSafe = (!isMacroType && isClusterSafe);
                 }
 
-                if (attribType.FullName == "ExcelDna.Integration.ExcelCommandAttribute")
+                if (TypeHasAncestorWithFullName(attribType, "ExcelDna.Integration.ExcelCommandAttribute"))
                 {
                     string name = (string)attribType.GetField("Name").GetValue(attrib);
                     string description = (string)attribType.GetField("Description").GetValue(attrib);
@@ -453,6 +454,13 @@ namespace ExcelDna.Loader
 
             //			assemblyBuilder.Save(@"ExcelDna.DynamicDelegateAssembly.dll");
             return xlMethodInfos;
+        }
+
+        private static bool TypeHasAncestorWithFullName(Type type, string fullName)
+        {
+            if (type == null) return false;
+            if (type.FullName == fullName) return true;
+            return TypeHasAncestorWithFullName(type.BaseType, fullName);
         }
     }
 

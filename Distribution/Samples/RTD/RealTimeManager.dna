@@ -39,6 +39,16 @@ Public Module RtdManager
 		MessageBox.Show("Real-time updates have been set to 1 second.", "Real-Time Update Manager")
 	End Sub 
 
+    	<ExcelCommand(MenuName:="Real-Time Update Manager", MenuText:="Set real-time updates rate to 0 second")> _ 
+	Sub SetVeryFastUpdateInterval() 
+		Dim app as Object
+
+		app = ExcelDnaUtil.Application
+		app.RTD.ThrottleInterval = 0
+		
+		MessageBox.Show("Real-time updates have been set to 0 second.", "Real-Time Update Manager")
+	End Sub 
+    
 	<ExcelCommand(MenuName:="Real-Time Update Manager", MenuText:="Reset real-time updates rate to default (2 seconds)")> _ 
 	Sub ResetUpdateInterval() 
 		Dim app as Object

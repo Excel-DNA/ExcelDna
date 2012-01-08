@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2011 Govert van Drimmelen
+  Copyright (C) 2005-2012 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -930,7 +930,8 @@ namespace ExcelDna.Loader
 						else
 						{
 							ushort numAreas = *(ushort*)pOper->refValue.pMultiRef;
-							XlOper12.XlRectangle12* pAreas = (XlOper12.XlRectangle12*)((uint)pOper->refValue.pMultiRef + 4 /* FieldOffset for XlRectangles */);
+                            // XlOper12.XlRectangle12* pAreas = (XlOper12.XlRectangle12*)((uint)pOper->refValue.pMultiRef + 4 /* FieldOffset for XlRectangles */);
+                            XlOper12.XlRectangle12* pAreas = (XlOper12.XlRectangle12*)((byte*)(pOper->refValue.pMultiRef) + 4 /* FieldOffset for XlRectangles */);
 							r = IntegrationMarshalHelpers.CreateExcelReference(
 								pAreas[0].RowFirst, pAreas[0].RowLast,
 								pAreas[0].ColumnFirst, pAreas[0].ColumnLast, pOper->refValue.SheetId);
@@ -1310,20 +1311,40 @@ namespace ExcelDna.Loader
 						XlObjectArray12MarshalerImpl m = new XlObjectArray12MarshalerImpl(1);
 						nestedInstances.Add(m);
 						XlOper12* pNested = (XlOper12*)m.MarshalManagedToNative(obj);
-						pOper->xlType = XlType12.XlTypeArray;
-						pOper->arrayValue.Rows = pNested->arrayValue.Rows;
-						pOper->arrayValue.Columns = pNested->arrayValue.Columns;
-						pOper->arrayValue.pOpers = pNested->arrayValue.pOpers;
+                        if (pNested->xlType == XlType12.XlTypeArray)
+                        {
+                            pOper->xlType = XlType12.XlTypeArray;
+                            pOper->arrayValue.Rows = pNested->arrayValue.Rows;
+                            pOper->arrayValue.Columns = pNested->arrayValue.Columns;
+                            pOper->arrayValue.pOpers = pNested->arrayValue.pOpers;
+                        }
+                        else
+                        {
+                            // This is the case where the array passed in has 0 length.
+                            // We set to an error to at least have a valid XLOPER
+                            pOper->xlType = XlType12.XlTypeError;
+                            pOper->errValue = IntegrationMarshalHelpers.ExcelError_ExcelErrorValue;
+                        }
 					}
 					else if (obj is object[,])
 					{
 						XlObjectArray12MarshalerImpl m = new XlObjectArray12MarshalerImpl(2);
 						nestedInstances.Add(m);
 						XlOper12* pNested = (XlOper12*)m.MarshalManagedToNative(obj);
-						pOper->xlType = XlType12.XlTypeArray;
-						pOper->arrayValue.Rows = pNested->arrayValue.Rows;
-						pOper->arrayValue.Columns = pNested->arrayValue.Columns;
-						pOper->arrayValue.pOpers = pNested->arrayValue.pOpers;
+                        if (pNested->xlType == XlType12.XlTypeArray)
+                        {
+						    pOper->xlType = XlType12.XlTypeArray;
+						    pOper->arrayValue.Rows = pNested->arrayValue.Rows;
+						    pOper->arrayValue.Columns = pNested->arrayValue.Columns;
+						    pOper->arrayValue.pOpers = pNested->arrayValue.pOpers;
+                        }
+                        else
+                        {
+                            // This is the case where the array passed in has 0,0 length.
+                            // We set to an error to at least have a valid XLOPER
+                            pOper->xlType = XlType12.XlTypeError;
+                            pOper->errValue = IntegrationMarshalHelpers.ExcelError_ExcelErrorValue;
+                        }
 					}
 					else if (obj is Missing)
 					{
@@ -1427,7 +1448,7 @@ namespace ExcelDna.Loader
 
 							IntegrationMarshalHelpers.SetExcelReference12(pOper, (XlOper12.XlMultiRef12*)pCurrent, r);
 
-							pCurrent = (IntPtr)((uint)pCurrent + numBytes);
+							pCurrent = new IntPtr(pCurrent.ToInt64() + numBytes);
 							refOperIndex++;
 						}
 					}

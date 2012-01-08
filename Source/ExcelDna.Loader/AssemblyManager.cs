@@ -1,5 +1,5 @@
 ﻿/*
-  Copyright (C) 2005-2011 Govert van Drimmelen
+  Copyright (C) 2005-2012 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -23,19 +23,13 @@
 */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
-//using System.Text;
+using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Resources;
-using System.IO;
 using SevenZip.Compression.LZMA;
-using System.ComponentModel;
-using System.Security.Permissions;
-using System.Security.Policy;
-using System.Security;
 
 namespace ExcelDna.Loader
 {
@@ -124,9 +118,13 @@ namespace ExcelDna.Loader
             {
                 typeName = "IMAGE";
             }
+            else if (type == 3)
+            {
+                typeName = "SOURCE";
+            }
             else
             {
-                throw new ArgumentOutOfRangeException("type", "Unknown resource type. Only types 0 (Assembly), 1 (Dna file) and 2 (Image) are valid.");
+                throw new ArgumentOutOfRangeException("type", "Unknown resource type. Only types 0 (Assembly), 1 (Dna file), 2 (Image) or 3 (Source) are valid.");
             }
 			return ResourceHelper.LoadResourceBytes(hModule, typeName, resourceName);
 		}

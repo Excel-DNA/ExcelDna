@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.ComponentModel;
 using System.Reflection;
 
 using System.IO;
-using System.Diagnostics;
 using ExcelDna.Integration;
-using System.Runtime.InteropServices;
 
 namespace ExcelDnaPack
 {
@@ -318,14 +314,32 @@ Other assemblies are packed is marked with Pack=""true"" in the .dna file.
                         Console.WriteLine("  ~~> Image path {0} not resolved.", image.Path);
                         break;
                     }
-                    string name = Path.GetFileNameWithoutExtension(path).ToUpperInvariant() + "_" + lastPackIndex++ + Path.GetExtension(path).ToUpperInvariant(); ;
+                    string name = Path.GetFileNameWithoutExtension(path).ToUpperInvariant() + "_" + lastPackIndex++ + Path.GetExtension(path).ToUpperInvariant();
                     byte[] imageBytes = File.ReadAllBytes(path);
                     ru.AddImage(imageBytes, name);
                     image.Path = "packed:" + name;
                 }
             }
-
-			return DnaLibrary.Save(dna);
+            foreach (Project project in dna.Projects)
+            {
+                foreach (SourceItem source in project.SourceItems)
+                {
+                    if (source.Pack && !string.IsNullOrEmpty(source.Path))
+                    {
+                        string path = dna.ResolvePath(source.Path);
+                        if (path == null)
+                        {
+                            Console.WriteLine("  ~~> Source path {0} not resolved.", source.Path);
+                            break;
+                        }
+                        string name = Path.GetFileNameWithoutExtension(path).ToUpperInvariant() + "_" + lastPackIndex++ + Path.GetExtension(path).ToUpperInvariant();
+                        byte[] sourceBytes = Encoding.UTF8.GetBytes(File.ReadAllText(path));
+                        ru.AddSource(sourceBytes, name);
+                        source.Path = "packed:" + name;
+                    }
+                }
+            }
+		    return DnaLibrary.Save(dna);
 		}
 
 	}

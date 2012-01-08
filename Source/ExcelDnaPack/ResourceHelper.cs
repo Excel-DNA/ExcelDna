@@ -100,6 +100,13 @@ internal unsafe static class ResourceHelper
             DoUpdateResource("IMAGE_LZMA", name, data);
         }
 
+        public void AddSource(byte[] sourceBytes, string name)
+        {
+            Debug.Assert(name == name.ToUpperInvariant());
+            byte[] data = SevenZipHelper.Compress(sourceBytes);
+            DoUpdateResource("SOURCE_LZMA", name, data);
+        }
+
 		public void AddConfigFile(byte[] configContent, string name)
 		{
 			DoUpdateResource("CONFIG", name, configContent);
