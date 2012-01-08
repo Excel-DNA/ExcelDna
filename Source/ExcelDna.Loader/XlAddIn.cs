@@ -1,5 +1,5 @@
 ﻿/*
-  Copyright (C) 2005-2011 Govert van Drimmelen
+  Copyright (C) 2005-2012 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -539,7 +539,20 @@ namespace ExcelDna.Loader
             else
             {
                 // DOCUMENT: If HelpTopic is not rooted - it is expanded relative to .xll path.
-                if (Path.IsPathRooted(mi.HelpTopic))
+                // If http url does not end with !0 it is appended.
+                // I don't think https is supported, but it should not be considered an 'unrooted' path anyway.
+                if (mi.HelpTopic.StartsWith("http://") || mi.HelpTopic.StartsWith("https://"))
+                {
+                    if (!mi.HelpTopic.EndsWith("!0"))
+                    {
+                        helpTopic = mi.HelpTopic + "!0";
+                    }
+                    else
+                    {
+                        helpTopic = mi.HelpTopic;
+                    }
+                }
+                else if (Path.IsPathRooted(mi.HelpTopic))
                 {
                     helpTopic = mi.HelpTopic;
                 }

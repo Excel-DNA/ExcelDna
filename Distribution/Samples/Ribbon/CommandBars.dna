@@ -22,8 +22,8 @@
       <commandBar name='Worksheet Menu Bar'>
         <!-- Here we add a top-level menu to the main Excel Worksheet menu -->
         <popup caption='My Excel-Dna Menu' height='19'  >
-          <button caption='Say Hello' onAction='ShowHelloMessage' image='M' beginGroup='true'></button>
-          <button caption='Another Item...' enabled='false' tooltipText='In the tooltip?' />
+          <button caption='Say Hello' onAction='ShowHelloMessage' image='M' ></button>
+          <button caption='Another Item...' enabled='false' beginGroup='true' tooltipText='In the tooltip?' />
           <popup caption='My sub-menu' >
             <button helpFile='xyz.hlp' faceId='123' helpContextId='134' caption='SubMenu Button' onAction='ShowHelloMessage'/>
           </popup>

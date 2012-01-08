@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2011 Govert van Drimmelen
+  Copyright (C) 2005-2012 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -1086,20 +1086,40 @@ namespace ExcelDna.Loader
                     XlObjectArrayMarshaler m = new XlObjectArrayMarshaler(1);
                     nestedInstances.Add(m);
                     XlOper* pNested = (XlOper*)m.MarshalManagedToNative(obj);
-                    pOper->xlType = XlType.XlTypeArray;
-                    pOper->arrayValue.Rows = pNested->arrayValue.Rows;
-                    pOper->arrayValue.Columns = pNested->arrayValue.Columns;
-                    pOper->arrayValue.pOpers = pNested->arrayValue.pOpers;
+                    if (pNested->xlType == XlType.XlTypeArray)
+                    {
+                        pOper->xlType = XlType.XlTypeArray;
+                        pOper->arrayValue.Rows = pNested->arrayValue.Rows;
+                        pOper->arrayValue.Columns = pNested->arrayValue.Columns;
+                        pOper->arrayValue.pOpers = pNested->arrayValue.pOpers;
+                    }
+                    else
+                    {
+                        // This is the case where the array passed in has 0 length.
+                        // We set to an error to at least have a valid XLOPER
+                        pOper->xlType = XlType.XlTypeError;
+                        pOper->errValue = (ushort)IntegrationMarshalHelpers.ExcelError_ExcelErrorValue;
+                    }
                 }
                 else if (obj is object[,])
                 {
                     XlObjectArrayMarshaler m = new XlObjectArrayMarshaler(2);
                     nestedInstances.Add(m);
                     XlOper* pNested = (XlOper*)m.MarshalManagedToNative(obj);
-                    pOper->xlType = XlType.XlTypeArray;
-                    pOper->arrayValue.Rows = pNested->arrayValue.Rows;
-                    pOper->arrayValue.Columns = pNested->arrayValue.Columns;
-                    pOper->arrayValue.pOpers = pNested->arrayValue.pOpers;
+                    if (pNested->xlType == XlType.XlTypeArray)
+                    {
+                        pOper->xlType = XlType.XlTypeArray;
+                        pOper->arrayValue.Rows = pNested->arrayValue.Rows;
+                        pOper->arrayValue.Columns = pNested->arrayValue.Columns;
+                        pOper->arrayValue.pOpers = pNested->arrayValue.pOpers;
+                    }
+                    else
+                    {
+                        // This is the case where the array passed in has 0 length.
+                        // We set to an error to at least have a valid XLOPER
+                        pOper->xlType = XlType.XlTypeError;
+                        pOper->errValue = (ushort)IntegrationMarshalHelpers.ExcelError_ExcelErrorValue;
+                    }
                 }
                 else if (obj is System.Reflection.Missing)
                 {

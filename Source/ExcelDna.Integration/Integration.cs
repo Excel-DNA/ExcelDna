@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2011 Govert van Drimmelen
+  Copyright (C) 2005-2012 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -122,6 +122,11 @@ namespace ExcelDna.Integration
         internal static byte[] GetImageBytes(string imageName)
         {
             return getResourceBytesDelegate(imageName, 2);
+        }
+
+        internal static byte[] GetSourceBytes(string sourceName)
+        {
+            return getResourceBytesDelegate(sourceName, 3);
         }
 
         internal static void Initialize(string xllPath)

@@ -4,6 +4,11 @@ Version 0.30 (??????)
 * Fixed (Ribbon Helper) display in ribbon tooltips.
 * Fixed RTD / array formula activation bug.
 * Fixed IsMacroType=true reference argument sheet error (ExcelReference pointed to active sheet instead of current sheet).
+* Fixed array marshaling pointer manipulation concern under 64-bit Excel.
+* Fixed check for derived attributes too - for backward compatibility with v. 0.25.
+* Allow abstract base classes in ExcelRibbon class hierarchy. Now loads the first concrete descendent of ExcelRibbon as the ribbon handler.
+* Remove Obsolete class ExcelDna.Integration.Excel. (Use ExcelDnaUtil instead.) Allows smooth XlCall usage from VB.NET.
+* Allow external SourceItem packing.
 
 Version 0.29 (28 May 2011)
 --------------------------
