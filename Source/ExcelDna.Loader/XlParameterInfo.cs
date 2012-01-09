@@ -71,7 +71,7 @@ namespace ExcelDna.Loader
 				//// HACK: Some problem with library references - 
 				//// For now relax the assembly reference and use late-bound
                 Type attribType = attrib.GetType();
-                if (attribType.FullName == "ExcelDna.Integration.ExcelArgumentAttribute")
+                if (TypeHelper.TypeHasAncestorWithFullName(attribType, "ExcelDna.Integration.ExcelArgumentAttribute"))
                 {
                     string name = (string)attribType.GetField("Name").GetValue(attrib);
                     string description = (string)attribType.GetField("Description").GetValue(attrib);
