@@ -65,7 +65,7 @@ namespace ExcelDna.Integration.Rtd
 
             // TODO: Need to reconsider registration here.....
             // Sometimes need stable ProgIds.
-
+            Assembly[] asses = AppDomain.CurrentDomain.GetAssemblies();
             Type rtdServerType = registeredRtdServerTypes[progId];
             object rtdServer = Activator.CreateInstance(rtdServerType);
             RtdServerWrapper rtdServerWrapper = new RtdServerWrapper(rtdServer, progId);

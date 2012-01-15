@@ -24,11 +24,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using System.Reflection.Emit;
-using System.Text;
 using System.Xml.Serialization;
 using ExcelDna.Logging;
 
@@ -101,6 +98,8 @@ namespace ExcelDna.Integration
                 string realPath = Path;
 				if (Path.StartsWith("packed:"))
 				{
+                    // The ExternalLibrary is packed.
+                    // We'll have to load it from resources.
 					string resourceName = Path.Substring(7);
 					if (Path.ToUpperInvariant().EndsWith(".DNA"))
 					{
@@ -117,7 +116,6 @@ namespace ExcelDna.Integration
 					}
 					else
 					{
-						byte[] rawAssembly = Integration.GetAssemblyBytes(resourceName);
                         // DOCUMENT: TypeLibPath which is a resource in a library is denoted as fileName.dll\4
                         // For packed assemblies, we set TypeLibPath="packed:2"
                         string typeLibPath = null;
@@ -125,7 +123,18 @@ namespace ExcelDna.Integration
                         {
                             typeLibPath = DnaLibrary.XllPath + @"\" + TypeLibPath.Substring(7);
                         }
-						list.Add(new ExportedAssembly(Assembly.Load(rawAssembly), ExplicitExports, ComServer, false, typeLibPath, dnaLibrary));
+
+                        // It would be nice to check here whether the assembly is loaded already.
+                        // But because of the name mangling in the packing we can't easily check.
+
+                        // So we make the following assumptions:
+                        // 1. Packed assemblies won't also be loadable from files (else they might be loaded twice)
+                        // 2. ExternalLibrary loads will happen before reference loads via AssemblyResolve.
+                        // Under these assumptions we should not have assemblies loaded more than once, 
+                        // even if not checking here.
+                        byte[] rawAssembly = Integration.GetAssemblyBytes(resourceName);
+					    Assembly assembly = Assembly.Load(rawAssembly);
+						list.Add(new ExportedAssembly(assembly, ExplicitExports, ComServer, false, typeLibPath, dnaLibrary));
 						return list;
 					}
 				}
@@ -163,7 +172,8 @@ namespace ExcelDna.Integration
                             else
                             {
                                 // Load as a regular assembly - TypeLib not supported.
-                                list.Add(new ExportedAssembly(Assembly.LoadFrom(Path), ExplicitExports, ComServer, false, null, dnaLibrary));
+                                Assembly assembly = Assembly.LoadFrom(Path);
+                                list.Add(new ExportedAssembly(assembly, ExplicitExports, ComServer, false, null, dnaLibrary));
                                 return list;
                             }
                         }
@@ -192,33 +202,47 @@ namespace ExcelDna.Integration
 					return lib.GetAssemblies(pathResolveRelative);
 				}
 				else
-				{
+                {
                     Assembly assembly;
-					// Load as a regular assembly
-                    if (LoadFromBytes)
+                    // Load as a regular assembly
+                    // First check if it is already loaded (e.g. as a reference from another assembly)
+                    // DOCUMENT: Some cases might still have assemblies loaded more than once.
+                    // E.g. for an assembly that is both ExternalLibrary and references from another assembly,
+                    // having the assembly LoadFromBytes and in the file system would load it twice, 
+                    // because LoadFromBytes here happens before the .NET loaders assembly resolution.
+                    string assemblyName = System.IO.Path.GetFileNameWithoutExtension(resolvedPath);
+                    assembly = GetAssemblyIfLoaded(assemblyName);
+                    if (assembly == null)
                     {
-                        byte[] bytes = File.ReadAllBytes(resolvedPath);
-
-                        string pdbPath = System.IO.Path.ChangeExtension(resolvedPath, "pdb");
-                        if (File.Exists(pdbPath))
+                        // Really have to load it.
+                        if (LoadFromBytes)
                         {
-                            byte[] pdbBytes = File.ReadAllBytes(pdbPath);
-                            assembly = Assembly.Load(bytes, pdbBytes);
+                            // We need to be careful here to not re-load the assembly if it had already been loaded, 
+                            // e.g. as a dependency of an assembly loaded earlier.
+                            // In that case we won't be able to have the library 'LoadFromBytes'.
+                            byte[] bytes = File.ReadAllBytes(resolvedPath);
+
+                            string pdbPath = System.IO.Path.ChangeExtension(resolvedPath, "pdb");
+                            if (File.Exists(pdbPath))
+                            {
+                                byte[] pdbBytes = File.ReadAllBytes(pdbPath);
+                                assembly = Assembly.Load(bytes, pdbBytes);
+                            }
+                            else
+                            {
+                                assembly = Assembly.Load(bytes);
+                            }
                         }
                         else
                         {
-                            assembly = Assembly.Load(bytes);
+                            assembly = Assembly.LoadFrom(resolvedPath);
                         }
-                    }
-                    else
-                    {
-                        assembly = Assembly.LoadFrom(resolvedPath);
                     }
                     string resolvedTypeLibPath = null;
                     if (!string.IsNullOrEmpty(TypeLibPath))
                     {
                         resolvedTypeLibPath = DnaLibrary.ResolvePath(TypeLibPath, pathResolveRoot); // null is unresolved
-                        if (resolvedTypeLibPath == null && resolvedPath != null)
+                        if (resolvedTypeLibPath == null)
                         {
                             resolvedTypeLibPath = DnaLibrary.ResolvePath(TypeLibPath, System.IO.Path.GetDirectoryName(resolvedPath));
                         }
@@ -244,5 +268,19 @@ namespace ExcelDna.Integration
                 return list;
 			}
 		}
+        
+        // A copy of this method lives in ExcelDna.Loader - AssemblyManager.cs
+        private static Assembly GetAssemblyIfLoaded(string assemblyName)
+        {
+            string testName = assemblyName.ToUpperInvariant();
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (Assembly loadedAssembly in assemblies)
+            {
+                string loadedAssemblyName = loadedAssembly.FullName.Split(',')[0].ToUpperInvariant();
+                if ( loadedAssemblyName == testName)
+                    return loadedAssembly;
+            }
+            return null;
+        }
 	}
 }

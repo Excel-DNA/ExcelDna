@@ -35,7 +35,7 @@ namespace ExcelDna.Integration
 	// I want it to work as I expected it to initially.
 	// This means that the assembly found at the full path provided in the references section
 	// when the dynamic assembly was compiled, 
-	// will as by resolved as an assembly when the dynamic code runs.
+	// will be resolved as an assembly when the dynamic code runs.
 	// For now, it seems I cannot intercept the assembly resolution to prevent it from 
 	// working in the usual way, but I intercept failures and fix up there.
 
@@ -64,7 +64,7 @@ namespace ExcelDna.Integration
 			}
 		}
 
-		// Way to sort out the assemble resolve to an assembly that was referenced
+		// Way to sort out the assembly resolve to an assembly that was referenced
 		// but is not now accessible.
 		// CONSIDER: How to do this better?
 		internal static Assembly Resolve(object sender, ResolveEventArgs args)

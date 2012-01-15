@@ -33,7 +33,7 @@ The Excel-Dna integration assembly (ExcelDna.Integration.dll) is searched for
 
 ExcelDnaPack will also pack the configuration file FirstAddin.xll.config if it is 
 found next to FirstAddin.dna.
-Other assemblies are packed is marked with Pack=""true"" in the .dna file.
+Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 ";
 		
 		static void Main(string[] args)

@@ -55,6 +55,7 @@ namespace ExcelDna.Loader
         {
 			string name;
 			byte[] assemblyBytes;
+            Assembly loadedAssembly = null;
 
 			AssemblyName assName = new AssemblyName(args.Name);
 			name = assName.Name.ToUpperInvariant();
@@ -71,9 +72,19 @@ namespace ExcelDna.Loader
 				return Assembly.GetExecutingAssembly();
 			}
 
-            // Check cache
+            // Check our AssemblyResolve cache
             if (loadedAssemblies.ContainsKey(name))
                 return loadedAssemblies[name];
+
+            // Check if it is loaded in the AppDomain already, 
+            // e.g. from resources as an ExternalLibrary
+            loadedAssembly = GetAssemblyIfLoaded(name);
+            if (loadedAssembly != null)
+            {
+                Debug.Print("Assembly {0} was found to already be loaded into the AppDomain.", name);
+                loadedAssemblies.Add(name, loadedAssembly);
+                return loadedAssembly;
+            }
 
             // Now check in resources ...
 			Debug.Print("Attempting to load {0} from resources.", name);
@@ -88,7 +99,7 @@ namespace ExcelDna.Loader
 			//File.WriteAllBytes(@"c:\Temp\" + name + ".dll", assemblyBytes);
 			try
 			{
-				Assembly loadedAssembly = Assembly.Load(assemblyBytes);
+				loadedAssembly = Assembly.Load(assemblyBytes);
 				Debug.Print("Assembly Loaded from bytes. FullName: {0}", loadedAssembly.FullName);
 				loadedAssemblies.Add(name, loadedAssembly);
 				return loadedAssembly;
@@ -128,6 +139,20 @@ namespace ExcelDna.Loader
             }
 			return ResourceHelper.LoadResourceBytes(hModule, typeName, resourceName);
 		}
+
+        // A copy of this method lives in ExcelDna.Integration - ExternalLibrary.cs
+        private static Assembly GetAssemblyIfLoaded(string assemblyName)
+        {
+            string testName = assemblyName.ToUpperInvariant();
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (Assembly loadedAssembly in assemblies)
+            {
+                string loadedAssemblyName = loadedAssembly.FullName.Split(',')[0].ToUpperInvariant();
+                if (loadedAssemblyName == testName)
+                    return loadedAssembly;
+            }
+            return null;
+        }
     }
 
     internal unsafe static class ResourceHelper

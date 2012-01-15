@@ -65,7 +65,7 @@ internal unsafe static class ResourceHelper
 			try
 			{
 				byte[] assBytes = File.ReadAllBytes(path);
-				// Not just into the Reflection context, bacause this Load is used to get the name and also to 
+				// Not just into the Reflection context, because this Load is used to get the name and also to 
 				// check that the assembly can Load from bytes (mixed assemblies can't).
 				Assembly ass = Assembly.Load(assBytes);
 				string name = ass.GetName().Name.ToUpperInvariant(); // .ToUpperInvariant().Replace(".", "_");
