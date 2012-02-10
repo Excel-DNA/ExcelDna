@@ -113,6 +113,7 @@ namespace ExcelDna.Integration
             set { _ShadowCopyFiles = value; }
         }
 
+        // Used directly by the unmanaged loader.
         // If not ('true' or 'false') the sandbox is created only under runtime versions >= 4
         private string _CreateSandboxedAppDomain;
         [XmlAttribute]

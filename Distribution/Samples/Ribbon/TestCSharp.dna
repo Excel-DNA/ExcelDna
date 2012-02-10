@@ -3,9 +3,11 @@
 <![CDATA[
 
 using System;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using ExcelDna.Integration.CustomUI;
 
+[ComVisible(true)]
 public class MyRibbon : ExcelRibbon
 {
 public void OnButtonPressed(IRibbonControl control)

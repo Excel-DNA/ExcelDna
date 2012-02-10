@@ -26,7 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Text;
+using System.Security;
 using Microsoft.Win32;
 using ExcelDna.Integration;
 using ExcelDna.ComInterop.ComRegistration;
@@ -43,7 +43,7 @@ namespace ExcelDna.ComInterop
     // using the =RTD(...) function.
     // TODO: Add explicit registration of types?
     // TODO: Add on-demand registration.
-    public class ComServer
+    public static class ComServer
     {
         // Internal COM Server support.
         static List<ExcelComClassType> registeredComClassTypes = new List<ExcelComClassType>();
@@ -115,6 +115,8 @@ namespace ExcelDna.ComInterop
 
     internal class ExcelComClassType
     {
+        static bool? _canWriteMachineHive = null;
+
         public Guid ClsId;
         public string ProgId;
         public Type Type;
@@ -123,31 +125,45 @@ namespace ExcelDna.ComInterop
 
         public void RegisterServer()
         {
+            // Registering under the user key is problematic when Excel runs under an elevated account, e.g. when "Run as Administrator" 
+            // or when UAC is disabled and the account is a member of local Adminstrators group.
+            // In these cases the COM activation will ignore the user hive of the registry.
+            // More info:
+            // http://blogs.msdn.com/b/cjacks/archive/2007/02/21/per-user-com-registrations-and-elevated-processes-with-uac-on-windows-vista.aspx
+            // and then changed in Vista SP1:
+            // http://blogs.msdn.com/b/cjacks/archive/2008/06/06/per-user-com-registrations-and-elevated-processes-with-uac-on-windows-vista-sp1.aspx
+            // http://blogs.msdn.com/b/cjacks/archive/2008/07/22/per-user-com-registrations-and-elevated-processes-with-uac-on-windows-vista-sp1-part-2-ole-automation.aspx
+
+            string rootKeyName = CanWriteMachineHive() ? "HKEY_CLASSES_ROOT" : @"HKEY_CURRENT_USER\Software\Classes";
+
             // Register the ProgId for CLSIDFromProgID.
             string clsIdString = ClsId.ToString("B").ToUpperInvariant();
-            Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\" + ProgId + @"\CLSID", null, clsIdString, RegistryValueKind.String);
-            Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\CLSID\" + clsIdString + @"\InProcServer32", null, DnaLibrary.XllPath, RegistryValueKind.String);
-            Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\CLSID\" + clsIdString + @"\InProcServer32", "ThreadingModel", "Both", RegistryValueKind.String);
-            Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\CLSID\" + clsIdString + @"\ProgID", null, ProgId, RegistryValueKind.String);
+            Registry.SetValue(rootKeyName + @"\" + ProgId + @"\CLSID", null, clsIdString, RegistryValueKind.String);
+            Registry.SetValue(rootKeyName + @"\CLSID\" + clsIdString + @"\InProcServer32", null, DnaLibrary.XllPath, RegistryValueKind.String);
+            Registry.SetValue(rootKeyName + @"\CLSID\" + clsIdString + @"\InProcServer32", "ThreadingModel", "Both", RegistryValueKind.String);
+            Registry.SetValue(rootKeyName + @"\CLSID\" + clsIdString + @"\ProgID", null, ProgId, RegistryValueKind.String);
 
             if (!string.IsNullOrEmpty(TypeLibPath))
             {
-                Guid? typeLibId = RegisterTypeLibrary();
+                Guid? typeLibId = RegisterTypeLibrary(rootKeyName);
                 if (typeLibId.HasValue)
                 {
-                    Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\CLSID\" + clsIdString + @"\TypeLib", 
+                    Registry.SetValue(rootKeyName + @"\CLSID\" + clsIdString + @"\TypeLib", 
                         null, typeLibId.Value.ToString("B").ToUpperInvariant(), RegistryValueKind.String);
                 }
             }
         }
-
+        
         public void UnregisterServer()
         {
+            RegistryKey rootKey = CanWriteMachineHive() ? Registry.ClassesRoot : 
+                Registry.CurrentUser.CreateSubKey(@"Software\Classes", RegistryKeyPermissionCheck.ReadWriteSubTree);
+
             if (!string.IsNullOrEmpty(TypeLibPath))
             {
                 try
                 {
-                    UnregisterTypeLibrary();
+                    UnregisterTypeLibrary(rootKey);
                 }
                 catch (Exception e)
                 {
@@ -156,7 +172,7 @@ namespace ExcelDna.ComInterop
             }
             try
             {
-                Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\" + ProgId);
+                rootKey.DeleteSubKeyTree(ProgId);
             }
             catch (Exception e1)
             {
@@ -164,7 +180,7 @@ namespace ExcelDna.ComInterop
             }
             try
             {
-                Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\CLSID\" + ClsId.ToString("B").ToUpperInvariant());
+                rootKey.DeleteSubKeyTree(@"CLSID\" + ClsId.ToString("B").ToUpperInvariant());
             }
             catch (Exception e2)
             {
@@ -172,7 +188,7 @@ namespace ExcelDna.ComInterop
             }
         }
 
-        public Guid? RegisterTypeLibrary()
+        private Guid? RegisterTypeLibrary(string rootKeyName)
         {
             ITypeLib typeLib;
             Guid libId;
@@ -183,7 +199,7 @@ namespace ExcelDna.ComInterop
             }
 
             string helpDir = System.IO.Path.GetDirectoryName(TypeLibPath);
-            if (!System.IO.Directory.Exists(helpDir))
+            if (helpDir != null && !System.IO.Directory.Exists(helpDir))
             {
                 helpDir = System.IO.Path.GetDirectoryName(DnaLibrary.XllPath);
             }
@@ -205,23 +221,23 @@ namespace ExcelDna.ComInterop
             typeLib.GetDocumentation(-1, out friendlyName, out docString, out helpContext, out helpFile);
             // string helpDir = System.IO.Path.GetDirectoryName(helpFile); // (or from TypeLibPath?)
 
-            Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\TypeLib\" + libIdString + @"\" + version, null, friendlyName, RegistryValueKind.String);
-            Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\TypeLib\" + libIdString + @"\" + version + @"\" + "FLAGS", null, typeLibAttr.wLibFlags, RegistryValueKind.DWord);
-            Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\TypeLib\" + libIdString + @"\" + version + @"\" + "HELPDIR", null, helpDir, RegistryValueKind.String);
+            Registry.SetValue(rootKeyName + @"\TypeLib\" + libIdString + @"\" + version, null, friendlyName, RegistryValueKind.String);
+            Registry.SetValue(rootKeyName + @"\TypeLib\" + libIdString + @"\" + version + @"\" + "FLAGS", null, typeLibAttr.wLibFlags, RegistryValueKind.DWord);
+            Registry.SetValue(rootKeyName + @"\TypeLib\" + libIdString + @"\" + version + @"\" + "HELPDIR", null, helpDir, RegistryValueKind.String);
             if (IntPtr.Size == 8)
             {
-                Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\TypeLib\" + libIdString + @"\" + version + @"\" + typeLibAttr.lcid.ToString() + @"\win64", null, TypeLibPath, RegistryValueKind.String);
+                Registry.SetValue(rootKeyName + @"\TypeLib\" + libIdString + @"\" + version + @"\" + typeLibAttr.lcid.ToString() + @"\win64", null, TypeLibPath, RegistryValueKind.String);
             }
             else
             {
-                Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\TypeLib\" + libIdString + @"\" + version + @"\" + typeLibAttr.lcid.ToString() + @"\win32", null, TypeLibPath, RegistryValueKind.String);
+                Registry.SetValue(rootKeyName + @"\TypeLib\" + libIdString + @"\" + version + @"\" + typeLibAttr.lcid.ToString() + @"\win32", null, TypeLibPath, RegistryValueKind.String);
             }
 
             typeLib.ReleaseTLibAttr(libAttrPtr);
             return libId;
         }
 
-        public void UnregisterTypeLibrary()
+        private void UnregisterTypeLibrary(RegistryKey rootKey)
         {
             try
             {
@@ -239,64 +255,57 @@ namespace ExcelDna.ComInterop
                 TYPELIBATTR typeLibAttr = (TYPELIBATTR)Marshal.PtrToStructure(libAttrPtr, typeof(TYPELIBATTR));
                 libId = typeLibAttr.guid;
 
-                Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\TypeLib\" + libId.ToString("B").ToUpperInvariant());
+                rootKey.DeleteSubKeyTree(@"TypeLib\" + libId.ToString("B").ToUpperInvariant());
 
                 typeLib.ReleaseTLibAttr(libAttrPtr);
-                return;
             }
             catch (Exception e)
             {
-                Debug.Print("TypeLibHelper.UnregisterServer error : " + e.ToString());
+                Debug.Print("TypeLibHelper.UnregisterServer error : " + e);
             }
         }
 
-        //private bool _disposed;
+        private static bool CanWriteMachineHive()
+        {
+            // This is not an easy question to answer, due to Regsitry Virtualization: http://msdn.microsoft.com/en-us/library/aa965884(v=vs.85).aspx
+            // So if registry virtualization is active, the machine writes will redirect to a special user key.
+            // I don't know how to detect that case, so we'll just write to the virtualized location.
 
-        //public TypeLibHelper(string typeLibPath)
-        //{
-        //    _disposed = false;
+            if (_canWriteMachineHive.HasValue)
+                return _canWriteMachineHive.Value;
 
-        //}
+            const string testKeyName = "_ExcelDna.PermissionsTest";
+            try
+            {
+                RegistryKey testKey = Registry.ClassesRoot.CreateSubKey(testKeyName, RegistryKeyPermissionCheck.ReadWriteSubTree);
+                if (testKey == null)
+                {
+                    Debug.Print("Unexpected failure in CanWriteMachineHive check");
+                    _canWriteMachineHive = false;
+                }
+                else
+                {
+                    Registry.ClassesRoot.DeleteSubKeyTree(testKeyName);
 
-        //public Guid LibId
-        //{
-        //    get;
-        //    set;
-        //}
-
-        
-
-        //private void Cleanup()
-        //{
-        //}
-
-        //#region Disposable => Cleanup()
-        //public void Dispose()
-        //{
-        //    Dispose(true);
-        //    GC.SuppressFinalize(this);
-        //}
-
-        //protected virtual void Dispose(bool disposing)
-        //{
-        //    // Not thread-safe...
-        //    if (!_disposed)
-        //    {
-        //        // if (disposing)
-        //        // {
-        //        //     // Here comes explicit free of other managed disposable objects.
-        //        // }
-
-        //        // Here comes clean-up
-        //        Cleanup();
-        //        _disposed = true;
-        //    }
-        //}
-
-        //~TypeLibHelper()
-        //{
-        //    Dispose(false);
-        //}
-        //#endregion
+                    // Looks fine, even though it might well be virtualized to some part of the user hive.
+                    // I'd have preferred to return false in the virtualized case, but don't know how to detect it.
+                    _canWriteMachineHive = true;
+                }
+            }
+            catch (UnauthorizedAccessException)
+            {
+                _canWriteMachineHive = false;
+            }
+            catch (SecurityException)
+            {
+                _canWriteMachineHive = false;
+            }
+            catch (Exception e)
+            {
+                Debug.Print("Unexpected exception in CanWriteMachineHive check: " + e);
+                _canWriteMachineHive = false;
+            }
+            return _canWriteMachineHive.Value;
+        }
     }
 }

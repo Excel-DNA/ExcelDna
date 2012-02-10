@@ -23,26 +23,17 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
 using System.Diagnostics;
-using System.Reflection;
-using System.IO;
-using System.Xml;
-using System.Drawing;
+using System.Runtime.InteropServices;
 using Microsoft.Win32;
-using ExcelDna.ComInterop;
 using ExcelDna.Integration;
-using ExcelDna.Integration.Rtd;
-using ExcelDna.Integration.CustomUI;
 using ExcelDna.Integration.Extensibility;
+using ExcelDna.Integration.Rtd;
 
-using HRESULT = System.Int32;
-using IID = System.Guid;
-using CLSID = System.Guid;
-using DWORD = System.UInt32;
+using CLSID     = System.Guid;
+using DWORD     = System.UInt32;
+using HRESULT   = System.Int32;
+using IID       = System.Guid;
 
 namespace ExcelDna.ComInterop.ComRegistration
 {
@@ -205,6 +196,9 @@ namespace ExcelDna.ComInterop.ComRegistration
 
     internal class ComAddInRegistration : Registration
     {
+        // Some care is needed here. See notes at ComServer.RegisterServer().
+        // This user-hive registration only always works because we are hosting the ClassFactory explicitly.
+
         private string _progId;
 
         public ComAddInRegistration(string progId, string friendlyName, string description)
