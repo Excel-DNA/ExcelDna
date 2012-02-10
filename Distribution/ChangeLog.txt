@@ -7,6 +7,7 @@ Version 0.30 (??????)
 * Fixed array marshaling pointer manipulation concern under 64-bit Excel.
 * Fixed check for derived attributes too - for backward compatibility with v. 0.25.
 * Fixed assembly multiple-loading problem for packed assemblies.
+* Fixed persistent COM registration (Regsv32.exe / ComServer.DllRegisterServer) to allow HKCR registration whenever possible (for UAC elevation issue).
 * Allow abstract base classes in ExcelRibbon class hierarchy. Now loads the first concrete descendent of ExcelRibbon as the ribbon handler.
 * Remove Obsolete class ExcelDna.Integration.Excel. (Use ExcelDnaUtil instead.) Allows smooth XlCall usage from VB.NET.
 * Allow external SourceItem packing.

@@ -1,11 +1,12 @@
 <DnaLibrary Name="Ribbon Tests" Description="Ribbon Tests Description (not used)">
    <![CDATA[
-  
+  Imports System.Runtime.InteropServices
   Imports Microsoft.Office.Core
   Imports ExcelDna.Integration.CustomUI
 
   ' Can make a class that implements ExcelDna.Integration.CustomUI.ExcelRibbon
   ' to get full Ribbon access.
+  <ComVisible(True)> _
   Public Class MyRibbon
     Inherits ExcelRibbon
     
