@@ -85,7 +85,9 @@ namespace ExcelDna.Loader
         XlBitXLFree = 0x1000,	// Unused so far
         XlBitDLLFree = 0x4000,
 
-        XlTypeBigData = XlTypeString | XlTypeInt	// Unused so far (IntPtr)
+        XlTypeBigData = XlTypeString | XlTypeInt	// Unused so far (IntPtr) 
+                                                    // Sometimes used by Excel to return a pointer
+                                                    // For example in xlGetInstPtr: http://msdn.microsoft.com/en-us/library/ff475872.aspx
     }
 
 	[StructLayout(LayoutKind.Explicit)]

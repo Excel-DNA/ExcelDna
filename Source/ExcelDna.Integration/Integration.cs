@@ -25,16 +25,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Reflection;
-using System.Runtime.InteropServices;
 
 namespace ExcelDna.Integration
 {
-    using HRESULT = System.Int32;
-    using IID = System.Guid;
-    using CLSID = System.Guid;
     using ExcelDna.ComInterop;
+    using HRESULT = Int32;
 
     // CAUTION: These functions are called _via reflection_ by
     // ExcelDna.Loader.XlLibrary to set up the link between the loader 
@@ -44,6 +40,7 @@ namespace ExcelDna.Integration
     internal delegate int TryExcelImplDelegate(int xlFunction, out object result, params object[] parameters);
     internal delegate void RegisterMethodsDelegate(List<MethodInfo> methods);
     internal delegate byte[] GetResourceBytesDelegate(string resourceName, int type); // types: 0 - Assembly, 1 - Dna file, 2 - Image
+    internal delegate void SyncMacroDelegate(double dValue);
 	public delegate object UnhandledExceptionHandler(object exceptionObject);
 
 	// TODO: Rename to ExcelDnaAddIn? and make obsolete - type name should not be the same as namespace name.
@@ -184,6 +181,21 @@ namespace ExcelDna.Integration
         internal static HRESULT DllCanUnloadNow()
         {
             return ComServer.DllCanUnloadNow();
+        }
+
+        // Implementation for SyncMacro
+        // CONSIDER: This could be a more direct registration?
+        static SyncMacroDelegate syncMacro = null;
+        internal static void SetSyncMacro(SyncMacroDelegate d)
+        {
+            syncMacro = d;
+        }
+
+        // Called via Reflection from Loader
+        internal static void SyncMacro(double dValue)
+        {
+            if (syncMacro != null)
+                syncMacro(dValue);
         }
     }
 

@@ -88,7 +88,7 @@ namespace ExcelDna.Integration
         {
             get
             {
-                if (_Name == null || _Name == "")
+                if (string.IsNullOrEmpty(_Name))
                 {
                     _Name = Path.GetFileNameWithoutExtension(_XllPath);
                 }

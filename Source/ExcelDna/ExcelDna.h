@@ -37,6 +37,7 @@ typedef short   (__stdcall *PFN_VOID_LPXLOPER12)(void*);
 typedef void*   (__stdcall *PFN_LPXLOPER_LPXLOPER)(void*);
 typedef void*   (__stdcall *PFN_LPXLOPER12_LPXLOPER12)(void*);
 typedef void    (__stdcall *PFN_PFNEXCEL12)(void*);
+typedef void    (__stdcall *PFN_VOID_DOUBLE)(double);
 typedef HRESULT (__stdcall *PFN_GET_CLASS_OBJECT)(CLSID clsid, IID iid, LPVOID* ppv);
 typedef HRESULT (__stdcall *PFN_HRESULT_VOID)();
 
@@ -56,6 +57,7 @@ struct XlAddInExportInfo
 	PFN_HRESULT_VOID			pDllUnregisterServer;
 	PFN_GET_CLASS_OBJECT		pDllGetClassObject;
 	PFN_HRESULT_VOID			pDllCanUnloadNow;
+	PFN_VOID_DOUBLE				pSyncMacro;
 	// The thunk table that hooks up the fxxx exports from the .xll with the marshaled function pointers.
 	INT32  ThunkTableLength;
 	PFN*   ThunkTable;           // Actually (PFN ThunkTable[EXPORT_COUNT])

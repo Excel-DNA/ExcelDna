@@ -76,7 +76,7 @@ extern "C"
 XlAddInExportInfo* CreateExportInfo()
 {
 	pExportInfo = new XlAddInExportInfo();
-	pExportInfo->ExportInfoVersion = 5;
+	pExportInfo->ExportInfoVersion = 6;
 	pExportInfo->AppDomainId = -1;
 	pExportInfo->pXlAutoOpen = NULL;
 	pExportInfo->pXlAutoClose = NULL;
@@ -88,6 +88,7 @@ XlAddInExportInfo* CreateExportInfo()
 	pExportInfo->pDllUnregisterServer = NULL;
 	pExportInfo->pDllGetClassObject = NULL;
 	pExportInfo->pDllCanUnloadNow = NULL;
+	pExportInfo->pSyncMacro = NULL;
 	pExportInfo->ThunkTableLength = EXPORT_COUNT;
 	pExportInfo->ThunkTable = (PFN*)thunks;
 	return pExportInfo;
@@ -363,6 +364,15 @@ extern "C"
 			result = pExportInfo->pDllCanUnloadNow();
 		}
 		return result;
+	}
+
+	void __stdcall SyncMacro(double param)
+	{
+		if (EnsureInitialized() && 
+			pExportInfo->pSyncMacro != NULL)
+		{
+			pExportInfo->pSyncMacro(param);
+		}
 	}
 }
 
