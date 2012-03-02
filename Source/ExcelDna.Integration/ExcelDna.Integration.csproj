@@ -63,6 +63,7 @@
     <Compile Include="ExcelRibbon.cs" />
     <Compile Include="ExcelError.cs" />
     <Compile Include="ExcelReference.cs" />
+    <Compile Include="ExcelSynchronizationContext.cs" />
     <Compile Include="ExportedAssembly.cs" />
     <Compile Include="ExternalLibrary.cs" />
     <Compile Include="IExcelAddIn.cs" />

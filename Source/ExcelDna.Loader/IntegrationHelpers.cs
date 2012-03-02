@@ -23,16 +23,13 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Reflection;
 
 namespace ExcelDna.Loader
 {
-    using HRESULT = System.Int32;
-    using IID = System.Guid;
-    using CLSID = System.Guid;
-    using System.Runtime.InteropServices;
+    using HRESULT = Int32;
+    using IID = Guid;
+    using CLSID = Guid;
 
     // This class has a friend in XlCustomMarshal.
     internal static class IntegrationHelpers
@@ -114,6 +111,11 @@ namespace ExcelDna.Loader
         internal static void DeInitializeIntegration()
         {
             integrationType.InvokeMember("DeInitialize", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, null);
+        }
+
+        internal static void SyncMacro(double dValue)
+        {
+            integrationType.InvokeMember("SyncMacro", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] {dValue});
         }
     }
 }

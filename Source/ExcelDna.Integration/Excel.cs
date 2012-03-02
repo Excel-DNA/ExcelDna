@@ -23,7 +23,6 @@
 */
 
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Diagnostics;
@@ -70,35 +69,11 @@ namespace ExcelDna.Integration
 		{
 			get
 			{
-				// CONSIDER: Process.GetCurrentProcess().MainWindowHandle;
 				if (_hWndExcel == IntPtr.Zero)
 				{
-                    if (ExcelDnaUtil.ExcelVersion < 12)
-                    {
-                        // Only have the loword so far.
-                        ushort loWord = (ushort)(double)XlCall.Excel(XlCall.xlGetHwnd);
-                        EnumWindows(delegate(IntPtr hWndEnum, IntPtr param)
-                            {
-                                // Check the loWord
-                                if (((uint)hWndEnum & 0x0000FFFF) == (uint)loWord)
-                                {
-                                    // Check the window class
-                                    StringBuilder cname = new StringBuilder(256);
-                                    GetClassNameW(hWndEnum, cname, cname.Capacity);
-                                    if (cname.ToString() == "XLMAIN")
-                                    {
-                                        _hWndExcel = hWndEnum;
-                                        return false;	// Stop enumerating
-                                    }
-                                }
-                                return true;	// Continue enumerating
-                            }, (IntPtr)0);
-                    }
-                    else
-                    {
-                        // TODO: 64-BIT - Check - This is clearly wrong.
-                        _hWndExcel = (IntPtr)(int)(double)XlCall.Excel(XlCall.xlGetHwnd);
-                    }
+                    // TODO: Check that this works even is Excel is invisible.
+                    // Else revert to previous plan.
+                    _hWndExcel = Process.GetCurrentProcess().MainWindowHandle;
 				}
 				return _hWndExcel;
 			}
@@ -106,9 +81,6 @@ namespace ExcelDna.Integration
 
         [ThreadStatic]
         private static object _application;
-        // CONSIDER: If we do load a COM Add-in for the Ribbon, should we keep that Application object 
-        // around for convenience?
-        // CONSIDER: Keep a WeakReference cache (per thread...), just for performance?
 		public static object Application
 		{
 			get
@@ -155,7 +127,7 @@ namespace ExcelDna.Integration
 			}
             internal set
             {
-                // Should only be set from Com Add-in connect.
+                // Should only be set from Com Add-in connect, and only on the main thread.
                 _application = value;
             }
 		}
@@ -226,39 +198,6 @@ namespace ExcelDna.Integration
 			return inFunctionWizard;
 		}
 
-		//private static double _xlVersion = 0;
-		//public static double ExcelVersion
-		//{
-		//    get
-		//    {
-		//        if (_xlVersion == 0)
-		//        {
-		//            object versionString;
-		//            versionString = XlCall.Excel(XlCall.xlfGetWorkspace, 2);
-		//            double version;
-		//            bool parseOK = double.TryParse((string)versionString, out version);
-		//            if (!parseOK)
-		//            {
-		//                // Might be locale problem 
-		//                // and Excel 12 returns versionString with "." as decimal sep.
-		//                //  ->  microsoft.public.excel.sdk thread
-		//                //      Excel4(xlfGetWorkspace, &version, 1, & arg) - Excel2007 Options 
-		//                //      Dec 12, 2006
-		//                parseOK = double.TryParse((string)versionString,
-		//                            System.Globalization.NumberStyles.AllowDecimalPoint,
-		//                            System.Globalization.NumberFormatInfo.InvariantInfo,
-		//                            out version);
-		//            }
-		//            if (!parseOK)
-		//            {
-		//                version = 0.99;
-		//            }
-		//            _xlVersion = version;
-		//        }
-		//        return _xlVersion;
-		//    }
-		//}
-
 		// Updated for International Excel - Thanks to Martin Drecher
 		private static double _xlVersion = 0;
 		public static double ExcelVersion
@@ -274,8 +213,7 @@ namespace ExcelDna.Integration
                         string versionString = System.Text.RegularExpressions.Regex.Match((string)versionObject, "^\\d+(\\.\\d+)?").Value;
                         double version;
                         if (!String.IsNullOrEmpty(versionString) &&
-                            Double.TryParse(versionString, System.Globalization.NumberStyles.Any,
-                                            System.Globalization.CultureInfo.InvariantCulture, out version))
+                            Double.TryParse(versionString, NumberStyles.Any, CultureInfo.InvariantCulture, out version))
                         {
                             _xlVersion = version;
                         }
@@ -293,6 +231,22 @@ namespace ExcelDna.Integration
                         {
                             // TODO: How to get the real version here...?
                             _xlVersion = 14.0;
+                        }
+                        else
+                        {
+                            // Maybe we are loading a COM Server or an RTD Server before the add-in is loaded.
+                            try
+                            {
+                                object xlApp = ExcelDnaUtil.Application;
+                                object result = xlApp.GetType().InvokeMember("Version",
+                                                                             System.Reflection.BindingFlags.GetProperty,
+                                                                             null, xlApp, null, new CultureInfo(1033));
+                                _xlVersion = double.Parse((string)result, NumberStyles.Any, CultureInfo.InvariantCulture);
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.Print("Failed to get Excel version - " + ex);
+                            }
                         }
                     }
 				}

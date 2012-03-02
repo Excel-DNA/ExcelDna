@@ -26,9 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using System.Reflection;
-using System.Runtime.Remoting;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Permissions;
@@ -39,6 +37,7 @@ namespace ExcelDna.Loader
     using HRESULT = System.Int32;
     using IID = System.Guid;
     using CLSID = System.Guid;
+    internal delegate void fn_void_double(double dValue);
     internal delegate short fn_short_void();
     internal delegate void fn_void_intptr(IntPtr intPtr);
     internal delegate IntPtr fn_intptr_intptr(IntPtr intPtr);
@@ -49,7 +48,7 @@ namespace ExcelDna.Loader
     internal struct XlAddInExportInfo
     {
         #pragma warning disable 0649 // Field 'field' is never assigned to, and will always have its default value 'value'
-        internal Int32 ExportInfoVersion; // Must be 4 for this version
+        internal Int32 ExportInfoVersion; // Must be 6 for this version
         internal Int32 AppDomainId; // Id of the Sandbox AppDomain where the add-in runs.
         internal IntPtr /* PFN_SHORT_VOID */ pXlAutoOpen;
         internal IntPtr /* PFN_SHORT_VOID */ pXlAutoClose;
@@ -61,6 +60,7 @@ namespace ExcelDna.Loader
         internal IntPtr /* PFN_HRESULT_VOID */ pDllUnregisterServer;
         internal IntPtr /* PFN_GET_CLASS_OBJECT */ pDllGetClassObject;
         internal IntPtr /* PFN_HRESULT_VOID */ pDllCanUnloadNow;
+        internal IntPtr /* PFN_VOID_DOUBLE */ pSyncMacro;
         internal Int32 ThunkTableLength;  // Must be EXPORT_COUNT
         internal IntPtr /*PFN*/ ThunkTable; // Actually (PFN ThunkTable[EXPORT_COUNT])
         #pragma warning restore 0649
@@ -100,7 +100,7 @@ namespace ExcelDna.Loader
             Debug.Print("InitializationInfo Address: 0x{0:x8}", xlAddInExportInfoAddress);
 			
 			XlAddInExportInfo* pXlAddInExportInfo = (XlAddInExportInfo*)xlAddInExportInfoAddress;
-            if (pXlAddInExportInfo->ExportInfoVersion != 5)
+            if (pXlAddInExportInfo->ExportInfoVersion != 6)
             {
                 Debug.Print("ExportInfoVersion not supported.");
                 return false;
@@ -145,6 +145,10 @@ namespace ExcelDna.Loader
             fn_hresult_void fnDllCanUnloadNow = (fn_hresult_void)DllCanUnloadNow;
             GCHandle.Alloc(fnDllCanUnloadNow);
             pXlAddInExportInfo->pDllCanUnloadNow = Marshal.GetFunctionPointerForDelegate(fnDllCanUnloadNow);
+
+            fn_void_double fnSyncMacro = (fn_void_double)SyncMacro;
+            GCHandle.Alloc(fnSyncMacro);
+            pXlAddInExportInfo->pSyncMacro = Marshal.GetFunctionPointerForDelegate(fnSyncMacro);
 
             // Thunk table for registered functions
             thunkTableLength = pXlAddInExportInfo->ThunkTableLength;
@@ -428,6 +432,12 @@ namespace ExcelDna.Loader
             InitializeIntegration();
             return IntegrationHelpers.DllCanUnloadNow();
         }
+
+        internal static void SyncMacro(double dValue)
+        {
+            if (_initialized)
+                IntegrationHelpers.SyncMacro(dValue);
+        }
         #endregion
 
         // TODO: Migrate registration to ExcelDna.Integration
@@ -477,11 +487,34 @@ namespace ExcelDna.Loader
                 if (pi.Description != "")
                     showDescriptions = true;
 
-                // DOCUMENT: Here is the patch for the Excel Function Description bug.
-                // DOCUMENT: I add ". " to the last parameters.
-                if (j == mi.Parameters.Length - 1)
-                    argumentDescriptions[j] += ". ";
+                // DOCUMENT: Truncate the argument description if it exceeds the Excel limit of 255 characters
+                if (j < mi.Parameters.Length - 1)
+                {
+                    if (!string.IsNullOrEmpty(argumentDescriptions[j]) &&
+                        argumentDescriptions[j].Length > 255)
+                    {
+                        argumentDescriptions[j] = argumentDescriptions[j].Substring(0, 255);
+                        Debug.Print("Truncated argument description of {0} in method {1} as Excel limit was exceeded",
+                                    pi.Name, mi.Name);
+                    }
+                }
+                else
+                {
+                    // Last argument - need to deal with extra ". "
+                    if (!string.IsNullOrEmpty(argumentDescriptions[j]))
+                    {
+                        if (argumentDescriptions[j].Length > 253)
+                        {
+                            argumentDescriptions[j] = argumentDescriptions[j].Substring(0, 253);
+                            Debug.Print("Truncated field description of {0} in method {1} as Excel limit was exceeded",
+                                        pi.Name, mi.Name);
+                        }
 
+                        // DOCUMENT: Here is the patch for the Excel Function Description bug.
+                        // DOCUMENT: I add ". " to the last parameter.
+                        argumentDescriptions[j] += ". ";
+                    }
+                }
             } // for each parameter
 
             if (mi.IsClusterSafe && ProcessHelper.SupportsClusterSafe)
@@ -614,14 +647,14 @@ namespace ExcelDna.Loader
 
         private static void RegisterMenu(XlMethodInfo mi)
         {
-            if (mi.MenuName != null && mi.MenuName != ""
-                && mi.MenuText != null && mi.MenuText != "")
+            if (!string.IsNullOrEmpty(mi.MenuName) &&
+                !string.IsNullOrEmpty(mi.MenuText))
             {
                 IntegrationHelpers.AddCommandMenu(mi.Name, mi.MenuName, mi.MenuText, mi.Description, mi.ShortCut, mi.HelpTopic);
             }
         }
 
-        internal static void UnregisterMethods()
+        static void UnregisterMethods()
         {
             object xlCallResult;
 

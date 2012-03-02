@@ -153,6 +153,7 @@ namespace ExcelDna.Integration
                         info.AutoCloseMethod = addInType.GetMethod("AutoClose");
                     }
                     info.IsCustomUI = isRibbon;
+                    // TODO: Consider how to handle exception from constructors here.
                     info.Instance = Activator.CreateInstance(t);
                     info.ParentDnaLibrary = assembly.ParentDnaLibrary;
                     addIns.Add(info);

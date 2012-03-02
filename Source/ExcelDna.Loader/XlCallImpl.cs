@@ -103,7 +103,7 @@ namespace ExcelDna.Loader
             return TryExcelImpl12(xlFunction, out result, parameters);
         }
 
-        private static void FetchExcel12EntryPt()
+        private unsafe static void FetchExcel12EntryPt()
         {
             if (Excel12v == null)
             {
@@ -122,7 +122,7 @@ namespace ExcelDna.Loader
             }
         }
 
-        internal static void SetExcel12EntryPt(IntPtr pfnExcel12v)
+        internal unsafe static void SetExcel12EntryPt(IntPtr pfnExcel12v)
         {
             Debug.Print("SetExcel12EntryPt called.");
             FetchExcel12EntryPt();
