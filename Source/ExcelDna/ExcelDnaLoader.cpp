@@ -256,6 +256,7 @@ HRESULT LoadClr(CString clrVersion, ICorRuntimeHost **ppHost)
 	if (hMscoree == 0)
 	{
 		// No .Net installed
+		// CONSIDER: Doing explicit checking according to http://support.microsoft.com/kb/318785
 		if (needNet40)
 		{
 				ShowMessage(IDS_MSG_HEADER_NEEDCLR40, 

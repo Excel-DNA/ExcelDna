@@ -69,17 +69,73 @@ namespace ExcelDna.Integration
 		{
 			get
 			{
-				if (_hWndExcel == IntPtr.Zero)
-				{
-                    // TODO: Check that this works even is Excel is invisible.
-                    // Else revert to previous plan.
-                    _hWndExcel = Process.GetCurrentProcess().MainWindowHandle;
-				}
-				return _hWndExcel;
+                // Return cached value if we have one
+				if (_hWndExcel != IntPtr.Zero) return _hWndExcel;
+
+                // Try to get it the easy way from the Process info
+                // (doesn't work if Excel is not visible yet)
+                _hWndExcel = Process.GetCurrentProcess().MainWindowHandle;
+                if (_hWndExcel != IntPtr.Zero) return _hWndExcel;
+
+                // Else get via the C API
+                ushort loWord;
+                if (ExcelDnaUtil.ExcelVersion >= 12)
+                {
+                    // Excel 2007+ - should get whole handle ...
+                    IntPtr hWnd = (IntPtr) (int) (double) XlCall.Excel(XlCall.xlGetHwnd);
+                    // ... but this call is not reliable - so check if we got an Excel window ...
+                    if (IsAnExcelWindow(hWnd))
+                    {
+                        _hWndExcel = hWnd;
+                        return _hWndExcel;
+                    }
+
+                    // Else go the lo-Word check
+                    loWord = (ushort)hWnd;
+                }
+                else
+                {
+                    // Excel < 2007 - only have the loword so far.
+                    loWord = (ushort)(double) XlCall.Excel(XlCall.xlGetHwnd);
+                }
+			    _hWndExcel = FindAnExcelWindow(loWord);
+
+                // Might still be null...!
+                if (_hWndExcel == IntPtr.Zero)
+                {
+                    Debug.Print("Failed to get Excel WindowHandle.");
+                }
+			    return _hWndExcel;
 			}
 		}
 
-        [ThreadStatic]
+        // Check if hWnd refers to a Window of class "XLMAIN" indicating and Excel top-level window.
+        static bool IsAnExcelWindow(IntPtr hWnd)
+        {
+            StringBuilder cname = new StringBuilder(256);
+            GetClassNameW(hWnd, cname, cname.Capacity);
+            return cname.ToString() == "XLMAIN";
+        }
+
+        // Try to find an Excel window with window handle that matches the passed lo word.
+        static IntPtr FindAnExcelWindow(ushort hWndLoWord)
+        {
+            IntPtr hWnd = IntPtr.Zero;
+            EnumWindows(delegate(IntPtr hWndEnum, IntPtr param)
+            {
+                // Check the loWord
+                if (((uint)hWndEnum & 0x0000FFFF) == (uint)hWndLoWord &&
+                    IsAnExcelWindow(hWndEnum))
+                {
+                    hWnd = hWndEnum;
+                    return false;  // Stop enumerating
+                }
+                return true;  // Continue enumerating
+            }, (IntPtr)0);
+            return hWnd;
+        }
+
+	    [ThreadStatic]
         private static object _application;
 		public static object Application
 		{
@@ -88,9 +144,14 @@ namespace ExcelDna.Integration
                 // Check for a cached one set by a ComAddIn.
                 if (_application != null) return _application;
 
+
+                // Get main window as well as we can.
+                IntPtr hWndMain = WindowHandle;
+                if (hWndMain == IntPtr.Zero) return null;   // This is a problematic error case!
+
                 // Don't cache the one we get from the Window, it keeps Excel alive!
                 object application;
-                application = GetApplicationFromWindow();
+                application = GetApplicationFromWindow(hWndMain);
                 if (application == null)
                 {
                     // I assume it failed because there was no workbook open
@@ -108,7 +169,7 @@ namespace ExcelDna.Integration
                     XlCall.XlReturn result = XlCall.TryExcel(XlCall.xlGetName, out output);
                     if (result == XlCall.XlReturn.XlReturnFailed)
                     {
-                        // no plan for getting Application.
+                        // no plan for getting Application (we're probably on a different thread?)
                         throw new InvalidOperationException("Excel API is unavailable - cannot retrieve Application object.");
                     }
 
@@ -117,7 +178,8 @@ namespace ExcelDna.Integration
                     XlCall.Excel(XlCall.xlcNew, 5);
                     XlCall.Excel(XlCall.xlcWorkbookInsert, 6);
 
-                    application = GetApplicationFromWindow();
+                    // Try again
+                    application = GetApplicationFromWindow(hWndMain);
 
                     // Clean up
                     XlCall.Excel(XlCall.xlcFileClose, false);
@@ -132,11 +194,10 @@ namespace ExcelDna.Integration
             }
 		}
 
-		private static object GetApplicationFromWindow()
+		private static object GetApplicationFromWindow(IntPtr hWndMain)
 		{
 			// This is Andrew Whitechapel's plan for getting the Application object.
 			// It does not work when there are no Workbooks open.
-			IntPtr hWndMain = WindowHandle;
 			IntPtr hWndChild = IntPtr.Zero;
 			EnumChildWindows(hWndMain, delegate(IntPtr hWndEnum, IntPtr param)
 			{

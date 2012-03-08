@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -9,36 +10,36 @@ using ExcelDna.Integration.Rtd;
 
 namespace ExcelDna.Integration
 {
+    // Action is not defined in .NET 2.0 ?
+    public delegate void MacroAction();
+
+    public static class AsyncUtil
+    {
+        public static void QueueMacro(string macroName)
+        {
+            QueueAsMacro(delegate { XlCall.Excel(XlCall.xlcRun, macroName); });
+        }
+
+        public static void QueueAsMacro(MacroAction action)
+        {
+            if (!SynchronizationManager.IsRegistered)
+                throw new InvalidOperationException("SynchronizationManager is not registered.");
+
+            SynchronizationManager.SynchronizationWindow.RunAsMacroAsync(delegate { action(); }, null);
+        }
+    }
+
+    // TODO: How to deal with 'installing' etc.
+    // CONSIDER: Do we want these to run 'as macro', or just run on the main thread?
     public class ExcelSynchronizationContext : SynchronizationContext
     {
-        static SynchronizationWindow _syncWindow;
-
-        // TODO: Do we need reference counts to manage the Register / Unregister?
-        public void Register()
-        {
-            // TODO: Check whether we are running on the main Excel thread.
-            if (_syncWindow == null)
-            {
-                _syncWindow = new SynchronizationWindow();
-                _syncWindow.Register();
-            }
-        }
-
-        public void Unregister()
-        {
-            _syncWindow.Unregister();
-            _syncWindow = null;
-        }
-
-        public override void Send(SendOrPostCallback d, object state)
-        {
-            // We can get SyncMacro to run.
-            // SynchronizationWindow.
-        }
-
         public override void Post(SendOrPostCallback d, object state)
         {
-            
+            if (!SynchronizationManager.IsRegistered)
+                throw new InvalidOperationException("SynchronizationManager is not registered.");
+
+            SynchronizationManager.SynchronizationWindow.RunAsMacroAsync(d, state);
+
         }
     }
 
@@ -46,20 +47,24 @@ namespace ExcelDna.Integration
     // TODO: Make this into a static class?
     internal sealed class SynchronizationWindow : NativeWindow, IDisposable
     {
-        object _lockObject = new object();
-        // We'll use the Key collection of a Dictionary as a HashSet (which is not available on .NET 2.0).
-        Dictionary<IRTDUpdateEvent, object> _pendingRtdUpdates = new Dictionary<IRTDUpdateEvent,object>();
-
+        [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
+        public static extern IntPtr SetTimer(HandleRef hWnd, int nIDEvent, int uElapse, IntPtr lpTimerFunc);
+        [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
+        public static extern bool KillTimer(HandleRef hwnd, int idEvent);
         [DllImport("user32.dll")]
         static extern bool PostMessage(HandleRef hwnd, int msg, IntPtr wparam, IntPtr lparam);
-        [DllImport("user32.dll")]
-        static extern IntPtr SendMessage(HandleRef hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+        object _lockObject = new object();
+        int _timerId;
+        // We'll use the Key collection of a Dictionary as a HashSet (which is not available on .NET 2.0).
+        Dictionary<IRTDUpdateEvent, object> _pendingRtdUpdates = new Dictionary<IRTDUpdateEvent, object>();
 
         readonly IntPtr HWND_MESSAGE = (IntPtr)(-3);
+        const int WM_TIMER = 0x0113;
         const int WM_USER = 0x400;
-        const int WM_UPDATENOTIFY   = WM_USER + 1;
-        const int WM_SYNCMACRO_0 = WM_USER + 2;
-        const int WM_SYNCMACRO_1 = WM_USER + 3;
+        const int WM_UPDATENOTIFY = WM_USER + 1;
+        const int WM_SYNCMACRO = WM_USER + 2;
+        const int RETRY_INTERVAL_MS = 250;
 
         public SynchronizationWindow()
         {
@@ -70,6 +75,7 @@ namespace ExcelDna.Integration
             CreateHandle(cp);
         }
 
+        #region RTD UpdateNotify support
         // Support for pushing UpdateNotify onto the main thread.
         // TODO: How do we know that the RTD server is still alive when 
         public void UpdateNotify(IRTDUpdateEvent updateEvent)
@@ -91,33 +97,85 @@ namespace ExcelDna.Integration
                 _pendingRtdUpdates.Remove(updateEvent);
             }
         }
+        #endregion
 
-        public void RunSyncMacro(SendOrPostCallback d, object state)
-        {
-            lock (_sendOrPostLock)
-            {
-                Debug.Assert(_sendCallback == null);
-                _sendCallback = d;
-                _sendState = state;
-                SendMessage(new HandleRef(this, Handle), WM_SYNCMACRO_0, IntPtr.Zero, IntPtr.Zero);
-            }
-        }
-
-        public void RunSyncMacroAsync(SendOrPostCallback d, object state)
+        public void RunAsMacroAsync(SendOrPostCallback d, object state)
         {
             lock (_sendOrPostLock)
             {
                 _postCallbacks.Enqueue(d);
                 _postStates.Enqueue(d);
-                PostMessage(new HandleRef(this, Handle), WM_SYNCMACRO_1, IntPtr.Zero, IntPtr.Zero);
+
+                // CAREFUL: This check needs to be in the same lock used in SyncMacro when running
+                if (!_isRunningMacros)
+                    PostMessage(new HandleRef(this, Handle), WM_SYNCMACRO, IntPtr.Zero, IntPtr.Zero);
             }
         }
 
-        void ProcessRunSyncMacro(double dValue)
+        void ProcessRunSyncMacro()
         {
-            // To safely transition to Excel's macro-running context. we 
-            object app = ExcelDnaUtil.Application;
-            app.GetType().InvokeMember("Run", BindingFlags.InvokeMethod, null, app, new object[] {_syncMacroName, dValue}, new System.Globalization.CultureInfo(1033));
+            try
+            {
+                bool runOK = COMRunMacro();
+                if (!runOK && _timerId == 0)
+                {
+                    // Timer not yet set - start it
+                    // Timer will be stopped when SyncMacro actually runs.
+                    IntPtr result = SetTimer(new HandleRef(this, Handle), _timerId++, RETRY_INTERVAL_MS, IntPtr.Zero);
+                    if (result == IntPtr.Zero)
+                    {
+                        // TODO: Handle unexpected error in setting timer
+                        Debug.Print("SynchronizationWindow timer could not be set.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // TODO: Handle unexpected error
+                Debug.Print("Unexpected error trying to run SyncMacro: " + ex);
+                return;
+            }
+        }
+
+        bool COMRunMacro()
+        {
+            object xlApp = null;
+            try
+            {
+                xlApp = ExcelDnaUtil.Application;
+                xlApp.GetType().InvokeMember("Run", BindingFlags.InvokeMethod, null, xlApp, new object[] { _syncMacroName, 0.0 });
+                return true;
+            }
+            catch (TargetInvocationException tie)
+            {
+                COMException cex = tie.InnerException as COMException;
+                if (cex != null && IsRetry(cex))
+                    return false;
+
+                // Unexpected error
+                throw;
+            }
+            finally
+            {
+                if (xlApp != null) Marshal.ReleaseComObject(xlApp);
+            }
+        }
+
+        const uint RPC_E_SERVERCALL_RETRYLATER = 0x8001010A;
+        const uint VBA_E_IGNORE = 0x800AC472;
+        const uint UNKNOWN_COM_CALL_ERROR = 0x800A03EC;
+        static bool IsRetry(COMException e)
+        {
+            uint errorCode = (uint)e.ErrorCode;
+            switch (errorCode)
+            {
+                case RPC_E_SERVERCALL_RETRYLATER:
+                case VBA_E_IGNORE:
+                case UNKNOWN_COM_CALL_ERROR:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         void ProcessUpdateNotifications()
@@ -132,18 +190,16 @@ namespace ExcelDna.Integration
             }
         }
 
-        protected override void WndProc(ref Message m) 
+        protected override void WndProc(ref Message m)
         {
             switch (m.Msg)
             {
                 case WM_UPDATENOTIFY:
                     ProcessUpdateNotifications();
                     break;
-                case WM_SYNCMACRO_0:
-                    ProcessRunSyncMacro(0);
-                    break;
-                case WM_SYNCMACRO_1:
-                    ProcessRunSyncMacro(1);
+                case WM_SYNCMACRO:
+                case WM_TIMER:
+                    ProcessRunSyncMacro();
                     break;
                 default:
                     base.WndProc(ref m);
@@ -151,79 +207,84 @@ namespace ExcelDna.Integration
             }
         }
 
+        bool _isRunningMacros = false;
         string _syncMacroName;
         object _syncMacroRegistrationId = null;
-
-        SendOrPostCallback _sendCallback;
-        object _sendState;
 
         Queue<SendOrPostCallback> _postCallbacks = new Queue<SendOrPostCallback>();
         Queue<Object> _postStates = new Queue<Object>();
 
         object _sendOrPostLock = new object();
 
-        void SyncMacro(double dValue)
+        void SyncMacro(double _unused_)
         {
-            Debug.Print("SyncMacro called on thread: " + Thread.CurrentThread.ManagedThreadId);
-            SendOrPostCallback work;
-            object state;
-            if (dValue == 0.0)
+            // Check for timer and disable
+            if (_timerId != 0)
             {
-                // SendMessage
-                lock (_sendOrPostLock)
-                {
-                    work = _sendCallback;
-                    state = _sendState;
-                    _sendCallback = null;
-                    _sendState = null;
-                }
+                KillTimer(new HandleRef(this, Handle), _timerId);
+                _timerId = 0;
             }
-            else if (dValue == 1.0)
+            // Run everything currently in the queue
+            _isRunningMacros = true;
+            while (_isRunningMacros)
             {
+                SendOrPostCallback work = null;
+                object state = null;
                 // PostMessage
                 lock (_sendOrPostLock)
                 {
-                    work = _postCallbacks.Dequeue();
-                    state = _postStates.Dequeue();
+                    _isRunningMacros = _postCallbacks.Count > 0;
+                    if (_isRunningMacros)
+                    {
+                        work = _postCallbacks.Dequeue();
+                        state = _postStates.Dequeue();
+                    }
+                }
+                if (_isRunningMacros)
+                {
+                    try
+                    {
+                        work(state);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Print("Async delegate exception: " + ex);
+                    }
                 }
             }
-            else
-            {
-                Debug.Fail("Unexpected SyncMacro argument: " + dValue);
-                return;
-            }
-            work(state);
         }
 
-        // CONSIDER: Move this to Integration class?
-        void RegisterSyncMacro(string name, SyncMacroDelegate syncMacro)
+        public void Register()
         {
-            Integration.SetSyncMacro(syncMacro);
+            // We must not be in a function when this is run.
+            _syncMacroName = "SyncMacro_" + Guid.NewGuid().ToString("N");
+            Integration.SetSyncMacro(SyncMacro);
 
             object[] registerParameters = new object[6];
             registerParameters[0] = DnaLibrary.XllPath;
             registerParameters[1] = "SyncMacro";
-            registerParameters[2] = ">B"; // Takes double, abuse in-place flag '>'
-            registerParameters[3] = name;
+            registerParameters[2] = ">B"; // Takes double, abuse in-place flag '>' to return void
+            registerParameters[3] = _syncMacroName;
             registerParameters[4] = "value";
             registerParameters[5] = 2; // macro
-            _syncMacroRegistrationId = XlCall.Excel(XlCall.xlfRegister, registerParameters);
-        }
 
-        // Don't want to call it 'Install' since that is used for installing the SynchronizationContext as the 'Current' SyncContext in the thread.
-        public void Register()
-        {
-            _syncMacroName = "SyncMacro_" + Guid.NewGuid().ToString("N");
-            RegisterSyncMacro(_syncMacroName, SyncMacro);
+            object xlCallResult;
+            XlCall.TryExcel(XlCall.xlfRegister, out xlCallResult, registerParameters);
+            Debug.Print("Register - XllPath={0}, ProcName={1}, FunctionType={2}, MethodName={3} - Result={4}", registerParameters[0], registerParameters[1], registerParameters[2], registerParameters[3], xlCallResult);
+            if (xlCallResult is double)
+            {
+                _syncMacroRegistrationId = (double)xlCallResult;
+            }
+            else
+            {
+                throw new InvalidOperationException("Synchronization macro registration failed.");
+            }
         }
 
         public void Unregister()
         {
-            if (_syncMacroRegistrationId != null)
-            {
-                XlCall.Excel(XlCall.xlfUnregister, _syncMacroRegistrationId);
-                _syncMacroRegistrationId = null;
-            }
+            XlCall.Excel(XlCall.xlfUnregister, _syncMacroRegistrationId);
+            _syncMacroRegistrationId = null;
         }
 
         ~SynchronizationWindow()
@@ -242,5 +303,44 @@ namespace ExcelDna.Integration
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+    }
+
+    public static class SynchronizationManager
+    {
+        static SynchronizationWindow _syncWindow;
+
+        // Don't want to call it 'Install' since that is used for installing the SynchronizationContext as the 'Current' SyncContext in the thread.
+        // TODO: Check that this happens on the main Excel thread, and not in a 'function' context.
+        public static void Register()
+        {
+            if (_syncWindow == null)
+            {
+                _syncWindow = new SynchronizationWindow();
+                _syncWindow.Register();
+            }
+        }
+
+        // TODO: Check that this happens on the main Excel thread.
+        public static void Unregister()
+        {
+            if (_syncWindow != null)
+            {
+                _syncWindow.Unregister();
+
+                _syncWindow = null;
+            }
+        }
+
+        public static bool IsRegistered
+        {
+            get { return (_syncWindow != null); }
+        }
+
+        internal static SynchronizationWindow SynchronizationWindow
+        {
+            get { return _syncWindow; }
+        }
+
+
     }
 }
