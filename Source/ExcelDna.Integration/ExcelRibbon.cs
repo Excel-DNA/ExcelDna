@@ -136,7 +136,7 @@ namespace ExcelDna.Integration.CustomUI
             {
                 // CONSIDER: Is this a danger for shutting down - surely not...?
                 object app = ExcelDnaUtil.Application;
-                app.GetType().InvokeMember("Run", BindingFlags.InvokeMethod, null, app, new object[] { control.Tag }, new System.Globalization.CultureInfo(1033));
+                app.GetType().InvokeMember("Run", BindingFlags.InvokeMethod, null, app, new object[] { control.Tag }, new CultureInfo(1033));
             }
         }
     }
