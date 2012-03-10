@@ -1,0 +1,171 @@
+﻿<DnaLibrary Language="VB">
+<![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Reflection
+Imports System.Runtime.InteropServices
+Imports System.Threading
+Imports ExcelDna.Integration
+
+Public NotInheritable Class ResizeTest
+	Private Sub New()
+	End Sub
+	Public Shared Function MakeArray(rows As Integer, columns As Integer) As Object
+		Dim result As Object(,) = New String(rows - 1, columns - 1) {}
+		For i As Integer = 0 To rows - 1
+			For j As Integer = 0 To columns - 1
+				result(i, j) = String.Format("({0},{1})", i, j)
+			Next
+		Next
+
+		Return result
+	End Function
+
+	Public Shared Function MakeArrayAndResize(rows As Integer, columns As Integer) As Object
+		Dim result As Object = MakeArray(rows, columns)
+		' Call Resize via Excel - so if the Resize add-in is not part of this code, it should still work.
+		Return XlCall.Excel(XlCall.xlUDF, "Resize", result)
+	End Function
+End Class
+
+Public Class Resizer
+	Shared ResizeJobs As New Queue(Of ExcelReference)()
+
+	' This function will run in the UDF context.
+	' Needs extra protection to allow multithreaded use.
+	Public Shared Function Resize(array As Object(,)) As Object
+		Dim caller As ExcelReference = TryCast(XlCall.Excel(XlCall.xlfCaller), ExcelReference)
+		If caller Is Nothing Then
+			Return array
+		End If
+
+		Dim rows As Integer = array.GetLength(0)
+		Dim columns As Integer = array.GetLength(1)
+
+		If (caller.RowLast - caller.RowFirst + 1 <> rows) OrElse (caller.ColumnLast - caller.ColumnFirst + 1 <> columns) Then
+			' Size problem: enqueue job, call async update and return #N/A
+			' TODO: Add guard for ever-changing result?
+			EnqueueResize(caller, rows, columns)
+			AsyncRunMacro("DoResizing")
+			Return ExcelError.ExcelErrorNA
+		End If
+
+		' Size is already OK - just return result
+		Return array
+	End Function
+
+	Private Shared Sub EnqueueResize(caller As ExcelReference, rows As Integer, columns As Integer)
+		Dim target As New ExcelReference(caller.RowFirst, caller.RowFirst + rows - 1, caller.ColumnFirst, caller.ColumnFirst + columns - 1, caller.SheetId)
+		ResizeJobs.Enqueue(target)
+	End Sub
+
+	Public Shared Sub DoResizing()
+		While ResizeJobs.Count > 0
+			DoResize(ResizeJobs.Dequeue())
+		End While
+	End Sub
+
+	Private Shared Sub DoResize(target As ExcelReference)
+		Try
+			' Get the current state for reset later
+
+			XlCall.Excel(XlCall.xlcEcho, False)
+
+			' Get the formula in the first cell of the target
+			Dim formula As String = DirectCast(XlCall.Excel(XlCall.xlfGetCell, 41, target), String)
+			Dim firstCell As New ExcelReference(target.RowFirst, target.RowFirst, target.ColumnFirst, target.ColumnFirst, target.SheetId)
+
+			Dim isFormulaArray As Boolean = CBool(XlCall.Excel(XlCall.xlfGetCell, 49, target))
+			If isFormulaArray Then
+				Dim oldSelectionOnActiveSheet As Object = XlCall.Excel(XlCall.xlfSelection)
+				Dim oldActiveCell As Object = XlCall.Excel(XlCall.xlfActiveCell)
+
+				' Remember old selection and select the first cell of the target
+				Dim firstCellSheet As String = DirectCast(XlCall.Excel(XlCall.xlSheetNm, firstCell), String)
+				XlCall.Excel(XlCall.xlcWorkbookSelect, New Object() {firstCellSheet})
+				Dim oldSelectionOnArraySheet As Object = XlCall.Excel(XlCall.xlfSelection)
+				XlCall.Excel(XlCall.xlcFormulaGoto, firstCell)
+
+				' Extend the selection to the whole array and clear
+				XlCall.Excel(XlCall.xlcSelectSpecial, 6)
+				Dim oldArray As ExcelReference = DirectCast(XlCall.Excel(XlCall.xlfSelection), ExcelReference)
+
+				oldArray.SetValue(ExcelEmpty.Value)
+				XlCall.Excel(XlCall.xlcSelect, oldSelectionOnArraySheet)
+				XlCall.Excel(XlCall.xlcFormulaGoto, oldSelectionOnActiveSheet)
+			End If
+			' Get the formula and convert to R1C1 mode
+			Dim isR1C1Mode As Boolean = CBool(XlCall.Excel(XlCall.xlfGetWorkspace, 4))
+			Dim formulaR1C1 As String = formula
+			If Not isR1C1Mode Then
+				' Set the formula into the whole target
+				formulaR1C1 = DirectCast(XlCall.Excel(XlCall.xlfFormulaConvert, formula, True, False, ExcelMissing.Value, firstCell), String)
+			End If
+			' Must be R1C1-style references
+			Dim ignoredResult As Object = Nothing
+			Dim retval As XlCall.XlReturn = XlCall.TryExcel(XlCall.xlcFormulaArray, ignoredResult, formulaR1C1, target)
+			If retval <> XlCall.XlReturn.XlReturnSuccess Then
+				' TODO: Consider what to do now!?
+				' Might have failed due to array in the way.
+				firstCell.SetValue("'" & formula)
+			End If
+		Finally
+			XlCall.Excel(XlCall.xlcEcho, True)
+		End Try
+	End Sub
+
+	' Most of this from the newsgroup: http://groups.google.com/group/exceldna/browse_thread/thread/a72c9b9f49523fc9/4577cd6840c7f195
+	Private Shared ReadOnly BackoffTime As TimeSpan = TimeSpan.FromSeconds(1)
+	Private Shared Sub AsyncRunMacro(macroName As String)
+		' Do this on a new thread....
+		Dim newThread As New Thread(AddressOf TryRunMacro)
+		newThread.Start(macroName)
+	End Sub
+	
+	Private Shared Sub TryRunMacro(ByVal macroNameObject As Object)
+		Dim macroName As String = macroNameObject
+		While True
+			Try
+				RunMacro(macroName)
+				Exit Try
+			Catch cex As COMException
+				If IsRetry(cex) Then
+					Thread.Sleep(BackoffTime)
+					Continue While
+				End If
+				' TODO: Handle unexpected error
+				Return
+			Catch ex As Exception
+				' TODO: Handle unexpected error
+				Return
+			End Try
+		End While
+	End Sub
+	
+
+	Private Shared Sub RunMacro(macroName As String)
+		Dim xlApp As Object = Nothing
+		Try
+			xlApp = ExcelDnaUtil.Application
+			xlApp.[GetType]().InvokeMember("Run", BindingFlags.InvokeMethod, Nothing, xlApp, New Object() {macroName})
+		Catch tie As TargetInvocationException
+			Throw tie.InnerException
+		Finally
+			Marshal.ReleaseComObject(xlApp)
+		End Try
+	End Sub
+
+	Const RPC_E_SERVERCALL_RETRYLATER As UInteger = &H8001010aUI
+	Const VBA_E_IGNORE As UInteger = &H800ac472UI
+	Private Shared Function IsRetry(e As COMException) As Boolean
+		Dim errorCode As UInteger = CUInt(e.ErrorCode)
+		Select Case errorCode
+			Case RPC_E_SERVERCALL_RETRYLATER, VBA_E_IGNORE
+				Return True
+			Case Else
+				Return False
+		End Select
+	End Function
+End Class
+]]>
+</DnaLibrary>
