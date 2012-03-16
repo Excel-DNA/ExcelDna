@@ -13,9 +13,9 @@
     Public Sub  OnButtonPressed(control as IRibbonControl)
         MsgBox("My Button Pressed on control " & control.Id,,"ExcelDna Ribbon!")
     End Sub
+    
   End Class
-
-
+  
   Public Module Module1
     Function AddThem(x, y)
 	AddThem = x + y

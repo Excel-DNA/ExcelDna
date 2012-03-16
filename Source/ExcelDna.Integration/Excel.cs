@@ -72,10 +72,10 @@ namespace ExcelDna.Integration
                 // Return cached value if we have one
 				if (_hWndExcel != IntPtr.Zero) return _hWndExcel;
 
-                // Try to get it the easy way from the Process info
-                // (doesn't work if Excel is not visible yet)
-                _hWndExcel = Process.GetCurrentProcess().MainWindowHandle;
-                if (_hWndExcel != IntPtr.Zero) return _hWndExcel;
+                //// Try to get it the easy way from the Process info
+                //// (doesn't work if Excel is not visible yet)
+                //_hWndExcel = Process.GetCurrentProcess().MainWindowHandle;
+                //if (_hWndExcel != IntPtr.Zero) return _hWndExcel;
 
                 // Else get via the C API
                 ushort loWord;
