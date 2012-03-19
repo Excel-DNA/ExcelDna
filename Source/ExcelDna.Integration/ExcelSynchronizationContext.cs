@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -64,6 +63,7 @@ namespace ExcelDna.Integration
         const int WM_USER = 0x400;
         const int WM_UPDATENOTIFY = WM_USER + 1;
         const int WM_SYNCMACRO = WM_USER + 2;
+        const int WM_SYNCMACRO_DIRECT = WM_USER + 3;
         const int RETRY_INTERVAL_MS = 250;
 
         public SynchronizationWindow()
@@ -155,10 +155,7 @@ namespace ExcelDna.Integration
                 // Unexpected error
                 throw;
             }
-            finally
-            {
-                if (xlApp != null) Marshal.ReleaseComObject(xlApp);
-            }
+            // Not releasing the Application object here, since we are on the main thread, and might get the ribbon-cached Application.
         }
 
         const uint RPC_E_SERVERCALL_RETRYLATER = 0x8001010A;

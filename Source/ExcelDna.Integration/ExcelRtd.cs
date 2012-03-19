@@ -321,4 +321,53 @@ namespace ExcelDna.Integration.Rtd
             }
         }
     }
+
+    public abstract class ExcelRtdServerTopic 
+    {
+        public string[] topicInfo { get; set; }
+        public object Value { get; set; } // Set does notification?
+    }
+
+
+    // Derive from this class for an easy RTD Server
+    // CONSIDER: How to support COM Server registration and 'newvalues=false'
+    public abstract class ExcelRtdServer : IDisposable
+    {
+
+        public virtual void ConnectData(ExcelRtdServerTopic topic)
+        {
+        }
+
+
+        public virtual void DisconnectData(int topicId)
+        {
+        }
+
+        public virtual void Terminate()
+        {
+        }
+
+        //public void OnUpdateData(string topicId, object value)
+        //{
+        //}
+
+        //// ???
+        //public void OnUpdateData(IDictionary<int, object> values)
+        //{
+        //}
+
+        public int HeartbeatInterval { get; set; }
+
+        public virtual int Heartbeat()
+        {
+            return 1;
+        }
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+
 }
