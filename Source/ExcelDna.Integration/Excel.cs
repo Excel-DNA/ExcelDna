@@ -72,12 +72,9 @@ namespace ExcelDna.Integration
                 // Return cached value if we have one
 				if (_hWndExcel != IntPtr.Zero) return _hWndExcel;
 
-                //// Try to get it the easy way from the Process info
-                //// (doesn't work if Excel is not visible yet)
-                //_hWndExcel = Process.GetCurrentProcess().MainWindowHandle;
-                //if (_hWndExcel != IntPtr.Zero) return _hWndExcel;
+                // NOTE: Don't use Process.GetCurrentProcess().MainWindowHandle; here,
+                // it doesn't work when Excel is activated via COM, or when the add-in is installed.
 
-                // Else get via the C API
                 ushort loWord;
                 if (ExcelDnaUtil.ExcelVersion >= 12)
                 {
@@ -142,8 +139,8 @@ namespace ExcelDna.Integration
 			get
 			{
                 // Check for a cached one set by a ComAddIn.
+                // CONSIDER: do a health check here - someone might have called Marshal.ReleaseComObject, making this reference invalid.
                 if (_application != null) return _application;
-
 
                 // Get main window as well as we can.
                 IntPtr hWndMain = WindowHandle;
