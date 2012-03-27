@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Reflection;
-using ExcelDna.Integration;
+using System.Threading;
 using ExcelDna.ComInterop;
 using ExcelDna.ComInterop.ComRegistration;
 
@@ -300,6 +299,7 @@ namespace ExcelDna.Integration.Rtd
             {
                 Logging.LogDisplay.WriteLine("Error in RTD server {0} ServerStart: {1}", _progId, e.ToString());
                 return 0;
+                //return 1;
             }
         }
 
@@ -322,52 +322,186 @@ namespace ExcelDna.Integration.Rtd
         }
     }
 
-    public abstract class ExcelRtdServerTopic 
-    {
-        public string[] topicInfo { get; set; }
-        public object Value { get; set; } // Set does notification?
-    }
-
-
     // Derive from this class for an easy RTD Server
     // CONSIDER: How to support COM Server registration and 'newvalues=false'
-    public abstract class ExcelRtdServer : IDisposable
+    public abstract class ExcelRtdServer : IRtdServer
     {
 
-        public virtual void ConnectData(ExcelRtdServerTopic topic)
+        public class Topic
+        {
+            ExcelRtdServer _server;
+            public readonly int TopicId;
+            public readonly string[] TopicInfo;
+            
+            object _value;
+            // Setting the Value must be thread-safe!
+            public object Value 
+            {
+                get { return _value; }
+                set 
+                { 
+                    Monitor.Enter(_server._updateLock);
+                    object fixedValue = FixValue(value);
+                    if (_value != fixedValue)
+                    {
+                        _value = fixedValue;
+                        IsDirty = true;
+                        _server.UpdateNotify();
+                    }
+                    Monitor.Exit(_server._updateLock);
+                }
+            } 
+            public bool IsDirty { get; private set; }
+
+            public Topic(ExcelRtdServer server, int topicId, string[] topicInfo)
+            {
+                _server = server;
+                TopicId = topicId;
+                TopicInfo = topicInfo;
+            }
+
+            object FixValue(object value)
+            {
+                if (value is ExcelError)
+                {
+                    value = ExcelErrorUtil.ToComError((ExcelError)value);
+                }
+                // CONSIDER: Check valid data types
+                return value;
+            }
+
+            public event EventHandler Disconnected = delegate { };
+            public void OnDisconnected(ExcelRtdServer server)
+            {
+                Disconnected(server, EventArgs.Empty);
+            }
+        }
+
+        readonly Dictionary<int, Topic> _activeTopics = new Dictionary<HRESULT,Topic>();
+        bool _notified;
+        SynchronizationWindow _syncWindow;
+        IRTDUpdateEvent _callbackObject;
+        readonly object _updateLock = new object();
+
+
+        // The next few are the core RTD methods to be overridden by implementations
+        protected virtual bool ServerStart()
+        {
+            return true;
+        }
+
+        protected virtual void ServerTerminate()
         {
         }
 
+        protected virtual object ConnectData(Topic topic, ref bool newValues)
+        {
+            return null;
+        }
 
-        public virtual void DisconnectData(int topicId)
+
+        protected virtual void DisconnectData(Topic topic)
         {
         }
 
-        public virtual void Terminate()
+        // TODO: Threading protection here...?
+        protected int HeartbeatInterval
         {
+            get { return _callbackObject.HeartbeatInterval; }
+            set { _callbackObject.HeartbeatInterval = value; }
         }
 
-        //public void OnUpdateData(string topicId, object value)
-        //{
-        //}
-
-        //// ???
-        //public void OnUpdateData(IDictionary<int, object> values)
-        //{
-        //}
-
-        public int HeartbeatInterval { get; set; }
-
-        public virtual int Heartbeat()
+        protected virtual int Heartbeat()
         {
             return 1;
         }
 
-        public void Dispose()
+        void UpdateNotify()
         {
-            throw new NotImplementedException();
+            lock (_updateLock)
+            {
+                if (!_notified)
+                {
+                    _syncWindow.UpdateNotify(_callbackObject);
+                }
+                _notified = true;
+            }
+        }
+
+        // This is the private implementation of the IRtdServer interface
+        int IRtdServer.ServerStart(IRTDUpdateEvent callbackObject)
+        {
+            _syncWindow = SynchronizationManager.SynchronizationWindow;
+            if (_syncWindow == null)
+            {
+                // CONSIDER: Better message to alert user here?
+                Debug.Print("SynchronizationWindow not initialized");
+                return 0;
+            }
+
+            _callbackObject = callbackObject;
+            return ServerStart() ? 1 : 0;
+        }
+
+        object IRtdServer.ConnectData(int topicId, ref Array strings, ref bool newValues)
+        {
+            lock (_updateLock)
+            {
+                string[] topicInfo = new string[strings.Length];
+                for (int i = 0; i < strings.Length; i++) topicInfo[i] = (string) strings.GetValue(i);
+                Topic topic = new Topic(this, topicId, topicInfo);
+                _activeTopics[topicId] = topic;
+                return ConnectData(topic, ref newValues);
+            }
+        }
+
+        Array IRtdServer.RefreshData(ref int topicCount)
+        {
+            lock(_updateLock)
+            {
+                // C# 2.0 looks a bit pale here...
+                List<Topic> updated = new List<Topic>();
+                foreach (Topic topic in _activeTopics.Values)
+                {
+                    if (topic.IsDirty) updated.Add(topic);
+                }
+
+                topicCount = updated.Count;
+                object[,] result = new object[2, updated.Count];
+                for (int i = 0; i < topicCount; i++)
+                {
+                    Topic topic = updated[i];
+                    result[0, i] = topic.TopicId;
+                    result[1, i] = topic.Value;
+                }
+                _notified = false;
+                return result;
+            }
+        }
+
+        void IRtdServer.DisconnectData(int topicId)
+        {
+            lock (_updateLock)
+            {
+                Topic topic = _activeTopics[topicId];
+                DisconnectData(topic);
+                topic.OnDisconnected(this);
+                _activeTopics.Remove(topicId);
+            }
+        }
+
+        int IRtdServer.Heartbeat()
+        {
+            return Heartbeat();
+        }
+
+        void IRtdServer.ServerTerminate()
+        {
+            if (_syncWindow != null)
+            {
+                _syncWindow.CancelUpdateNotify(_callbackObject);
+            }
+            ServerTerminate();
         }
     }
-
-
 }

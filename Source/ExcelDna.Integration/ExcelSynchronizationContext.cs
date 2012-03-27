@@ -63,7 +63,7 @@ namespace ExcelDna.Integration
         const int WM_USER = 0x400;
         const int WM_UPDATENOTIFY = WM_USER + 1;
         const int WM_SYNCMACRO = WM_USER + 2;
-        const int WM_SYNCMACRO_DIRECT = WM_USER + 3;
+        //const int WM_SYNCMACRO_DIRECT = WM_USER + 3;
         const int RETRY_INTERVAL_MS = 250;
 
         public SynchronizationWindow()
@@ -203,6 +203,7 @@ namespace ExcelDna.Integration
                 case WM_TIMER:
                     ProcessRunSyncMacro();
                     break;
+                // TODO: case WM_CLOSE / WM_DESTROY: ????
                 default:
                     base.WndProc(ref m);
                     break;
@@ -258,7 +259,8 @@ namespace ExcelDna.Integration
 
         public void Register()
         {
-            // We must not be in a function when this is run.
+            // CONSIDER: Can this be cleanup up by calling ExcelDna.Loader?
+            // We must not be in a function when this is run, nor in an RTD method call.
             _syncMacroName = "SyncMacro_" + Guid.NewGuid().ToString("N");
             Integration.SetSyncMacro(SyncMacro);
 
@@ -272,7 +274,8 @@ namespace ExcelDna.Integration
 
             object xlCallResult;
             XlCall.TryExcel(XlCall.xlfRegister, out xlCallResult, registerParameters);
-            Debug.Print("Register - XllPath={0}, ProcName={1}, FunctionType={2}, MethodName={3} - Result={4}", registerParameters[0], registerParameters[1], registerParameters[2], registerParameters[3], xlCallResult);
+            Debug.Print("Register SYncMacro - XllPath={0}, ProcName={1}, FunctionType={2}, MethodName={3} - Result={4}", 
+                registerParameters[0], registerParameters[1], registerParameters[2], registerParameters[3], xlCallResult);
             if (xlCallResult is double)
             {
                 _syncMacroRegistrationId = (double)xlCallResult;
@@ -310,11 +313,14 @@ namespace ExcelDna.Integration
     public static class SynchronizationManager
     {
         static SynchronizationWindow _syncWindow;
+        static int _registerCount = 0;
 
         // Don't want to call it 'Install' since that is used for installing the SynchronizationContext as the 'Current' SyncContext in the thread.
         // TODO: Check that this happens on the main Excel thread, and not in a 'function' context.
+        // TODO: Reference count for Register, matched by unregister in ExcelRtdServer...?
         public static void Register()
         {
+            _registerCount++;
             if (_syncWindow == null)
             {
                 _syncWindow = new SynchronizationWindow();
@@ -325,10 +331,10 @@ namespace ExcelDna.Integration
         // TODO: Check that this happens on the main Excel thread.
         public static void Unregister()
         {
-            if (_syncWindow != null)
+            _registerCount--;
+            if (_registerCount == 0 && _syncWindow != null)
             {
                 _syncWindow.Unregister();
-
                 _syncWindow = null;
             }
         }

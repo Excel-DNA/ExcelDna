@@ -12,6 +12,8 @@ Version 0.30 (??????)
 * Allow abstract base classes in ExcelRibbon class hierarchy. Now loads the first concrete descendent of ExcelRibbon as the ribbon handler.
 * Remove Obsolete class ExcelDna.Integration.Excel. (Use ExcelDnaUtil instead.) Allows smooth XlCall usage from VB.NET.
 * Allow external SourceItem packing.
+* Add SynchronizationManager and AsyncUtil for async macro calls.
+* Add thread-safe RTD server base class ExcelRtdServer.
 
 Version 0.29 (28 May 2011)
 --------------------------
