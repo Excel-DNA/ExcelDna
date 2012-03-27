@@ -977,7 +977,6 @@ namespace ExcelDna.Loader
 		static XlObjectArray12Marshaler instance2;	// For rank 2 arrays
 
 		int rank;
-		bool isExcel12v; // marks special instances that are created when marshaling for XlCall calls.
         // Guid id;
 
 		public XlObjectArray12Marshaler(int rank)
@@ -985,13 +984,6 @@ namespace ExcelDna.Loader
 			this.rank = rank;
             // this.id = Guid.NewGuid();
             //  Debug.Print("Created XlObjectArray12Marshaler with id {0} for thread {1}", id, System.Threading.Thread.CurrentThread.ManagedThreadId);
-		}
-
-		public XlObjectArray12Marshaler(int rank, bool isExcel12v)
-		{
-			this.rank = rank;
-			this.isExcel12v = isExcel12v;
-            // this.id = Guid.NewGuid();
 		}
 
 		// GetInstance is called when the function is baked.
@@ -1018,12 +1010,12 @@ namespace ExcelDna.Loader
 
 		public IntPtr MarshalManagedToNative(object ManagedObj)
 		{
-			return XlObjectArray12MarshalerImpl.GetInstance(rank, isExcel12v).MarshalManagedToNative(ManagedObj);
+			return XlObjectArray12MarshalerImpl.GetInstance(rank).MarshalManagedToNative(ManagedObj);
 		}
 
 		public object MarshalNativeToManaged(IntPtr pNativeData)
 		{
-			return XlObjectArray12MarshalerImpl.GetInstance(rank, isExcel12v).MarshalNativeToManaged(pNativeData);
+			return XlObjectArray12MarshalerImpl.GetInstance(rank).MarshalNativeToManaged(pNativeData);
 		}
 
 		public void CleanUpManagedData(object ManagedObj) { }
@@ -1047,7 +1039,7 @@ namespace ExcelDna.Loader
 		{
 			if (!this.disposed)
 			{
-				XlObjectArray12MarshalerImpl.GetInstance(rank, isExcel12v).Reset(disposing);
+				XlObjectArray12MarshalerImpl.GetInstance(rank).Reset(disposing);
 			}
 			disposed = true;
 		}
@@ -1062,7 +1054,7 @@ namespace ExcelDna.Loader
 			XlObjectArray12MarshalerImpl.FreeMemory();
 		}
 
-		private class XlObjectArray12MarshalerImpl
+		internal class XlObjectArray12MarshalerImpl : IDisposable
 		{
 			// CONSIDER: Marshal return types of object[,] as XLOPER12
 			// and set xlFree bit, and handle callback.
@@ -1074,7 +1066,6 @@ namespace ExcelDna.Loader
 			// Actual implementations of the marshaler - one instance per thread.
 			[ThreadStatic] static XlObjectArray12MarshalerImpl instance1;	// For rank 1 arrays
 			[ThreadStatic] static XlObjectArray12MarshalerImpl instance2;	// For rank 2 arrays
-			[ThreadStatic] static XlObjectArray12MarshalerImpl instanceExcel12v;	// Rank 1, only for Excel call
 
 			int rank;
 			List<XlObjectArray12MarshalerImpl> nestedInstances = new List<XlObjectArray12MarshalerImpl>();
@@ -1094,21 +1085,14 @@ namespace ExcelDna.Loader
 				this.isExcel12v = false;
 			}
 
-			private XlObjectArray12MarshalerImpl(int rank, bool isExcel12v)
+			internal XlObjectArray12MarshalerImpl(int rank, bool isExcel12v)
 			{
 				this.rank = rank;
 				this.isExcel12v = isExcel12v;
 			}
 
-			public static XlObjectArray12MarshalerImpl GetInstance(int rank, bool isExcel12v)
+			public static XlObjectArray12MarshalerImpl GetInstance(int rank)
 			{
-				if (isExcel12v)
-				{
-					if (instanceExcel12v == null)
-						instanceExcel12v = new XlObjectArray12MarshalerImpl(1, true);
-					return instanceExcel12v;
-				}
-
 				// rank must be 1 or 2
 				if (rank == 1)
 				{
@@ -1538,10 +1522,28 @@ namespace ExcelDna.Loader
 				}
 			}
 
-			~XlObjectArray12MarshalerImpl()
+		    private bool disposed = false;
+		    public void Dispose()
+		    {
+			    // Debug.Print("Disposing XlObjectArray12MarshalerImpl with id {0} for thread {1}", id, System.Threading.Thread.CurrentThread.ManagedThreadId);
+			    Dispose(true);
+			    GC.SuppressFinalize(this);
+		    }
+
+		    // Also called to clean up the instance on every return call...
+		    protected virtual void Dispose(bool disposing)
+		    {
+			    if (!this.disposed)
+			    {
+				    Reset(disposing);
+			    }
+			    disposed = true;
+		    }
+
+		    ~XlObjectArray12MarshalerImpl()
 			{
-				Reset(false);
-			}
+			    Dispose(false);
+		    }
 
 			// Called for disposal and for reset on every call to ManagedToNative.
 			public void Reset(bool disposeNested)
@@ -1556,17 +1558,29 @@ namespace ExcelDna.Loader
 					nestedInstances.Clear();
 				}
 
-				Marshal.FreeCoTaskMem(pNative);
-				pNative = IntPtr.Zero;
+                if (pNative != IntPtr.Zero)
+                {
+                    Marshal.FreeCoTaskMem(pNative);
+                    pNative = IntPtr.Zero;
+                }
 
-				Marshal.FreeCoTaskMem(pNativeStrings);
-				pNativeStrings = IntPtr.Zero;
+                if (pNativeStrings != IntPtr.Zero)
+                {
+                    Marshal.FreeCoTaskMem(pNativeStrings);
+                    pNativeStrings = IntPtr.Zero;
+                }
 
-				Marshal.FreeCoTaskMem(pNativeReferences);
-				pNativeReferences = IntPtr.Zero;
+                if (pNativeReferences != IntPtr.Zero)
+                {
+                    Marshal.FreeCoTaskMem(pNativeReferences);
+                    pNativeReferences = IntPtr.Zero;
+                }
 
-				Marshal.FreeCoTaskMem(pOperPointers);
-				pOperPointers = IntPtr.Zero;
+                if (pOperPointers != IntPtr.Zero)
+                {
+                    Marshal.FreeCoTaskMem(pOperPointers);
+                    pOperPointers = IntPtr.Zero;
+                }
 			}
 
 			public static void FreeMemory()
@@ -1575,7 +1589,6 @@ namespace ExcelDna.Loader
 				// instanceX are ThreadStatic
 				instance1.Reset(true);
 				instance2.Reset(true);
-				instanceExcel12v.Reset(true);
 			}
 
 		}

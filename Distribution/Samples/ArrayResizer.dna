@@ -178,7 +178,7 @@
             }
             finally
             {
-                Marshal.ReleaseComObject(xlApp);
+                if (xlApp != null) Marshal.ReleaseComObject(xlApp);
             }
         }
         

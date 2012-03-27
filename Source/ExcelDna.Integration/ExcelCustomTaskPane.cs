@@ -50,7 +50,7 @@ namespace ExcelDna.Integration.CustomUI
             //}
 
             // I could use the ProgId and ClsId of the UserControl type here.
-            // But then the reigstration has to be persistent or coordinated, which I dislike.
+            // But then the registration has to be persistent or coordinated, which I dislike.
             // It's already a problem for the RTD servers.
             // Users that want persistent and consistent names, can sort out registration themselves, or use the ExcelComClass support.
             // Then the CTP is created through the CreateCustomTaskPane("My.ProgId",...) overloads.

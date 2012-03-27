@@ -170,7 +170,8 @@ namespace ExcelDna.Loader
             XlOper12* pResultOper = &resultOper;  // No need to pin for local struct
 
             // Special kind of ObjectArrayMarshaler for the parameters (rank 1)
-            using (XlObjectArray12Marshaler paramMarshaler = new XlObjectArray12Marshaler(1, true))
+            using (XlObjectArray12Marshaler.XlObjectArray12MarshalerImpl paramMarshaler 
+                        = new XlObjectArray12Marshaler.XlObjectArray12MarshalerImpl(1, true))
             {
                 XlOper12** ppOperParameters = (XlOper12**)paramMarshaler.MarshalManagedToNative(parameters);
                 xlReturn = Excel12v(xlFunction, parameters.Length, ppOperParameters, pResultOper);

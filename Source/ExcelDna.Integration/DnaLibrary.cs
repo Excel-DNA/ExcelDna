@@ -261,6 +261,18 @@ namespace ExcelDna.Integration
 
             // Register RTD Server Types immediately
             ExcelRtd.RegisterRtdServerTypes(rtdServerTypes);
+            // Check whether we have an ExcelRtdServer type, and need to install the Sync Window
+            // Uninstalled in the AutoClose
+            bool registerSyncManager = false;
+            foreach (Type rtdType in rtdServerTypes)
+            {
+                if (rtdType.IsSubclassOf(typeof (ExcelRtdServer)))
+                {
+                    registerSyncManager = true;
+                    break;
+                }
+            }
+            if (registerSyncManager) SynchronizationManager.Register();
 
             // Register COM Server Types immediately
             ComServer.RegisterComClassTypes(comClassTypes);
@@ -311,6 +323,8 @@ namespace ExcelDna.Integration
                     Debug.WriteLine(e.Message);
                 }
             }
+            // This is safe, even if never registered
+            SynchronizationManager.Unregister();
             _addIns.Clear();
         }
 

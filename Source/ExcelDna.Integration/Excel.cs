@@ -75,26 +75,20 @@ namespace ExcelDna.Integration
                 // NOTE: Don't use Process.GetCurrentProcess().MainWindowHandle; here,
                 // it doesn't work when Excel is activated via COM, or when the add-in is installed.
 
-                ushort loWord;
-                if (ExcelDnaUtil.ExcelVersion >= 12)
-                {
-                    // Excel 2007+ - should get whole handle ...
-                    IntPtr hWnd = (IntPtr) (int) (double) XlCall.Excel(XlCall.xlGetHwnd);
-                    // ... but this call is not reliable - so check if we got an Excel window ...
-                    if (IsAnExcelWindow(hWnd))
-                    {
-                        _hWndExcel = hWnd;
-                        return _hWndExcel;
-                    }
+                // NOTE: Careful not to call ExcelVersion here - might recurse causing StackOverflow
+                // We try the Excel 2007+ case first.
 
-                    // Else go the lo-Word check
-                    loWord = (ushort)hWnd;
-                }
-                else
+                // Excel 2007+ - should get whole handle ... - we try this case first
+                IntPtr hWnd = (IntPtr) (int) (double) XlCall.Excel(XlCall.xlGetHwnd);
+                // ... but this call is not reliable - so check if we got an Excel window ...
+                if (IsAnExcelWindow(hWnd))
                 {
-                    // Excel < 2007 - only have the loword so far.
-                    loWord = (ushort)(double) XlCall.Excel(XlCall.xlGetHwnd);
+                    _hWndExcel = hWnd;
+                    return _hWndExcel;
                 }
+
+                // Else go the lo-Word check, which should work in all versions.
+                ushort loWord = (ushort)hWnd;
 			    _hWndExcel = FindAnExcelWindow(loWord);
 
                 // Might still be null...!
@@ -310,9 +304,9 @@ namespace ExcelDna.Integration
 				}
 				return _xlVersion;
 			}
-		} 
+		}
 
-        private static ExcelLimits _xlLimits;
+	    private static ExcelLimits _xlLimits;
         public static ExcelLimits ExcelLimits
         {
             get
