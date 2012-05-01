@@ -14,18 +14,29 @@ namespace ExcelDna.Integration
 
     public static class AsyncUtil
     {
+        static void RunMacro(object macroName)
+        {
+            XlCall.Excel(XlCall.xlcRun, macroName);
+        }
+
         public static void QueueMacro(string macroName)
         {
-            QueueAsMacro(delegate { XlCall.Excel(XlCall.xlcRun, macroName); });
+            QueueAsMacro(RunMacro, macroName);
         }
 
         public static void QueueAsMacro(MacroAction action)
         {
+            QueueAsMacro(delegate { action(); }, null);
+        }
+
+        public static void QueueAsMacro(SendOrPostCallback callback, object state)
+        {
             if (!SynchronizationManager.IsRegistered)
                 throw new InvalidOperationException("SynchronizationManager is not registered.");
 
-            SynchronizationManager.SynchronizationWindow.RunAsMacroAsync(delegate { action(); }, null);
+            SynchronizationManager.SynchronizationWindow.RunAsMacroAsync(callback, state);
         }
+
     }
 
     // TODO: How to deal with 'installing' etc.
@@ -104,11 +115,17 @@ namespace ExcelDna.Integration
             lock (_sendOrPostLock)
             {
                 _postCallbacks.Enqueue(d);
-                _postStates.Enqueue(d);
+                _postStates.Enqueue(state);
 
                 // CAREFUL: This check needs to be in the same lock used in SyncMacro when running
                 if (!_isRunningMacros)
+                {
+#if DEBUG
+                    Debug.Print("About to enqueue a macro: " + state);
+//                    d(state);
+#endif
                     PostMessage(new HandleRef(this, Handle), WM_SYNCMACRO, IntPtr.Zero, IntPtr.Zero);
+                }
             }
         }
 
@@ -292,21 +309,9 @@ namespace ExcelDna.Integration
             _syncMacroRegistrationId = null;
         }
 
-        ~SynchronizationWindow()
-        {
-            Dispose(false);
-        }
-
-        void Dispose(bool disposing)
-        {
-            if (disposing)
-                DestroyHandle();
-        }
-
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            DestroyHandle();
         }
     }
 

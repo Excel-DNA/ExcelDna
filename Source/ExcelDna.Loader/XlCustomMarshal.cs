@@ -1224,7 +1224,7 @@ namespace ExcelDna.Loader
 
 						IntegrationMarshalHelpers.SetExcelReference(pOper, (XlOper.XlMultiRef*)pCurrent, r);
 
-						pCurrent = (IntPtr)((uint)pCurrent + numBytes);
+						pCurrent = new IntPtr(unchecked(pCurrent.ToInt32() + (int)numBytes));
 						refOperIndex++;
 					}
 				}

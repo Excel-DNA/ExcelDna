@@ -26,23 +26,7 @@
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 // Windows Header Files:
 #include <windows.h>
-
-//#include <stdio.h>
-//#include <iostream>
-//#include <tchar.h>
-//#include <strsafe.h>
-//#include <corerror.h>
-
 #include <mscoree.h>
-//#import "C:\WINDOWS\Microsoft.NET\Framework\v2.0.50727\mscorlib.tlb" \
-//			named_guids\
-//			no_namespace\
-//			raw_interfaces_only\
-//			no_implementation
-//#import "C:\Work\ExcelDna\ExcelDnaLoader\ExcelDna.Loader\bin\Debug\ExcelDna.Loader.tlb" \
-//			raw_disp_interfaces\
-//			named_guids\
-//			no_namespace\
 
 #include "mscorlib_extract.h"
 #include "metahost_extract.h"
@@ -50,4 +34,3 @@
 #include <atlfile.h>
 #include <atlpath.h>
 #include <atlsafe.h>
-//#include <regex>

@@ -1,11 +1,54 @@
-<DnaLibrary>
+<DnaLibrary Name="RTD Server Tests" Language="C#" RuntimeVersion="v4.0">
+  <Reference Name="System.Windows.Forms" />
 <![CDATA[
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Windows.Forms;
+using ExcelDna.Integration;
 
-	Public Module Module1
-		Function AddThem(x, y)
-			AddThem = x + y
-		End Function	
-	End Module
+public class TestAddIn : IExcelAddIn
+{
+    public void AutoOpen() 
+    { 
+    try
+    {
+    
+              MessageBox.Show("In AutoOpen");
+            var original = this.GetType().GetMethod("Original"); 
+            var wrapped = Wrap(original); 
+            List<MethodInfo> methods = new List<MethodInfo>(); 
+            methods.Add(original); 
+            methods.Add(wrapped); 
+            Integration.RegisterMethods(methods); 
+            }
+            catch (Exception ex)
+            {
+              MessageBox.Show(ex.ToString());
+            }
+    } 
 
-]]>
+	public void AutoClose() {}
+
+    public MethodInfo Wrap(MethodInfo original) 
+    { 
+            var param = Expression.Parameter(typeof(double), "param"); 
+            var result = Expression.Parameter(typeof(string), "result"); 
+            var assign = Expression.Assign(result, 
+    Expression.Call(Expression.Constant(this), original, param)); 
+            var body = Expression.Block(new[] { result }, new[] { assign }); 
+            var lambda = Expression.Lambda(body, "Wrapped", new[] { param }); 
+            return lambda.Compile().Method; 
+    } 
+
+    public string Original(double d) 
+    { 
+            return d.ToString(); 
+    } 
+}
+
+]]>  
+  <!--<ExternalLibrary Path="c:\work\exceldna\usersamples\Paolo\AsyncTest\bin\Debug\AsyncTest.dll" />-->
 </DnaLibrary>
