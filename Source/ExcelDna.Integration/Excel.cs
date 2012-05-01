@@ -80,7 +80,8 @@ namespace ExcelDna.Integration
 
                 // Excel 2007+ - should get whole handle ... - we try this case first
                 IntPtr hWnd = (IntPtr) (int) (double) XlCall.Excel(XlCall.xlGetHwnd);
-                // ... but this call is not reliable - so check if we got an Excel window ...
+                // ... but this call is not reliable, and I'm not sure about 64-bit, 
+                // so check if we actually got an Excel window ...
                 if (IsAnExcelWindow(hWnd))
                 {
                     _hWndExcel = hWnd;
@@ -122,7 +123,7 @@ namespace ExcelDna.Integration
                     return false;  // Stop enumerating
                 }
                 return true;  // Continue enumerating
-            }, (IntPtr)0);
+            }, IntPtr.Zero);
             return hWnd;
         }
 
@@ -246,7 +247,7 @@ namespace ExcelDna.Integration
 					}
 				}
 				return true;	// Continue enumerating
-			}, (IntPtr)0);
+			}, IntPtr.Zero);
 			return inFunctionWizard;
 		}
 

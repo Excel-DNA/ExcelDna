@@ -1434,7 +1434,12 @@ namespace ExcelDna.Loader
 
 							IntegrationMarshalHelpers.SetExcelReference12(pOper, (XlOper12.XlMultiRef12*)pCurrent, r);
 
-							pCurrent = new IntPtr(pCurrent.ToInt64() + numBytes);
+                            // Unchecked keyword here is redundant (it's the default for C#), 
+                            // but makes clear that we rely on the overflow.
+                            // Also - numBytes must be int and not long, else we get numeric promotion and a mess again!
+                            pCurrent = IntPtr.Size == 4 ? 
+                                new IntPtr(unchecked(pCurrent.ToInt32() + (int)numBytes)) : 
+                                new IntPtr(unchecked(pCurrent.ToInt64() + numBytes));
 							refOperIndex++;
 						}
 					}
