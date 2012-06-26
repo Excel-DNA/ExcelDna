@@ -806,6 +806,8 @@ CString GetAddInFullPath()
 	return addInFullPath;
 }
 
+// CONSIDER: DELETE_FILE_ON_CLOSE should actually work?
+//           http://www.drdobbs.com/article/print?articleId=184416443&siteSectionName=windows
 // Create a new temp file with the given content.
 // Most of this copied from CAtlTemporaryFile....
 HRESULT CreateTempFile(void* pBuffer, DWORD nBufSize, CString& fileName)

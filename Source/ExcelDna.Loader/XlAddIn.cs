@@ -157,6 +157,7 @@ namespace ExcelDna.Loader
 			// This is the place where we call into Excel - this causes SecurityPermission exception
 			// when run from VSTO. I don't know how to deal with this problem yet.
 			// TODO: Learn more about the special security stuff in VSTO.
+            //       See ExecutionContext.SuppressFlow links below.
 			try
 			{
 				XlAddIn.xlCallVersion = XlCallImpl.XLCallVer() / 256;
@@ -685,6 +686,11 @@ namespace ExcelDna.Loader
 
     }
     
+
+    // TODO: Investigate again VSTO / .NET 2.0 security loading problem, 
+    //       and look at ExecutionContext.SuppressFlow 
+    //       More info: http://social.msdn.microsoft.com/forums/en-US/clr/thread/0a48607c-5a27-4d12-8e0f-160daed38ef2
+    //              and http://msdn.microsoft.com/en-us/magazine/cc163644.aspx (Aboratable thread pool.)
     public static class AppDomainHelper
     {
         // This method is called from unmanaged code in a temporary AppDomain, just to be able to call

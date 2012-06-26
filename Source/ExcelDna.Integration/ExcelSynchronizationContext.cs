@@ -1,4 +1,28 @@
-﻿using System;
+﻿/*
+  Copyright (C) 2005-2012 Govert van Drimmelen
+
+  This software is provided 'as-is', without any express or implied
+  warranty.  In no event will the authors be held liable for any damages
+  arising from the use of this software.
+
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+
+
+  Govert van Drimmelen
+  govert@icon.co.za
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
@@ -9,36 +33,47 @@ using ExcelDna.Integration.Rtd;
 
 namespace ExcelDna.Integration
 {
-    // Action is not defined in .NET 2.0 ?
-    public delegate void MacroAction();
-
-    public static class AsyncUtil
+    public static class SynchronizationManager
     {
-        static void RunMacro(object macroName)
+        static SynchronizationWindow _syncWindow;
+        static int _registerCount = 0;
+
+        // Don't want to call it 'Install' since that is used for installing the SynchronizationContext as the 'Current' SyncContext in the thread.
+        // TODO: Check that this happens on the main Excel thread, and not in a 'function' context.
+        // TODO: Reference count for Register, matched by unregister in ExcelRtdServer...?
+        public static void Register()
         {
-            XlCall.Excel(XlCall.xlcRun, macroName);
+            _registerCount++;
+            if (_syncWindow == null)
+            {
+                _syncWindow = new SynchronizationWindow();
+                _syncWindow.Register();
+            }
         }
 
-        public static void QueueMacro(string macroName)
+        // TODO: Check that this happens on the main Excel thread.
+        public static void Unregister()
         {
-            QueueAsMacro(RunMacro, macroName);
+            _registerCount--;
+            if (_registerCount == 0 && _syncWindow != null)
+            {
+                _syncWindow.Unregister();
+                _syncWindow = null;
+            }
         }
 
-        public static void QueueAsMacro(MacroAction action)
+        public static bool IsRegistered
         {
-            QueueAsMacro(delegate { action(); }, null);
+            get { return (_syncWindow != null); }
         }
 
-        public static void QueueAsMacro(SendOrPostCallback callback, object state)
+        internal static SynchronizationWindow SynchronizationWindow
         {
-            if (!SynchronizationManager.IsRegistered)
-                throw new InvalidOperationException("SynchronizationManager is not registered.");
-
-            SynchronizationManager.SynchronizationWindow.RunAsMacroAsync(callback, state);
+            get { return _syncWindow; }
         }
-
     }
 
+    // TODO: Not sure how this should be used yet....
     // TODO: How to deal with 'installing' etc.
     // CONSIDER: Do we want these to run 'as macro', or just run on the main thread?
     public class ExcelSynchronizationContext : SynchronizationContext
@@ -49,7 +84,6 @@ namespace ExcelDna.Integration
                 throw new InvalidOperationException("SynchronizationManager is not registered.");
 
             SynchronizationManager.SynchronizationWindow.RunAsMacroAsync(d, state);
-
         }
     }
 
@@ -58,16 +92,16 @@ namespace ExcelDna.Integration
     internal sealed class SynchronizationWindow : NativeWindow, IDisposable
     {
         [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
-        public static extern IntPtr SetTimer(HandleRef hWnd, int nIDEvent, int uElapse, IntPtr lpTimerFunc);
+        static extern IntPtr SetTimer(HandleRef hWnd, int nIDEvent, int uElapse, IntPtr lpTimerFunc);
         [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
-        public static extern bool KillTimer(HandleRef hwnd, int idEvent);
+        static extern bool KillTimer(HandleRef hwnd, int idEvent);
         [DllImport("user32.dll")]
         static extern bool PostMessage(HandleRef hwnd, int msg, IntPtr wparam, IntPtr lparam);
 
-        object _lockObject = new object();
+        readonly object _lockObject = new object();
         int _timerId;
         // We'll use the Key collection of a Dictionary as a HashSet (which is not available on .NET 2.0).
-        Dictionary<IRTDUpdateEvent, object> _pendingRtdUpdates = new Dictionary<IRTDUpdateEvent, object>();
+        readonly Dictionary<IRTDUpdateEvent, object> _pendingRtdUpdates = new Dictionary<IRTDUpdateEvent, object>();
 
         readonly IntPtr HWND_MESSAGE = (IntPtr)(-3);
         const int WM_TIMER = 0x0113;
@@ -88,7 +122,7 @@ namespace ExcelDna.Integration
 
         #region RTD UpdateNotify support
         // Support for pushing UpdateNotify onto the main thread.
-        // TODO: How do we know that the RTD server is still alive when 
+        // TODO: How do we know that the RTD server is still alive when it runs?
         public void UpdateNotify(IRTDUpdateEvent updateEvent)
         {
             lock (_lockObject)
@@ -150,16 +184,14 @@ namespace ExcelDna.Integration
             {
                 // TODO: Handle unexpected error
                 Debug.Print("Unexpected error trying to run SyncMacro: " + ex);
-                return;
             }
         }
 
         bool COMRunMacro()
         {
-            object xlApp = null;
             try
             {
-                xlApp = ExcelDnaUtil.Application;
+                object xlApp = ExcelDnaUtil.Application;
                 xlApp.GetType().InvokeMember("Run", BindingFlags.InvokeMethod, null, xlApp, new object[] { _syncMacroName, 0.0 });
                 return true;
             }
@@ -201,6 +233,7 @@ namespace ExcelDna.Integration
         {
             lock (_lockObject)
             {
+                Debug.Print("Calling UpdateNotify");
                 foreach (IRTDUpdateEvent pendingRtdUpdate in _pendingRtdUpdates.Keys)
                 {
                     pendingRtdUpdate.UpdateNotify();
@@ -231,10 +264,9 @@ namespace ExcelDna.Integration
         string _syncMacroName;
         object _syncMacroRegistrationId = null;
 
-        Queue<SendOrPostCallback> _postCallbacks = new Queue<SendOrPostCallback>();
-        Queue<Object> _postStates = new Queue<Object>();
-
-        object _sendOrPostLock = new object();
+        readonly Queue<SendOrPostCallback> _postCallbacks = new Queue<SendOrPostCallback>();
+        readonly Queue<Object> _postStates = new Queue<Object>();
+        readonly object _sendOrPostLock = new object();
 
         void SyncMacro(double _unused_)
         {
@@ -276,7 +308,7 @@ namespace ExcelDna.Integration
 
         public void Register()
         {
-            // CONSIDER: Can this be cleanup up by calling ExcelDna.Loader?
+            // CONSIDER: Can this be cleaned up by calling ExcelDna.Loader?
             // We must not be in a function when this is run, nor in an RTD method call.
             _syncMacroName = "SyncMacro_" + Guid.NewGuid().ToString("N");
             Integration.SetSyncMacro(SyncMacro);
@@ -291,7 +323,7 @@ namespace ExcelDna.Integration
 
             object xlCallResult;
             XlCall.TryExcel(XlCall.xlfRegister, out xlCallResult, registerParameters);
-            Debug.Print("Register SYncMacro - XllPath={0}, ProcName={1}, FunctionType={2}, MethodName={3} - Result={4}", 
+            Debug.Print("Register SyncMacro - XllPath={0}, ProcName={1}, FunctionType={2}, MethodName={3} - Result={4}", 
                 registerParameters[0], registerParameters[1], registerParameters[2], registerParameters[3], xlCallResult);
             if (xlCallResult is double)
             {
@@ -303,6 +335,11 @@ namespace ExcelDna.Integration
             }
         }
 
+        public bool IsRegistered
+        {
+            get { return _syncMacroRegistrationId != null; }
+        }
+
         public void Unregister()
         {
             XlCall.Excel(XlCall.xlfUnregister, _syncMacroRegistrationId);
@@ -311,49 +348,8 @@ namespace ExcelDna.Integration
 
         public void Dispose()
         {
+            // CONSIDER: Must this also Unregister?
             DestroyHandle();
         }
-    }
-
-    public static class SynchronizationManager
-    {
-        static SynchronizationWindow _syncWindow;
-        static int _registerCount = 0;
-
-        // Don't want to call it 'Install' since that is used for installing the SynchronizationContext as the 'Current' SyncContext in the thread.
-        // TODO: Check that this happens on the main Excel thread, and not in a 'function' context.
-        // TODO: Reference count for Register, matched by unregister in ExcelRtdServer...?
-        public static void Register()
-        {
-            _registerCount++;
-            if (_syncWindow == null)
-            {
-                _syncWindow = new SynchronizationWindow();
-                _syncWindow.Register();
-            }
-        }
-
-        // TODO: Check that this happens on the main Excel thread.
-        public static void Unregister()
-        {
-            _registerCount--;
-            if (_registerCount == 0 && _syncWindow != null)
-            {
-                _syncWindow.Unregister();
-                _syncWindow = null;
-            }
-        }
-
-        public static bool IsRegistered
-        {
-            get { return (_syncWindow != null); }
-        }
-
-        internal static SynchronizationWindow SynchronizationWindow
-        {
-            get { return _syncWindow; }
-        }
-
-
     }
 }

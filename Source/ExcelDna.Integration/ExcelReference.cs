@@ -25,19 +25,18 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 
 namespace ExcelDna.Integration
 {
     // CAUTION: The ExcelReference class is also called via reflection by the ExcelDna.Loader marshaler.
 	public class ExcelReference
 	{
-        internal class ExcelRectangle
+	    class ExcelRectangle
         {
-            public int RowFirst;
-            public int RowLast;
-            public int ColumnFirst;
-            public int ColumnLast;
+            public readonly int RowFirst;
+            public readonly int RowLast;
+            public readonly int ColumnFirst;
+            public readonly int ColumnLast;
 
             internal ExcelRectangle(int rowFirst, int rowLast, int columnFirst, int columnLast)
             {
@@ -59,9 +58,39 @@ namespace ExcelDna.Integration
                 if (value > max) return max;
                 return value;
             }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj)) return false;
+                if (ReferenceEquals(this, obj)) return true;
+                if (obj.GetType() != typeof (ExcelRectangle)) return false;
+                return Equals((ExcelRectangle) obj);
+            }
+
+            bool Equals(ExcelRectangle other)
+            {
+                if (ReferenceEquals(null, other)) return false;
+                if (ReferenceEquals(this, other)) return true;
+                return other.RowFirst == RowFirst && other.RowLast == RowLast && other.ColumnFirst == ColumnFirst && other.ColumnLast == ColumnLast;
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    int result = RowFirst;
+                    result = (result*397) ^ RowLast;
+                    result = (result*397) ^ ColumnFirst;
+                    result = (result*397) ^ ColumnLast;
+                    return result;
+                }
+            }
         }
-		List<ExcelRectangle> rectangles = new List<ExcelRectangle>();
-		IntPtr sheetId;
+
+        // CONSIDER: Rather use a derived class so that we can implement Equals properly.
+        //           The implementation as a List here is actually hidden.
+	    readonly List<ExcelRectangle> rectangles = new List<ExcelRectangle>();
+		readonly IntPtr sheetId;
 
 		public ExcelReference(int row, int column)
 			: this(row, row, column, column)
@@ -177,5 +206,52 @@ namespace ExcelDna.Integration
         {
             return rectangles.Count;
         }
+
+        // Structural equality implementation
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != typeof (ExcelReference)) return false;
+            return Equals((ExcelReference) obj);
+        }
+
+	    bool Equals(ExcelReference other)
+	    {
+	        if (ReferenceEquals(null, other)) return false;
+	        if (ReferenceEquals(this, other)) return true;
+            // Implement equality check based on contents.
+            // CONSIDER: Implement in class derived from List.
+            if (rectangles.Count != other.rectangles.Count) return false;
+            for (int i = 0; i < rectangles.Count; i++)
+            {
+                if (!Equals(rectangles[i], other.rectangles[i])) return false; 
+            }
+	        return other.sheetId.Equals(sheetId);
+	    }
+
+        // We need to take some care with the Hash Code here, since we use the ExcelReference with structural comparison
+        // in some Dictionaries.
+	    public override int GetHashCode()
+	    {
+            // One of the ideas from http://stackoverflow.com/questions/263400/what-is-the-best-algorithm-for-an-overridden-system-object-gethashcode
+            const int b = 378551;
+            int a = 63689;
+            int hash = 0;
+            
+            unchecked
+	        {
+                for (int i = 0; i < rectangles.Count; i++)
+                {
+                    if (rectangles[i] != null)
+                    {
+                        hash = hash * a + rectangles[i].GetHashCode();
+                        a = a * b;
+                    }
+                }
+                hash *= 397;
+            }
+	        return hash ^ sheetId.GetHashCode();
+	    }
 	}
 }

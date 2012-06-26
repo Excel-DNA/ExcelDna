@@ -90,7 +90,6 @@ namespace ExcelDna.Integration.CustomUI
             if (_addin == null)
             {
                 // Register and create addin
-                // TODO: Set DnaLibrary??
                 _addin = new ExcelCustomTaskPaneAddIn() { DnaLibrary = DnaLibrary.CurrentLibrary };
                 ExcelComAddInHelper.LoadComAddIn(_addin);
             }

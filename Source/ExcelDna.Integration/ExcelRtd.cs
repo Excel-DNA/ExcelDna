@@ -1,9 +1,32 @@
-﻿using System;
+﻿/*
+  Copyright (C) 2005-2012 Govert van Drimmelen
+
+  This software is provided 'as-is', without any express or implied
+  warranty.  In no event will the authors be held liable for any damages
+  arising from the use of this software.
+
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+
+
+  Govert van Drimmelen
+  govert@icon.co.za
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Reflection;
-using System.Threading;
 using ExcelDna.ComInterop;
 using ExcelDna.ComInterop.ComRegistration;
 
@@ -14,21 +37,26 @@ using DWORD = System.UInt32;
 
 namespace ExcelDna.Integration.Rtd
 {
-    internal static class ExcelRtd
+    // Internal RTD registration support. Takes care of:
+    // - On-demand registration of RTD server (used via XlCall.RTD...)
+    // - Provides a wrapper for the RTD server to allow us to use either the internally defined IRtdServer types 
+    //   or the 'real' COM interop types. 
+    //   CONSIDER: This would not be needed for .NET 4.
+
+    internal static class RtdRegistration
     {
-        // Internal RTD Server support.
         // We write (and quickly remove again) entries in HKEY_CURRENT_USER\Software\Classes....
         // This is consistent with the ExcelComAddIn plan, where we need to register a Com Add-In.
-        // Not trying CreateInstance / Moniker plans for now.
+        // Not trying CreateInstance / Moniker plans for now (any help appreciated...)
 
         // Map name to RtdServer.
         // DOCUMENT: We allow more than one name per server (ProgId and FullName)
         // but will make separate instances for the different names...?
-        static Dictionary<string, Type> registeredRtdServerTypes = new Dictionary<string, Type>();
+        static readonly Dictionary<string, Type> registeredRtdServerTypes = new Dictionary<string, Type>();
         // Map names of loaded Rtd servers to a registered ProgId - "RtdSrv.A1B2C3...."
-        static Dictionary<string, string> loadedRtdServers = new Dictionary<string, string>();
+        static readonly Dictionary<string, string> loadedRtdServers = new Dictionary<string, string>();
 
-        public static void RegisterRtdServerTypes(List<Type> rtdServerTypes)
+        public static void RegisterRtdServerTypes(IEnumerable<Type> rtdServerTypes)
         {
             foreach (Type rtdType in rtdServerTypes)
             {
@@ -63,7 +91,8 @@ namespace ExcelDna.Integration.Rtd
             // Not loaded already - need to get the Rtd server loaded
 
             // TODO: Need to reconsider registration here.....
-            // Sometimes need stable ProgIds.
+            //       Remember we depend on the unique ProgId for the Async stuff to work right. 
+            //       Sometimes need stable ProgIds.
             Type rtdServerType = registeredRtdServerTypes[progId];
             object rtdServer = Activator.CreateInstance(rtdServerType);
             RtdServerWrapper rtdServerWrapper = new RtdServerWrapper(rtdServer, progId);
@@ -145,26 +174,26 @@ namespace ExcelDna.Integration.Rtd
     {
         // 'ProgId' under which ExcelDna registered the server 
         // - might be the class FullName or might be the ProgIdAttribute.
-        string _progId;
+        readonly string _progId;
         
         // If the object implements ExcelDna.Integration.Rtd.IRtdServer we call directly...
-        IRtdServer _rtdServer;  
+        readonly IRtdServer _rtdServer;  
         // ... otherwise we call via delegates assigned through interface mapping.
         // Private delegate types for the IRtdServer interface ...
         delegate object delConnectData(int topicId, ref Array strings, ref bool newValues);
-        delegate void delDisconnectData(int topicId);
-        delegate int delHeartbeat();
-        delegate Array delRefreshData(ref int topicCount);
-        delegate int delServerStart(IRTDUpdateEvent CallbackObject); // Careful - might be an unexpected IRTDUpdateEvent...
-        delegate void delServerTerminate();
+        delegate void   delDisconnectData(int topicId);
+        delegate int    delHeartbeat();
+        delegate Array  delRefreshData(ref int topicCount);
+        delegate int    delServerStart(IRTDUpdateEvent CallbackObject); // Careful - might be an unexpected IRTDUpdateEvent...
+        delegate void   delServerTerminate();
 
         // ... and corresponding instances.
-        delConnectData      _ConnectData;
-        delDisconnectData   _DisconnectData;
-        delHeartbeat        _Heartbeat;
-        delRefreshData      _RefreshData;
-        delServerStart      _ServerStart;
-        delServerTerminate  _ServerTerminate;
+        readonly delConnectData     _ConnectData;
+        readonly delDisconnectData  _DisconnectData;
+        readonly delHeartbeat       _Heartbeat;
+        readonly delRefreshData     _RefreshData;
+        readonly delServerStart     _ServerStart;
+        readonly delServerTerminate _ServerTerminate;
 
         public RtdServerWrapper(object rtdServer, string progId)
         {
@@ -307,7 +336,7 @@ namespace ExcelDna.Integration.Rtd
         {
             try
             {
-                ExcelRtd.UnregisterRTDServer(_progId);
+                RtdRegistration.UnregisterRTDServer(_progId);
                 if (_rtdServer != null)
                 {
                     _rtdServer.ServerTerminate();
@@ -322,186 +351,4 @@ namespace ExcelDna.Integration.Rtd
         }
     }
 
-    // Derive from this class for an easy RTD Server
-    // CONSIDER: How to support COM Server registration and 'newvalues=false'
-    public abstract class ExcelRtdServer : IRtdServer
-    {
-
-        public class Topic
-        {
-            ExcelRtdServer _server;
-            public readonly int TopicId;
-            public readonly string[] TopicInfo;
-            
-            object _value;
-            // Setting the Value must be thread-safe!
-            public object Value 
-            {
-                get { return _value; }
-                set 
-                { 
-                    Monitor.Enter(_server._updateLock);
-                    object fixedValue = FixValue(value);
-                    if (_value != fixedValue)
-                    {
-                        _value = fixedValue;
-                        IsDirty = true;
-                        _server.UpdateNotify();
-                    }
-                    Monitor.Exit(_server._updateLock);
-                }
-            } 
-            public bool IsDirty { get; private set; }
-
-            public Topic(ExcelRtdServer server, int topicId, string[] topicInfo)
-            {
-                _server = server;
-                TopicId = topicId;
-                TopicInfo = topicInfo;
-            }
-
-            object FixValue(object value)
-            {
-                if (value is ExcelError)
-                {
-                    value = ExcelErrorUtil.ToComError((ExcelError)value);
-                }
-                // CONSIDER: Check valid data types
-                return value;
-            }
-
-            public event EventHandler Disconnected = delegate { };
-            public void OnDisconnected(ExcelRtdServer server)
-            {
-                Disconnected(server, EventArgs.Empty);
-            }
-        }
-
-        readonly Dictionary<int, Topic> _activeTopics = new Dictionary<HRESULT,Topic>();
-        bool _notified;
-        SynchronizationWindow _syncWindow;
-        IRTDUpdateEvent _callbackObject;
-        readonly object _updateLock = new object();
-
-
-        // The next few are the core RTD methods to be overridden by implementations
-        protected virtual bool ServerStart()
-        {
-            return true;
-        }
-
-        protected virtual void ServerTerminate()
-        {
-        }
-
-        protected virtual object ConnectData(Topic topic, ref bool newValues)
-        {
-            return null;
-        }
-
-
-        protected virtual void DisconnectData(Topic topic)
-        {
-        }
-
-        // TODO: Threading protection here...?
-        protected int HeartbeatInterval
-        {
-            get { return _callbackObject.HeartbeatInterval; }
-            set { _callbackObject.HeartbeatInterval = value; }
-        }
-
-        protected virtual int Heartbeat()
-        {
-            return 1;
-        }
-
-        void UpdateNotify()
-        {
-            lock (_updateLock)
-            {
-                if (!_notified)
-                {
-                    _syncWindow.UpdateNotify(_callbackObject);
-                }
-                _notified = true;
-            }
-        }
-
-        // This is the private implementation of the IRtdServer interface
-        int IRtdServer.ServerStart(IRTDUpdateEvent callbackObject)
-        {
-            _syncWindow = SynchronizationManager.SynchronizationWindow;
-            if (_syncWindow == null)
-            {
-                // CONSIDER: Better message to alert user here?
-                Debug.Print("SynchronizationWindow not initialized");
-                return 0;
-            }
-
-            _callbackObject = callbackObject;
-            return ServerStart() ? 1 : 0;
-        }
-
-        object IRtdServer.ConnectData(int topicId, ref Array strings, ref bool newValues)
-        {
-            lock (_updateLock)
-            {
-                string[] topicInfo = new string[strings.Length];
-                for (int i = 0; i < strings.Length; i++) topicInfo[i] = (string) strings.GetValue(i);
-                Topic topic = new Topic(this, topicId, topicInfo);
-                _activeTopics[topicId] = topic;
-                return ConnectData(topic, ref newValues);
-            }
-        }
-
-        Array IRtdServer.RefreshData(ref int topicCount)
-        {
-            lock(_updateLock)
-            {
-                // C# 2.0 looks a bit pale here...
-                List<Topic> updated = new List<Topic>();
-                foreach (Topic topic in _activeTopics.Values)
-                {
-                    if (topic.IsDirty) updated.Add(topic);
-                }
-
-                topicCount = updated.Count;
-                object[,] result = new object[2, updated.Count];
-                for (int i = 0; i < topicCount; i++)
-                {
-                    Topic topic = updated[i];
-                    result[0, i] = topic.TopicId;
-                    result[1, i] = topic.Value;
-                }
-                _notified = false;
-                return result;
-            }
-        }
-
-        void IRtdServer.DisconnectData(int topicId)
-        {
-            lock (_updateLock)
-            {
-                Topic topic = _activeTopics[topicId];
-                DisconnectData(topic);
-                topic.OnDisconnected(this);
-                _activeTopics.Remove(topicId);
-            }
-        }
-
-        int IRtdServer.Heartbeat()
-        {
-            return Heartbeat();
-        }
-
-        void IRtdServer.ServerTerminate()
-        {
-            if (_syncWindow != null)
-            {
-                _syncWindow.CancelUpdateNotify(_callbackObject);
-            }
-            ServerTerminate();
-        }
-    }
 }
