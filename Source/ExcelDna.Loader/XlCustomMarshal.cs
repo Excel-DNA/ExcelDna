@@ -714,10 +714,24 @@ namespace ExcelDna.Loader
                 pOper->xlType = XlType.XlTypeNumber;
                 return pNative;
             }
+            else if (ManagedObj is float)
+            {
+                XlOper* pOper = (XlOper*)pNative;
+                pOper->numValue = (double)((float)ManagedObj);
+                pOper->xlType = XlType.XlTypeNumber;
+                return pNative;
+            }
             else if (ManagedObj is long)
             {
                 XlOper* pOper = (XlOper*)pNative;
                 pOper->numValue = (double)((long)ManagedObj);
+                pOper->xlType = XlType.XlTypeNumber;
+                return pNative;
+            }
+            else if (ManagedObj is ulong)
+            {
+                XlOper* pOper = (XlOper*)pNative;
+                pOper->numValue = (double)((ulong)ManagedObj);
                 pOper->xlType = XlType.XlTypeNumber;
                 return pNative;
             }
@@ -935,8 +949,6 @@ namespace ExcelDna.Loader
 			// If array is too big!?, we just truncate
 
 			// TODO: Remove duplication - due to fixed / pointer interaction
-            // TODO: Might manages strings differently - currently I allocate the maximum length of 255 bytes
-            //          for each string. Instead, I might just allocate the required number of bytes.
 
 			Reset(true);
 
@@ -1068,9 +1080,29 @@ namespace ExcelDna.Loader
                     pOper->numValue = (double)((int)obj);
                     pOper->xlType = XlType.XlTypeNumber;
                 }
+                else if (obj is uint)
+                {
+                    pOper->numValue = (double)((uint)obj);
+                    pOper->xlType = XlType.XlTypeNumber;
+                }
+                else if (obj is long)
+                {
+                    pOper->numValue = (double)((long)obj);
+                    pOper->xlType = XlType.XlTypeNumber;
+                }
+                else if (obj is ulong)
+                {
+                    pOper->numValue = (double)((ulong)obj);
+                    pOper->xlType = XlType.XlTypeNumber;
+                }
                 else if (obj is decimal)
                 {
                     pOper->numValue = (double)((decimal)obj);
+                    pOper->xlType = XlType.XlTypeNumber;
+                }
+                else if (obj is float)
+                {
+                    pOper->numValue = (double)((float)obj);
                     pOper->xlType = XlType.XlTypeNumber;
                 }
                 else if (IntegrationMarshalHelpers.IsExcelReferenceObject(obj))

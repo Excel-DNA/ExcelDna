@@ -127,6 +127,24 @@ namespace ExcelDna.Integration
             return hWnd;
         }
 
+        // Returns true if the cached _application reference is valid.
+        // - someone might have called Marshal.ReleaseComObject, making this reference invalid.
+        // Then we set it to null, so we'll get a new one.
+        private static bool CheckApplicationRef()
+        {
+            if (_application == null) return false;
+            try
+            {
+                _application.GetType().InvokeMember("Version", System.Reflection.BindingFlags.GetProperty, null, _application, null, new CultureInfo(1033));
+                return true;
+            }
+            catch (Exception)
+            {
+                _application = null;
+                return false;
+            }
+        }
+
 	    [ThreadStatic]
         private static object _application;
 		public static object Application
@@ -134,8 +152,10 @@ namespace ExcelDna.Integration
 			get
 			{
                 // Check for a cached one set by a ComAddIn.
-                // CONSIDER: do a health check here - someone might have called Marshal.ReleaseComObject, making this reference invalid.
-                if (_application != null) return _application;
+                if (CheckApplicationRef())
+                {
+                    return _application;
+                }
 
                 // Get main window as well as we can.
                 IntPtr hWndMain = WindowHandle;

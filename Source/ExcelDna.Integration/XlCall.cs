@@ -1080,7 +1080,7 @@ namespace ExcelDna.Integration
 
         public static object RTD(string progId, string server, params string[] topics)
         {
-            return Rtd.ExcelRtd.RTD(progId, server, topics);
+            return Rtd.RtdRegistration.RTD(progId, server, topics);
         }
 	}
 

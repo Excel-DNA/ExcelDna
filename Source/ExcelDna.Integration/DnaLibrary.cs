@@ -260,7 +260,9 @@ namespace ExcelDna.Integration
             AssemblyLoader.ProcessAssemblies(assemblies, _methods, _addIns, rtdServerTypes, comClassTypes);
 
             // Register RTD Server Types immediately
-            ExcelRtd.RegisterRtdServerTypes(rtdServerTypes);
+            RtdRegistration.RegisterRtdServerTypes(rtdServerTypes);
+
+            // CAREFUL: This interacts with the implementation of ExcelRtdServer to implement the thread-safe synchornization.
             // Check whether we have an ExcelRtdServer type, and need to install the Sync Window
             // Uninstalled in the AutoClose
             bool registerSyncManager = false;

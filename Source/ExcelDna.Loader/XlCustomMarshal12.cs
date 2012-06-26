@@ -47,8 +47,6 @@ using System.Text;
 //			The only exception to how I use this is for the object and object[] marshalling
 //			in the Excel4v function.
 
-// TODO: Check what happens for re-entrancy, e.g. Calling a UDF from Excel.Excel4 !!
-
 // TODO: Marshalers should implement disposable pattern.
 
 namespace ExcelDna.Loader
@@ -578,10 +576,12 @@ namespace ExcelDna.Loader
 
 			unsafe private void AllocateFP12AndCopy(double* pSrc, int rows, int columns)
 			{
+                // CONSIDER: Fast memcpy: http://stackoverflow.com/questions/1715224/very-fast-memcpy-for-image-processing
 				XlFP12* pFP;
 				if (columns == 0)
 				{
-					// TODO: Review handling of this corner case
+					// TODO: Review handling of this corner case 
+                    //       - maybe unsafe wrapper type with interface in ExcelDna.Integration, and support for array ref
 					pNative = Marshal.AllocCoTaskMem(Marshal.SizeOf(typeof(XlFP12)));
 					pFP = (XlFP12*)pNative;
 					pFP->Rows = 1;
@@ -859,6 +859,13 @@ namespace ExcelDna.Loader
 					pOper->xlType = XlType12.XlTypeNumber;
 					return pNative;
 				}
+                if (ManagedObj is float)
+                {
+                    XlOper12* pOper = (XlOper12*)pNative;
+                    pOper->numValue = (double)((float)ManagedObj);
+                    pOper->xlType = XlType12.XlTypeNumber;
+                    return pNative;
+                }
                 else if (ManagedObj is long)
                 {
                     XlOper12* pOper = (XlOper12*)pNative;
@@ -866,7 +873,14 @@ namespace ExcelDna.Loader
                     pOper->xlType = XlType12.XlTypeNumber;
                     return pNative;
                 }
-				else
+                else if (ManagedObj is ulong)
+                {
+                    XlOper12* pOper = (XlOper12*)pNative;
+                    pOper->numValue = (double)((ulong)ManagedObj);
+                    pOper->xlType = XlType12.XlTypeNumber;
+                    return pNative;
+                }
+                else
 				{
 					// Default error return
 					XlOper12* pOper = (XlOper12*)pNative;
@@ -1120,8 +1134,6 @@ namespace ExcelDna.Loader
 				// we might also return XLOPER and have xlFree called back.
 
 				// TODO: Remove duplication - due to fixed / pointer interaction
-				// TODO: Might manages strings differently - currently I allocate the maximum length of 255 bytes
-				//          for each string. Instead, I might just allocate the required number of bytes.
 
 				Reset(true);
 

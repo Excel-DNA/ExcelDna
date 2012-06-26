@@ -14,6 +14,8 @@ Version 0.30 (??????)
 * Allow external SourceItem packing.
 * Add SynchronizationManager and AsyncUtil for async macro calls.
 * Add thread-safe RTD server base class ExcelRtdServer.
+* Add async function helper as AsyncUtil.Run.
+* Support for Reactive Extensions via RTD.
 
 Version 0.29 (28 May 2011)
 --------------------------
