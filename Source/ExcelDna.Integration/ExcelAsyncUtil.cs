@@ -24,13 +24,11 @@
 
 using System;
 using System.Threading;
+using ExcelDna.ComInterop;
 using ExcelDna.Integration.Rtd;
 
 namespace ExcelDna.Integration
 {
-    // Action is not defined in .NET 2.0 ?
-    public delegate void MacroAction();
-
     // Introduction to Rx: http://www.introtorx.com/
 
     // Task.ToObservable: http://blogs.msdn.com/b/pfxteam/archive/2010/04/04/9990349.aspx
@@ -38,8 +36,10 @@ namespace ExcelDna.Integration
     // Pattern for making an Observable: http://msdn.microsoft.com/en-us/library/dd990377.aspx
     // Task.ToObservable: http://blogs.msdn.com/b/pfxteam/archive/2010/04/04/9990349.aspx
 
+    // Action and Func are not defined in .NET 2.0
+    public delegate void ExcelAction();
     public delegate object ExcelFunc();
-    public delegate IExcelObservable ExcelObservableFunc();
+    public delegate IExcelObservable ExcelObservableSource();
 
     // The next two interfaces would be regular System.IObservable<object> if we could target .NET 4.
     // TODO: Make an adapter to make it easy to integrate with .NET 4.
@@ -47,6 +47,7 @@ namespace ExcelDna.Integration
     {
         IDisposable Subscribe(IExcelObserver observer);
     }
+
     public interface IExcelObserver
     {
         void OnCompleted();
@@ -54,21 +55,32 @@ namespace ExcelDna.Integration
         void OnNext(object value);
     }
 
-    public static class AsyncUtil
+    public static class ExcelAsyncUtil
     {
+        // Initialization - must be called from a macro context (e.g. AutoOpen)
+        // For now only installs the syncmanager.
+        public static void Initialize()
+        {
+            SynchronizationManager.Install();
+        }
+
+        public static void Uninitialize()
+        {
+            SynchronizationManager.Uninstall();
+        }
+
         // Async observable support
-        
         // This is the most general RTD registration
         // TODO: This should not be called from a ThreadSafe function. Check...?
-        public static object Observe(string functionName, string parametersToken, bool useCaller, ExcelObservableFunc observableFunc)
+        public static object Observe(string callerFunctionName, object callerParameters, ExcelObservableSource observableSource)
         {
-            return AsyncObservableImpl.ProcessObservable(functionName, parametersToken, useCaller, observableFunc);
+            return AsyncObservableImpl.ProcessObservable(callerFunctionName, callerParameters, observableSource);
         }
 
         // Async function support
-        public static object Run(string functionName, string parametersToken, bool useCaller, ExcelFunc func)
+        public static object Run(string callerFunctionName, object callerParameters, ExcelFunc asyncFunc)
         {
-            return AsyncObservableImpl.ProcessFunc(functionName, parametersToken, useCaller, func);
+            return AsyncObservableImpl.ProcessFunc(callerFunctionName, callerParameters, asyncFunc);
         }
 
         // Async macro support
@@ -77,14 +89,14 @@ namespace ExcelDna.Integration
             QueueAsMacro(RunMacro, macroName);
         }
 
-        public static void QueueAsMacro(MacroAction action)
+        public static void QueueAsMacro(ExcelAction action)
         {
             QueueAsMacro(delegate { action(); }, null);
         }
 
         public static void QueueAsMacro(SendOrPostCallback callback, object state)
         {
-            if (!SynchronizationManager.IsRegistered)
+            if (!SynchronizationManager.IsInstalled)
                 throw new InvalidOperationException("SynchronizationManager is not registered.");
 
             SynchronizationManager.SynchronizationWindow.RunAsMacroAsync(callback, state);

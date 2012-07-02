@@ -1,0 +1,154 @@
+<DnaLibrary Language="C#" RuntimeVersion="v4.0">
+<Reference Name="Microsoft.Office.Interop.Excel" />
+<![CDATA[
+
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Reflection;
+using Excel = Microsoft.Office.Interop.Excel;
+using ExcelDna.Integration;
+
+public class MyAddIn : IExcelAddIn
+{
+	public void AutoOpen()
+	{
+		ExcelAsyncUtil.Initialize();
+		ExcelIntegration.RegisterUnhandledExceptionHandler(
+            delegate (object x) 
+            { 
+                Console.Beep(); 
+                Console.Beep(); 
+                return null; 
+            });
+	}
+
+	public void AutoClose()
+	{
+	}
+}
+
+public static class AsyncTestFunctions
+{
+
+    // Makes a call to the C API xlcMessage command, not available within a function.
+    public static string asyncWriteStatus(string statusMessage)
+    {
+        // Actually can use empty string to clear
+        // if (statusMessage == "") statusMessage = "(nothing)";
+        
+        ExcelAsyncUtil.QueueAsMacro(() => {XlCall.Excel(XlCall.xlcMessage, true, statusMessage);});
+        return "Wrote " + statusMessage;
+    }
+
+    public static DateTime asyncRewriteCaller()
+	{
+		ExcelReference caller = (ExcelReference)XlCall.Excel(XlCall.xlfCaller);
+		ExcelAsyncUtil.QueueAsMacro(
+			delegate 
+			{ 
+				caller.SetValue("No formula here anymore...");
+			}
+		);
+
+		return DateTime.Now;
+	}
+    
+    public static DateTime asyncWriteWithCApi()
+	{
+		ExcelAsyncUtil.QueueAsMacro(
+			delegate 
+			{ 
+				var refB1 = new ExcelReference(0,0,1,1, "Sheet1");
+                refB1.SetValue("Done writing...!");
+			}
+		);
+
+		return DateTime.Now;
+	}
+    
+	public static DateTime asyncWriteWithCOM()
+	{
+		ExcelAsyncUtil.QueueAsMacro(
+			delegate 
+			{ 
+				Excel.Application xlApp = (Excel.Application)ExcelDnaUtil.Application;
+				Excel.Range target = xlApp.get_Range("A1", Missing.Value);
+				target.set_Value(Missing.Value, "The quick brown fox jumps over the lazy dog.");
+			}
+		);
+
+		return DateTime.Now;
+	}
+    
+    public static DateTime asyncWriteViaMacro()
+	{
+		ExcelAsyncUtil.QueueMacro("UpdateA1");
+		return DateTime.Now;
+	}
+    
+    public static void UpdateA1()
+	{
+		try
+		{
+			Excel.Application xlApp = (Excel.Application)ExcelDnaUtil.Application;
+			Excel.Range target = xlApp.get_Range("A1", Missing.Value);
+			target.set_Value(Missing.Value, "Hello!");
+		}
+		catch (Exception e)
+		{
+			Console.Beep();
+			Console.Beep();
+			Console.Beep();
+		}
+	}
+    
+	public static DateTime asyncTestSyncContext()
+	{
+        // Not sure how we'd use this yet....
+    
+        var oldContext = SynchronizationContext.Current;
+        var syncContext = new ExcelSynchronizationContext();
+
+        SynchronizationContext.SetSynchronizationContext(syncContext);
+
+        Task.Factory.StartNew( () => Thread.Sleep(2000) )
+          .ContinueWith(t => 
+          ExcelAsyncUtil.QueueAsMacro(
+              () =>
+              {
+                  Console.Beep(); Console.Beep();
+                  try
+                  {
+                    Excel.Application xlApp = (Excel.Application)ExcelDnaUtil.Application;
+                          xlApp.Range["F1"].Value = "We have waited long enough.";
+                  }
+                  catch 
+                  {
+                      Console.Beep(); Console.Beep(); Console.Beep();
+                  }
+              }
+          ));
+
+        SynchronizationContext.SetSynchronizationContext(oldContext);
+    
+		  return DateTime.Now;
+	}
+ 
+    [ExcelCommand(MenuName="Async Test", MenuText="Run Later")]
+    public static void RunLater()
+    {
+        Task.Factory.StartNew( () => Thread.Sleep(5000) )
+        .ContinueWith(t => 
+            ExcelAsyncUtil.QueueAsMacro(() =>
+            { 
+                var refB1 = new ExcelReference(0,0,1,1, "Sheet1");
+                refB1.SetValue("Done!");
+                Console.Beep();
+            }));
+    }
+}
+
+
+]]>
+</DnaLibrary>

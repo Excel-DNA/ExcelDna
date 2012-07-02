@@ -36,11 +36,10 @@ namespace ExcelDna.Integration.Rtd
     {
         public class Topic
         {
+            internal readonly int TopicId;
             readonly ExcelRtdServer _server;
-            public readonly int TopicId;
-            public readonly string[] TopicInfo;
-
             object _value;
+
             // Setting the Value must be thread-safe!
             // [Obsolete("Rather call ExcelRtdServer.Topic.UpdateValue(value) explicitly.")]
             public object Value
@@ -51,7 +50,6 @@ namespace ExcelDna.Integration.Rtd
                     UpdateValue(value);
                 }
             }
-            public bool IsDirty { get; private set; }
 
             /// <summary>
             /// Sets the topic value and calls UpdateNotify on the RTD Server to refresh.
@@ -75,15 +73,13 @@ namespace ExcelDna.Integration.Rtd
             /// </summary>
             public void UpdateNotify()
             {
-                IsDirty = true;
-                _server.UpdateNotify();
+                _server.SetDirty(this);
             }
 
-            public Topic(ExcelRtdServer server, int topicId, string[] topicInfo)
+            public Topic(ExcelRtdServer server, int topicId)
             {
                 _server = server;
                 TopicId = topicId;
-                TopicInfo = topicInfo;
             }
 
             object FixValue(object value)
@@ -106,14 +102,22 @@ namespace ExcelDna.Integration.Rtd
                 return value;
             }
 
-            public event EventHandler Disconnected = delegate { };
+            public event EventHandler Disconnected;
             public void OnDisconnected(ExcelRtdServer server)
             {
-                Disconnected(server, EventArgs.Empty);
+                EventHandler disconnected = Disconnected;
+                if (disconnected != null)
+                {
+                    disconnected(server, EventArgs.Empty);
+                }
             }
         }
 
+        internal string RegisteredProgId;
+
         readonly Dictionary<int, Topic> _activeTopics = new Dictionary<Int32, Topic>();
+        // Using a Dictionary for the dirty topics instead of a HashSet, since we are targeting .NET 2.0
+        readonly Dictionary<Topic, bool> _dirtyTopics = new Dictionary<Topic, bool>();
         bool _notified;
         SynchronizationWindow _syncWindow;
         IRTDUpdateEvent _callbackObject;
@@ -130,7 +134,7 @@ namespace ExcelDna.Integration.Rtd
         {
         }
 
-        protected virtual object ConnectData(Topic topic, ref bool newValues)
+        protected virtual object ConnectData(Topic topic, IList<string> topicInfo, ref bool newValues)
         {
             return null;
         }
@@ -152,11 +156,12 @@ namespace ExcelDna.Integration.Rtd
             return 1;
         }
 
-        void UpdateNotify()
+        // Add the topic to the dirty set and calls UpdateNotify()
+        void SetDirty(Topic topic)
         {
-            // CONSIDER: This lock is useless - we are always in this lock context when called from the Topic.
             lock (_updateLock)
             {
+                _dirtyTopics[topic] = true;
                 if (!_notified)
                 {
                     _syncWindow.UpdateNotify(_callbackObject);
@@ -168,26 +173,48 @@ namespace ExcelDna.Integration.Rtd
         // This is the private implementation of the IRtdServer interface
         int IRtdServer.ServerStart(IRTDUpdateEvent callbackObject)
         {
-            _syncWindow = SynchronizationManager.SynchronizationWindow;
-            if (_syncWindow == null)
+            try
             {
-                // CONSIDER: Better message to alert user here?
+                using (XlCall.Suspend())
+                {
+                    _syncWindow = SynchronizationManager.SynchronizationWindow;
+                    if (_syncWindow == null)
+                    {
+                        // CONSIDER: Better message to alert user here?
+                        return 0;
+                    }
+
+                    _callbackObject = callbackObject;
+                    return ServerStart() ? 1 : 0;
+                }
+            }
+            catch (Exception e)
+            {
+                Logging.LogDisplay.WriteLine("Error in RTD server {0} ServerStart: {1}", GetType().Name, e.ToString());
                 return 0;
             }
-
-            _callbackObject = callbackObject;
-            return ServerStart() ? 1 : 0;
         }
 
         object IRtdServer.ConnectData(int topicId, ref Array strings, ref bool newValues)
         {
-            lock (_updateLock)
+            try
             {
-                string[] topicInfo = new string[strings.Length];
-                for (int i = 0; i < strings.Length; i++) topicInfo[i] = (string)strings.GetValue(i);
-                Topic topic = new Topic(this, topicId, topicInfo);
-                _activeTopics[topicId] = topic;
-                return ConnectData(topic, ref newValues);
+                using (XlCall.Suspend())
+                {
+                    lock (_updateLock)
+                    {
+                        List<string> topicInfo = new List<string>(strings.Length);
+                        for (int i = 0; i < strings.Length; i++) topicInfo.Add((string)strings.GetValue(i));
+                        Topic topic = new Topic(this, topicId);
+                        _activeTopics[topicId] = topic;
+                        return ConnectData(topic, topicInfo, ref newValues);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Logging.LogDisplay.WriteLine("Error in RTD server {0} ConnectData: {1}", GetType().Name, e.ToString());
+                return null;
             }
         }
 
@@ -196,20 +223,17 @@ namespace ExcelDna.Integration.Rtd
             lock (_updateLock)
             {
                 // C# 2.0 looks a bit pale here...
-                List<Topic> updated = new List<Topic>();
-                foreach (Topic topic in _activeTopics.Values)
+                Dictionary<Topic, bool>.KeyCollection dirtyTopics = _dirtyTopics.Keys;
+                topicCount = dirtyTopics.Count;
+                object[,] result = new object[2, topicCount];
+                int i = 0;
+                foreach (Topic topic in dirtyTopics)
                 {
-                    if (topic.IsDirty) updated.Add(topic);
-                }
-
-                topicCount = updated.Count;
-                object[,] result = new object[2, updated.Count];
-                for (int i = 0; i < topicCount; i++)
-                {
-                    Topic topic = updated[i];
                     result[0, i] = topic.TopicId;
                     result[1, i] = topic.Value;
+                    i++;
                 }
+                _dirtyTopics.Clear();
                 _notified = false;
                 return result;
             }
@@ -217,27 +241,63 @@ namespace ExcelDna.Integration.Rtd
 
         void IRtdServer.DisconnectData(int topicId)
         {
-            lock (_updateLock)
+            try
             {
-                Topic topic = _activeTopics[topicId];
-                DisconnectData(topic);
-                topic.OnDisconnected(this);
-                _activeTopics.Remove(topicId);
+                using (XlCall.Suspend())
+                {
+                    lock (_updateLock)
+                    {
+                        Topic topic = _activeTopics[topicId];
+                        DisconnectData(topic);
+                        topic.OnDisconnected(this);
+                        _activeTopics.Remove(topicId);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Logging.LogDisplay.WriteLine("Error in RTD server {0} DisconnectData: {1}", GetType().Name, e.ToString());
             }
         }
 
         int IRtdServer.Heartbeat()
         {
-            return Heartbeat();
+            try
+            {
+                using (XlCall.Suspend())
+                {
+                    return Heartbeat();
+                }
+            }
+            catch (Exception e)
+            {
+                Logging.LogDisplay.WriteLine("Error in RTD server {0} Heartbeat: {1}", GetType().Name, e.ToString());
+                return 0;
+            }
         }
 
         void IRtdServer.ServerTerminate()
         {
-            if (_syncWindow != null)
+            try
             {
-                _syncWindow.CancelUpdateNotify(_callbackObject);
+                using (XlCall.Suspend())
+                {
+                    // The Unregister call here just tells the reg-free loading that we are gone, 
+                    // to ensure a fresh load with new 'fake progid' next time.
+                    // Also safe to call (basically a no-op) if we are not loaded via reg-free, but via real COM Server.
+                    RtdRegistration.UnregisterRTDServer(RegisteredProgId);
+
+                    if (_syncWindow != null)
+                    {
+                        _syncWindow.CancelUpdateNotify(_callbackObject);
+                    }
+                    ServerTerminate();
+                }
             }
-            ServerTerminate();
+            catch (Exception e)
+            {
+                Logging.LogDisplay.WriteLine("Error in RTD server {0} ServerTerminate: {1}", GetType().Name, e.ToString());
+            }
         }
     }
 }

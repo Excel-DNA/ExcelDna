@@ -74,7 +74,7 @@ namespace ExcelDna.Integration
                 if (Path.StartsWith("packed:"))
                 {
                     string resourceName = Path.Substring(7);
-                    byte[] sourceBytes = Integration.GetSourceBytes(resourceName);
+                    byte[] sourceBytes = ExcelIntegration.GetSourceBytes(resourceName);
                     return Encoding.UTF8.GetString(sourceBytes);
                 }
                 else

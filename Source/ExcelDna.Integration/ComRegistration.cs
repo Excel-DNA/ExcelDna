@@ -64,7 +64,8 @@ namespace ExcelDna.ComInterop.ComRegistration
             ppvObject = IntPtr.Zero;
             object instance = Activator.CreateInstance(_comClass.Type);
 
-            if (_comClass.IsRtdServer)
+            // If not an ExcelRtdServer, create safe wrapper that also maps types.
+            if (_comClass.IsRtdServer && !instance.GetType().IsSubclassOf(typeof(ExcelRtdServer)))
             {
                 // wrap instance in RtdWrapper
                 RtdServerWrapper rtdServerWrapper = new RtdServerWrapper(instance, _comClass.ProgId);

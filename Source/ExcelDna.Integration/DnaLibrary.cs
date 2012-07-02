@@ -268,13 +268,13 @@ namespace ExcelDna.Integration
             bool registerSyncManager = false;
             foreach (Type rtdType in rtdServerTypes)
             {
-                if (rtdType.IsSubclassOf(typeof (ExcelRtdServer)))
+                if (rtdType.IsSubclassOf(typeof(ExcelRtdServer)))
                 {
                     registerSyncManager = true;
                     break;
                 }
             }
-            if (registerSyncManager) SynchronizationManager.Register();
+            if (registerSyncManager) SynchronizationManager.Install();
 
             // Register COM Server Types immediately
             ComServer.RegisterComClassTypes(comClassTypes);
@@ -283,7 +283,7 @@ namespace ExcelDna.Integration
         internal void AutoOpen()
         {
             // Register my Methods
-            Integration.RegisterMethods(_methods);
+            ExcelIntegration.RegisterMethods(_methods);
 
             // Invoke AutoOpen in all assemblies
             foreach (AssemblyLoader.ExcelAddInInfo addIn in _addIns)
@@ -326,7 +326,7 @@ namespace ExcelDna.Integration
                 }
             }
             // This is safe, even if never registered
-            SynchronizationManager.Unregister();
+            SynchronizationManager.Uninstall();
             _addIns.Clear();
         }
 
@@ -412,7 +412,7 @@ namespace ExcelDna.Integration
             Debug.WriteLine("Enter DnaLibrary.InitializeRootLibrary");
             XllPath = xllPath;
             Logging.LogDisplay.CreateInstance();
-            byte[] dnaBytes = Integration.GetDnaFileBytes("__MAIN__");
+            byte[] dnaBytes = ExcelIntegration.GetDnaFileBytes("__MAIN__");
             if (dnaBytes != null)
             {
                 Debug.WriteLine("Got Dna file from resources.");
@@ -682,7 +682,7 @@ namespace ExcelDna.Integration
                     if (image.Path.StartsWith("packed:"))
                     {
                         string resourceName = image.Path.Substring(7);
-                        imageBytes = Integration.GetImageBytes(resourceName);
+                        imageBytes = ExcelIntegration.GetImageBytes(resourceName);
                     }
                     else
                     {

@@ -38,9 +38,12 @@ namespace ExcelDna.Integration.Rtd
         // This is the most general RTD registration
         // TODO: This should not be called from a ThreadSafe function. Check...?
         // TODO: Different name RunObservable?
-        public static object ProcessObservable(string functionName, string parametersToken, bool useCaller, ExcelObservableFunc observableFunc)
+        public static object ProcessObservable(string functionName, object parameters, ExcelObservableSource observableFunc)
         {
-            AsyncCallInfo callInfo = new AsyncCallInfo(functionName, useCaller ? XlCall.Excel(XlCall.xlfCaller) : null, parametersToken);
+            // TODO: Check here that registration has happened.
+            // CONSIDER: Why not same problems with all RTD servers?
+
+            AsyncCallInfo callInfo = new AsyncCallInfo(functionName, parameters);
 
             // Shortcut if already registered
             object value;
@@ -53,18 +56,11 @@ namespace ExcelDna.Integration.Rtd
             return RegisterObservable(callInfo, observableFunc());
         }
 
-        public static object ProcessFunc(string functionName, string parametersToken, bool useCaller, ExcelFunc func)
+        // Make a one-shot 'Observable' from the func
+        public static object ProcessFunc(string functionName, object parameters, ExcelFunc func)
         {
-            AsyncCallInfo callInfo = new AsyncCallInfo(functionName, useCaller ? XlCall.Excel(XlCall.xlfCaller) : null, parametersToken);
-            object value;
-            if (GetValueIfRegistered(callInfo, out value))
-            {
-                return value;
-            }
-
-            // Not registered - ???
-            ThreadPoolDelegateObservable obs = new ThreadPoolDelegateObservable(func);
-            return RegisterObservable(callInfo, obs);
+            return ProcessObservable(functionName, parameters,
+                delegate { return new ThreadPoolDelegateObservable(func); });
         }
 
         static bool GetValueIfRegistered(AsyncCallInfo callInfo, out object value)
@@ -99,7 +95,7 @@ namespace ExcelDna.Integration.Rtd
 
         internal static void ConnectObserver(Guid id, ExcelRtdObserver rtdObserver)
         {
-            // TODO: Checking
+            // TODO: Checking...(huh?)
             AsyncObservableState state = _observableStates[id];
             // Start the work for this AsyncCallInfo, and subscribe the topic to the result
             state.Subscribe(rtdObserver);
@@ -142,7 +138,7 @@ namespace ExcelDna.Integration.Rtd
         public void OnError(Exception exception)
         {
             // TODO: Is the sequence here important?
-            Value = Integration.HandleUnhandledException(exception);
+            Value = ExcelIntegration.HandleUnhandledException(exception);
             // Set the topic value to #VALUE (not used!?) - converted to COM code in Topic
             _topic.UpdateValue(ExcelError.ExcelErrorValue);
             IsCompleted = true;
@@ -152,25 +148,21 @@ namespace ExcelDna.Integration.Rtd
         {
             Value = value;
             // Not actually setting the topic value, just poking it
-            // TODO: This must be an option - to give us a way to deal with 'newValue' one day.
-            _topic.UpdateValue(DateTime.Now.ToOADate());
+            // TODO: Using the 'fake' RTD value should be optional - to give us a way to deal with 'newValues' one day.
+            _topic.UpdateValue(DateTime.UtcNow.ToOADate());
         }
     }
-
-
-    // TODO: How to register!?
-
-
-    // TODO: Whether the caller is part of the info used for checking should be configurable
-    // TODO: Need a helper to check for equality even with array parameters
 
     [ComVisible(true)]
     internal class ExcelObserverRtdServer : ExcelRtdServer
     {
-        protected override object ConnectData(Topic topic, ref bool newValues)
+        Dictionary<Topic, Guid> _topicGuids = new Dictionary<Topic, Guid>();
+
+        protected override object ConnectData(Topic topic, IList<string> topicInfo, ref bool newValues)
         {
-            // Retrieve the GUID from the topic's first info string - used to hook up to the Async state
-            Guid id = new Guid(topic.TopicInfo[0]);
+            // Retrieve and store the GUID from the topic's first info string - used to hook up to the Async state
+            Guid id = new Guid(topicInfo[0]);
+            _topicGuids[topic] = id;
 
             // Create a new ExcelRtdObserver, for the Topic, which will listen to the Observable
             // (Internally also set initial value - #N/A for now)
@@ -186,39 +178,130 @@ namespace ExcelDna.Integration.Rtd
         protected override void DisconnectData(Topic topic)
         {
             // Retrieve the GUID from the topic's first info string - used to hook up to the Async state
-            Guid id = new Guid(topic.TopicInfo[0]);
+            Guid id = _topicGuids[topic];
 
             // ... and unsubscribe it
             AsyncObservableImpl.DisconnectObserver(id);
+            _topicGuids.Remove(topic);
         }
 
         // This makes sure the hook up with the registration-free RTD loading is in place.
         // For a user RTD server the add-in loading would ensure this, but not for this class since it is declared inside Excel-DNA.
-        // CONSDIDER: How do we deal with saved RTD values to make a per-addin unique persistent Progid?
         static bool _isRegistered = false;
         internal static void EnsureRtdServerRegistered()
         {
             if (!_isRegistered)
             {
-                RtdRegistration.RegisterRtdServerTypes(new Type[] { typeof(ExcelDna.Integration.Rtd.ExcelObserverRtdServer) });
+                RtdRegistration.RegisterRtdServerTypes(new Type[] { typeof(ExcelObserverRtdServer) });
             }
             _isRegistered = true;
         }
-
     }
 
-    // Used as Keys in a Dictionary - should be immutable.
+    // Encapsulates the information that defines and async call or observable hook-up.
+    // Checked for equality and stored in a Dictionary, so we have to be careful
+    // to define value equality and a consistent HashCode.
+
+    // Used as Keys in a Dictionary - should be immutable. 
+    // We allow parameters to be null or primitives or ExcelReference objects, 
+    // or a 1D array or 2D array with primitives or arrays.
     internal struct AsyncCallInfo
     {
-        readonly string FunctionName;
-        readonly object Caller;
-        readonly string ParametersToken;
+        readonly string _functionName;
+        readonly object _parameters;
+        readonly int    _hashCode;
 
-        public AsyncCallInfo(string functionName, object caller, string parametersToken)
+        public AsyncCallInfo(string functionName, object parameters)
         {
-            FunctionName = functionName;
-            Caller = caller;
-            ParametersToken = parametersToken;
+            _functionName = functionName;
+            _parameters = parameters;
+            _hashCode = 0; // Need to set to smoe value before we call a method.
+            _hashCode = ComputeHashCode();
+        }
+
+        // Jon Skeet: http://stackoverflow.com/questions/263400/what-is-the-best-algorithm-for-an-overridden-system-object-gethashcode
+        int ComputeHashCode()
+        {
+            unchecked
+            {
+                int hash = 17;
+                hash = hash * 23 + (_functionName == null ? 0 : _functionName.GetHashCode());
+                hash = hash * 23 + ComputeHashCode(_parameters);
+                return hash;
+            }
+        }
+
+        // Computes a hash code for the parameters, consistent with the value equality that we define.
+        // Also checks that the data types passed for parameters are among those we handle properly for value equality.
+        static int ComputeHashCode(object obj)
+        {
+            if (obj == null) return 0;
+            if (obj is double ||
+                obj is string ||
+                obj is bool ||
+                obj is DateTime ||
+                obj is ExcelReference ||
+                obj is ExcelError ||
+                obj is ExcelEmpty ||
+                obj is ExcelMissing ||
+                obj is int ||
+                obj is uint ||
+                obj is long ||
+                obj is ulong ||
+                obj is short ||
+                obj is ushort ||
+                obj is byte ||
+                obj is sbyte ||
+                obj is decimal)
+            {
+                return obj.GetHashCode();
+            }
+            
+            unchecked
+            {
+                int hash = 17;
+
+                double[] doubles = obj as double[];
+                if (doubles != null) 
+                {
+                    foreach (double item in doubles)
+                    {
+                        hash = hash * 23 +  item.GetHashCode(); 
+                    }
+                    return hash;
+                }
+
+                double[,] doubles2 = obj as double[,];
+                if (doubles2 != null) 
+                {
+                    foreach (double item in doubles2)
+                    {
+                        hash = hash * 23 +  item.GetHashCode(); 
+                    }
+                    return hash;
+                }
+
+                object[] objects = obj as object[];
+                if (objects != null)
+                {
+                    foreach (object item in objects)
+                    {
+                        hash = hash * 23 + ((item == null) ? 0 : ComputeHashCode(item));
+                    }
+                    return hash;
+                }
+
+                object[,] objects2 = obj as object[,];
+                if (objects2 != null) 
+                {
+                    foreach (object item in objects2)
+                    {
+                        hash = hash * 23 + ((item == null) ? 0 : ComputeHashCode(item));
+                    }
+                    return hash;
+                }
+            }
+            throw new ArgumentException("Invalid type used for async parameter(s)", "parameters");
         }
 
         public override bool Equals(object obj)
@@ -230,21 +313,89 @@ namespace ExcelDna.Integration.Rtd
 
         bool Equals(AsyncCallInfo other)
         {
-            bool nameEqual = Equals(other.FunctionName, FunctionName);
-            bool callerEqual = Equals(other.Caller, Caller);
-            bool paramEqual = Equals(other.ParametersToken, ParametersToken);
-            return nameEqual && callerEqual && paramEqual;
+            if (_hashCode != other._hashCode) return false;
+            return Equals(other._functionName, _functionName)
+                   && ValueEquals(_parameters, other._parameters);
         }
+
+        #region Helpers to implement value equality
+        // The value equality we check here is for the types we allow in CheckParameterTypes above.
+        static bool ValueEquals(object a, object b)
+        {
+            if (Equals(a, b)) return true; // Includes check for both null
+            if (a is double[] && b is double[]) return ArrayEquals((double[])a, (double[])b);
+            if (a is double[,] && b is double[,]) return ArrayEquals((double[,])a, (double[,])b);
+            if (a is object[] && b is object[]) return ArrayEquals((object[])a, (object[])b);
+            if (a is object[,] && b is object[,]) return ArrayEquals((object[,])a, (object[,])b);
+            return false;
+        }
+
+        static bool ArrayEquals(double[] a, double[] b)
+        {
+            if (a.Length != b.Length)
+                return false;
+            for (int i = 0; i < a.Length; i++)
+            {
+                if (a[i] != b[i]) return false;
+            }
+            return true;
+        }
+
+        static bool ArrayEquals(double[,] a, double[,] b)
+        {
+            int rows = a.GetLength(0);
+            int cols = a.GetLength(1);
+            if (rows != b.GetLength(0) ||
+                cols != b.GetLength(1))
+            {
+                return false;
+            }
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
+                    if (a[i, j] != b[i, j]) return false;
+                }
+            }
+            return true;
+        }
+
+        static bool ArrayEquals(object[] a, object[] b)
+        {
+            if (a.Length != b.Length)
+                return false;
+            for (int i = 0; i < a.Length; i++)
+            {
+                if (!ValueEquals(a[i], b[i]))
+                    return false;
+            }
+            return true;
+        }
+
+        static bool ArrayEquals(object[,] a, object[,] b)
+        {
+            int rows = a.GetLength(0);
+            int cols = a.GetLength(1);
+            if (rows != b.GetLength(0) ||
+                cols != b.GetLength(1))
+            {
+                return false;
+            }
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
+                    if (!ValueEquals(a[i, j], b[i, j]))
+                        return false;
+                }
+            }
+            return true;
+        }
+        #endregion
 
         public override int GetHashCode()
         {
-            unchecked
-            {
-                int result = (FunctionName != null ? FunctionName.GetHashCode() : 0);
-                result = (result * 397) ^ (Caller != null ? Caller.GetHashCode() : 0);
-                result = (result * 397) ^ (ParametersToken != null ? ParametersToken.GetHashCode() : 0);
-                return result;
-            }
+            return _hashCode;
         }
     }
 
@@ -267,16 +418,16 @@ namespace ExcelDna.Integration.Rtd
         {
             if (_currentObserver == null || !_currentObserver.IsCompleted)
             {
-                // Ensure that Excel-DNA knows about the RTD Server, since it would not have been registered when loading
-                ExcelObserverRtdServer.EnsureRtdServerRegistered();
-
                 // NOTE: At this post the SynchronizationManager must be registered!
-                if (!SynchronizationManager.IsRegistered)
+                if (!SynchronizationManager.IsInstalled)
                 {
                     Debug.Print("SynchronizationManager not registered!");
                     throw new InvalidOperationException("SynchronizationManager must be registered for async and observable support");
                 }
                 
+                // Ensure that Excel-DNA knows about the RTD Server, since it would not have been registered when loading
+                ExcelObserverRtdServer.EnsureRtdServerRegistered();
+
                 // Refresh RTD call
                 // NOTE: First time this will result in a call to ConnectData, which will call Subscribe and set the _currentObserver
                 object unused = XlCall.RTD("ExcelDna.Integration.Rtd.ExcelObserverRtdServer", null, _id.ToString());
@@ -285,6 +436,7 @@ namespace ExcelDna.Integration.Rtd
             // No assumptions about previous state here - could have re-entered this class.
 
             // TODO: Allow customize this value?
+            //       Not too serious since the user can remap in the UDF.
             if (_currentObserver == null) return ExcelError.ExcelErrorNA;
 
             // Subsequent calls get value from Observer
@@ -315,7 +467,7 @@ namespace ExcelDna.Integration.Rtd
     // It basically represents a Subject 
     internal class ThreadPoolDelegateObservable : IExcelObservable
     {
-        ExcelFunc _func;
+        readonly ExcelFunc _func;
         bool _subscribed;
 
         public ThreadPoolDelegateObservable(ExcelFunc func)
@@ -351,7 +503,4 @@ namespace ExcelDna.Integration.Rtd
             public void Dispose() { }
         }
     }
-
-
 }
-

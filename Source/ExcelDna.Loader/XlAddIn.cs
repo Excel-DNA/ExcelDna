@@ -69,6 +69,9 @@ namespace ExcelDna.Loader
     // CAUTION: This type is loaded by reflection from the unmanaged loader.
     public unsafe static class XlAddIn
     {
+        // This version must match the version declared in ExcelDna.Integration.ExcelIntegration
+        const int ExcelIntegrationVersion = 1;
+
         static int thunkTableLength;
         static IntPtr thunkTable;
 
@@ -181,10 +184,15 @@ namespace ExcelDna.Loader
             {
                 LoadIntegration();
             }
+            catch (InvalidOperationException ioe)
+            {
+                Debug.WriteLine("XlAddIn: Initialize Exception - Invalid ExcelIntegration version detected: " + ioe);
+                return false;
+            }
             catch (Exception e)
             {
                 Debug.WriteLine("XlAddIn: Initialize Exception: " + e);
-				return false;
+                return false;
             }
 
             // File.AppendAllText(Path.ChangeExtension(pathXll, ".log"), string.Format("{0:u} XlAddIn.Initialize OK\r\n", DateTime.Now));
@@ -203,8 +211,17 @@ namespace ExcelDna.Loader
 
         private static void LoadIntegration()
         {
+            // Get the assembly and ExcelIntegration type - will be loaded from file or from packed resources via AssemblyManager.AssemblyResolve.
             Assembly integrationAssembly = Assembly.Load("ExcelDna.Integration");
-            Type integrationType = integrationAssembly.GetType("ExcelDna.Integration.Integration");
+            Type integrationType = integrationAssembly.GetType("ExcelDna.Integration.ExcelIntegration");
+
+            // Check the version declared in the ExcelIntegration class
+            int integrationVersion = (int)integrationType.InvokeMember("GetExcelIntegrationVersion", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, null);
+            if (integrationVersion != ExcelIntegrationVersion)
+            {
+                // This is not the version we are expecting!
+                throw new InvalidOperationException("Invalid ExcelIntegration version detected.");
+            }
 
             // Get the methods that need to be called from the integration assembly
             MethodInfo tryExcelImplMethod = typeof(XlCallImpl).GetMethod("TryExcelImpl", BindingFlags.Static | BindingFlags.Public);
@@ -223,10 +240,10 @@ namespace ExcelDna.Loader
             integrationType.InvokeMember("SetGetResourceBytesDelegate", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] { getResourceBytesDelegate });
 
             // set up helpers for future calls
-            IntegrationHelpers.Bind(integrationAssembly);
+            IntegrationHelpers.Bind(integrationAssembly, integrationType);
             IntegrationMarshalHelpers.Bind(integrationAssembly);
         }
-
+        
         private static void InitializeIntegration()
         {
             if (!_initialized)

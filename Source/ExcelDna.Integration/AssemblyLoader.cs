@@ -33,6 +33,8 @@ namespace ExcelDna.Integration
 {
 	// Loads the managed assembly, finds all the methods to be exported to Excel
 	// and build the method information.
+
+    // DOCUMENT: There is a lot of magic here, and many arbitrary decisions about what to register, and how.
 	internal class AssemblyLoader
 	{
         // Consolidated processing so we only have a single pass through the types.

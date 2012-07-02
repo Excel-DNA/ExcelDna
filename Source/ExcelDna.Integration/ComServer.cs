@@ -25,8 +25,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Security;
+using ExcelDna.Integration.Rtd;
 using Microsoft.Win32;
 using ExcelDna.Integration;
 using ExcelDna.ComInterop.ComRegistration;
@@ -46,12 +48,18 @@ namespace ExcelDna.ComInterop
     public static class ComServer
     {
         // Internal COM Server support.
-        static List<ExcelComClassType> registeredComClassTypes = new List<ExcelComClassType>();
+        static readonly List<ExcelComClassType> registeredComClassTypes = new List<ExcelComClassType>();
 
         internal static void RegisterComClassTypes(List<ExcelComClassType> comClassTypes)
         {
             // Just merge registrations into the overall list.
             registeredComClassTypes.AddRange(comClassTypes);
+        }
+
+        internal static void RegisterComClassType(ExcelComClassType comClassType)
+        {
+            // Just merge registrations into the overall list.
+            registeredComClassTypes.Add(comClassType);
         }
 
         // This may also be called by an add-in wanting to register
@@ -211,7 +219,7 @@ namespace ExcelDna.ComInterop
 
             libId = typeLibAttr.guid;
             string libIdString = libId.ToString("B").ToUpperInvariant();
-            string version = typeLibAttr.wMajorVerNum.ToString() + "." + typeLibAttr.wMinorVerNum.ToString();
+            string version = typeLibAttr.wMajorVerNum.ToString(CultureInfo.InvariantCulture) + "." + typeLibAttr.wMinorVerNum.ToString(CultureInfo.InvariantCulture);
             
             // Get Friendly Name
             string friendlyName;
@@ -223,14 +231,17 @@ namespace ExcelDna.ComInterop
 
             Registry.SetValue(rootKeyName + @"\TypeLib\" + libIdString + @"\" + version, null, friendlyName, RegistryValueKind.String);
             Registry.SetValue(rootKeyName + @"\TypeLib\" + libIdString + @"\" + version + @"\" + "FLAGS", null, typeLibAttr.wLibFlags, RegistryValueKind.DWord);
-            Registry.SetValue(rootKeyName + @"\TypeLib\" + libIdString + @"\" + version + @"\" + "HELPDIR", null, helpDir, RegistryValueKind.String);
+            if (helpDir != null)
+            {
+                Registry.SetValue(rootKeyName + @"\TypeLib\" + libIdString + @"\" + version + @"\" + "HELPDIR", null, helpDir, RegistryValueKind.String);
+            }
             if (IntPtr.Size == 8)
             {
-                Registry.SetValue(rootKeyName + @"\TypeLib\" + libIdString + @"\" + version + @"\" + typeLibAttr.lcid.ToString() + @"\win64", null, TypeLibPath, RegistryValueKind.String);
+                Registry.SetValue(rootKeyName + @"\TypeLib\" + libIdString + @"\" + version + @"\" + typeLibAttr.lcid.ToString(CultureInfo.InvariantCulture) + @"\win64", null, TypeLibPath, RegistryValueKind.String);
             }
             else
             {
-                Registry.SetValue(rootKeyName + @"\TypeLib\" + libIdString + @"\" + version + @"\" + typeLibAttr.lcid.ToString() + @"\win32", null, TypeLibPath, RegistryValueKind.String);
+                Registry.SetValue(rootKeyName + @"\TypeLib\" + libIdString + @"\" + version + @"\" + typeLibAttr.lcid.ToString(CultureInfo.InvariantCulture) + @"\win32", null, TypeLibPath, RegistryValueKind.String);
             }
 
             typeLib.ReleaseTLibAttr(libAttrPtr);
