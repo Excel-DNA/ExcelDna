@@ -34,15 +34,14 @@ namespace ExcelDna.Loader
     // This class has a friend in XlCustomMarshal.
     internal static class IntegrationHelpers
     {
-
         static Type integrationType;
         static MethodInfo addCommandMenu;
         static MethodInfo removeCommandMenus;
 		internal static MethodInfo UnhandledExceptionHandler; // object->object
         
-        public static void Bind(Assembly integrationAssembly)
+        public static void Bind(Assembly integrationAssembly, Type bindIntegrationType)
         {
-            integrationType = integrationAssembly.GetType("ExcelDna.Integration.Integration");
+            integrationType = bindIntegrationType;
 
             Type menuManagerType = integrationAssembly.GetType("ExcelDna.Integration.MenuManager");
             addCommandMenu = menuManagerType.GetMethod("AddCommandMenu", BindingFlags.Static | BindingFlags.NonPublic);

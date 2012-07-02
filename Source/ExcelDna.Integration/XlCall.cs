@@ -53,7 +53,8 @@ namespace ExcelDna.Integration
             XlReturnNotClusterSafe = 512  /* not supported on cluster */
 		}
 
-		/*
+        #region Constants
+        /*
 		** Function number bits
 		*/
 		public static readonly int xlCommand = 0x8000;
@@ -1057,6 +1058,9 @@ namespace ExcelDna.Integration
         public static readonly int xlcOptionsSpell = (755 | xlCommand);
         public static readonly int xlcHideallInkannots = (808 | xlCommand);
 
+        #endregion
+
+
 		// THROWS: XlCallException if anything goes wrong.
 		public static object Excel(int xlFunction, params object[] parameters )
 		{
@@ -1075,14 +1079,49 @@ namespace ExcelDna.Integration
 
 		public static XlReturn TryExcel(int xlFunction, out object result, params object[] parameters)
 		{
-            return Integration.TryExcelImpl(xlFunction, out result, parameters);
+            if (_suspended)
+            {
+                result = null;
+                return XlReturn.XlReturnFailed;
+            }
+            return ExcelIntegration.TryExcelImpl(xlFunction, out result, parameters);
         }
 
+        /// <summary>
+        /// Supports the registration-free RTD service.
+        /// </summary>
+        /// <param name="progId">The ProgId or type name of the RTD server.</param>
+        /// <param name="server">not used</param>
+        /// <param name="topics">strings passed to the ConnectData call.</param>
+        /// <returns></returns>
         public static object RTD(string progId, string server, params string[] topics)
         {
             return Rtd.RtdRegistration.RTD(progId, server, topics);
         }
-	}
+
+        // Support for suspending calls to the C API
+        // Used in the RTD Server wrapper - otherwise C API calls from the RTD methods can crash Excel.
+        static bool _suspended = false;
+
+        internal static IDisposable Suspend()
+        {
+            return new XlCallSuspended();
+        }
+
+        class XlCallSuspended : IDisposable
+        {
+            public XlCallSuspended()
+            {
+                _suspended = true;
+            }
+
+            public void Dispose()
+            {
+                _suspended = false;
+            }
+        }
+
+    }
 
 	public class XlCallException : Exception
 	{

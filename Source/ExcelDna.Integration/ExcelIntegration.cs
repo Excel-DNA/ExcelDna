@@ -43,10 +43,11 @@ namespace ExcelDna.Integration
     internal delegate void SyncMacroDelegate(double dValue);
 	public delegate object UnhandledExceptionHandler(object exceptionObject);
 
-	// TODO: Rename to ExcelDnaAddIn? and make obsolete - type name should not be the same as namespace name.
-
-    public static class Integration
+    public static class ExcelIntegration
     {
+        // This version must match the version declared in ExcelDna.Loader.IntegrationHelpers.
+        const int ExcelIntegrationVersion = 1;
+
         private static TryExcelImplDelegate tryExcelImpl;
         internal static void SetTryExcelImpl(TryExcelImplDelegate d)
         {
@@ -197,15 +198,36 @@ namespace ExcelDna.Integration
             if (syncMacro != null)
                 syncMacro(dValue);
         }
+
+        // This version check is made by the ExceDna.Loader to make sure we have matching versions.
+        internal static int GetExcelIntegrationVersion()
+        {
+            return ExcelIntegrationVersion;
+        }
     }
 
-    [Obsolete("Use ExcelDna.Integration.Integration class")]
+    [Obsolete("Use ExcelDna.Integration.ExcelIntegration class")]
     public class XlLibrary
     {
         [Obsolete("Use ExcelDna.Integration.Integration.RegisterMethods method")]
         public static void RegisterMethods(List<MethodInfo> methods)
         {
-            Integration.RegisterMethods(methods);
+            ExcelIntegration.RegisterMethods(methods);
         }
     }
+
+    [Obsolete("Use class ExcelDna.Integration.ExcelIntegration instead.")]
+    public static class Integration
+    {
+        public static void RegisterMethods(List<MethodInfo> methods)
+        {
+            ExcelIntegration.RegisterMethods(methods);
+        }
+
+        public static void RegisterUnhandledExceptionHandler(UnhandledExceptionHandler h)
+        {
+            ExcelIntegration.RegisterUnhandledExceptionHandler(h);
+        }
+    }
+
 }

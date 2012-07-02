@@ -50,6 +50,7 @@
 #define IDS_MSG_BODY_DNAREADFAILED      154
 #define IDS_MSG_HEADER_64NET4           155
 #define IDS_MSG_BODY_64NET4             156
+#define IDS_MSG_FOOTER_CHECKINTEGRATION 157
 
 // Next default values for new objects
 // 

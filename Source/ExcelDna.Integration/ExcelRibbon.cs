@@ -68,7 +68,6 @@ namespace ExcelDna.Integration.CustomUI
     }
 
     [ComVisible(true)]
-    //    [Guid("4B0C96EC-9740-4F78-8396-84B0FABB0E74")]
     [ClassInterface(ClassInterfaceType.AutoDispatch)]
     public class ExcelRibbon : ExcelComAddIn, IRibbonExtensibility //, ICustomTaskPaneConsumer
     {
@@ -152,11 +151,30 @@ namespace ExcelDna.Integration.CustomUI
             if (addIn.DnaLibrary == null)
                 addIn.DnaLibrary = DnaLibrary.CurrentLibrary;
 
-            // We pick a new Guid as ClassId for this add-in.
-            CLSID clsId = Guid.NewGuid();
-            // and make the ProgId from this Guid - max 39 chars....
-            string progId = "AddIn." + clsId.ToString("N");
+            CLSID clsId;
+            string progId;
+
+            // If we have both an explicit Guid and an explicit ProgId, then use those, else create synthetic ProgId.
+            object[] progIdAttrs = addIn.GetType().GetCustomAttributes(typeof(ProgIdAttribute), false);
+            object[] guidAttrs   = addIn.GetType().GetCustomAttributes(typeof(GuidAttribute),   false);
+            if (progIdAttrs.Length >= 1 && guidAttrs.Length >= 1)
+            {
+                // Use the attributes
+                ProgIdAttribute progIdAtt = (ProgIdAttribute)progIdAttrs[0];
+                progId = progIdAtt.Value;
+
+                GuidAttribute guidAtt = (GuidAttribute)guidAttrs[0];
+                clsId = new Guid(guidAtt.Value);
+            }
+            else
+            {
+                // We pick a new Guid as ClassId for this add-in.
+                clsId = Guid.NewGuid();
+                // and make the ProgId from this Guid - max 39 chars....
+                progId = "AddIn." + clsId.ToString("N");
+            }
             addIn.SetProgId(progId);
+
             // Put together some nicer descriptions for the Add-ins dialog.
             string friendlyName;
             if (addIn is ExcelRibbon)

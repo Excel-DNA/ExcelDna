@@ -43,6 +43,9 @@ namespace ExcelDna.Integration.Rtd
     //   or the 'real' COM interop types. 
     //   CONSIDER: This would not be needed for .NET 4.
 
+    // NOTE: We don't use this for the ExcelObservableRtdServer 
+    //       - that case is directly registered with the ComServer, and in the registry via AsyncUtil.Register()
+
     internal static class RtdRegistration
     {
         // We write (and quickly remove again) entries in HKEY_CURRENT_USER\Software\Classes....
@@ -72,6 +75,7 @@ namespace ExcelDna.Integration.Rtd
         }
 
         // Forwarded from XlCall
+        // Loads the RTD server with temporary ProgId.
         public static object RTD(string progId, string server, params string[] topics)
         {
             // Check if this is any of our business.
@@ -89,27 +93,36 @@ namespace ExcelDna.Integration.Rtd
             }
 
             // Not loaded already - need to get the Rtd server loaded
-
             // TODO: Need to reconsider registration here.....
-            //       Remember we depend on the unique ProgId for the Async stuff to work right. 
             //       Sometimes need stable ProgIds.
             Type rtdServerType = registeredRtdServerTypes[progId];
             object rtdServer = Activator.CreateInstance(rtdServerType);
-            RtdServerWrapper rtdServerWrapper = new RtdServerWrapper(rtdServer, progId);
-
+            
+            ExcelRtdServer excelRtdServer = rtdServer as ExcelRtdServer;
+            if (excelRtdServer != null)
+            {
+                // Set ProgId so that it can be 'unregistered' (removed from loadeedRtdServers) when the RTD sever terminates.
+                excelRtdServer.RegisteredProgId = progId;
+            }
+            else
+            {
+                // Make a wrapper if we are not an ExcelRtdServer
+                // (ExcelRtdServer implements exception-handling and XLCall supension itself)
+                rtdServer = new RtdServerWrapper(rtdServer, progId);
+            }
+            
             // We pick a new Guid as ClassId for this add-in...
             CLSID clsId = Guid.NewGuid();
             
-            // ... but take a stable ProgId from the XllPath and type's FullName - max 39 chars.
             // ... (bad idea - this will cause Excel to try to load this RTD server while it is not registered.)
-            // Guid typeGuid = GetGuidFromString(DnaLibrary.XllPath + ":" + rtdServerType.FullName);
+            // Guid typeGuid = GuidUtilit.CreateGuid(..., DnaLibrary.XllPath + ":" + rtdServerType.FullName);
             // string progIdRegistered = "RtdSrv." + typeGuid.ToString("N");
 
             // by making a fresh progId, we are sure Excel will try to load when we are ready.
             string progIdRegistered = "RtdSrv." + clsId.ToString("N");
             Debug.Print("RTD - Using ProgId: {0} for type: {1}", progIdRegistered, rtdServerType.FullName);
 
-            using (SingletonClassFactoryRegistration regClassFactory = new SingletonClassFactoryRegistration(rtdServerWrapper, clsId))
+            using (SingletonClassFactoryRegistration regClassFactory = new SingletonClassFactoryRegistration(rtdServer, clsId))
             using (ProgIdRegistration regProgId = new ProgIdRegistration(progIdRegistered, clsId))
             using (ClsIdRegistration regClsId = new ClsIdRegistration(clsId, progIdRegistered))
             {
@@ -249,11 +262,14 @@ namespace ExcelDna.Integration.Rtd
         {
             try
             {
-                if (_rtdServer != null)
+                using (XlCall.Suspend())
                 {
-                    return _rtdServer.ConnectData(topicId, ref strings, ref newValues);
+                    if (_rtdServer != null)
+                    {
+                        return _rtdServer.ConnectData(topicId, ref strings, ref newValues);
+                    }
+                    return _ConnectData(topicId, ref strings, ref newValues);
                 }
-                return _ConnectData(topicId, ref strings, ref newValues);
             }
             catch (Exception e)
             {
@@ -266,12 +282,15 @@ namespace ExcelDna.Integration.Rtd
         {
             try
             {
-                if (_rtdServer != null)
+                using (XlCall.Suspend())
                 {
-                    _rtdServer.DisconnectData(topicId);
-                    return;
+                    if (_rtdServer != null)
+                    {
+                        _rtdServer.DisconnectData(topicId);
+                        return;
+                    }
+                    _DisconnectData(topicId);
                 }
-                _DisconnectData(topicId);
             }
             catch (Exception e)
             {
@@ -283,11 +302,14 @@ namespace ExcelDna.Integration.Rtd
         {
             try
             {
-                if (_rtdServer != null)
+                using (XlCall.Suspend())
                 {
-                    return _rtdServer.Heartbeat();
+                    if (_rtdServer != null)
+                    {
+                        return _rtdServer.Heartbeat();
+                    }
+                    return _Heartbeat();
                 }
-                return _Heartbeat();
             }
             catch (Exception e)
             {
@@ -300,11 +322,14 @@ namespace ExcelDna.Integration.Rtd
         {
             try
             {
-                if (_rtdServer != null)
+                using (XlCall.Suspend())
                 {
-                    return _rtdServer.RefreshData(ref topicCount);
+                    if (_rtdServer != null)
+                    {
+                        return _rtdServer.RefreshData(ref topicCount);
+                    }
+                    return _RefreshData(ref topicCount);
                 }
-                return _RefreshData(ref topicCount);
             }
             catch (Exception e)
             {
@@ -317,18 +342,20 @@ namespace ExcelDna.Integration.Rtd
         {
             try
             {
-                if (_rtdServer != null)
+                using (XlCall.Suspend())
                 {
-                    return _rtdServer.ServerStart(CallbackObject);
+                    if (_rtdServer != null)
+                    {
+                        return _rtdServer.ServerStart(CallbackObject);
+                    }
+                    // CallbackObject will actually be a RCW (__ComObject) so the type 'mismatch' calling Invoke never arises.
+                    return _ServerStart(CallbackObject);
                 }
-                // CallbackObject will actually be a RCW (__ComObject) so the type 'mismatch' calling Invoke never arises.
-                return _ServerStart(CallbackObject);
             }
             catch (Exception e)
             {
                 Logging.LogDisplay.WriteLine("Error in RTD server {0} ServerStart: {1}", _progId, e.ToString());
                 return 0;
-                //return 1;
             }
         }
 
@@ -336,13 +363,16 @@ namespace ExcelDna.Integration.Rtd
         {
             try
             {
-                RtdRegistration.UnregisterRTDServer(_progId);
-                if (_rtdServer != null)
+                using (XlCall.Suspend())
                 {
-                    _rtdServer.ServerTerminate();
-                    return;
+                    RtdRegistration.UnregisterRTDServer(_progId);
+                    if (_rtdServer != null)
+                    {
+                        _rtdServer.ServerTerminate();
+                        return;
+                    }
+                    _ServerTerminate();
                 }
-                _ServerTerminate();
             }
             catch (Exception e)
             {

@@ -181,7 +181,7 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 	{
 		ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
 					IDS_MSG_BODY_XLADDININIT, 
-					IDS_MSG_FOOTER_UNEXPECTED,
+					IDS_MSG_FOOTER_CHECKINTEGRATION,
 					hr);
 		return 0;
 	}

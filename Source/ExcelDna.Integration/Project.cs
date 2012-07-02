@@ -180,7 +180,7 @@ namespace ExcelDna.Integration
                             string assName = rf.Path.Substring(7);
                             string assPath = Path.GetTempFileName();
                             tempAssemblyPaths.Add(assPath);
-                            File.WriteAllBytes(assPath, Integration.GetAssemblyBytes(assName));
+                            File.WriteAllBytes(assPath, ExcelIntegration.GetAssemblyBytes(assName));
                             refPaths.Add(assPath);
                             isResolved = true;
                         }
@@ -247,7 +247,7 @@ namespace ExcelDna.Integration
             {
 				string assPath = Path.GetTempFileName();
                 tempAssemblyPaths.Add(assPath);
-                File.WriteAllBytes(assPath, Integration.GetAssemblyBytes("EXCELDNA.INTEGRATION"));
+                File.WriteAllBytes(assPath, ExcelIntegration.GetAssemblyBytes("EXCELDNA.INTEGRATION"));
                 refPaths.Add(assPath);
             }
 

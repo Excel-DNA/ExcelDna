@@ -103,7 +103,7 @@ namespace ExcelDna.Integration
 					string resourceName = Path.Substring(7);
 					if (Path.ToUpperInvariant().EndsWith(".DNA"))
 					{
-						byte[] dnaContent = Integration.GetDnaFileBytes(resourceName);
+						byte[] dnaContent = ExcelIntegration.GetDnaFileBytes(resourceName);
 						DnaLibrary lib = DnaLibrary.LoadFrom(dnaContent, pathResolveRoot);
 						if (lib == null)
 						{
@@ -132,7 +132,7 @@ namespace ExcelDna.Integration
                         // 2. ExternalLibrary loads will happen before reference loads via AssemblyResolve.
                         // Under these assumptions we should not have assemblies loaded more than once, 
                         // even if not checking here.
-                        byte[] rawAssembly = Integration.GetAssemblyBytes(resourceName);
+                        byte[] rawAssembly = ExcelIntegration.GetAssemblyBytes(resourceName);
 					    Assembly assembly = Assembly.Load(rawAssembly);
 						list.Add(new ExportedAssembly(assembly, ExplicitExports, ComServer, false, typeLibPath, dnaLibrary));
 						return list;
