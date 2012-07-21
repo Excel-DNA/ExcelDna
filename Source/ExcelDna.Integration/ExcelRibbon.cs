@@ -38,11 +38,6 @@ namespace ExcelDna.Integration.CustomUI
         public virtual void OnConnection(object Application, ext_ConnectMode ConnectMode, object AddInInst, ref Array custom)
         {
             Debug.Print("ExcelComAddIn.OnConnection");
-    
-            
-            // Grab an Application reference here and keep around...?
-            // TODO: Check that Excel shuts down in various settings.
-            ExcelDnaUtil.Application = Application;
         }
 
         public virtual void OnDisconnection(ext_DisconnectMode RemoveMode, ref Array custom)

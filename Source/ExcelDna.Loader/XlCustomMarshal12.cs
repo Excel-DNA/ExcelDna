@@ -1283,7 +1283,7 @@ namespace ExcelDna.Loader
 					}
 					else if (obj is ulong)
 					{
-						pOper->numValue = (double)((long)obj);
+						pOper->numValue = (double)((ulong)obj);
 						pOper->xlType = XlType12.XlTypeNumber;
 					}
 					else if (obj is decimal)
