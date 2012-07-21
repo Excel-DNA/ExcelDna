@@ -60,7 +60,7 @@ namespace ExcelDna.Integration.Rtd
                 lock (_server._updateLock)
                 {
                     object fixedValue = FixValue(value);
-                    if (_value != fixedValue)
+                    if (!object.Equals(_value, fixedValue))
                     {
                         _value = fixedValue;
                         UpdateNotify();
@@ -117,9 +117,9 @@ namespace ExcelDna.Integration.Rtd
 
         readonly Dictionary<int, Topic> _activeTopics = new Dictionary<Int32, Topic>();
         // Using a Dictionary for the dirty topics instead of a HashSet, since we are targeting .NET 2.0
-        readonly Dictionary<Topic, bool> _dirtyTopics = new Dictionary<Topic, bool>();
+        Dictionary<Topic, object> _dirtyTopics = new Dictionary<Topic, object>();
         bool _notified;
-        SynchronizationWindow _syncWindow;
+        RtdUpdateSynchronization _updateSync;
         IRTDUpdateEvent _callbackObject;
         readonly object _updateLock = new object();
 
@@ -161,10 +161,10 @@ namespace ExcelDna.Integration.Rtd
         {
             lock (_updateLock)
             {
-                _dirtyTopics[topic] = true;
+                _dirtyTopics[topic] = null;
                 if (!_notified)
                 {
-                    _syncWindow.UpdateNotify(_callbackObject);
+                    _updateSync.UpdateNotify(_callbackObject);
                 }
                 _notified = true;
             }
@@ -175,16 +175,17 @@ namespace ExcelDna.Integration.Rtd
         {
             try
             {
+                _updateSync = SynchronizationManager.RtdUpdateSynchronization;
+                if (_updateSync == null)
+                {
+                    // CONSIDER: A better message to alert user of problem here?
+                    return 0;
+                }
+
+                _callbackObject = callbackObject;
+                _updateSync.RegisterUpdateNotify(_callbackObject);
                 using (XlCall.Suspend())
                 {
-                    _syncWindow = SynchronizationManager.SynchronizationWindow;
-                    if (_syncWindow == null)
-                    {
-                        // CONSIDER: Better message to alert user here?
-                        return 0;
-                    }
-
-                    _callbackObject = callbackObject;
                     return ServerStart() ? 1 : 0;
                 }
             }
@@ -199,16 +200,13 @@ namespace ExcelDna.Integration.Rtd
         {
             try
             {
+                List<string> topicInfo = new List<string>(strings.Length);
+                for (int i = 0; i < strings.Length; i++) topicInfo.Add((string)strings.GetValue(i));
+                Topic topic = new Topic(this, topicId);
+                _activeTopics[topicId] = topic;
                 using (XlCall.Suspend())
                 {
-                    lock (_updateLock)
-                    {
-                        List<string> topicInfo = new List<string>(strings.Length);
-                        for (int i = 0; i < strings.Length; i++) topicInfo.Add((string)strings.GetValue(i));
-                        Topic topic = new Topic(this, topicId);
-                        _activeTopics[topicId] = topic;
-                        return ConnectData(topic, topicInfo, ref newValues);
-                    }
+                    return ConnectData(topic, topicInfo, ref newValues);
                 }
             }
             catch (Exception e)
@@ -220,38 +218,46 @@ namespace ExcelDna.Integration.Rtd
 
         Array IRtdServer.RefreshData(ref int topicCount)
         {
+            // Get a copy of the dirty topics to work with, 
+            // locking as briefly as possible (thanks Naju).
+            // CONSIDER: Need to test performance of new Dictionary every time we Refresh 
+            //           vs. having two permanent dictionaries that we swap and .Clear().
+            Dictionary<Topic, object> temp;
+            Dictionary<Topic, object> newDirtyTopics = new Dictionary<Topic, object>();
             lock (_updateLock)
             {
-                // C# 2.0 looks a bit pale here...
-                Dictionary<Topic, bool>.KeyCollection dirtyTopics = _dirtyTopics.Keys;
-                topicCount = dirtyTopics.Count;
-                object[,] result = new object[2, topicCount];
-                int i = 0;
-                foreach (Topic topic in dirtyTopics)
-                {
-                    result[0, i] = topic.TopicId;
-                    result[1, i] = topic.Value;
-                    i++;
-                }
-                _dirtyTopics.Clear();
+                temp = _dirtyTopics;
+                _dirtyTopics = newDirtyTopics;
                 _notified = false;
-                return result;
             }
+
+            // The topics in _dirtyTopics may have been Disconnected already.
+            // (With another thread updating the value and setting dirty)
+            // We assume Excel doesn't mind being notifies of Disconnected topics.
+            Dictionary<Topic, object>.KeyCollection dirtyTopics = temp.Keys;
+            topicCount = dirtyTopics.Count;
+            object[,] result = new object[2, topicCount];
+            int i = 0;
+            foreach (Topic topic in dirtyTopics)
+            {
+                result[0, i] = topic.TopicId;
+                result[1, i] = topic.Value;
+                i++;
+            }
+            return result;
         }
 
         void IRtdServer.DisconnectData(int topicId)
         {
             try
             {
+                Topic topic;
+                topic = _activeTopics[topicId];
+                _activeTopics.Remove(topicId);
                 using (XlCall.Suspend())
                 {
-                    lock (_updateLock)
-                    {
-                        Topic topic = _activeTopics[topicId];
-                        DisconnectData(topic);
-                        topic.OnDisconnected(this);
-                        _activeTopics.Remove(topicId);
-                    }
+                    DisconnectData(topic);
+                    topic.OnDisconnected(this);
                 }
             }
             catch (Exception e)
@@ -280,17 +286,17 @@ namespace ExcelDna.Integration.Rtd
         {
             try
             {
+                // The Unregister call here just tells the reg-free loading that we are gone, 
+                // to ensure a fresh load with new 'fake progid' next time.
+                // Also safe to call (basically a no-op) if we are not loaded via reg-free, but via real COM Server.
+                RtdRegistration.UnregisterRTDServer(RegisteredProgId);
+
+                if (_updateSync != null)
+                {
+                    _updateSync.DeregisterUpdateNotify(_callbackObject);
+                }
                 using (XlCall.Suspend())
                 {
-                    // The Unregister call here just tells the reg-free loading that we are gone, 
-                    // to ensure a fresh load with new 'fake progid' next time.
-                    // Also safe to call (basically a no-op) if we are not loaded via reg-free, but via real COM Server.
-                    RtdRegistration.UnregisterRTDServer(RegisteredProgId);
-
-                    if (_syncWindow != null)
-                    {
-                        _syncWindow.CancelUpdateNotify(_callbackObject);
-                    }
                     ServerTerminate();
                 }
             }

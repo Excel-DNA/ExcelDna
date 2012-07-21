@@ -37,8 +37,7 @@ namespace ExcelDna.Integration.Rtd
 
         // This is the most general RTD registration
         // TODO: This should not be called from a ThreadSafe function. Check...?
-        // TODO: Different name RunObservable?
-        public static object ProcessObservable(string functionName, object parameters, ExcelObservableSource observableFunc)
+        public static object ProcessObservable(string functionName, object parameters, ExcelObservableSource getObservable)
         {
             // TODO: Check here that registration has happened.
             // CONSIDER: Why not same problems with all RTD servers?
@@ -53,7 +52,8 @@ namespace ExcelDna.Integration.Rtd
             }
 
             // Actually register as a new Observable
-            return RegisterObservable(callInfo, observableFunc());
+            IExcelObservable observable = getObservable();
+            return RegisterObservable(callInfo, observable);
         }
 
         // Make a one-shot 'Observable' from the func
@@ -233,10 +233,17 @@ namespace ExcelDna.Integration.Rtd
 
         // Computes a hash code for the parameters, consistent with the value equality that we define.
         // Also checks that the data types passed for parameters are among those we handle properly for value equality.
+        // For now no string[]. But invalid types passed in will causes exception immediately.
         static int ComputeHashCode(object obj)
         {
             if (obj == null) return 0;
+
+            // CONSIDER: All of this could be replaced by a check for (obj is ValueType || obj is ExcelReference)
+            //           which would allow a more flexible set of parameters, at the risk of comaprisons going wrong.
+            //           We can reconsider if this arises, or when we implement async automatically or custom marshaling 
+            //           to other data types. For now this allow everything that can be passed as parameters from Excel-DNA.
             if (obj is double ||
+                obj is float ||
                 obj is string ||
                 obj is bool ||
                 obj is DateTime ||

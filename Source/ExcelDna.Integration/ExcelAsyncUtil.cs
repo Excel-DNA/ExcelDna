@@ -99,7 +99,7 @@ namespace ExcelDna.Integration
             if (!SynchronizationManager.IsInstalled)
                 throw new InvalidOperationException("SynchronizationManager is not registered.");
 
-            SynchronizationManager.SynchronizationWindow.RunAsMacroAsync(callback, state);
+            SynchronizationManager.RunMacroSynchronization.RunAsMacroAsync(callback, state);
         }
 
         static void RunMacro(object macroName)

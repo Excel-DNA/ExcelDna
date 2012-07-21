@@ -25,8 +25,11 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Diagnostics;
 using System.Globalization;
+using System.Reflection;
+using ExcelDna.Logging;
 
 namespace ExcelDna.Integration
 {
@@ -57,11 +60,17 @@ namespace ExcelDna.Integration
 			// Need to get window in a macro context, else the call to get the Excel version fails.
             // Exception suppressor added here for HPC support and for RegSvr32 registration
             // - WindowHandle fails in these contexts.
+            // Also try to set Application object, since we are now on the main thread.
             try
             {
                 IntPtr unused = WindowHandle;
+                _mainThreadId = Thread.CurrentThread.ManagedThreadId;
             }
-            catch { }
+            catch (Exception ex)
+            { 
+                LogDisplay.WriteLine("Error during ExcelDnaUtil.Initialize: " + ex);
+                // Just suppress otherwise
+            }
 		}
 
 		private static IntPtr _hWndExcel = IntPtr.Zero;
@@ -127,15 +136,20 @@ namespace ExcelDna.Integration
             return hWnd;
         }
 
+        static int _mainThreadId;
+        internal static bool IsMainThread()
+        {
+            return Thread.CurrentThread.ManagedThreadId == _mainThreadId;
+        }
+
         // Returns true if the cached _application reference is valid.
         // - someone might have called Marshal.ReleaseComObject, making this reference invalid.
-        // Then we set it to null, so we'll get a new one.
-        private static bool CheckApplicationRef()
+        static bool IsApplicationOK()
         {
             if (_application == null) return false;
             try
             {
-                _application.GetType().InvokeMember("Version", System.Reflection.BindingFlags.GetProperty, null, _application, null, new CultureInfo(1033));
+                _application.GetType().InvokeMember("Version", BindingFlags.GetProperty, null, _application, null,  _enUsCulture);
                 return true;
             }
             catch (Exception)
@@ -145,66 +159,83 @@ namespace ExcelDna.Integration
             }
         }
 
-	    [ThreadStatic]
-        private static object _application;
+        // CONSIDER: ThreadStatic not needed anymore - only cached and used on main thread anyway.
+        // [ThreadStatic] 
+        static object _application;
+        static readonly CultureInfo _enUsCulture = new CultureInfo(1033);
 		public static object Application
 		{
 			get
 			{
-                // Check for a cached one set by a ComAddIn.
-                if (CheckApplicationRef())
+                if (!IsMainThread())
+                {
+                    // Nothing cached - possibly being called on a different thread
+                    // Just get from window and return
+                    return GetApplication();
+                }
+
+                // Check whether we have a chached App and it is valid
+                if (IsApplicationOK())
                 {
                     return _application;
                 }
-
-                // Get main window as well as we can.
-                IntPtr hWndMain = WindowHandle;
-                if (hWndMain == IntPtr.Zero) return null;   // This is a problematic error case!
-
-                // Don't cache the one we get from the Window, it keeps Excel alive!
-                object application;
-                application = GetApplicationFromWindow(hWndMain);
-                if (application == null)
-                {
-                    // I assume it failed because there was no workbook open
-                    // Now make workbook with VBA sheet, according to some Google post
-
-                    // CONSIDER: Alternative of sending WM_USER+18 to Excel - KB 147573
-                    //           And trying to retrieve Excel from the ROT using GetActiveObject
-                    //           Concern then is whether it is the right instance of the Excel.Application for this process.
-
-
-                    // DOCUMENT: Under some circumstances, the C API and Automation interfaces are not available.
-                    //  This happens when there is no Workbook open in Excel.
-                    // We try a (possible) test for whether we can call the C API.
-                    object output;
-                    XlCall.XlReturn result = XlCall.TryExcel(XlCall.xlGetName, out output);
-                    if (result == XlCall.XlReturn.XlReturnFailed)
-                    {
-                        // no plan for getting Application (we're probably on a different thread?)
-                        throw new InvalidOperationException("Excel API is unavailable - cannot retrieve Application object.");
-                    }
-
-                    // Create new workbook with the right stuff
-                    XlCall.Excel(XlCall.xlcEcho, false);
-                    XlCall.Excel(XlCall.xlcNew, 5);
-                    XlCall.Excel(XlCall.xlcWorkbookInsert, 6);
-
-                    // Try again
-                    application = GetApplicationFromWindow(hWndMain);
-
-                    // Clean up
-                    XlCall.Excel(XlCall.xlcFileClose, false);
-                    XlCall.Excel(XlCall.xlcEcho, true);
-                }
-                return application;
+                // There was a problem with the cached application.
+                // Try to get one and remember  it.
+                _application = GetApplication();
+                return _application;
 			}
             internal set
             {
-                // Should only be set from Com Add-in connect, and only on the main thread.
+                // Should only be set on the main thread.
+                if (!IsMainThread()) throw new InvalidOperationException("Cached Application can only be set on the main thread.");
                 _application = value;
             }
 		}
+
+        private static object GetApplication()
+        {
+            // Get main window as well as we can.
+            IntPtr hWndMain = WindowHandle;
+            if (hWndMain == IntPtr.Zero) return null;   // This is a problematic error case!
+
+            // Don't cache the one we get from the Window, it keeps Excel alive!
+            object application;
+            application = GetApplicationFromWindow(hWndMain);
+            if (application == null)
+            {
+                // I assume it failed because there was no workbook open
+                // Now make workbook with VBA sheet, according to some Google post
+
+                // CONSIDER: Alternative of sending WM_USER+18 to Excel - KB 147573
+                //           And trying to retrieve Excel from the ROT using GetActiveObject
+                //           Concern then is whether it is the right instance of the Excel.Application for this process.
+
+
+                // DOCUMENT: Under some circumstances, the C API and Automation interfaces are not available.
+                //  This happens when there is no Workbook open in Excel.
+                // We try a (possible) test for whether we can call the C API.
+                object output;
+                XlCall.XlReturn result = XlCall.TryExcel(XlCall.xlGetName, out output);
+                if (result == XlCall.XlReturn.XlReturnFailed)
+                {
+                    // no plan for getting Application (we're probably on a different thread?)
+                    throw new InvalidOperationException("Excel API is unavailable - cannot retrieve Application object.");
+                }
+
+                // Create new workbook with the right stuff
+                XlCall.Excel(XlCall.xlcEcho, false);
+                XlCall.Excel(XlCall.xlcNew, 5);
+                XlCall.Excel(XlCall.xlcWorkbookInsert, 6);
+
+                // Try again
+                application = GetApplicationFromWindow(hWndMain);
+
+                // Clean up
+                XlCall.Excel(XlCall.xlcFileClose, false);
+                XlCall.Excel(XlCall.xlcEcho, true);
+            }
+            return application;
+        }
 
 		private static object GetApplicationFromWindow(IntPtr hWndMain)
 		{
@@ -244,6 +275,8 @@ namespace ExcelDna.Integration
 			return null;
 		}
 
+        // CONSIDER: Might this be better?
+        // return !XlCall.Excel(XlCall.xlfGetTool, 4, "Standard", 1);
 		public static bool IsInFunctionWizard()
 		{
 			// TODO: Handle the Find and Replace dialog

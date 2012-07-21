@@ -18,6 +18,7 @@ Version 0.30 (??????)
 * Add async function helper as ExcelAsyncUtil.Run.
 * Add support for Reactive Extensions via RTD via ExcelAsyncUtil.Observe and related interfaces.
 * Change ExcelRibbon and ComAddIn loading to use declared ProgId and Guid if _both_ attributes are present. Fixed Ribbon QAT issue. (TODO: Test)
+* Revisit Application caching.
 
 Version 0.29 (28 May 2011)
 --------------------------
