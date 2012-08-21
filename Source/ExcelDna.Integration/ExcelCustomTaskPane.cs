@@ -24,10 +24,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Runtime.CompilerServices;
 using ExcelDna.ComInterop.ComRegistration;
 
 namespace ExcelDna.Integration.CustomUI
@@ -61,11 +58,14 @@ namespace ExcelDna.Integration.CustomUI
             // ...and make the ProgId from this Guid - max 39 chars.
             string progId = "CtpSrv." + clsId.ToString("N");
 
-            // Register UserControl
-            // (could probably get away with RegistrationServices.RegisterTypeForComClients instead of our own ClassFactoryRegistration class)
-            using (ProgIdRegistration progIdReg = new ProgIdRegistration(progId, clsId))
-            using (ClsIdRegistration clsIdReg = new ClsIdRegistration(clsId, progId))
-            using (ClassFactoryRegistration cf = new ClassFactoryRegistration(userControlType, clsId))
+            // Instantiate and then register UserControl
+            // For some reason, there is a problem loading the user control when running under an elevated UAC token.
+            // So we use the form of the registration which tries to first register for the machine, 
+            // then fall back to the user hive if that fails.
+            object userControl = Activator.CreateInstance(userControlType);
+            using (new SingletonClassFactoryRegistration(userControl, clsId))
+            using (new ProgIdUacRegistration(progId, clsId))
+            using (new ClsIdUacRegistration(clsId, progId))
             {
                 return CreateCustomTaskPane(progId, title, parent);
             }

@@ -39,6 +39,7 @@ namespace ExcelDna.ComInterop.ComRegistration
 {
     // This implements a COM class factory for the given type
     // with some customization to allow wrapping of Rtd servers.
+    // Does not work with the just-in-time registration into the user's hive, when running under elevated UAC token.
     [ComVisible(true)]
     [ClassInterface(ClassInterfaceType.None)]
     internal class ClassFactory : ComAPI.IClassFactory
@@ -96,8 +97,6 @@ namespace ExcelDna.ComInterop.ComRegistration
 
         public int LockServer(bool fLock)
         {
-            //Debug.Fail("LockServer not implemented yet....?");
-            //throw new NotImplementedException();
             return ComAPI.S_OK;
         }
     }
@@ -146,8 +145,6 @@ namespace ExcelDna.ComInterop.ComRegistration
 
         public int LockServer(bool fLock)
         {
-            //Debug.Fail("LockServer not implemented yet....?");
-            //throw new NotImplementedException();
             return ComAPI.S_OK;
         }
     }
@@ -200,7 +197,7 @@ namespace ExcelDna.ComInterop.ComRegistration
         // Some care is needed here. See notes at ComServer.RegisterServer().
         // This user-hive registration only always works because we are hosting the ClassFactory explicitly.
 
-        private string _progId;
+        readonly string _progId;
 
         public ComAddInRegistration(string progId, string friendlyName, string description)
         {
@@ -220,37 +217,69 @@ namespace ExcelDna.ComInterop.ComRegistration
 
     internal class ProgIdRegistration : Registration
     {
-        public string ProgId
-        {
-            get;
-            private set;
-        }
+        readonly string _progId;
 
         public ProgIdRegistration(string progId, CLSID clsId)
         {
-            ProgId = progId;
+            _progId = progId;
             // Register the ProgId for CLSIDFromProgID.
-            Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\" + ProgId + @"\CLSID", null, clsId.ToString("B").ToUpperInvariant(), RegistryValueKind.String);
+            Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\" + _progId + @"\CLSID", null, clsId.ToString("B").ToUpperInvariant(), RegistryValueKind.String);
         }
 
         protected override void Deregister()
         {
             // Deregister the ProgId for CLSIDFromProgID.
-            Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\" + ProgId);
+            Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\" + _progId);
+        }
+    }
+
+
+    // I'm implementating a minimal fix for the CTP loading issue when running under UAC elevation.
+    // Not sure yet why the RTD servers and ribbons work fine, but not the ActiveX loading.
+    // So for now I'm just changing the ActiveX control registration to first attempt a machine registration, 
+    // and if that fails to try a user registration.
+    // CONSIDER: Follow this strategy for all registrations, ro revisit why we have an issue only for this case under UAC elevation.
+    internal class ProgIdUacRegistration : Registration
+    {
+        readonly string _progId;
+        readonly bool _machineRegistration;
+
+        public ProgIdUacRegistration(string progId, CLSID clsId)
+        {
+            _progId = progId;
+
+            try
+            {
+                Registry.SetValue(@"HKEY_CLASSES_ROOT\" + _progId + @"\CLSID", null, clsId.ToString("B").ToUpperInvariant(), RegistryValueKind.String);
+                _machineRegistration = true;
+            }
+            catch
+            {
+                Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\" + _progId + @"\CLSID", null, clsId.ToString("B").ToUpperInvariant(), RegistryValueKind.String);
+                _machineRegistration = false;
+            }
+        }
+
+        protected override void Deregister()
+        {
+            if (_machineRegistration)
+            {
+                Registry.ClassesRoot.DeleteSubKeyTree(_progId);
+            }
+            else
+            {
+                // Deregister the ProgId for CLSIDFromProgID.
+                Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\" + _progId);
+            }
         }
     }
 
     internal class ClsIdRegistration : Registration
     {
-        public Guid ClsId
-        {
-            get;
-            private set;
-        }
-
+        readonly Guid _clsId;
         public ClsIdRegistration(CLSID clsId, string progId)
         {
-            ClsId = clsId;
+            _clsId = clsId;
             string clsIdString = clsId.ToString("B").ToUpperInvariant();
             // Register the CLSID
             //Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\CLSID\" + clsId.ToString("B"), null, "Excel RTD Helper Class", RegistryValueKind.String);
@@ -265,7 +294,58 @@ namespace ExcelDna.ComInterop.ComRegistration
         protected override void Deregister()
         {
             // Deregister the ProgId for CLSIDFromProgID.
-            Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\CLSID\" + ClsId.ToString("B").ToUpperInvariant());
+            Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\CLSID\" + _clsId.ToString("B").ToUpperInvariant());
+        }
+    }
+
+    // Same story as the ProgIdUacRegistration - for CTP ActiveX control.
+    internal class ClsIdUacRegistration : Registration
+    {
+        readonly Guid _clsId;
+        readonly bool machineRegistration = false;
+
+        public ClsIdUacRegistration(CLSID clsId, string progId)
+        {
+            _clsId = clsId;
+            string clsIdString = clsId.ToString("B").ToUpperInvariant();
+            // Register the CLSID
+            // Attempt machine key
+
+            try
+            {
+                Registry.SetValue(@"HKEY_CLASSES_ROOT\CLSID\" + clsIdString + @"\InProcServer32", null, DnaLibrary.XllPath, RegistryValueKind.String);
+                Registry.SetValue(@"HKEY_CLASSES_ROOT\CLSID\" + clsIdString + @"\InProcServer32", "ThreadingModel", "Both", RegistryValueKind.String);
+                if (!string.IsNullOrEmpty(progId))
+                {
+                    Registry.SetValue(@"HKEY_CLASSES_ROOT\CLSID\" + clsIdString + @"\ProgID", null, progId, RegistryValueKind.String);
+                }
+                machineRegistration = true;
+            }
+            catch
+            {
+                machineRegistration = false;
+                //Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\CLSID\" + clsId.ToString("B"), null, "Excel RTD Helper Class", RegistryValueKind.String);
+                Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\CLSID\" + clsIdString + @"\InProcServer32", null, DnaLibrary.XllPath, RegistryValueKind.String);
+                Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\CLSID\" + clsIdString + @"\InProcServer32", "ThreadingModel", "Both", RegistryValueKind.String);
+
+                if (!string.IsNullOrEmpty(progId))
+                {
+                    Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\CLSID\" + clsIdString + @"\ProgID", null, progId, RegistryValueKind.String);
+                }
+            }
+        }
+
+        protected override void Deregister()
+        {
+            // Deregister the ProgId for CLSIDFromProgID.
+            if (machineRegistration)
+            {
+                Registry.ClassesRoot.DeleteSubKeyTree(@"CLSID\" + _clsId.ToString("B").ToUpperInvariant());
+            }
+            else
+            {
+                Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\CLSID\" + _clsId.ToString("B").ToUpperInvariant());
+            }
         }
     }
 

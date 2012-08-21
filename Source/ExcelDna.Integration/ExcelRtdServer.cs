@@ -51,15 +51,17 @@ namespace ExcelDna.Integration.Rtd
                 }
             }
 
+            public ExcelRtdServer Server { get { return _server; } }
+
             /// <summary>
             /// Sets the topic value and calls UpdateNotify on the RTD Server to refresh.
             /// </summary>
             /// <param name="value"></param>
             public void UpdateValue(object value)
             {
+                object fixedValue = FixValue(value);
                 lock (_server._updateLock)
                 {
-                    object fixedValue = FixValue(value);
                     if (!object.Equals(_value, fixedValue))
                     {
                         _value = fixedValue;
@@ -103,19 +105,19 @@ namespace ExcelDna.Integration.Rtd
             }
 
             public event EventHandler Disconnected;
-            public void OnDisconnected(ExcelRtdServer server)
+            internal void OnDisconnected()
             {
                 EventHandler disconnected = Disconnected;
                 if (disconnected != null)
                 {
-                    disconnected(server, EventArgs.Empty);
+                    disconnected(this, EventArgs.Empty);
                 }
             }
         }
 
         internal string RegisteredProgId;
 
-        readonly Dictionary<int, Topic> _activeTopics = new Dictionary<Int32, Topic>();
+        readonly Dictionary<int, Topic> _activeTopics = new Dictionary<int, Topic>();
         // Using a Dictionary for the dirty topics instead of a HashSet, since we are targeting .NET 2.0
         Dictionary<Topic, object> _dirtyTopics = new Dictionary<Topic, object>();
         bool _notified;
@@ -161,6 +163,16 @@ namespace ExcelDna.Integration.Rtd
         {
             lock (_updateLock)
             {
+                // Check that this topic is still active 
+                // (we might be processing the update from another thread, after DisconnectData has been called)
+                // and ensure the active topic really is this one.
+                Topic activeTopic;
+                if (!_activeTopics.TryGetValue(topic.TopicId, out activeTopic) || 
+                    !ReferenceEquals(topic, activeTopic))
+                {
+                    return;
+                }
+                // Ensure that the topic is in the current dirty list, and call UpdateNotify if needed.
                 _dirtyTopics[topic] = null;
                 if (!_notified)
                 {
@@ -220,8 +232,6 @@ namespace ExcelDna.Integration.Rtd
         {
             // Get a copy of the dirty topics to work with, 
             // locking as briefly as possible (thanks Naju).
-            // CONSIDER: Need to test performance of new Dictionary every time we Refresh 
-            //           vs. having two permanent dictionaries that we swap and .Clear().
             Dictionary<Topic, object> temp;
             Dictionary<Topic, object> newDirtyTopics = new Dictionary<Topic, object>();
             lock (_updateLock)
@@ -232,8 +242,8 @@ namespace ExcelDna.Integration.Rtd
             }
 
             // The topics in _dirtyTopics may have been Disconnected already.
-            // (With another thread updating the value and setting dirty)
-            // We assume Excel doesn't mind being notifies of Disconnected topics.
+            // (With another thread updating the value and setting dirty afterwards)
+            // We assume Excel doesn't mind being notified of Disconnected topics.
             Dictionary<Topic, object>.KeyCollection dirtyTopics = temp.Keys;
             topicCount = dirtyTopics.Count;
             object[,] result = new object[2, topicCount];
@@ -251,13 +261,12 @@ namespace ExcelDna.Integration.Rtd
         {
             try
             {
-                Topic topic;
-                topic = _activeTopics[topicId];
+                Topic topic = _activeTopics[topicId];
                 _activeTopics.Remove(topicId);
                 using (XlCall.Suspend())
                 {
                     DisconnectData(topic);
-                    topic.OnDisconnected(this);
+                    topic.OnDisconnected();
                 }
             }
             catch (Exception e)

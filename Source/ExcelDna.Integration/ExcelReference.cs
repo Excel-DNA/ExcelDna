@@ -253,5 +253,10 @@ namespace ExcelDna.Integration
             }
 	        return hash ^ sheetId.GetHashCode();
 	    }
+
+        public override string ToString()
+        {
+            return string.Format("({0},{1} : {2},{3}) - 4", RowFirst, ColumnFirst, RowLast, ColumnLast, SheetId);
+        }
 	}
 }
