@@ -356,7 +356,7 @@ namespace ExcelDna.Integration
                                                      // Maybe when trying to get the Application object from another thread, 
                                                      // triggered by a ribbon handler, while Excel is editing a cell.
         const uint VBA_E_IGNORE = 0x800AC472;        // Excel has suspended the object browser
-        const uint UNKNOWN_E_UNKNOWN = 0x800A03EC;   // When called from the main thread, but Excel is busy.
+        const uint NAME_NOT_FOUND = 0x800A03EC;      // When called from the main thread, but Excel is busy.
 
         static bool IsRetry(COMException e)
         {
@@ -365,7 +365,7 @@ namespace ExcelDna.Integration
             {
                 case RPC_E_SERVERCALL_RETRYLATER:
                 case VBA_E_IGNORE:
-                case UNKNOWN_E_UNKNOWN:
+                case NAME_NOT_FOUND:
                 case RPC_E_CALL_REJECTED:
                     return true;
                 default:

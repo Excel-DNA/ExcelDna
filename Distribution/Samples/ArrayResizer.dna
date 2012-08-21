@@ -1,6 +1,6 @@
 <DnaLibrary Language="CS">
 <![CDATA[
-
+using System;
 using System.Collections.Generic;
 using ExcelDna.Integration;
 
@@ -135,6 +135,10 @@ namespace AsyncFunctions
                     firstCell.SetValue("'" + formula);
                 }
             }
+            // catch (Exception ex)
+            // {
+            //     XlCall.Excel(XlCall.xlcAlert, ex.ToString(), true);
+            // }
             finally
             {
                 XlCall.Excel(XlCall.xlcEcho, true);

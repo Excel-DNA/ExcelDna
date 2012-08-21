@@ -10,15 +10,17 @@ Version 0.30 (??????)
 * Fixed persistent COM registration (Regsv32.exe / ComServer.DllRegisterServer) to allow HKCR registration whenever possible (for UAC elevation issue).
 * Fixed Excel version check when COM / RTD Server loads before add-in is loaded - ribbon would not load.
 * Fixed IntPtr OverflowException in high-memory 32-bit processes.
+* Fixed custom task panes UserControl activation - do HKCR registration whenever possible (for UAC elevation issue).
 * Allow abstract base classes in ExcelRibbon class hierarchy. Now loads the first concrete descendent of ExcelRibbon as the ribbon handler.
-* Remove Obsolete class ExcelDna.Integration.Excel. (Use ExcelDnaUtil instead.) Allows smooth XlCall usage from VB.NET.
+* Remove Obsolete class ExcelDna.Integration.Excel. (Use ExcelDnaUtil instead.) Allows smooth XlCall usage.
 * Allow external SourceItem packing.
 * Add ExcelAsyncUtil for async macro calls.
 * Add thread-safe RTD server base class ExcelRtdServer.
 * Add async function helper as ExcelAsyncUtil.Run.
 * Add support for Reactive Extensions via RTD via ExcelAsyncUtil.Observe and related interfaces.
 * Change ExcelRibbon and ComAddIn loading to use declared ProgId and Guid if _both_ attributes are present. Fixed Ribbon QAT issue. (TODO: Test)
-* Revisit Application caching.
+* Revisit caching of Application object.
+* Rename ExcelDna.Integration.Integration tp ExcelDna.Integration.ExcelIntegration.
 
 Version 0.29 (28 May 2011)
 --------------------------

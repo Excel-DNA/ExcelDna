@@ -25,6 +25,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Diagnostics;
 using System.Globalization;
@@ -57,10 +58,8 @@ namespace ExcelDna.Integration
 
 		internal static void Initialize()
 		{
-			// Need to get window in a macro context, else the call to get the Excel version fails.
-            // Exception suppressor added here for HPC support and for RegSvr32 registration
+			// Exception suppressor added here for HPC support and for RegSvr32 registration
             // - WindowHandle fails in these contexts.
-            // Also try to set Application object, since we are now on the main thread.
             try
             {
                 IntPtr unused = WindowHandle;
@@ -88,16 +87,19 @@ namespace ExcelDna.Integration
                 // We try the Excel 2007+ case first.
 
                 // Excel 2007+ - should get whole handle ... - we try this case first
-                IntPtr hWnd = (IntPtr) (int) (double) XlCall.Excel(XlCall.xlGetHwnd);
+                IntPtr hWnd = (IntPtr) (uint) (double) XlCall.Excel(XlCall.xlGetHwnd);
                 // ... but this call is not reliable, and I'm not sure about 64-bit, 
-                // so check if we actually got an Excel window ...
-                if (IsAnExcelWindow(hWnd))
+                // so check if we actually got an Excel window, 
+                // and even then only accept the result if there is more than the low word,
+                // because many of the window functions seem to work even when passed only part of the window handle,
+                // which could otherwise cause us to accept a partial handle.
+                if (((uint)hWnd & 0xFFFF0000) != 0 && IsAnExcelWindow(hWnd))
                 {
                     _hWndExcel = hWnd;
                     return _hWndExcel;
                 }
 
-                // Else go the lo-Word check, which should work in all versions.
+                // Do a check based on the lo-Word - should work in all versions.
                 ushort loWord = (ushort)hWnd;
 			    _hWndExcel = FindAnExcelWindow(loWord);
 
@@ -316,7 +318,7 @@ namespace ExcelDna.Integration
                     XlCall.XlReturn retval = XlCall.TryExcel(XlCall.xlfGetWorkspace, out versionObject, 2);
                     if (retval == XlCall.XlReturn.XlReturnSuccess)
                     {
-                        string versionString = System.Text.RegularExpressions.Regex.Match((string)versionObject, "^\\d+(\\.\\d+)?").Value;
+                        string versionString = Regex.Match((string)versionObject, "^\\d+(\\.\\d+)?").Value;
                         double version;
                         if (!String.IsNullOrEmpty(versionString) &&
                             Double.TryParse(versionString, NumberStyles.Any, CultureInfo.InvariantCulture, out version))
@@ -345,7 +347,7 @@ namespace ExcelDna.Integration
                             {
                                 object xlApp = ExcelDnaUtil.Application;
                                 object result = xlApp.GetType().InvokeMember("Version",
-                                                                             System.Reflection.BindingFlags.GetProperty,
+                                                                             BindingFlags.GetProperty,
                                                                              null, xlApp, null, new CultureInfo(1033));
                                 _xlVersion = double.Parse((string)result, NumberStyles.Any, CultureInfo.InvariantCulture);
                             }

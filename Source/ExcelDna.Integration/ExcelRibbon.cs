@@ -1,20 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Runtime.InteropServices;
 using System.Diagnostics;
-using System.IO;
-using System.Drawing;
-using System.Xml;
+using System.Globalization;
 using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Xml;
 using ExcelDna.ComInterop.ComRegistration;
 using ExcelDna.Integration.Extensibility;
-
-using HRESULT = System.Int32;
-using IID = System.Guid;
 using CLSID = System.Guid;
-using DWORD = System.UInt32;
-using System.Globalization;
 
 namespace ExcelDna.Integration.CustomUI
 {
@@ -191,9 +184,9 @@ namespace ExcelDna.Integration.CustomUI
 
                 object excelComAddIns;
                 object comAddIn;
-                using (SingletonClassFactoryRegistration regClassFactory = new SingletonClassFactoryRegistration(addIn, clsId))
-                using (ProgIdRegistration regProgId = new ProgIdRegistration(progId, clsId))
-                using (ComAddInRegistration regComAddIn = new ComAddInRegistration(progId, friendlyName, description))
+                using (new SingletonClassFactoryRegistration(addIn, clsId))
+                using (new ProgIdRegistration(progId, clsId))
+                using (new ComAddInRegistration(progId, friendlyName, description))
                 {
                     excelComAddIns = appType.InvokeMember("COMAddIns", BindingFlags.GetProperty, null, app, null, ci);
 //                            Debug.Print("Got COMAddins object: " + excelComAddIns.GetType().ToString());

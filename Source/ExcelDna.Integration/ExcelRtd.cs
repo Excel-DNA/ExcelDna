@@ -122,9 +122,9 @@ namespace ExcelDna.Integration.Rtd
             string progIdRegistered = "RtdSrv." + clsId.ToString("N");
             Debug.Print("RTD - Using ProgId: {0} for type: {1}", progIdRegistered, rtdServerType.FullName);
 
-            using (SingletonClassFactoryRegistration regClassFactory = new SingletonClassFactoryRegistration(rtdServer, clsId))
-            using (ProgIdRegistration regProgId = new ProgIdRegistration(progIdRegistered, clsId))
-            using (ClsIdRegistration regClsId = new ClsIdRegistration(clsId, progIdRegistered))
+            using (new SingletonClassFactoryRegistration(rtdServer, clsId))
+            using (new ProgIdRegistration(progIdRegistered, clsId))
+            using (new ClsIdRegistration(clsId, progIdRegistered))
             {
                 object result;
                 if (TryCallRTD(out result, progIdRegistered, null, topics))
