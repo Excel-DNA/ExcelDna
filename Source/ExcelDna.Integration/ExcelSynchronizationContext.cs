@@ -57,9 +57,13 @@ namespace ExcelDna.Integration
         static SynchronizationWindow _syncWindow;
         static int _installCount = 0;
 
-        // TODO: Check that this happens on the main Excel thread, but not in a 'function' context.
+        // TODO: Check that this does not happen in a 'function' context.
         internal static void Install()
         {
+            if (!ExcelDnaUtil.IsMainThread())
+            {
+                throw new InvalidOperationException("SynchronizationManager must be installed from the main Excel thread. Ensure that ExcelAsyncUtil.Initialize() is called from AutoOpen() or a macro on the main Excel thread.");
+            }
             if (_syncWindow == null)
             {
                 _syncWindow = new SynchronizationWindow();
@@ -67,9 +71,12 @@ namespace ExcelDna.Integration
             _installCount++;
         }
 
-        // TODO: Check that this happens on the main Excel thread.
         internal static void Uninstall()
         {
+            if (!ExcelDnaUtil.IsMainThread())
+            {
+                throw new InvalidOperationException("SynchronizationManager must be uninstalled from the main Excel thread. Ensure that ExcelAsyncUtil.Uninitialize() is called from AutoOpen() or a macro on the main Excel thread.");
+            }
             _installCount--;
             if (_installCount == 0 && _syncWindow != null)
             {

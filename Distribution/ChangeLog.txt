@@ -1,5 +1,5 @@
-Version 0.30 (??????)
----------------------
+Version 0.30 (7 October 2012)
+-----------------------------
 * Fixed LoadComAddIn error when using a direct ExcelComAddIn-derived class.
 * Fixed (Ribbon Helper) display in ribbon tooltips.
 * Fixed RTD / array formula activation bug.
@@ -11,6 +11,7 @@ Version 0.30 (??????)
 * Fixed Excel version check when COM / RTD Server loads before add-in is loaded - ribbon would not load.
 * Fixed IntPtr OverflowException in high-memory 32-bit processes.
 * Fixed custom task panes UserControl activation - do HKCR registration whenever possible (for UAC elevation issue).
+* Fixed double[0,1] array marshaling memory allocation error with potential access violation.
 * Allow abstract base classes in ExcelRibbon class hierarchy. Now loads the first concrete descendent of ExcelRibbon as the ribbon handler.
 * Remove Obsolete class ExcelDna.Integration.Excel. (Use ExcelDnaUtil instead.) Allows smooth XlCall usage.
 * Allow external SourceItem packing.
@@ -20,7 +21,7 @@ Version 0.30 (??????)
 * Add support for Reactive Extensions via RTD via ExcelAsyncUtil.Observe and related interfaces.
 * Change ExcelRibbon and ComAddIn loading to use declared ProgId and Guid if _both_ attributes are present. Fixed Ribbon QAT issue. (TODO: Test)
 * Revisit caching of Application object.
-* Rename ExcelDna.Integration.Integration tp ExcelDna.Integration.ExcelIntegration.
+* Rename ExcelDna.Integration.Integration to ExcelDna.Integration.ExcelIntegration.
 
 Version 0.29 (28 May 2011)
 --------------------------

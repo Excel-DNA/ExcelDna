@@ -161,20 +161,29 @@ namespace ExcelDna.Loader
 			// when run from VSTO. I don't know how to deal with this problem yet.
 			// TODO: Learn more about the special security stuff in VSTO.
             //       See ExecutionContext.SuppressFlow links below.
-			try
-			{
-				XlAddIn.xlCallVersion = XlCallImpl.XLCallVer() / 256;
-			}
-			catch (Exception e)
-			{
-				Debug.WriteLine("XlAddIn: XLCallVer Exception: " + e);
-
-                // CONSIDER: Is this right / needed ?
-                // As a test for the HPC support, I ignore error here and just assume we are under new Excel.
+            try
+            {
+                XlAddIn.xlCallVersion = XlCallImpl.XLCallVer() / 256;
+            }
+            catch (DllNotFoundException)
+            {
+                // This is expected if we are running under HPC or Regsvr32.
+                Debug.WriteLine("XlCall library not found - probably running in HPC host or Regsvr32.exe");
+                
+                // For the HPC support, I ignore error here and just assume we are under new Excel.
                 // This will cause the common error here to get pushed to later ...
                 XlAddIn.xlCallVersion = 12;
                 // return false;
-			}
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine("XlAddIn: XLCallVer Exception: " + e);
+
+                // CONSIDER: Is this right / needed - I'm not actually sure what happens under HPC host, 
+                // so I'll leave this case in here too.?
+                XlAddIn.xlCallVersion = 12;
+                // return false;
+            }
 			XlAddIn.hModuleXll = hModuleXll;
             XlAddIn.pathXll = pathXll;
 
@@ -297,6 +306,8 @@ namespace ExcelDna.Loader
             catch (Exception e)
             {
                 // TODO: What to do here - maybe prefer Trace...?
+
+                // START HERE: Better error display (with Exception info?)
                 Debug.WriteLine("ExcelDna.Loader.XlAddin.XlAutoOpen. Exception during Integration load: " + e.ToString());
 				string alertMessage = string.Format("A problem occurred while an add-in was being initialized (InitializeIntegration failed).\r\nThe add-in is built with ExcelDna and is being loaded from {0}", pathXll);
 				object xlCallResult;
@@ -541,7 +552,7 @@ namespace ExcelDna.Loader
             if (mi.IsMacroType)
                 functionType += "#";
 
-            if (!mi.IsMacroType && mi.IsThreadSafe && XlAddIn.xlCallVersion >= 12)
+            if (!mi.IsMacroType && mi.IsThreadSafe && XlAddIn.XlCallVersion >= 12)
                 functionType += "$";
 
             if (mi.IsVolatile)
@@ -569,7 +580,7 @@ namespace ExcelDna.Loader
 
 			int numArguments;
             // DOCUMENT: Maximum 20 Argument Descriptions when registering using Excel4 function.
-            int maxDescriptions = (XlAddIn.xlCallVersion < 12) ? 20 : 245;
+            int maxDescriptions = (XlAddIn.XlCallVersion < 12) ? 20 : 245;
             int numArgumentDescriptions;
             if (showDescriptions)
             {

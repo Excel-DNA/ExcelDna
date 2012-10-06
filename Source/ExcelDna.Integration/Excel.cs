@@ -67,7 +67,7 @@ namespace ExcelDna.Integration
             }
             catch (Exception ex)
             { 
-                LogDisplay.WriteLine("Error during ExcelDnaUtil.Initialize: " + ex);
+                Debug.WriteLine("Error during ExcelDnaUtil.Initialize: " + ex);
                 // Just suppress otherwise
             }
 		}

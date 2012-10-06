@@ -421,6 +421,11 @@ namespace ExcelDna.Loader
 				allColumns = doubles.Length;
 				columns = (ushort)Math.Min(allColumns, ushort.MaxValue);
 
+                // Guard against invalid arrays - with no columns.
+                // Just return null, which Excel will turn into #NUM
+                if (columns == 0)
+                    return IntPtr.Zero;
+
 				fixed(double* src = doubles)
 				{
 					AllocateFPAndCopy(src, rows, columns, allColumns);	
@@ -433,6 +438,11 @@ namespace ExcelDna.Loader
 				rows = (ushort)Math.Min(doubles.GetLength(0), ushort.MaxValue);
 				allColumns = doubles.GetLength(1);
 				columns = (ushort)Math.Min(allColumns, ushort.MaxValue);
+
+                // Guard against invalid arrays - with no rows or no columns.
+                // Just return null, which Excel will turn into #NUM
+                if (rows == 0 || columns == 0)
+                    return IntPtr.Zero;
 
 				fixed (double* src = doubles)
 				{
@@ -450,16 +460,6 @@ namespace ExcelDna.Loader
 		unsafe private void AllocateFPAndCopy(double* pSrc, ushort rows, ushort columns, int allColumns)
 		{
             XlFP* pFP;
-            if (columns == 0)
-            {
-                // TODO: Review handling of this corner case
-                pNative = Marshal.AllocCoTaskMem(Marshal.SizeOf(typeof(XlFP)));
-                pFP = (XlFP*)pNative;
-                pFP->Rows = 1;
-                pFP->Columns = 1;
-                pFP->Values[0] = 0;
-                return;
-            }
 			int size = Marshal.SizeOf(typeof(XlFP)) +
 			   Marshal.SizeOf(typeof(double)) * (rows * columns - 1); // room for one double is already in FP struct
 			pNative = Marshal.AllocCoTaskMem(size);

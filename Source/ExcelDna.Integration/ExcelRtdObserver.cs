@@ -239,7 +239,7 @@ namespace ExcelDna.Integration.Rtd
             if (obj == null) return 0;
 
             // CONSIDER: All of this could be replaced by a check for (obj is ValueType || obj is ExcelReference)
-            //           which would allow a more flexible set of parameters, at the risk of comaprisons going wrong.
+            //           which would allow a more flexible set of parameters, at the risk of comparisons going wrong.
             //           We can reconsider if this arises, or when we implement async automatically or custom marshaling 
             //           to other data types. For now this allow everything that can be passed as parameters from Excel-DNA.
             if (obj is double ||
