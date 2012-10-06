@@ -1,0 +1,3 @@
+﻿<DnaLibrary RuntimeVersion="v4.0" >
+	<ExternalLibrary Path="AsyncFunctions.dll" />
+</DnaLibrary>

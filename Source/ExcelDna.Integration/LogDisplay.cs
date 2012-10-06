@@ -194,6 +194,7 @@ namespace ExcelDna.Logging
         internal static object SyncRoot = new object();
         internal static bool IsFormVisible;
 
+        // _syncContext is null until we call CreateInstance, which 
         static SynchronizationContext _syncContext;
 
         // This must be called on the main Excel thread.

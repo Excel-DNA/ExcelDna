@@ -547,6 +547,11 @@ namespace ExcelDna.Loader
 					rows = 1;
 					columns = doubles.Length;
 
+                    // Guard against invalid arrays - with no columns.
+                    // Just return null, which Excel will turn into #NUM
+                    if (columns == 0)
+                        return IntPtr.Zero;
+
 					fixed (double* src = doubles)
 					{
 						AllocateFP12AndCopy(src, rows, columns);
@@ -558,6 +563,11 @@ namespace ExcelDna.Loader
 
 					rows = doubles.GetLength(0);
 					columns = doubles.GetLength(1);
+
+                    // Guard against invalid arrays - with no rows or no columns.
+                    // Just return null, which Excel will turn into #NUM
+                    if (rows == 0 || columns == 0)
+                        return IntPtr.Zero;
 
 					fixed (double* src = doubles)
 					{
@@ -578,17 +588,7 @@ namespace ExcelDna.Loader
 			{
                 // CONSIDER: Fast memcpy: http://stackoverflow.com/questions/1715224/very-fast-memcpy-for-image-processing
 				XlFP12* pFP;
-				if (columns == 0)
-				{
-					// TODO: Review handling of this corner case 
-                    //       - maybe unsafe wrapper type with interface in ExcelDna.Integration, and support for array ref
-					pNative = Marshal.AllocCoTaskMem(Marshal.SizeOf(typeof(XlFP12)));
-					pFP = (XlFP12*)pNative;
-					pFP->Rows = 1;
-					pFP->Columns = 1;
-					pFP->Values[0] = 0;
-					return;
-				}
+				
 				int size = Marshal.SizeOf(typeof(XlFP12)) +
 				   Marshal.SizeOf(typeof(double)) * (rows * columns - 1); // room for one double is already in FP12 struct
 				pNative = Marshal.AllocCoTaskMem(size);
