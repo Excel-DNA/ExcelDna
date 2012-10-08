@@ -75,6 +75,7 @@ namespace ExcelDna.Loader
         public static readonly int xlcMessage = (122 | xlCommand);
         public static readonly int xlcEcho = (141 | xlCommand);
         public static readonly int xlcFileClose = (144 | xlCommand);
+        public static readonly int xlcOnKey = (168 | xlCommand);
         public static readonly int xlcWorkbookInsert = (354 | xlCommand);
 
         public static readonly int xlfSetName = 88;

@@ -65,7 +65,8 @@ XlAddInExportInfo* pExportInfo = NULL;
 // Flag to coordinate load/unload close and remove.
 HMODULE lockModule;
 bool locked = false;
-bool removed = false;
+bool removed = false;    // Used to check whether AutoRemove is called before AutoClose.
+bool autoOpened = false; // Not set when loaded for COM server only. Used for re-open check.
 
 // The actual thunk table 
 extern "C" 
@@ -171,16 +172,34 @@ BOOL __stdcall DllMain( HMODULE hModule,
 
 extern "C"
 {
+	// Forward declares, since these are now called by AutoOpen.
+	short __stdcall xlAutoClose();
+	short __stdcall xlAutoRemove();
+
 	// Excel Add-In standard exports
 	short __stdcall xlAutoOpen()
 	{
 		short result = 0;
+
+		// If we are loaded as an add-in already, then ensure re-load = AddInRemove + AutoClose + AutoOpen,
+		// which mains a clean AppDomain for each load.
+		if (autoOpened)
+		{
+			xlAutoRemove();
+			xlAutoClose();
+		}
+
 		if (EnsureInitialized() && 
 			pExportInfo->pXlAutoOpen != NULL)
 		{
 			result = pExportInfo->pXlAutoOpen();
-			removed = false;
 			LockModule();
+			// Set the 'removed' flag to false, which prevents AutoClose from actually unloading (or calling through to the add-in),
+			// unless AutoRemove is called first (from the add-in manager, a host or the re-open sequence above).
+			removed = false;
+			// Keep track that we are loaded as an add-in, not just a COM or RTD server.
+			// This allows us to re-open in a clean AppDomain, yet load COM server first then add-in without damage.
+			autoOpened = true;
 		}
 		return result;
 	}
@@ -195,12 +214,16 @@ extern "C"
 			if (removed)
 			{
 				// TODO: Consider how and when to unload
+				//       Unloading the AppDomain could be a bit too dramatic if we are serving as a COM Server or RTD Server directly.
 				// DOCUMENT: What the current implementation is.
 				// No more managed functions should be called.
 				Uninitialize();
+
 				// Complete the clean-up by unloading AppDomain
 				XlLibraryUnload();
-				// ...and allowing the .xll to be unloaded
+				// ... recording that we are no longer open as an add-in.
+				autoOpened = false;
+				// ...and allowing the .xll itself to be unloaded
 				UnlockModule();
 			}
 		}
@@ -228,6 +251,7 @@ extern "C"
 			pExportInfo->pXlAutoRemove != NULL)
 		{
 			result = pExportInfo->pXlAutoRemove();
+			// Set the 'removed' flag which will allow the AutoClose to actually unload (and call through to the add-in).
 			removed = true;
 		}
 		return result;

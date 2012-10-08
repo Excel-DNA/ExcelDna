@@ -1,4 +1,4 @@
-Version 0.30 (7 October 2012)
+Version 0.30 (9 October 2012)
 -----------------------------
 * Fixed LoadComAddIn error when using a direct ExcelComAddIn-derived class.
 * Fixed (Ribbon Helper) display in ribbon tooltips.
@@ -22,6 +22,8 @@ Version 0.30 (7 October 2012)
 * Change ExcelRibbon and ComAddIn loading to use declared ProgId and Guid if _both_ attributes are present. Fixed Ribbon QAT issue. (TODO: Test)
 * Revisit caching of Application object.
 * Rename ExcelDna.Integration.Integration to ExcelDna.Integration.ExcelIntegration.
+* Implement macro shortcuts (from ExcelCommand attributes).
+* Changed re-open via File->Open to do full AppDomain unload and add-in reload.
 
 Version 0.29 (28 May 2011)
 --------------------------

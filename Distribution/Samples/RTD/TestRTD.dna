@@ -69,6 +69,7 @@
 
         public object ConnectData(int topicId, ref Array Strings, ref bool GetNewValues)
         {
+            Console.Beep();
             _topicId = topicId;
             _timer.Start();
             return GetTime();
@@ -76,6 +77,7 @@
 
         public void DisconnectData(int topicId)
         {
+        
             _timer.Stop();
         }
 
@@ -98,6 +100,9 @@
 
         public int ServerStart(IRTDUpdateEvent CallbackObject)
         {
+            Console.Beep();
+            Console.Beep();
+            Console.Beep();
             _callback = CallbackObject;
             _timer = new Timer();
             _timer.Tick += Callback;
@@ -107,6 +112,8 @@
 
         public void ServerTerminate()
         {
+            Console.Beep();
+            Console.Beep();
             if (_timer!=null)
             {
               _timer.Dispose();

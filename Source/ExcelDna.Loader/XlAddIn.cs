@@ -474,6 +474,7 @@ namespace ExcelDna.Loader
         static List<XlMethodInfo> registeredMethods = new List<XlMethodInfo>();
         static List<string> addedMenus = new List<string>();
         static List<XlMethodInfo> addedCommands = new List<XlMethodInfo>();
+        static List<string> addedShortCuts = new List<string>();
 
         public static void RegisterMethods(List<MethodInfo> methods)
         {
@@ -659,6 +660,7 @@ namespace ExcelDna.Loader
                     if (mi.IsCommand)
                     {
                         RegisterMenu(mi);
+                        RegisterShortCut(mi);
                     }
                 }
                 else
@@ -683,12 +685,36 @@ namespace ExcelDna.Loader
             }
         }
 
+        private static void RegisterShortCut(XlMethodInfo mi)
+        {
+            if (!string.IsNullOrEmpty(mi.ShortCut))
+            {
+                object xlCallResult;
+                XlCallImpl.TryExcelImpl(XlCallImpl.xlcOnKey, out xlCallResult, mi.ShortCut, mi.Name);
+                // CONSIDER: We ignore result and suppress errors - maybe log?
+                addedShortCuts.Add(mi.ShortCut);
+            }
+        }
+
+        private static void UnregisterShortCuts()
+        {
+            foreach (string shortCut in addedShortCuts)
+            {
+                // xlcOnKey with no macro name:
+                // "If macro_text is omitted, key_text reverts to its normal meaning in Microsoft Excel, 
+                // and any special key assignments made with previous ON.KEY functions are cleared."
+                object xlCallResult;
+                XlCallImpl.TryExcelImpl(XlCallImpl.xlcOnKey, out xlCallResult, shortCut);
+            }
+        }
+
         static void UnregisterMethods()
         {
             object xlCallResult;
 
-            // Remove menus
+            // Remove menus and ShortCuts
             IntegrationHelpers.RemoveCommandMenus();
+            UnregisterShortCuts();
 
             // Now take out the methods
             foreach (XlMethodInfo mi in registeredMethods)
