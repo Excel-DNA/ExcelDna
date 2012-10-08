@@ -262,7 +262,7 @@ namespace ExcelDna.Integration
             // Register RTD Server Types immediately
             RtdRegistration.RegisterRtdServerTypes(rtdServerTypes);
 
-            // CAREFUL: This interacts with the implementation of ExcelRtdServer to implement the thread-safe synchornization.
+            // CAREFUL: This interacts with the implementation of ExcelRtdServer to implement the thread-safe synchronization.
             // Check whether we have an ExcelRtdServer type, and need to install the Sync Window
             // Uninstalled in the AutoClose
             bool registerSyncManager = false;
@@ -401,9 +401,6 @@ namespace ExcelDna.Integration
         private static DnaLibrary rootLibrary;
         internal static void InitializeRootLibrary(string xllPath)
         {
-            // Might be called more than once in a session
-            // if the add-in is opened more than once.
-
             // Loads the primary .dna library
             // Load sequence is:
             // 1. Look for a packed .dna file named "__MAIN__" in the .xll.

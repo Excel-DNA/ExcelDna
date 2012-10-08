@@ -196,7 +196,8 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 	return initRetVal.boolVal == 0 ? false : true;
 }
 
-// XlLibraryUnload is only called if we are unloading the add-in via the add-in manager.
+// XlLibraryUnload is only called if we are unloading the add-in via the add-in manager,
+// or when the add-in is re-loaded.
 // Unload the AppDomain.
 void XlLibraryUnload()
 {

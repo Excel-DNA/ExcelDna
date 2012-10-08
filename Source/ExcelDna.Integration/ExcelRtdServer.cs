@@ -45,10 +45,11 @@ namespace ExcelDna.Integration.Rtd
             public object Value
             {
                 get { return _value; }
-                set
-                {
-                    UpdateValue(value);
-                }
+                // Removing set on Topic.Value, must use explicit Topic.UpdateValue(...) call.
+                //set
+                //{
+                //    UpdateValue(value);
+                //}
             }
 
             public ExcelRtdServer Server { get { return _server; } }
