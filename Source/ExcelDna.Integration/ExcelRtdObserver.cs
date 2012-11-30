@@ -215,7 +215,7 @@ namespace ExcelDna.Integration.Rtd
         {
             _functionName = functionName;
             _parameters = parameters;
-            _hashCode = 0; // Need to set to smoe value before we call a method.
+            _hashCode = 0; // Need to set to some value before we call a method.
             _hashCode = ComputeHashCode();
         }
 
@@ -259,7 +259,8 @@ namespace ExcelDna.Integration.Rtd
                 obj is ushort ||
                 obj is byte ||
                 obj is sbyte ||
-                obj is decimal)
+                obj is decimal ||
+                obj.GetType().IsEnum)
             {
                 return obj.GetHashCode();
             }

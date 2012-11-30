@@ -189,20 +189,25 @@ namespace ExcelDna.Integration.CustomUI
                 using (new ComAddInRegistration(progId, friendlyName, description))
                 {
                     excelComAddIns = appType.InvokeMember("COMAddIns", BindingFlags.GetProperty, null, app, null, ci);
-//                            Debug.Print("Got COMAddins object: " + excelComAddIns.GetType().ToString());
+                    //                            Debug.Print("Got COMAddins object: " + excelComAddIns.GetType().ToString());
                     appType.InvokeMember("Update", BindingFlags.InvokeMethod, null, excelComAddIns, null, ci);
-//                            Debug.Print("Updated COMAddins object with AddIn registered");
+                    //                            Debug.Print("Updated COMAddins object with AddIn registered");
                     comAddIn = excelComAddIns.GetType().InvokeMember("Item", BindingFlags.InvokeMethod, null, excelComAddIns, new object[] { progId }, ci);
-//                            Debug.Print("Got the COMAddin object: " + comAddIn.GetType().ToString());
+                    //                            Debug.Print("Got the COMAddin object: " + comAddIn.GetType().ToString());
 
                     // At this point Excel knows how to load our add-in by CLSID, so we could clean up the 
                     // registry aggressively, before the actual (dangerous?) loading starts.
                     // But this seems to lead to some distress - Excel has some assertion checked when 
                     // it updates the LoadBehavior after a successful load....
                     comAddIn.GetType().InvokeMember("Connect", BindingFlags.SetProperty, null, comAddIn, new object[] { true }, ci);
-//                            Debug.Print("COMAddin is loaded.");
+                    //                            Debug.Print("COMAddin is loaded.");
                     loadedComAddIns.Add(comAddIn);
                 }
+            }
+            catch (UnauthorizedAccessException secex)
+            {
+                Logging.LogDisplay.WriteLine("The Ribbon helper required by add-in {0} could not be registered.\r\nThis may be due to restricted permissions on the user's HKCU\\Software\\Classes key.\r\nError message: {1}", DnaLibrary.CurrentLibrary.Name, secex.Message);
+                return;
             }
             catch (Exception e)
             {

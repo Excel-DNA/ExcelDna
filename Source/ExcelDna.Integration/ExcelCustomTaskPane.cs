@@ -62,12 +62,22 @@ namespace ExcelDna.Integration.CustomUI
             // For some reason, there is a problem loading the user control when running under an elevated UAC token.
             // So we use the form of the registration which tries to first register for the machine, 
             // then fall back to the user hive if that fails.
-            object userControl = Activator.CreateInstance(userControlType);
-            using (new SingletonClassFactoryRegistration(userControl, clsId))
-            using (new ProgIdUacRegistration(progId, clsId))
-            using (new ClsIdUacRegistration(clsId, progId))
+
+            try
             {
-                return CreateCustomTaskPane(progId, title, parent);
+                object userControl = Activator.CreateInstance(userControlType);
+                using (new SingletonClassFactoryRegistration(userControl, clsId))
+                using (new ProgIdUacRegistration(progId, clsId))
+                using (new ClsIdUacRegistration(clsId, progId))
+                {
+                    return CreateCustomTaskPane(progId, title, parent);
+                }
+            }
+            catch (UnauthorizedAccessException secex)
+            {
+                Logging.LogDisplay.WriteLine("The CTP Helper required by add-in {0} could not be registered.\r\nThis may be due to restricted permissions on the user's HKCU\\Software\\Classes key.\r\nError message: {1}", 
+                    DnaLibrary.CurrentLibrary.Name, secex.Message);
+                return null;
             }
         }
 

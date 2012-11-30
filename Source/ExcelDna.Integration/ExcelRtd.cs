@@ -101,7 +101,7 @@ namespace ExcelDna.Integration.Rtd
             ExcelRtdServer excelRtdServer = rtdServer as ExcelRtdServer;
             if (excelRtdServer != null)
             {
-                // Set ProgId so that it can be 'unregistered' (removed from loadeedRtdServers) when the RTD sever terminates.
+                // Set ProgId so that it can be 'unregistered' (removed from loadedRtdServers) when the RTD sever terminates.
                 excelRtdServer.RegisteredProgId = progId;
             }
             else
@@ -122,18 +122,26 @@ namespace ExcelDna.Integration.Rtd
             string progIdRegistered = "RtdSrv." + clsId.ToString("N");
             Debug.Print("RTD - Using ProgId: {0} for type: {1}", progIdRegistered, rtdServerType.FullName);
 
-            using (new SingletonClassFactoryRegistration(rtdServer, clsId))
-            using (new ProgIdRegistration(progIdRegistered, clsId))
-            using (new ClsIdRegistration(clsId, progIdRegistered))
+            try
             {
-                object result;
-                if (TryCallRTD(out result, progIdRegistered, null, topics))
+                using (new SingletonClassFactoryRegistration(rtdServer, clsId))
+                using (new ProgIdRegistration(progIdRegistered, clsId))
+                using (new ClsIdRegistration(clsId, progIdRegistered))
                 {
-                    // Mark as loaded - ServerTerminate in the wrapper will remove.
-                    // TODO: Consider multithread race condition...
-                    loadedRtdServers[progId] = progIdRegistered;
+                    object result;
+                    if (TryCallRTD(out result, progIdRegistered, null, topics))
+                    {
+                        // Mark as loaded - ServerTerminate in the wrapper will remove.
+                        // TODO: Consider multithread race condition...
+                        loadedRtdServers[progId] = progIdRegistered;
+                    }
+                    return result;
                 }
-                return result;
+            }
+            catch (UnauthorizedAccessException secex)
+            {
+                Logging.LogDisplay.WriteLine("The RTD server of type {0} required by add-in {1} could not be registered.\r\nThis may be due to restricted permissions on the user's HKCU\\Software\\Classes key.\r\nError message: {2}", rtdServerType.FullName, DnaLibrary.CurrentLibrary.Name, secex.Message );
+                return ExcelErrorUtil.ToComError(ExcelError.ExcelErrorValue);
             }
         }
 

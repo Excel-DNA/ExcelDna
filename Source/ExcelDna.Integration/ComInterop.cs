@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using ExcelDna.ComInterop;
-using Microsoft.Win32;
 
 using HRESULT = System.Int32;
 using IID     = System.Guid;

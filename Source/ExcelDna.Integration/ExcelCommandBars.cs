@@ -27,13 +27,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Text;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Serialization;
-using System.Xml.XPath;
 using ExcelDna.Serialization;
 
 namespace ExcelDna.Integration.CustomUI
@@ -950,6 +948,10 @@ namespace ExcelDna.Integration.CustomUI
 
         public void SetButtonImage(Bitmap buttonImage)
         {
+            // TODO: Consider using Picture property for Excel 2002+ (and Mask?)
+            //       http://support.microsoft.com/kb/286460?wa=wsignin1.0
+            //       Remember that .NET Bitmap already implements IPictureDisp.
+
             // IDataObject oldContent = Clipboard.GetDataObject();
             Clipboard.SetImage(buttonImage);
             Type t = _object.GetType();

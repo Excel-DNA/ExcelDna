@@ -48,6 +48,11 @@ namespace ExcelDna.Integration
 
             SynchronizationManager.RunMacroSynchronization.RunAsMacroAsync(d, state);
         }
+
+        public override void Send(SendOrPostCallback d, object state)
+        {
+            throw new NotImplementedException("ExcelSynchronizationContext does not currently allow synchronous calls.");
+        }
     }
 
     // Just a this wrapper for the SynchronizationWindow - manages install / uninstall of the single instance, 
@@ -57,7 +62,6 @@ namespace ExcelDna.Integration
         static SynchronizationWindow _syncWindow;
         static int _installCount = 0;
 
-        // TODO: Check that this does not happen in a 'function' context.
         internal static void Install()
         {
             if (!ExcelDnaUtil.IsMainThread())

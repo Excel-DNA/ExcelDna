@@ -1,0 +1,127 @@
+<DnaLibrary RuntimeVersion="v4.0" Language="F#">
+<![CDATA[
+namespace FsAsync
+
+open System
+open System.Threading
+open System.Net
+open Microsoft.FSharp.Control.WebExtensions
+open ExcelDna.Integration
+
+/// This class implements the IExcelAddin which allows us to initialize the ExcelAsyncUtil support.
+/// It must not be a nested class (e.g. defined as a type inside a module) but a top-level class (inside a namespace)
+type FsAsyncAddIn () =
+    interface IExcelAddIn with
+        member this.AutoOpen ()  = 
+            ExcelAsyncUtil.Initialize ()
+        member this.AutoClose () = ExcelAsyncUtil.Uninitialize ()
+    static member fsaAddThem x y = x + y
+
+/// Some utility functions for connecting Excel-DNA async with F#
+module FsAsyncUtil =
+    /// A helper to pass an F# Async computation to Excel-DNA 
+    let excelRunAsync functionName parameters async =
+        let obsSource =
+            ExcelObservableSource(
+                fun () -> 
+                { new IExcelObservable with
+                    member __.Subscribe observer =
+                        // make something like CancellationDisposable
+                        let cts = new CancellationTokenSource ()
+                        let disp = { new IDisposable with member __.Dispose () = cts.Cancel () }
+                        // Start the async computation on this thread
+                        Async.StartWithContinuations 
+                            (   async, 
+                                ( fun result -> 
+                                    observer.OnNext(result)
+                                    observer.OnCompleted () ),
+                                ( fun ex -> observer.OnError ex ),
+                                ( fun ex ->
+                                    observer.OnCompleted () ),
+                                cts.Token 
+                            )
+                        // return the disposable
+                        disp
+                }) 
+        ExcelAsyncUtil.Observe (functionName, parameters, obsSource)
+
+    /// A helper to pass an F# IObservable to Excel-DNA
+    let excelObserve functionName parameters observable = 
+        let obsSource =
+            ExcelObservableSource(
+                fun () -> 
+                { new IExcelObservable with
+                    member __.Subscribe observer =
+                        // Subscribe to the F# observable
+                        Observable.subscribe (fun value -> observer.OnNext (value)) observable
+                })
+        ExcelAsyncUtil.Observe (functionName, parameters, obsSource)
+
+// Some test functions
+module TestFunctions =
+    /// Plain synchronous download function
+    /// can be called from Excel
+    let downloadString url = 
+        try
+            let uri = new System.Uri(url)
+            let webClient = new WebClient()
+            let html = webClient.DownloadString(uri)
+            html
+        with
+            | ex -> "!!!ERROR: " + ex.Message
+
+
+    /// Uses Excel-DNA async to run download on a ThreadPool thread
+    let downloadStringAsyncTP1 url = 
+        ExcelAsyncUtil.Run ("downloadStringAsyncTP1", url, (fun () -> downloadString url :> obj))
+
+    /// Create an F# asynchronous computation for the download
+    /// Not exported to Excel
+    let downloadStringAsyncImpl url = async {
+        try
+
+            // In here we could check for cancellation using 
+            // let! ct = Async.CancellationToken
+            // if ct.IsCancellationRequested then ...
+            let uri = new System.Uri(url)
+            let webClient = new WebClient()
+            let! html = webClient.AsyncDownloadString(uri)
+            return html
+        with
+            | ex -> return "!!!ERROR: " + ex.Message 
+        }
+
+    /// This function runs the async computation synchronously on a ThreadPool thread
+    /// because that's what ExcelAsyncUtil.Run does
+    /// Blocking calls will bloack a ThreadPool thread, eventually limiting the concurrency of the async calls
+    let downloadStringAsyncTP2 url = 
+        ExcelAsyncUtil.Run ("downloadStringAsyncTP2", url, (fun () -> Async.RunSynchronously (downloadStringAsyncImpl url) :> obj))
+
+    /// This runs the async computation using true F# async
+    /// Should not block ThreadPool threads, and allows cancellation
+    let downloadStringAsync url = 
+        FsAsyncUtil.excelRunAsync "downloadStringAsync" url (downloadStringAsyncImpl url)
+                    
+    // Helper that will create a timer that ticks at timerInterval for timerDuration, then stops
+    // Not exported to Excel (incompatible type)
+    let createTimer timerInterval timerDuration =
+        // setup a timer
+        let timer = new System.Timers.Timer(float timerInterval)
+        timer.AutoReset <- true
+        // return an async task for stopping
+        let timerStop = async {
+            timer.Start()
+            do! Async.Sleep timerDuration
+            timer.Stop() 
+            }
+        Async.Start timerStop
+        // Make sure that the type we observe in the event is supported by Excel
+        // (events like timer.Elapsed are automatically IObservable in F#)
+        timer.Elapsed |> Observable.map (fun elapsed -> DateTime.Now) 
+
+    // Excel function to start the timer - using the fact that F# events implement IObservable
+    let startTimer timerInterval timerDuration =
+        FsAsyncUtil.excelObserve "startTimer" [|float timerInterval; float timerDuration|] (createTimer timerInterval timerDuration)
+    
+]]>
+</DnaLibrary>

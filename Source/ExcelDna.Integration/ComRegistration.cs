@@ -180,7 +180,15 @@ namespace ExcelDna.ComInterop.ComRegistration
                 // }
 
                 // Here comes clean-up
-                Deregister();
+                try
+                {
+                    Deregister();
+                }
+                catch
+                {
+                    // Ignore exception here - we've tried our best to clean up.
+                    // CONSIDER: Might be useful to log this error?
+                }
                 _disposed = true;
             }
         }

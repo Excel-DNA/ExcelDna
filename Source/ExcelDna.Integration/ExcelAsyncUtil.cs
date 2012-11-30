@@ -24,7 +24,6 @@
 
 using System;
 using System.Threading;
-using ExcelDna.ComInterop;
 using ExcelDna.Integration.Rtd;
 
 namespace ExcelDna.Integration
