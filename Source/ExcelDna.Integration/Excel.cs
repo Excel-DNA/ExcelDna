@@ -30,7 +30,6 @@ using System.Threading;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
-using ExcelDna.Logging;
 
 namespace ExcelDna.Integration
 {

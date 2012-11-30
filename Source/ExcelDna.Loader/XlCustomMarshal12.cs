@@ -27,7 +27,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text;
 
 // WARNING: We use IntPtrs for pointers, but often really mean int.
 // On 64-bit platform, I don't know what would be appropriate. Probably won't work. 

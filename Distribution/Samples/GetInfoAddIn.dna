@@ -1,4 +1,4 @@
-<DnaLibrary Description="GetInfo Library" Language="CS">
+<DnaLibrary Description="GetInfo Library" RuntimeVersion="v4.0" Language="CS">
 	<![CDATA[
             using System;
             using ExcelDna.Integration;

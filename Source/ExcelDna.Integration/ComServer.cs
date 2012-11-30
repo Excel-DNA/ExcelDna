@@ -28,7 +28,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Security;
-using ExcelDna.Integration.Rtd;
 using Microsoft.Win32;
 using ExcelDna.Integration;
 using ExcelDna.ComInterop.ComRegistration;

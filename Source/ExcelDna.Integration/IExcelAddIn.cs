@@ -22,10 +22,6 @@
   govert@icon.co.za
 */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace ExcelDna.Integration
 {
 	public interface IExcelAddIn
