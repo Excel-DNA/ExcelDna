@@ -1,5 +1,5 @@
-Version 0.30 (30 November 2012)
------------------------------
+Version 0.30 (12 December 2012)
+-------------------------------
 * Fixed LoadComAddIn error when using a direct ExcelComAddIn-derived class.
 * Fixed (Ribbon Helper) display in ribbon tooltips.
 * Fixed RTD / array formula activation bug.
@@ -19,7 +19,7 @@ Version 0.30 (30 November 2012)
 * Add thread-safe RTD server base class ExcelRtdServer.
 * Add async function helper as ExcelAsyncUtil.Run.
 * Add support for Reactive Extensions via RTD via ExcelAsyncUtil.Observe and related interfaces.
-* Change ExcelRibbon and ComAddIn loading to use declared ProgId and Guid if _both_ attributes are present. Fixed Ribbon QAT issue. (TODO: Test)
+* Change ExcelRibbon and ComAddIn loading to use declared ProgId and Guid if _both_ attributes are present. Fixed Ribbon QAT issue.
 * Revisit caching of Application object.
 * Rename ExcelDna.Integration.Integration to ExcelDna.Integration.ExcelIntegration.
 * Implement macro shortcuts (from ExcelCommand attributes).

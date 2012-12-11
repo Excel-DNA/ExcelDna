@@ -1,0 +1,45 @@
+<DnaLibrary RuntimeVersion="v4.0">
+  <Project Language="C#" >
+    <Reference Name="System.Net" />
+    <SourceItem Path="ExcelTaskUtil.cs" />
+
+    <![CDATA[
+using System;
+using System.Net;
+using ExcelDna.Integration;
+using ExcelDna.AsyncSample;
+
+namespace AsyncAwait
+{
+    public class AsyncAwaitAddIn : IExcelAddIn
+    {
+        public void AutoOpen()
+        {
+            ExcelAsyncUtil.Initialize();
+            ExcelIntegration.RegisterUnhandledExceptionHandler(
+                delegate (object ex) { return string.Format("!!!ERROR: {0}", ex.ToString()); });
+        }
+        
+        public void AutoClose()
+        {
+            ExcelAsyncUtil.Uninitialize();
+        }
+    }
+
+    public static class TestTaskAsync
+    {
+        // The better example is to use HttpClient in System.Net.Http, 
+        // which allows cancellation using a CancellationToken...
+        public static object webDownloadString(string url)
+        {
+            return ExcelTaskUtil.RunAsTask("asyncDownloadString", url, 
+                () => new WebClient().DownloadString(url) );
+        }
+    }
+}
+]]>
+
+  </Project>
+
+  
+</DnaLibrary>
