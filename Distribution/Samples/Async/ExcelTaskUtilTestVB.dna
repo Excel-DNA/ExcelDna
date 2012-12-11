@@ -1,0 +1,22 @@
+<DnaLibrary RuntimeVersion="v4.0">
+  
+  <!-- 
+  
+       IMPORTANT: 
+       
+       This example requires two additional libraries that are available in the Microsoft.Net.Http NuGet package: http://nuget.org/packages/Microsoft.Net.Http 
+       I'm not sure how to get these files otherwise.  
+       
+  -->
+
+  <Project Language="VB" >
+    <Reference Path="System.Net.Http.dll" />
+    <Reference Path="System.Net.Http.WebRequest.dll" />
+
+    <SourceItem Path="ExcelTaskUtil.vb" />
+    <SourceItem Path="HttpClientVB.vb" />
+
+  </Project>
+
+  
+</DnaLibrary>

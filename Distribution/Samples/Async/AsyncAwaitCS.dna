@@ -1,0 +1,371 @@
+<DnaLibrary RuntimeVersion="v4.0" CompilerVersion="v5.0" >
+
+<!-- 
+
+    IMPORTANT:
+    
+    This file will only work if .NET 4.5 is installed.
+    However, the code could be compiled and run under .NET 4 using the async targeting pack: 
+    See http://nuget.org/packages/Microsoft.Bcl.Async.
+
+-->
+<![CDATA[
+
+
+using ExcelDna.Integration;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace AsyncAwait
+{
+    internal static class ExcelTaskUtil
+    {
+        // Careful - this might only work as long as the task is not shared between calls, since cancellation cancels that task
+        // Another implementation via Reactive Extension is Task.ToObservable() (in System.Reactive.Linq.dll) with RxExcel
+        //public static IExcelObservable ToExcelObservable<TResult>(this Task<TResult> task)
+        //{
+        //    if (task == null)
+        //    {
+        //        throw new ArgumentNullException("task");
+        //    }
+
+        //    return new ExcelTaskObservable<TResult>(task);
+        //}
+
+        //public static IExcelObservable ToExcelObservable<TResult>(this Task<TResult> task, CancellationTokenSource cts)
+        //{
+        //    if (task == null)
+        //    {
+        //        throw new ArgumentNullException("task");
+        //    }
+
+        //    return new ExcelTaskObservable<TResult>(task, cts);
+        //}
+
+        public static object Run<TResult>(string callerFunctionName, object callerParameters, Func<CancellationToken, Task<TResult>> taskSource)
+        {
+            return ExcelAsyncUtil.Observe(callerFunctionName, callerParameters, delegate
+                {
+                    var cts = new CancellationTokenSource();
+                    var task = taskSource(cts.Token);
+                    return new ExcelTaskObservable<TResult>(task, cts);
+                });
+        }
+
+        public static object Run<TResult>(string callerFunctionName, object callerParameters, Func<Task<TResult>> taskSource)
+        {
+            return ExcelAsyncUtil.Observe(callerFunctionName, callerParameters, delegate
+            {
+                var task = taskSource();
+                return new ExcelTaskObservable<TResult>(task);
+            });
+        }
+
+        // Helper class to wrap a Task in an Observable - allowing one Subscriber.
+        class ExcelTaskObservable<TResult> : IExcelObservable
+        {
+            readonly Task<TResult> _task;
+            readonly CancellationTokenSource _cts;
+            public ExcelTaskObservable(Task<TResult> task)
+            {
+                _task = task;
+            }
+
+            public ExcelTaskObservable(Task<TResult> task, CancellationTokenSource cts)
+                : this(task)
+            {
+                _cts = cts;
+            }
+
+            public IDisposable Subscribe(IExcelObserver observer)
+            {
+                switch (_task.Status)
+                {
+                    case TaskStatus.RanToCompletion:
+                        observer.OnNext(_task.Result);
+                        observer.OnCompleted();
+                        break;
+                    case TaskStatus.Faulted:
+                        observer.OnError(_task.Exception.InnerException);
+                        break;
+                    case TaskStatus.Canceled:
+                        observer.OnError(new TaskCanceledException(_task));
+                        break;
+                    default:
+                        _task.ContinueWith(t =>
+                        {
+                            switch (t.Status)
+                            {
+                                case TaskStatus.RanToCompletion:
+                                    observer.OnNext(t.Result);
+                                    observer.OnCompleted();
+                                    break;
+                                case TaskStatus.Faulted:
+                                    observer.OnError(t.Exception.InnerException);
+                                    break;
+                                case TaskStatus.Canceled:
+                                    observer.OnError(new TaskCanceledException(t));
+                                    break;
+                            }
+                        });
+                        break;
+                }
+
+                // Check for cancellation support
+                if (_cts != null)
+                {
+                    return new CancellationDisposable(_cts);
+                }
+                // No cancellation
+                return DefaultDisposable.Instance;
+            }
+        }
+
+        sealed class DefaultDisposable : IDisposable
+        {
+
+            public static readonly DefaultDisposable Instance = new DefaultDisposable();
+            
+            // Prevent external instantiation
+            DefaultDisposable()
+            {
+            }
+
+            public void Dispose()
+            {
+                // no op
+            }
+        }
+
+        sealed class CancellationDisposable : IDisposable
+        {
+
+            readonly CancellationTokenSource cts;
+            public CancellationDisposable(CancellationTokenSource cts)
+            {
+                if (cts == null)
+                {
+                    throw new ArgumentNullException("cts");
+                }
+
+                this.cts = cts;
+            }
+
+            public CancellationDisposable()
+                : this(new CancellationTokenSource())
+            {
+            }
+
+            public CancellationToken Token
+            {
+                get { return cts.Token; }
+            }
+
+            public void Dispose()
+            {
+                cts.Cancel();
+            }
+        }
+
+    }
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace AsyncAwait
+{
+    using ExcelDna.Integration;
+    using System.Net.Http;
+using System.Threading;
+
+    public class AsyncAwaitAddIn : IExcelAddIn
+    {
+        public void AutoOpen()
+        {
+            ExcelAsyncUtil.Initialize();
+            ExcelIntegration.RegisterUnhandledExceptionHandler(
+                delegate (object ex) { return string.Format("!!!ERROR: {0}", ex.ToString()); });
+        }
+        
+        public void AutoClose()
+        {
+            ExcelAsyncUtil.Uninitialize();
+        }
+    }
+
+    public static class TestAwait
+    {
+        static HttpClient _httpClient;
+
+        static void EnsureHttpInitialized()
+        {
+            if (_httpClient == null)
+            {
+                _httpClient = new HttpClient();
+            }
+        }
+
+        public static object asyncDownloadStringWithCancellation(string url)
+        {
+            Console.Beep();
+            EnsureHttpInitialized();
+            return ExcelTaskUtil.RunTask("asyncDownloadString", url,
+                async token =>
+                {
+                    var response = await _httpClient.GetAsync(url, token);
+                    response.EnsureSuccessStatusCode();
+                    return await response.Content.ReadAsStringAsync();
+                });
+        }
+
+        public static object asyncDownloadString(string url)
+        {
+            EnsureHttpInitialized();
+            return ExcelTaskUtil.RunAsTask("asyncDownloadString", url, 
+                cancellationToken => DownloadStringAsync(url, cancellationToken));
+        }
+
+        public static object asyncDownloadString(string url)
+        {
+            EnsureHttpInitialized();
+            return ExcelTaskUtil.RunTask("asyncDownloadString", url,
+                () => DownloadStringAsyncNoCancel(url));
+        }
+
+        async static Task<string> DownloadStringAsync(string url, CancellationToken cancellationToken)
+        {
+            var response = await _httpClient.GetAsync(url, cancellationToken);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        async static Task<string> DownloadStringAsyncNoCancel(string url)
+        {
+            var response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+    }
+
+    public static class Test
+    {
+        // Makes a call to the C API xlcMessage command, not available within a function.
+        public static string asyncWriteStatus(string statusMessage)
+        {
+            // Actually can use empty string to clear
+            // if (statusMessage == "") statusMessage = "(nothing)";
+
+            ExcelAsyncUtil.QueueAsMacro(delegate
+                {
+                    XlCall.Excel(XlCall.xlcMessage, true, statusMessage);
+                });
+            return "Wrote " + statusMessage;
+
+        }
+        
+        public static DateTime asyncWriteWithCApi()
+        {
+            object caller = XlCall.Excel(XlCall.xlfCaller);
+            ExcelAsyncUtil.QueueAsMacro(
+                delegate
+                {
+                    // Write something to Sheet1!B1 
+                    // (RowFirst=0, RowLast=0, ColumnFirst=1, ColumnLast=1)
+                    var refB1 = new ExcelReference(0, 0, 1, 1, "Sheet1");
+                    refB1.SetValue("Done writing...!");
+                  
+                    // Set the formatting of the function caller
+                    if (caller is ExcelReference)
+                    {
+                        using (new ExcelSelectionHelper((ExcelReference)caller))
+                        {
+                            XlCall.Excel(XlCall.xlcFormatNumber, "h:mm:ss");
+                        }
+                    }
+                });
+
+            return DateTime.Now;
+        }
+
+        [ExcelFunction(IsMacroType=true)]
+        public static DateTime asyncFormatCaller()
+        {
+            object caller = XlCall.Excel(XlCall.xlfCaller);
+            if (caller is ExcelReference)
+            {
+                var desiredFormat = "h:mm:ss";
+
+                var oldFormat = (string)XlCall.Excel(XlCall.xlfGetCell, 7, caller);
+                if (oldFormat != desiredFormat)
+                {
+                    ExcelAsyncUtil.QueueAsMacro(delegate
+                        {
+                            // Set the formatting of the function caller
+                            using (new ExcelSelectionHelper((ExcelReference)caller))
+                            {
+                                XlCall.Excel(XlCall.xlcFormatNumber, desiredFormat);
+                            }
+                        });
+                }
+            }
+            return DateTime.Now;
+        }
+    }
+
+    // RIIA helper to deal with Excel selections
+    public class ExcelSelectionHelper : XlCall, IDisposable
+    {
+        object oldScreenUpdating;
+        object oldSelectionOnActiveSheet;
+        object oldActiveCellOnActiveSheet;
+
+        object oldSelectionOnRefSheet;
+        object oldActiveCellOnRefSheet;
+
+        public ExcelSelectionHelper(ExcelReference refToSelect)
+        {
+            oldScreenUpdating = Excel(xlfGetWorkspace, 40);
+            Excel(xlcEcho, false);
+
+            // Remember old selection state on the active sheet
+            oldSelectionOnActiveSheet = Excel(xlfSelection);
+            oldActiveCellOnActiveSheet = Excel(xlfActiveCell);
+
+            // Switch to the sheet we want to select
+            string refSheet = (string)Excel(xlSheetNm, refToSelect);
+            Excel(xlcWorkbookSelect, new object[] { refSheet });
+
+            // record selection and active cell on the sheet we want to select
+            oldSelectionOnRefSheet = Excel(xlfSelection);
+            oldActiveCellOnRefSheet = Excel(xlfActiveCell);
+
+            // make the selection
+            Excel(xlcFormulaGoto, refToSelect);
+        }
+
+        public void Dispose()
+        {
+            Excel(xlcSelect, oldSelectionOnRefSheet, oldActiveCellOnRefSheet);
+
+            string oldActiveSheet = (string)Excel(xlSheetNm, oldSelectionOnActiveSheet);
+            Excel(xlcWorkbookSelect, new object[] { oldActiveSheet });
+
+            Excel(xlcSelect, oldSelectionOnActiveSheet, oldActiveCellOnActiveSheet);
+
+            Excel(xlcEcho, oldScreenUpdating);
+        }
+    }
+}
+
+
+]]>
+</DnaLibrary>
