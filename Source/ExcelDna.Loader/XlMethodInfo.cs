@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2012 Govert van Drimmelen
+  Copyright (C) 2005-2013 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -63,7 +63,7 @@ namespace ExcelDna.Loader
 
         // THROWS: Throws a DnaMarshalException if the method cannot be turned into an XlMethodInfo
         // TODO: Manage errors if things go wrong
-        XlMethodInfo(MethodInfo targetMethod, ModuleBuilder modBuilder)
+        XlMethodInfo(ModuleBuilder modBuilder, MethodInfo targetMethod, object methodAttribute, List<object> argumentAttributes)
         {
             // Default Name, Description and Category
             Name = targetMethod.Name;
@@ -83,7 +83,7 @@ namespace ExcelDna.Loader
             MenuName = IntegrationHelpers.DnaLibraryGetName();
             MenuText = null; // Menu is only 
 
-            SetAttributeInfo(targetMethod.GetCustomAttributes(false));
+            SetAttributeInfo(methodAttribute);
 
             // Return type conversion
             if (targetMethod.ReturnType == typeof (void))
@@ -98,10 +98,15 @@ namespace ExcelDna.Loader
             }
 
             // Parameters - meta-data and type conversion
-            Parameters =
-                Array.ConvertAll<ParameterInfo, XlParameterInfo>(
-                    targetMethod.GetParameters(),
-                    delegate(ParameterInfo pi) { return new XlParameterInfo(pi); });
+            ParameterInfo[] parameters = targetMethod.GetParameters();
+            Parameters = new XlParameterInfo[parameters.Length];
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                object argAttrib = null;
+                if ( argumentAttributes != null && i < argumentAttributes.Count)
+                    argAttrib = argumentAttributes[i];
+                 Parameters[i] = new XlParameterInfo(parameters[i], argAttrib);
+            }
 
             // Create the delegate type, wrap the targetMethod and create the delegate
             Type delegateType = CreateDelegateType(modBuilder);
@@ -117,157 +122,157 @@ namespace ExcelDna.Loader
         }
 
         // Basic setup - get description, category etc.
-        void SetAttributeInfo(object[] attributes)
+        void SetAttributeInfo(object attrib)
         {
+            if (attrib == null) return;
+
             // DOCUMENT: Description in ExcelFunctionAtribute overrides DescriptionAttribute
             // DOCUMENT: Default Category is Current Library Name.
             // Get System.ComponentModel.DescriptionAttribute
             // Search through attribs for Description
-            foreach (object attrib in attributes)
+            System.ComponentModel.DescriptionAttribute desc =
+                attrib as System.ComponentModel.DescriptionAttribute;
+            if (desc != null)
             {
-                System.ComponentModel.DescriptionAttribute desc =
-                    attrib as System.ComponentModel.DescriptionAttribute;
-                if (desc != null)
-                {
-                    Description = desc.Description;
-                }
+                Description = desc.Description;
+                return;
+            }
 
-                // There was a problem with the type identification when checking the 
-                // attribute types, for the second instance of the .xll 
-                // that is loaded.
-                // So I check on the names and access through reflection.
-                // CONSIDER: Fix again? It should rather be 
-                //ExcelFunctionAttribute xlfunc = attrib as ExcelFunctionAttribute;
-                //if (xlfunc != null)
-                //{
-                //    if (xlfunc.Name != null)
-                //    {
-                //        Name = xlfunc.Name;
-                //    }
-                //    if (xlfunc.Description != null)
-                //    {
-                //        Description = xlfunc.Description;
-                //    }
-                //    if (xlfunc.Category != null)
-                //    {
-                //        Category = xlfunc.Category;
-                //    }
-                //    if (xlfunc.HelpTopic != null)
-                //    {
-                //        HelpTopic = xlfunc.HelpTopic;
-                //    }
-                //    IsVolatile = xlfunc.IsVolatile;
-                //    IsExceptionSafe = xlfunc.IsExceptionSafe;
-                //    IsMacroType = xlfunc.IsMacroType;
-                //}
-                //ExcelCommandAttribute xlcmd = attrib as ExcelCommandAttribute;
-                //if (xlcmd != null)
-                //{
-                //    if (xlcmd.Name != null)
-                //    {
-                //        Name = xlcmd.Name;
-                //    }
-                //    if (xlcmd.Description != null)
-                //    {
-                //        Description = xlcmd.Description;
-                //    }
-                //    if (xlcmd.HelpTopic != null)
-                //    {
-                //        HelpTopic = xlcmd.HelpTopic;
-                //    }
-                //    if (xlcmd.ShortCut != null)
-                //    {
-                //        ShortCut = xlcmd.ShortCut;
-                //    }
-                //    if (xlcmd.MenuName != null)
-                //    {
-                //        MenuName = xlcmd.MenuName;
-                //    }
-                //    if (xlcmd.MenuText != null)
-                //    {
-                //        MenuText = xlcmd.MenuText;
-                //    }
-                //    IsHidden = xlcmd.IsHidden;
-                //    IsExceptionSafe = xlcmd.IsExceptionSafe;
-                //}
+            // There was a problem with the type identification when checking the 
+            // attribute types, for the second instance of the .xll 
+            // that is loaded.
+            // So I check on the names and access through reflection.
+            // CONSIDER: Fix again? It should rather be 
+            //ExcelFunctionAttribute xlfunc = attrib as ExcelFunctionAttribute;
+            //if (xlfunc != null)
+            //{
+            //    if (xlfunc.Name != null)
+            //    {
+            //        Name = xlfunc.Name;
+            //    }
+            //    if (xlfunc.Description != null)
+            //    {
+            //        Description = xlfunc.Description;
+            //    }
+            //    if (xlfunc.Category != null)
+            //    {
+            //        Category = xlfunc.Category;
+            //    }
+            //    if (xlfunc.HelpTopic != null)
+            //    {
+            //        HelpTopic = xlfunc.HelpTopic;
+            //    }
+            //    IsVolatile = xlfunc.IsVolatile;
+            //    IsExceptionSafe = xlfunc.IsExceptionSafe;
+            //    IsMacroType = xlfunc.IsMacroType;
+            //}
+            //ExcelCommandAttribute xlcmd = attrib as ExcelCommandAttribute;
+            //if (xlcmd != null)
+            //{
+            //    if (xlcmd.Name != null)
+            //    {
+            //        Name = xlcmd.Name;
+            //    }
+            //    if (xlcmd.Description != null)
+            //    {
+            //        Description = xlcmd.Description;
+            //    }
+            //    if (xlcmd.HelpTopic != null)
+            //    {
+            //        HelpTopic = xlcmd.HelpTopic;
+            //    }
+            //    if (xlcmd.ShortCut != null)
+            //    {
+            //        ShortCut = xlcmd.ShortCut;
+            //    }
+            //    if (xlcmd.MenuName != null)
+            //    {
+            //        MenuName = xlcmd.MenuName;
+            //    }
+            //    if (xlcmd.MenuText != null)
+            //    {
+            //        MenuText = xlcmd.MenuText;
+            //    }
+            //    IsHidden = xlcmd.IsHidden;
+            //    IsExceptionSafe = xlcmd.IsExceptionSafe;
+            //}
 
-                Type attribType = attrib.GetType();
+            Type attribType = attrib.GetType();
                 
-                if (TypeHelper.TypeHasAncestorWithFullName(attribType, "ExcelDna.Integration.ExcelFunctionAttribute"))
+            if (TypeHelper.TypeHasAncestorWithFullName(attribType, "ExcelDna.Integration.ExcelFunctionAttribute"))
+            {
+                string name = (string) attribType.GetField("Name").GetValue(attrib);
+                string description = (string) attribType.GetField("Description").GetValue(attrib);
+                string category = (string) attribType.GetField("Category").GetValue(attrib);
+                string helpTopic = (string) attribType.GetField("HelpTopic").GetValue(attrib);
+                bool isVolatile = (bool) attribType.GetField("IsVolatile").GetValue(attrib);
+                bool isExceptionSafe = (bool) attribType.GetField("IsExceptionSafe").GetValue(attrib);
+                bool isMacroType = (bool) attribType.GetField("IsMacroType").GetValue(attrib);
+                bool isHidden = (bool) attribType.GetField("IsHidden").GetValue(attrib);
+                bool isThreadSafe = (bool) attribType.GetField("IsThreadSafe").GetValue(attrib);
+                bool isClusterSafe = (bool) attribType.GetField("IsClusterSafe").GetValue(attrib);
+                if (name != null)
                 {
-                    string name = (string) attribType.GetField("Name").GetValue(attrib);
-                    string description = (string) attribType.GetField("Description").GetValue(attrib);
-                    string category = (string) attribType.GetField("Category").GetValue(attrib);
-                    string helpTopic = (string) attribType.GetField("HelpTopic").GetValue(attrib);
-                    bool isVolatile = (bool) attribType.GetField("IsVolatile").GetValue(attrib);
-                    bool isExceptionSafe = (bool) attribType.GetField("IsExceptionSafe").GetValue(attrib);
-                    bool isMacroType = (bool) attribType.GetField("IsMacroType").GetValue(attrib);
-                    bool isHidden = (bool) attribType.GetField("IsHidden").GetValue(attrib);
-                    bool isThreadSafe = (bool) attribType.GetField("IsThreadSafe").GetValue(attrib);
-                    bool isClusterSafe = (bool) attribType.GetField("IsClusterSafe").GetValue(attrib);
-                    if (name != null)
-                    {
-                        Name = name;
-                    }
-                    if (description != null)
-                    {
-                        Description = description;
-                    }
-                    if (category != null)
-                    {
-                        Category = category;
-                    }
-                    if (helpTopic != null)
-                    {
-                        HelpTopic = helpTopic;
-                    }
-                    IsVolatile = isVolatile;
-                    IsExceptionSafe = isExceptionSafe;
-                    IsMacroType = isMacroType;
-                    IsHidden = isHidden;
-                    IsThreadSafe = (!isMacroType && isThreadSafe);
-                    // DOCUMENT: IsClusterSafe function MUST NOT be marked as IsMacroType=true and MAY be marked as IsThreadSafe = true.
-                    //           [xlfRegister (Form 1) page in the Microsoft Excel 2010 XLL SDK Documentation]
-                    IsClusterSafe = (!isMacroType && isClusterSafe);
+                    Name = name;
                 }
-                else if (TypeHelper.TypeHasAncestorWithFullName(attribType, "ExcelDna.Integration.ExcelCommandAttribute"))
+                if (description != null)
                 {
-                    string name = (string) attribType.GetField("Name").GetValue(attrib);
-                    string description = (string) attribType.GetField("Description").GetValue(attrib);
-                    string helpTopic = (string) attribType.GetField("HelpTopic").GetValue(attrib);
-                    string shortCut = (string) attribType.GetField("ShortCut").GetValue(attrib);
-                    string menuName = (string) attribType.GetField("MenuName").GetValue(attrib);
-                    string menuText = (string) attribType.GetField("MenuText").GetValue(attrib);
+                    Description = description;
+                }
+                if (category != null)
+                {
+                    Category = category;
+                }
+                if (helpTopic != null)
+                {
+                    HelpTopic = helpTopic;
+                }
+                IsVolatile = isVolatile;
+                IsExceptionSafe = isExceptionSafe;
+                IsMacroType = isMacroType;
+                IsHidden = isHidden;
+                IsThreadSafe = (!isMacroType && isThreadSafe);
+                // DOCUMENT: IsClusterSafe function MUST NOT be marked as IsMacroType=true and MAY be marked as IsThreadSafe = true.
+                //           [xlfRegister (Form 1) page in the Microsoft Excel 2010 XLL SDK Documentation]
+                IsClusterSafe = (!isMacroType && isClusterSafe);
+            }
+            else if (TypeHelper.TypeHasAncestorWithFullName(attribType, "ExcelDna.Integration.ExcelCommandAttribute"))
+            {
+                string name = (string) attribType.GetField("Name").GetValue(attrib);
+                string description = (string) attribType.GetField("Description").GetValue(attrib);
+                string helpTopic = (string) attribType.GetField("HelpTopic").GetValue(attrib);
+                string shortCut = (string) attribType.GetField("ShortCut").GetValue(attrib);
+                string menuName = (string) attribType.GetField("MenuName").GetValue(attrib);
+                string menuText = (string) attribType.GetField("MenuText").GetValue(attrib);
 //                    bool isHidden = (bool)attribType.GetField("IsHidden").GetValue(attrib);
-                    bool isExceptionSafe = (bool) attribType.GetField("IsExceptionSafe").GetValue(attrib);
+                bool isExceptionSafe = (bool) attribType.GetField("IsExceptionSafe").GetValue(attrib);
 
-                    if (name != null)
-                    {
-                        Name = name;
-                    }
-                    if (description != null)
-                    {
-                        Description = description;
-                    }
-                    if (helpTopic != null)
-                    {
-                        HelpTopic = helpTopic;
-                    }
-                    if (shortCut != null)
-                    {
-                        ShortCut = shortCut;
-                    }
-                    if (menuName != null)
-                    {
-                        MenuName = menuName;
-                    }
-                    if (menuText != null)
-                    {
-                        MenuText = menuText;
-                    }
-//                    IsHidden = isHidden;  // Only for functions.
-                    IsExceptionSafe = isExceptionSafe;
+                if (name != null)
+                {
+                    Name = name;
                 }
+                if (description != null)
+                {
+                    Description = description;
+                }
+                if (helpTopic != null)
+                {
+                    HelpTopic = helpTopic;
+                }
+                if (shortCut != null)
+                {
+                    ShortCut = shortCut;
+                }
+                if (menuName != null)
+                {
+                    MenuName = menuName;
+                }
+                if (menuText != null)
+                {
+                    MenuText = menuText;
+                }
+//                    IsHidden = isHidden;  // Only for functions.
+                IsExceptionSafe = isExceptionSafe;
             }
         }
 
@@ -327,7 +332,7 @@ namespace ExcelDna.Loader
 
         Delegate CreateMethodDelegate(MethodInfo targetMethod, Type delegateType)
         {
-            // Check whether we can skip wrapper
+            // Check whether we can skip wrapper completely
             if (IsExceptionSafe
                 && Array.TrueForAll(Parameters,
                                     delegate(XlParameterInfo pi) { return pi.BoxedValueType == null; })
@@ -340,7 +345,14 @@ namespace ExcelDna.Loader
                 return Delegate.CreateDelegate(delegateType, targetMethod);
             }
 
-            // Else we create a dynamic wrapper
+            // DateTime input parameters are never exception safe - we need to be able to fail out of the 
+            // marshaler when the passed-in argument is an invalid date.
+            bool emitExceptionHandler = 
+                !IsExceptionSafe || 
+                Array.Exists(Parameters, 
+                             delegate(XlParameterInfo pi) { return pi.BoxedValueType == typeof(DateTime); });
+
+            // Now we create a dynamic wrapper
             Type[] paramTypes = Array.ConvertAll<XlParameterInfo, Type>(Parameters,
                                                                         delegate(XlParameterInfo pi)
                                                                             { return pi.DelegateParamType; });
@@ -358,7 +370,7 @@ namespace ExcelDna.Loader
                 // Make a local to contain the return value
                 retobj = wrapIL.DeclareLocal(ReturnType.DelegateParamType);
             }
-            if (!IsExceptionSafe)
+            if (emitExceptionHandler)
             {
                 // Start the Try block
                 wrapIL.BeginExceptionBlock();
@@ -388,7 +400,7 @@ namespace ExcelDna.Loader
                 wrapIL.Emit(OpCodes.Stloc_S, retobj);
             }
 
-            if (!IsExceptionSafe)
+            if (emitExceptionHandler)
             {
                 wrapIL.Emit(OpCodes.Leave_S, endOfMethod);
                 wrapIL.BeginCatchBlock(typeof (object));
@@ -421,11 +433,10 @@ namespace ExcelDna.Loader
             // End of Wrapper
 
             return wrapper.CreateDelegate(delegateType);
-            ;
         }
 
         // This is the main conversion function called from XlLibrary.RegisterMethods
-        public static List<XlMethodInfo> ConvertToXlMethodInfos(List<MethodInfo> methodInfos)
+        public static List<XlMethodInfo> ConvertToXlMethodInfos(List<MethodInfo> methodInfos, List<object> methodAttributes, List<List<object>> argumentAttributes)
         {
             List<XlMethodInfo> xlMethodInfos = new List<XlMethodInfo>();
 
@@ -440,11 +451,14 @@ namespace ExcelDna.Loader
                 AssemblyBuilderAccess.Run /*AndSave*/);
             moduleBuilder = assemblyBuilder.DefineDynamicModule("DynamicDelegates");
 
-            foreach (MethodInfo mi  in methodInfos)
+            for (int i = 0; i < methodInfos.Count; i++)
             {
+                MethodInfo mi  = methodInfos[i];
+                object methodAttrib = i < methodAttributes.Count ? methodAttributes[i] : null;
+                List<object> argAttribs = i < argumentAttributes.Count ? argumentAttributes[i] : null;
                 try
                 {
-                    XlMethodInfo xlmi = new XlMethodInfo(mi, moduleBuilder);
+                    XlMethodInfo xlmi = new XlMethodInfo(moduleBuilder, mi, methodAttrib, argAttribs);
                     // Add if no Exceptions
                     xlMethodInfos.Add(xlmi);
                 }
@@ -457,6 +471,60 @@ namespace ExcelDna.Loader
 
             //			assemblyBuilder.Save(@"ExcelDna.DynamicDelegateAssembly.dll");
             return xlMethodInfos;
+        }
+
+        public static void GetMethodAttributes(List<MethodInfo> methodInfos, out List<object> methodAttributes, out List<List<object>> argumentAttributes)
+        {
+            methodAttributes = new List<object>();
+            argumentAttributes = new List<List<object>>();
+            foreach (MethodInfo method in methodInfos)
+            {
+                // If we don't find an attribute, we'll set a null in the list at a token
+                methodAttributes.Add(null);
+                foreach (object att in method.GetCustomAttributes(false))
+                {
+                    Type attType = att.GetType();
+                    if (TypeHelper.TypeHasAncestorWithFullName(attType, "ExcelDna.Integration.ExcelFunctionAttribute") ||
+                        TypeHelper.TypeHasAncestorWithFullName(attType, "ExcelDna.Integration.ExcelCommandAttribute"))
+                    {
+                        // Set last value to this attribute
+                        methodAttributes[methodAttributes.Count - 1] = att;
+                        break;
+                    }
+                    if (att is System.ComponentModel.DescriptionAttribute)
+                    {
+                        // Some compatibility - use Description if no Excel* attribute
+                        if (methodAttributes[methodAttributes.Count - 1] == null)
+                            methodAttributes[methodAttributes.Count - 1] = att;
+                    }
+                }
+
+                List<object> argAttribs = new List<object>();
+                argumentAttributes.Add(argAttribs);
+
+                foreach (ParameterInfo param in method.GetParameters())
+                {
+                    // If we don't find an attribute, we'll set a null in the list at a token
+                    argAttribs.Add(null);
+                    foreach (object att in param.GetCustomAttributes(false))
+                    {
+                        Type attType = att.GetType();
+                        if (TypeHelper.TypeHasAncestorWithFullName(attType, "ExcelDna.Integration.ExcelArgumentAttribute"))
+                        {
+                            // Set last value to this attribute
+                            argAttribs[argAttribs.Count - 1] = att;
+                            break;
+                        }
+                        if (att is System.ComponentModel.DescriptionAttribute)
+                        {
+                            // Some compatibility - use Description if no ExcelArgument attribute
+                            if (argAttribs[argAttribs.Count - 1] == null)
+                                argAttribs[argAttribs.Count - 1] = att;
+                        }
+                    }
+
+                }
+            }
         }
     }
 

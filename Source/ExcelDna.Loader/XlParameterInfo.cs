@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2012 Govert van Drimmelen
+  Copyright (C) 2005-2013 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -41,7 +41,7 @@ namespace ExcelDna.Loader
 		public Type BoxedValueType; 	// Causes a wrapper to be created that boxes the return type from the user method,
 											// allowing Custom Marshaling to be injected
 
-		public XlParameterInfo(ParameterInfo paramInfo)
+		public XlParameterInfo(ParameterInfo paramInfo, object attrib)
 		{
 			// Add Name and Description
 			// CONSIDER: Override Marshaler for row/column arrays according to some attribute
@@ -55,55 +55,58 @@ namespace ExcelDna.Loader
 			Description = "";
 			AllowReference = false;
 
-			// Get Description
-			object[] attribs = paramInfo.GetCustomAttributes(false);
-			// Search through attribs for Description
-			foreach (object attrib in attribs)
-			{
-				System.ComponentModel.DescriptionAttribute desc =
-					attrib as System.ComponentModel.DescriptionAttribute;
-				if (desc != null)
-				{
-					Description = desc.Description;
-				}
-				//// HACK: Some problem with library references - 
-				//// For now relax the assembly reference and use late-bound
-                Type attribType = attrib.GetType();
-                if (TypeHelper.TypeHasAncestorWithFullName(attribType, "ExcelDna.Integration.ExcelArgumentAttribute"))
-                {
-                    string name = (string)attribType.GetField("Name").GetValue(attrib);
-                    string description = (string)attribType.GetField("Description").GetValue(attrib);
-                    object allowReference = attribType.GetField("AllowReference").GetValue(attrib);
-
-                    if (name != null)
-                        Name = name;
-                    if (description != null)
-                        Description = description;
-                    if (allowReference != null)
-                        AllowReference = (bool)allowReference;
-                }
-				// HACK: Here is the other code:
-                //ExcelArgumentAttribute xlparam = attrib as ExcelArgumentAttribute;
-                //if (xlparam != null)
-                //{
-                //    if (xlparam.Name != null)
-                //    {
-                //        Name = xlparam.Name;
-                //    }
-                //    if (xlparam.Description != null)
-                //    {
-                //        Description = xlparam.Description;
-                //    }
-                //    AllowReference = xlparam.AllowReference;
-                //}
-			}
+            SetAttributeInfo(attrib);
 			SetTypeInfo(paramInfo.ParameterType, false, false);
 		}
 
-		public XlParameterInfo(Type type, bool isReturnType, bool isExceptionSafe)
-		{
-			SetTypeInfo(type, isReturnType, isExceptionSafe);
-		}
+        public XlParameterInfo(Type type, bool isReturnType, bool isExceptionSafe)
+        {
+            SetTypeInfo(type, isReturnType, isExceptionSafe);
+        }
+
+        void SetAttributeInfo(object attrib)
+        {
+            if (attrib == null) return;
+
+            // Search through attribs for Description
+            System.ComponentModel.DescriptionAttribute desc =
+                attrib as System.ComponentModel.DescriptionAttribute;
+            if (desc != null)
+            {
+                Description = desc.Description;
+                return;
+            }
+            //// HACK: Some problem with library references - 
+            //// For now relax the assembly reference and use late-bound
+            Type attribType = attrib.GetType();
+            if (TypeHelper.TypeHasAncestorWithFullName(attribType, "ExcelDna.Integration.ExcelArgumentAttribute"))
+            {
+                string name = (string)attribType.GetField("Name").GetValue(attrib);
+                string description = (string)attribType.GetField("Description").GetValue(attrib);
+                object allowReference = attribType.GetField("AllowReference").GetValue(attrib);
+
+                if (name != null)
+                    Name = name;
+                if (description != null)
+                    Description = description;
+                if (allowReference != null)
+                    AllowReference = (bool)allowReference;
+            }
+            // HACK: Here is the other code:
+            //ExcelArgumentAttribute xlparam = attrib as ExcelArgumentAttribute;
+            //if (xlparam != null)
+            //{
+            //    if (xlparam.Name != null)
+            //    {
+            //        Name = xlparam.Name;
+            //    }
+            //    if (xlparam.Description != null)
+            //    {
+            //        Description = xlparam.Description;
+            //    }
+            //    AllowReference = xlparam.AllowReference;
+            //}
+        }
 
         public void SetTypeInfo(Type type, bool isReturnType, bool isExceptionSafe)
         {

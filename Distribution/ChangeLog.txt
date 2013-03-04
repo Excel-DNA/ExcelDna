@@ -1,3 +1,11 @@
+Version 0.31 (???)
+------------------
+* Fixed method registration to avoid generic methods (for F# standalone).
+* Improved method deregistration to leave functions with #NAME? (thanks to kh).
+* Added completion synchronization for multiple async functions in a formula.
+* Disable IsExceptionSafe when there are DateTime parameters.
+* Added RegisterMethods overload with explicit attributes.
+
 Version 0.30 (12 December 2012)
 -------------------------------
 * Fixed LoadComAddIn error when using a direct ExcelComAddIn-derived class.

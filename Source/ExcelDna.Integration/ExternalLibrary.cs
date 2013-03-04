@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2012 Govert van Drimmelen
+  Copyright (C) 2005-2013 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -101,7 +101,7 @@ namespace ExcelDna.Integration
                     // The ExternalLibrary is packed.
                     // We'll have to load it from resources.
 					string resourceName = Path.Substring(7);
-					if (Path.ToUpperInvariant().EndsWith(".DNA"))
+					if (Path.EndsWith(".DNA", StringComparison.OrdinalIgnoreCase))
 					{
 						byte[] dnaContent = ExcelIntegration.GetDnaFileBytes(resourceName);
 						DnaLibrary lib = DnaLibrary.LoadFrom(dnaContent, pathResolveRoot);
@@ -187,7 +187,7 @@ namespace ExcelDna.Integration
                     LogDisplay.WriteLine("    Error: The library could not be found at this location.");
                     return list;
 				}
-                if (System.IO.Path.GetExtension(resolvedPath).ToUpperInvariant() == ".DNA")
+                if (System.IO.Path.GetExtension(resolvedPath).Equals(".DNA", StringComparison.OrdinalIgnoreCase))
 				{
 					// Load as a DnaLibrary
                     DnaLibrary lib = DnaLibrary.LoadFrom(resolvedPath);
@@ -272,12 +272,11 @@ namespace ExcelDna.Integration
         // A copy of this method lives in ExcelDna.Loader - AssemblyManager.cs
         private static Assembly GetAssemblyIfLoaded(string assemblyName)
         {
-            string testName = assemblyName.ToUpperInvariant();
             Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
             foreach (Assembly loadedAssembly in assemblies)
             {
-                string loadedAssemblyName = loadedAssembly.FullName.Split(',')[0].ToUpperInvariant();
-                if ( loadedAssemblyName == testName)
+                string loadedAssemblyName = loadedAssembly.FullName.Split(',')[0];
+                if (string.Equals(assemblyName, loadedAssemblyName, StringComparison.OrdinalIgnoreCase))
                     return loadedAssembly;
             }
             return null;

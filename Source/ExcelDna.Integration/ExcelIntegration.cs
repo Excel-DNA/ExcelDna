@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2012 Govert van Drimmelen
+  Copyright (C) 2005-2013 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -39,6 +39,7 @@ namespace ExcelDna.Integration
 
     internal delegate int TryExcelImplDelegate(int xlFunction, out object result, params object[] parameters);
     internal delegate void RegisterMethodsDelegate(List<MethodInfo> methods);
+    internal delegate void RegisterMethodsWithAttributesDelegate(List<MethodInfo> methods, List<object> functionAttributes, List<List<object>> argumentAttributes);
     internal delegate byte[] GetResourceBytesDelegate(string resourceName, int type); // types: 0 - Assembly, 1 - Dna file, 2 - Image
     internal delegate void SyncMacroDelegate(double dValue);
 	public delegate object UnhandledExceptionHandler(object exceptionObject);
@@ -70,10 +71,23 @@ namespace ExcelDna.Integration
             registerMethods = d;
         }
 
-        // This is the only 'externally' exposed member.
+        private static RegisterMethodsWithAttributesDelegate registerMethodsWithAttributes;
+        internal static void SetRegisterMethodsWithAttributes(RegisterMethodsWithAttributesDelegate d)
+        {
+            registerMethodsWithAttributes = d;
+        }
+
+        // These are the only 'externally' exposed members.
         public static void RegisterMethods(List<MethodInfo> methods)
         {
             registerMethods(methods);
+        }
+
+        public static void RegisterMethods(List<MethodInfo> methods,
+                                           List<object> methodAttributes,
+                                           List<List<object>> argumentAttributes)
+        {
+            registerMethodsWithAttributes(methods, methodAttributes, argumentAttributes);
         }
 
 		private static UnhandledExceptionHandler unhandledExceptionHandler;

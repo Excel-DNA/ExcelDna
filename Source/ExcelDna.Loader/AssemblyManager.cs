@@ -1,5 +1,5 @@
 ﻿/*
-  Copyright (C) 2005-2012 Govert van Drimmelen
+  Copyright (C) 2005-2013 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -143,12 +143,11 @@ namespace ExcelDna.Loader
         // A copy of this method lives in ExcelDna.Integration - ExternalLibrary.cs
         private static Assembly GetAssemblyIfLoaded(string assemblyName)
         {
-            string testName = assemblyName.ToUpperInvariant();
             Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
             foreach (Assembly loadedAssembly in assemblies)
             {
-                string loadedAssemblyName = loadedAssembly.FullName.Split(',')[0].ToUpperInvariant();
-                if (loadedAssemblyName == testName)
+                string loadedAssemblyName = loadedAssembly.FullName.Split(',')[0];
+                if (string.Equals(loadedAssemblyName, assemblyName, StringComparison.OrdinalIgnoreCase))
                     return loadedAssembly;
             }
             return null;
