@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2012 Govert van Drimmelen
+  Copyright (C) 2005-2013 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -94,21 +94,19 @@ namespace ExcelDna.Integration
             }
 
             MethodInfo[] mis = t.GetMethods(BindingFlags.Public | BindingFlags.Static);
-            if (explicitExports)
+            // Filter list first
+            foreach (MethodInfo mi in mis)
             {
-                // Filter list first
-                foreach (MethodInfo mi in mis)
-                {
-                    if (IsMethodMarkedForExport(mi))
-                    {
-                        excelMethods.Add(mi);
-                    }
-                }
-            }
-            else
-            {
-                // Add all the methods found
-                excelMethods.AddRange(mis);
+                // Skip generic methods - these may appear even though we have skipped generic types, 
+                // e.g. in F# --standalone assemblies
+                if (mi.IsAbstract || mi.IsGenericMethod) 
+                    continue;
+
+                // if explicitexports - check that this method is marked
+                if (explicitExports && !IsMethodMarkedForExport(mi))
+                    continue;
+
+                excelMethods.Add(mi);
             }
         }
 

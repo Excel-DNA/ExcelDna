@@ -74,7 +74,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
             {
                 for (int i = 1; i < args.Length; i++)
                 {
-                    if (args[i].ToUpper() == "/O")
+                    if (args[i].Equals("/O", StringComparison.CurrentCultureIgnoreCase))
                     {
                         if (i >= args.Length - 1)
                         {
@@ -84,7 +84,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                         }
                         xllOutputPath = args[i + 1];
                     }
-                    else if (args[i].ToUpper() == "/Y")
+                    else if (args[i].Equals("/Y", StringComparison.CurrentCultureIgnoreCase))
                     {
                         overwrite = true;
                     }
@@ -97,7 +97,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 				{
 					Console.Write("Output .xll file " + xllOutputPath + " already exists. Overwrite? [Y/N] ");
 					string response = Console.ReadLine();
-					if (response.ToUpper() != "Y")
+					if (!response.Equals("Y", StringComparison.CurrentCultureIgnoreCase))
 					{
 						Console.WriteLine("\r\nNot overwriting existing file.\r\nExiting ExcelDnaPack.");
 						return;
@@ -187,7 +187,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 					{
 						string path = dna.ResolvePath(ext.Path);
                         Console.WriteLine("  ~~> ExternalLibrary path {0} resolved to {1}.", ext.Path, path);
-						if (Path.GetExtension(path).ToUpperInvariant() == ".DNA")
+						if (Path.GetExtension(path).Equals(".DNA", StringComparison.OrdinalIgnoreCase))
 						{
 							string name = Path.GetFileNameWithoutExtension(path).ToUpperInvariant() + "_" + lastPackIndex++ + ".DNA";
 							byte[] dnaContentForPacking = PackDnaLibrary(File.ReadAllBytes(path), Path.GetDirectoryName(path), ru);

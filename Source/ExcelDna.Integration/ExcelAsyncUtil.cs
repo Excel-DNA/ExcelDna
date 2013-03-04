@@ -1,5 +1,5 @@
 ﻿/*
-  Copyright (C) 2005-2012 Govert van Drimmelen
+  Copyright (C) 2005-2013 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -90,7 +90,8 @@ namespace ExcelDna.Integration
 
         public static void QueueAsMacro(ExcelAction action)
         {
-            QueueAsMacro(delegate { action(); }, null);
+            SendOrPostCallback callback = delegate { action(); };
+            QueueAsMacro(callback, null);
         }
 
         public static void QueueAsMacro(SendOrPostCallback callback, object state)

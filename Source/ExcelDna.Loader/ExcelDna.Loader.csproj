@@ -72,6 +72,7 @@
       <Link>Lzma\RangeCoderBitTree.cs</Link>
     </Compile>
     <Compile Include="AssemblyManager.cs" />
+    <Compile Include="LoaderHelpers.cs" />
     <Compile Include="XlCustomMarshal12.cs" />
     <Compile Include="IntegrationHelpers.cs" />
     <Compile Include="XlCallImpl.cs" />

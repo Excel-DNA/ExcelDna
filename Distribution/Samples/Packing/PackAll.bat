@@ -5,6 +5,9 @@ copy ..\..\ExcelDna.Integration.dll PackDep\
 ..\..\ExcelDnaPack PackDna\PackDna.dna /Y
 copy PackDna\PackDna-packed.xll Out\
 
+..\..\ExcelDnaPack PackSource\PackSource.dna /Y
+copy PackSource\PackSource-packed.xll Out\
+
 ..\..\ExcelDnaPack PackDnaTree\PackDnaTree.dna /Y
 copy PackDnaTree\PackDnaTree-packed.xll Out\
 copy PackDnaTree\Child2.dna Out\
@@ -30,7 +33,10 @@ copy PackDep\PackDep-packed.xll Out\
 ..\..\ExcelDnaPack PackConfig\PackConfig.dna /Y
 copy PackConfig\PackConfig-packed.xll Out\
 
+pause "... about to delete temp files ..."
+
 del PackDna\PackDna-packed.xll
+del PackSource\PackSource-packed.xll
 del PackDnaTree\PackDnaTree-packed.xll
 del PackConfig\PackConfig-packed.xll
 

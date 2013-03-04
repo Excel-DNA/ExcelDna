@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Reactive.Threading.Tasks;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ExcelDna.Integration.RxExcel
@@ -22,6 +23,7 @@ namespace ExcelDna.Integration.RxExcel
             return ExcelAsyncUtil.Observe(callerFunctionName, callerParameters, () => observableSource(callerFunctionName, callerParameters).ToExcelObservable());
         }
 
+        // TODO: Tasks may be used with Excel-DNA async withou using Rx.
         public static object Observe<T>(string callerFunctionName, object callerParameters, Func<Task<T>> taskSource)
         {
             return Observe(callerFunctionName, callerParameters, () => taskSource().ToObservable());
@@ -62,6 +64,47 @@ namespace ExcelDna.Integration.RxExcel
         {
             Debug.Print("Disposing!");
             _disposable.Dispose();
+        }
+    }
+
+    // TODO: Use for Tasks -> Excel-DNA asyc directly.
+    /// <summary>
+    /// Represents an IDisposable that can be checked for cancellation status.
+    /// </summary>
+    public sealed class CancellationDisposable : IDisposable
+    {
+        CancellationTokenSource cts;
+
+        /// <summary>
+        /// Constructs a new CancellationDisposable that uses an existing CancellationTokenSource.
+        /// </summary>
+        public CancellationDisposable(CancellationTokenSource cts)
+        {
+            if (cts == null)
+                throw new ArgumentNullException("cts");
+
+            this.cts = cts;
+        }
+
+        /// <summary>
+        /// Constructs a new CancellationDisposable that uses a new CancellationTokenSource.
+        /// </summary>
+        public CancellationDisposable()
+            : this(new CancellationTokenSource())
+        {
+        }
+
+        /// <summary>
+        /// Gets the CancellationToken used by this CancellationDisposable.
+        /// </summary>
+        public CancellationToken Token { get { return cts.Token; } }
+
+        /// <summary>
+        /// Cancels the CancellationTokenSource.
+        /// </summary>
+        public void Dispose()
+        {
+            cts.Cancel();
         }
     }
 }

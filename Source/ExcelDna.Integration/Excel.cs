@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2012 Govert van Drimmelen
+  Copyright (C) 2005-2013 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -33,31 +33,31 @@ using System.Reflection;
 
 namespace ExcelDna.Integration
 {
-	public class ExcelDnaUtil
-	{
-		private delegate bool EnumWindowsCallback(IntPtr hwnd, /*ref*/ IntPtr param);
+    public class ExcelDnaUtil
+    {
+        private delegate bool EnumWindowsCallback(IntPtr hwnd, /*ref*/ IntPtr param);
 
-		[DllImport("user32.dll")]
-		private static extern int EnumWindows(EnumWindowsCallback callback, /*ref*/ IntPtr param);
-		[DllImport("user32.dll")]
-		private static extern IntPtr GetParent(IntPtr hwnd);
-		[DllImport("user32.dll")]
-		private static extern bool EnumChildWindows(IntPtr hWndParent, EnumWindowsCallback callback, /*ref*/ IntPtr param);
-		[DllImport("user32.dll")]
-		private static extern int GetClassNameW(IntPtr hwnd, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder buf, int nMaxCount);
+        [DllImport("user32.dll")]
+        private static extern int EnumWindows(EnumWindowsCallback callback, /*ref*/ IntPtr param);
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetParent(IntPtr hwnd);
+        [DllImport("user32.dll")]
+        private static extern bool EnumChildWindows(IntPtr hWndParent, EnumWindowsCallback callback, /*ref*/ IntPtr param);
+        [DllImport("user32.dll")]
+        private static extern int GetClassNameW(IntPtr hwnd, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder buf, int nMaxCount);
         [DllImport("user32.dll")]
         private static extern IntPtr GetWindowTextW(IntPtr hwnd, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder buf, int nMaxCount);
         [DllImport("Oleacc.dll")]
-		private static extern int AccessibleObjectFromWindow(
-			  IntPtr hwnd, uint dwObjectID, byte[] riid,
-			  ref IntPtr ptr /*ppUnk*/);
+        private static extern int AccessibleObjectFromWindow(
+              IntPtr hwnd, uint dwObjectID, byte[] riid,
+              ref IntPtr ptr /*ppUnk*/);
 
-		private const uint OBJID_NATIVEOM = 0xFFFFFFF0;
-		private static readonly byte[] IID_IDispatchBytes = new Guid("{00020400-0000-0000-C000-000000000046}").ToByteArray();
+        private const uint OBJID_NATIVEOM = 0xFFFFFFF0;
+        private static readonly byte[] IID_IDispatchBytes = new Guid("{00020400-0000-0000-C000-000000000046}").ToByteArray();
 
-		internal static void Initialize()
-		{
-			// Exception suppressor added here for HPC support and for RegSvr32 registration
+        internal static void Initialize()
+        {
+            // Exception suppressor added here for HPC support and for RegSvr32 registration
             // - WindowHandle fails in these contexts.
             try
             {
@@ -69,15 +69,18 @@ namespace ExcelDna.Integration
                 Debug.WriteLine("Error during ExcelDnaUtil.Initialize: " + ex);
                 // Just suppress otherwise
             }
-		}
+        }
 
-		private static IntPtr _hWndExcel = IntPtr.Zero;
-		public static IntPtr WindowHandle
-		{
-			get
-			{
+        private static IntPtr _hWndExcel = IntPtr.Zero;
+        public static IntPtr WindowHandle
+        {
+            get
+            {
                 // Return cached value if we have one
-				if (_hWndExcel != IntPtr.Zero) return _hWndExcel;
+                
+                // TODO: This is a bad idea under Excel 2013....
+
+                if (_hWndExcel != IntPtr.Zero) return _hWndExcel;
 
                 // NOTE: Don't use Process.GetCurrentProcess().MainWindowHandle; here,
                 // it doesn't work when Excel is activated via COM, or when the add-in is installed.
@@ -100,16 +103,16 @@ namespace ExcelDna.Integration
 
                 // Do a check based on the lo-Word - should work in all versions.
                 ushort loWord = (ushort)hWnd;
-			    _hWndExcel = FindAnExcelWindow(loWord);
+                _hWndExcel = FindAnExcelWindow(loWord);
 
                 // Might still be null...!
                 if (_hWndExcel == IntPtr.Zero)
                 {
                     Debug.Print("Failed to get Excel WindowHandle.");
                 }
-			    return _hWndExcel;
-			}
-		}
+                return _hWndExcel;
+            }
+        }
 
         // Check if hWnd refers to a Window of class "XLMAIN" indicating and Excel top-level window.
         static bool IsAnExcelWindow(IntPtr hWnd)
@@ -164,10 +167,10 @@ namespace ExcelDna.Integration
         // [ThreadStatic] 
         static object _application;
         static readonly CultureInfo _enUsCulture = new CultureInfo(1033);
-		public static object Application
-		{
-			get
-			{
+        public static object Application
+        {
+            get
+            {
                 if (!IsMainThread())
                 {
                     // Nothing cached - possibly being called on a different thread
@@ -184,14 +187,14 @@ namespace ExcelDna.Integration
                 // Try to get one and remember  it.
                 _application = GetApplication();
                 return _application;
-			}
+            }
             internal set
             {
                 // Should only be set on the main thread.
                 if (!IsMainThread()) throw new InvalidOperationException("Cached Application can only be set on the main thread.");
                 _application = value;
             }
-		}
+        }
 
         private static object GetApplication()
         {
@@ -238,23 +241,23 @@ namespace ExcelDna.Integration
             return application;
         }
 
-		private static object GetApplicationFromWindow(IntPtr hWndMain)
-		{
-			// This is Andrew Whitechapel's plan for getting the Application object.
-			// It does not work when there are no Workbooks open.
-			IntPtr hWndChild = IntPtr.Zero;
-			EnumChildWindows(hWndMain, delegate(IntPtr hWndEnum, IntPtr param)
-			{
-				// Check the window class
-				StringBuilder cname = new StringBuilder(256);
-				GetClassNameW(hWndEnum, cname, cname.Capacity);
-				if (cname.ToString() == "EXCEL7")
-				{
-					hWndChild = hWndEnum;
-					return false;	// Stop enumerating
-				}
-				return true;	// Continue enumerating
-			}, IntPtr.Zero);
+        private static object GetApplicationFromWindow(IntPtr hWndMain)
+        {
+            // This is Andrew Whitechapel's plan for getting the Application object.
+            // It does not work when there are no Workbooks open.
+            IntPtr hWndChild = IntPtr.Zero;
+            EnumChildWindows(hWndMain, delegate(IntPtr hWndEnum, IntPtr param)
+            {
+                // Check the window class
+                StringBuilder cname = new StringBuilder(256);
+                GetClassNameW(hWndEnum, cname, cname.Capacity);
+                if (cname.ToString() == "EXCEL7")
+                {
+                    hWndChild = hWndEnum;
+                    return false;	// Stop enumerating
+                }
+                return true;	// Continue enumerating
+            }, IntPtr.Zero);
             if (hWndChild != IntPtr.Zero)
             {
                 IntPtr pUnk = IntPtr.Zero;
@@ -273,46 +276,46 @@ namespace ExcelDna.Integration
                     return app;
                 }
             }
-			return null;
-		}
+            return null;
+        }
 
         // CONSIDER: Might this be better?
         // return !XlCall.Excel(XlCall.xlfGetTool, 4, "Standard", 1);
-		public static bool IsInFunctionWizard()
-		{
-			// TODO: Handle the Find and Replace dialog
-			//       for international versions.
-			IntPtr hWndMain = WindowHandle;
-			bool inFunctionWizard = false;
+        public static bool IsInFunctionWizard()
+        {
+            // TODO: Handle the Find and Replace dialog
+            //       for international versions.
+            IntPtr hWndMain = WindowHandle;
+            bool inFunctionWizard = false;
             StringBuilder cname = new StringBuilder(256);
             StringBuilder title = new StringBuilder(256);
-			EnumWindows(delegate(IntPtr hWndEnum, IntPtr param)
-			{
-				// Check the window class
-				GetClassNameW(hWndEnum, cname, cname.Capacity);
-				if (cname.ToString().StartsWith("bosa_sdm_XL"))
-				{
-					if (GetParent(hWndEnum) == hWndMain)
-					{
-						GetWindowTextW(hWndEnum, title, title.Capacity);
-						if (!title.ToString().Contains("Replace"))
-							inFunctionWizard = true; // will also work for older versions where paste box had no title
-						return false;	// Stop enumerating
-					}
-				}
-				return true;	// Continue enumerating
-			}, IntPtr.Zero);
-			return inFunctionWizard;
-		}
+            EnumWindows(delegate(IntPtr hWndEnum, IntPtr param)
+            {
+                // Check the window class
+                GetClassNameW(hWndEnum, cname, cname.Capacity);
+                if (cname.ToString().StartsWith("bosa_sdm_XL"))
+                {
+                    if (GetParent(hWndEnum) == hWndMain)
+                    {
+                        GetWindowTextW(hWndEnum, title, title.Capacity);
+                        if (!title.ToString().Contains("Replace"))
+                            inFunctionWizard = true; // will also work for older versions where paste box had no title
+                        return false;	// Stop enumerating
+                    }
+                }
+                return true;	// Continue enumerating
+            }, IntPtr.Zero);
+            return inFunctionWizard;
+        }
 
-		// Updated for International Excel - Thanks to Martin Drecher
-		private static double _xlVersion = 0;
-		public static double ExcelVersion
-		{
-			get
-			{
-				if (_xlVersion == 0)
-				{
+        // Updated for International Excel - Thanks to Martin Drecher
+        private static double _xlVersion = 0;
+        public static double ExcelVersion
+        {
+            get
+            {
+                if (_xlVersion == 0)
+                {
                     object versionObject;
                     XlCall.XlReturn retval = XlCall.TryExcel(XlCall.xlfGetWorkspace, out versionObject, 2);
                     if (retval == XlCall.XlReturn.XlReturnSuccess)
@@ -356,12 +359,12 @@ namespace ExcelDna.Integration
                             }
                         }
                     }
-				}
-				return _xlVersion;
-			}
-		}
+                }
+                return _xlVersion;
+            }
+        }
 
-	    private static ExcelLimits _xlLimits;
+        private static ExcelLimits _xlLimits;
         public static ExcelLimits ExcelLimits
         {
             get
@@ -387,37 +390,37 @@ namespace ExcelDna.Integration
                 return _xlLimits;
             }
         }
-	}
+    }
 
     public class ExcelLimits
     {
-		private int _maxRows;
-		public int MaxRows
-		{
-			get { return _maxRows; }
-			internal set { _maxRows = value; }
-		}
+        private int _maxRows;
+        public int MaxRows
+        {
+            get { return _maxRows; }
+            internal set { _maxRows = value; }
+        }
 
-		private int _maxColumns;
-		public int MaxColumns
-		{
-			get { return _maxColumns; }
-			internal set { _maxColumns = value; }
-		}
+        private int _maxColumns;
+        public int MaxColumns
+        {
+            get { return _maxColumns; }
+            internal set { _maxColumns = value; }
+        }
 
-		private int _maxArguments;
-		public int MaxArguments
-		{
-			get { return _maxArguments; }
-			internal set { _maxArguments = value; }
-		}
+        private int _maxArguments;
+        public int MaxArguments
+        {
+            get { return _maxArguments; }
+            internal set { _maxArguments = value; }
+        }
 
-		private int _maxStringLength;
-		public int MaxStringLength
-		{
-			get { return _maxStringLength; }
-			internal set { _maxStringLength = value; }
-		}
-	}
+        private int _maxStringLength;
+        public int MaxStringLength
+        {
+            get { return _maxStringLength; }
+            internal set { _maxStringLength = value; }
+        }
+    }
 
 }

@@ -1,5 +1,5 @@
 ﻿/*
-  Copyright (C) 2005-2012 Govert van Drimmelen
+  Copyright (C) 2005-2013 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -28,8 +28,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Security;
-using System.Security.Permissions;
 using System.Threading;
 
 namespace ExcelDna.Loader
@@ -242,6 +240,11 @@ namespace ExcelDna.Loader
             Type registerMethodsDelegateType = integrationAssembly.GetType("ExcelDna.Integration.RegisterMethodsDelegate");
             Delegate registerMethodsDelegate = Delegate.CreateDelegate(registerMethodsDelegateType, registerMethodsMethod);
             integrationType.InvokeMember("SetRegisterMethods", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] { registerMethodsDelegate });
+
+            MethodInfo registerWithAttMethod = typeof(XlAddIn).GetMethod("RegisterMethodsWithAttributes", BindingFlags.Static | BindingFlags.Public);
+            Type registerWithAttDelegateType = integrationAssembly.GetType("ExcelDna.Integration.RegisterMethodsWithAttributesDelegate");
+            Delegate registerWithAttDelegate = Delegate.CreateDelegate(registerWithAttDelegateType, registerWithAttMethod);
+            integrationType.InvokeMember("SetRegisterMethodsWithAttributes", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] { registerWithAttDelegate });
 
             MethodInfo getResourceBytesMethod = typeof(AssemblyManager).GetMethod("GetResourceBytes", BindingFlags.Static | BindingFlags.NonPublic);
             Type getResourceBytesDelegateType = integrationAssembly.GetType("ExcelDna.Integration.GetResourceBytesDelegate");
@@ -478,7 +481,15 @@ namespace ExcelDna.Loader
 
         public static void RegisterMethods(List<MethodInfo> methods)
         {
-            List<XlMethodInfo> xlMethods = XlMethodInfo.ConvertToXlMethodInfos(methods);
+            List<object> methodAttributes;
+            List<List<object>> argumentAttributes;
+            XlMethodInfo.GetMethodAttributes(methods, out methodAttributes, out argumentAttributes);
+            RegisterMethodsWithAttributes(methods, methodAttributes, argumentAttributes);
+        }
+
+        public static void RegisterMethodsWithAttributes(List<MethodInfo> methods, List<object> methodAttributes, List<List<object>> argumentAttributes)
+        {
+            List<XlMethodInfo> xlMethods = XlMethodInfo.ConvertToXlMethodInfos(methods, methodAttributes, argumentAttributes);
             xlMethods.ForEach(RegisterXlMethod);
         }
 
@@ -719,14 +730,22 @@ namespace ExcelDna.Loader
             // Now take out the methods
             foreach (XlMethodInfo mi in registeredMethods)
             {
-                if (!mi.IsCommand)
-                {
-                    // I follow the advice from X-Cell website
-                    // to get function out of Wizard
-                    XlCallImpl.TryExcelImpl(XlCallImpl.xlfRegister, out xlCallResult, pathXll, "xlAutoRemove", "J", mi.Name, IntegrationMarshalHelpers.GetExcelMissingValue(), 0);
-                }
+                // Clear the name and unregister
                 XlCallImpl.TryExcelImpl(XlCallImpl.xlfSetName, out xlCallResult, mi.Name);
                 XlCallImpl.TryExcelImpl(XlCallImpl.xlfUnregister, out xlCallResult, mi.RegisterId);
+
+                if (!mi.IsCommand)
+                {
+                    // I follow the advice from X-Cell website to get function out of Wizard (with fix from kh)
+                    // clear the new name, and unregister
+                    XlCallImpl.TryExcelImpl(XlCallImpl.xlfRegister, out xlCallResult, pathXll, "xlAutoRemove", "I", mi.Name, IntegrationMarshalHelpers.GetExcelMissingValue(), 2);
+                    if (xlCallResult is double)
+                    {
+                        double fakeRegisterId = (double)xlCallResult;
+                        XlCallImpl.TryExcelImpl(XlCallImpl.xlfSetName, out xlCallResult, mi.Name);
+                        XlCallImpl.TryExcelImpl(XlCallImpl.xlfUnregister, out xlCallResult, fakeRegisterId);
+                    }
+                }
             }
             registeredMethods.Clear();
         }
@@ -738,95 +757,6 @@ namespace ExcelDna.Loader
 
         #endregion
 
-    }
-    
-
-    // TODO: Investigate again VSTO / .NET 2.0 security loading problem, 
-    //       and look at ExecutionContext.SuppressFlow 
-    //       More info: http://social.msdn.microsoft.com/forums/en-US/clr/thread/0a48607c-5a27-4d12-8e0f-160daed38ef2
-    //              and http://msdn.microsoft.com/en-us/magazine/cc163644.aspx (Aboratable thread pool.)
-    public static class AppDomainHelper
-    {
-        // This method is called from unmanaged code in a temporary AppDomain, just to be able to call
-        // the right AppDomain.CreateDomain overload.
-        public static AppDomain CreateFullTrustSandbox()
-        {
-            try
-            {
-                Debug.Print("CreateSandboxAndInitialize - in loader AppDomain with Id: " + AppDomain.CurrentDomain.Id);
-
-                PermissionSet pset = new PermissionSet(PermissionState.Unrestricted);
-                AppDomainSetup loaderAppDomainSetup = AppDomain.CurrentDomain.SetupInformation;
-                AppDomainSetup sandboxAppDomainSetup = new AppDomainSetup();
-                sandboxAppDomainSetup.ApplicationName = loaderAppDomainSetup.ApplicationName;
-                sandboxAppDomainSetup.ConfigurationFile = loaderAppDomainSetup.ConfigurationFile;
-                sandboxAppDomainSetup.ApplicationBase = loaderAppDomainSetup.ApplicationBase;
-                sandboxAppDomainSetup.ShadowCopyFiles = loaderAppDomainSetup.ShadowCopyFiles;
-                sandboxAppDomainSetup.ShadowCopyDirectories = loaderAppDomainSetup.ShadowCopyDirectories;
-
-                // create the sandboxed domain
-                AppDomain sandbox = AppDomain.CreateDomain(
-                    "FullTrustSandbox(" + AppDomain.CurrentDomain.FriendlyName + ")",
-                    null,
-                    sandboxAppDomainSetup,
-                    pset);
-
-                Debug.Print("CreateFullTrustSandbox - sandbox AppDomain created. Id: " + sandbox.Id);
-
-                return sandbox;
-            }
-            catch (Exception ex)
-            {
-                Debug.Print("Error during CreateFullTrustSandbox: " + ex.ToString());
-                return AppDomain.CurrentDomain;
-            }
-
-        }
-    }
-
-    internal static class ProcessHelper
-    {
-        private static bool _isInitialized = false;
-        private static bool _isRunningOnCluster;
-        private static int _processMajorVersion;
-
-        public static bool IsRunningOnCluster
-        {
-            get
-            {
-                EnsureInitialized();
-                return _isRunningOnCluster;
-            }
-        }
-
-        public static int ProcessMajorVersion
-        {
-            get
-            {
-                EnsureInitialized();
-                return _processMajorVersion;
-            }
-        }
-
-        public static bool SupportsClusterSafe
-        {
-            get
-            {
-                return IsRunningOnCluster || (ProcessMajorVersion >= 14);
-            }
-        }
-
-        private static void EnsureInitialized()
-        {
-            if (!_isInitialized)
-            {
-                Process hostProcess = Process.GetCurrentProcess();
-                _isRunningOnCluster = !(hostProcess.ProcessName.Equals("EXCEL", StringComparison.InvariantCultureIgnoreCase));
-                _processMajorVersion = hostProcess.MainModule.FileVersionInfo.FileMajorPart;
-
-                _isInitialized = true;
-            }
-        }            
     }
 }
 
