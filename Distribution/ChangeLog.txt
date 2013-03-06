@@ -5,6 +5,8 @@ Version 0.31 (???)
 * Added completion synchronization for multiple async functions in a formula.
 * Disable IsExceptionSafe when there are DateTime parameters.
 * Added RegisterMethods overload with explicit attributes.
+* Added workaround for Excel 2010 RTD bug where TopicId is reused but not Disconnected.
+* Implement exception-free checks for type compatibility in method registration.
 
 Version 0.30 (12 December 2012)
 -------------------------------

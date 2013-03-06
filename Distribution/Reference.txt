@@ -143,6 +143,7 @@ ExcelError - an enum listing the different Excel errors
 ExcelDnaUtil - contains Application property (for COM access), WindowHandle and IsInFunctionWizard, ExcelVersion, ExcelLimits.
 ExcelCommandBarUtil - has LoadCommandBars method to laod command bar xml from a string.
 CustomTaskPaneFactory - creates CustomTaskPanes.
+ExcelAsyncUtil - asynchronous function and macro support.
 
 Wrapper for the Excel 97 / Excel 2007 SDK API
 ---------------------------------------------

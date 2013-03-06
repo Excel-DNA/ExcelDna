@@ -213,8 +213,19 @@ namespace ExcelDna.Integration.Rtd
         {
             try
             {
+                // Check for an active topic with the same topicId 
+                // - this is unexpected, and occurs due to the Excel 2010 bug documented here:
+                // http://social.msdn.microsoft.com/Forums/en-US/exceldev/thread/ba06ac78-7b64-449b-bce4-9a03ac91f0eb/
+                // and with hotfix: http://support.microsoft.com/kb/2405840
+                // (Thanks ngm)
+                if (_activeTopics.ContainsKey(topicId))
+                {
+                    ((IRtdServer)this).DisconnectData(topicId);
+                }
+
                 List<string> topicInfo = new List<string>(strings.Length);
                 for (int i = 0; i < strings.Length; i++) topicInfo.Add((string)strings.GetValue(i));
+
                 Topic topic = new Topic(this, topicId);
                 _activeTopics[topicId] = topic;
                 using (XlCall.Suspend())

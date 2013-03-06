@@ -130,7 +130,10 @@ namespace ExcelDna.Loader
 			// if no exception, the return type is known to be of type BoxedReturnValueType
 			// and unboxed accordingly.
 
-			// By default DelegateParamType is type
+            // NOTE: There is also a list of supported parameter types in
+            // AssemblyLoaded.cs, where the methods to register are extracted.
+            
+            // By default DelegateParamType is type
 			// changed for some return types to ensure boxing,
 			// to allow custom marshaling.
 			DelegateParamType = type;
@@ -389,6 +392,9 @@ namespace ExcelDna.Loader
             // if any exception is caught.
             // if no exception, the return type is known to be of type BoxedReturnValueType
             // and unboxed accordingly.
+
+            // NOTE: There is also a list of supported parameter types in
+            // AssemblyLoaded.cs, where the methods to register are extracted.
 
             // By default DelegateParamType is type
             // changed for some return types to ensure boxing,
