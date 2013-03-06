@@ -23,7 +23,7 @@ namespace ExcelDna.Integration.RxExcel
             return ExcelAsyncUtil.Observe(callerFunctionName, callerParameters, () => observableSource(callerFunctionName, callerParameters).ToExcelObservable());
         }
 
-        // TODO: Tasks may be used with Excel-DNA async withou using Rx.
+        // TODO: Tasks may be used with Excel-DNA async without using Rx.
         public static object Observe<T>(string callerFunctionName, object callerParameters, Func<Task<T>> taskSource)
         {
             return Observe(callerFunctionName, callerParameters, () => taskSource().ToObservable());
@@ -67,7 +67,7 @@ namespace ExcelDna.Integration.RxExcel
         }
     }
 
-    // TODO: Use for Tasks -> Excel-DNA asyc directly.
+    // TODO: Use for Tasks -> Excel-DNA async directly.
     /// <summary>
     /// Represents an IDisposable that can be checked for cancellation status.
     /// </summary>

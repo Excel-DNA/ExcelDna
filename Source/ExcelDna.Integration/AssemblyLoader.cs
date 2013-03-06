@@ -94,24 +94,39 @@ namespace ExcelDna.Integration
             }
 
             MethodInfo[] mis = t.GetMethods(BindingFlags.Public | BindingFlags.Static);
-            // Filter list first
+            // Filter list first - LINQ would be nice here :-)
             foreach (MethodInfo mi in mis)
             {
-                // Skip generic methods - these may appear even though we have skipped generic types, 
-                // e.g. in F# --standalone assemblies
-                if (mi.IsAbstract || mi.IsGenericMethod) 
-                    continue;
-
-                // if explicitexports - check that this method is marked
-                if (explicitExports && !IsMethodMarkedForExport(mi))
-                    continue;
-
-                excelMethods.Add(mi);
+                if (IsMethodSupported(mi, explicitExports))
+                    excelMethods.Add(mi);
             }
         }
 
+        static bool IsMethodSupported(MethodInfo mi, bool explicitExports)
+        {
+            // Skip generic methods - these may appear even though we have skipped generic types, 
+            // e.g. in F# --standalone assemblies
+            if (mi.IsAbstract || mi.IsGenericMethod)
+                return false;
+
+            // if explicitexports - check that this method is marked
+            if (explicitExports && !IsMethodMarkedForExport(mi))
+                return false;
+
+            if (!IsParameterTypeSupported(mi.ReturnType))
+                return false;
+
+            foreach (ParameterInfo pi in mi.GetParameters())
+            {
+                if (!IsParameterTypeSupported(pi.ParameterType))
+                    return false;
+            }
+
+            return true;
+        }
+
 		// CAUTION: This check needs to match the usage in ExcelDna.Loader.XlMethodInfo.SetAttributeInfo()
-		private static bool IsMethodMarkedForExport(MethodInfo mi)
+		static bool IsMethodMarkedForExport(MethodInfo mi)
 		{
 			object[] atts = mi.GetCustomAttributes(false);
 			foreach (object att in atts)
@@ -125,6 +140,30 @@ namespace ExcelDna.Integration
 			}
 			return false;
 		}
+
+        static readonly List<Type> _supportedParameterTypes = new List<Type>
+        {
+            typeof(double),
+            typeof(string),
+            typeof(DateTime),
+            typeof(double[]),
+            typeof(double[,]),
+            typeof(object),
+            typeof(object[]),
+            typeof(object[,]),
+            typeof(bool),
+            typeof(int),
+            typeof(short),
+            typeof(ushort),
+            typeof(decimal),
+            typeof(long),
+            typeof(void)
+        };
+
+        static bool IsParameterTypeSupported(Type type)
+        {
+            return _supportedParameterTypes.Contains(type);
+        }
 
 	    // Some support for creating add-ins that are notified of open and close
         // this allows the add-in to add menus, toolbar buttons etc.

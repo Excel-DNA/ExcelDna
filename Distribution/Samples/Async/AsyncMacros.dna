@@ -191,7 +191,7 @@ public static class AsyncTestFunctions
 
     }
 
-    // RIIA helper to deal with Excel selections
+    // RAII helper to deal with Excel selections
     public class ExcelSelectionHelper : XlCall, IDisposable
     {
         object oldScreenUpdating;
