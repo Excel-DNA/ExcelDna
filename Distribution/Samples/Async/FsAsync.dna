@@ -93,7 +93,7 @@ module TestFunctions =
 
     /// This function runs the async computation synchronously on a ThreadPool thread
     /// because that's what ExcelAsyncUtil.Run does
-    /// Blocking calls will bloack a ThreadPool thread, eventually limiting the concurrency of the async calls
+    /// Blocking calls will block a ThreadPool thread, eventually limiting the concurrency of the async calls
     let downloadStringAsyncTP2 url = 
         ExcelAsyncUtil.Run ("downloadStringAsyncTP2", url, (fun () -> Async.RunSynchronously (downloadStringAsyncImpl url) :> obj))
 

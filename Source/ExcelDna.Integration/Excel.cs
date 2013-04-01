@@ -36,9 +36,12 @@ namespace ExcelDna.Integration
     public class ExcelDnaUtil
     {
         private delegate bool EnumWindowsCallback(IntPtr hwnd, /*ref*/ IntPtr param);
+        private delegate bool EnumThreadWindowsCallback(IntPtr hwnd, /*ref*/ IntPtr param);
 
         [DllImport("user32.dll")]
         private static extern int EnumWindows(EnumWindowsCallback callback, /*ref*/ IntPtr param);
+        [DllImport("user32.dll")]
+        private static extern bool EnumThreadWindows(uint dwThreadId, EnumThreadWindowsCallback callback, /*ref*/ IntPtr param);
         [DllImport("user32.dll")]
         private static extern IntPtr GetParent(IntPtr hwnd);
         [DllImport("user32.dll")]
@@ -51,118 +54,143 @@ namespace ExcelDna.Integration
         private static extern int AccessibleObjectFromWindow(
               IntPtr hwnd, uint dwObjectID, byte[] riid,
               ref IntPtr ptr /*ppUnk*/);
+        // Use the overload that' convenient when we don't need the ProcessId - pass IntPtr.Zero for the second parameter
+        [DllImport("user32.dll")]
+        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, /*out uint */ IntPtr refProcessId);
+        [DllImport("Kernel32")]
+        public static extern uint GetCurrentThreadId();
 
         private const uint OBJID_NATIVEOM = 0xFFFFFFF0;
         private static readonly byte[] IID_IDispatchBytes = new Guid("{00020400-0000-0000-C000-000000000046}").ToByteArray();
 
+
+        // Some static state, set when ExcelDna.Integration is initialized.
+        static uint _mainNativeThreadId;
+        static int _mainManagedThreadId;
+        static IntPtr _mainWindowHandle;
+
         internal static void Initialize()
         {
-            // Exception suppressor added here for HPC support and for RegSvr32 registration
-            // - WindowHandle fails in these contexts.
-            try
+            // NOTE: Sequence here is important - Getting the Window Handle sometimes uses the _mainNativeThreadId
+            _mainManagedThreadId = Thread.CurrentThread.ManagedThreadId;
+            _mainNativeThreadId = GetCurrentThreadId();
+
+            // Under Excel 2013 we have a problem, the window is not stable.
+            // We get the current main window here, and deal with changes later.
+            _mainWindowHandle = GetWindowHandleApi();
+        }
+
+        internal static bool IsMainThread
+        {
+            get
             {
-                IntPtr unused = WindowHandle;
-                _mainThreadId = Thread.CurrentThread.ManagedThreadId;
-            }
-            catch (Exception ex)
-            { 
-                Debug.WriteLine("Error during ExcelDnaUtil.Initialize: " + ex);
-                // Just suppress otherwise
+                return Thread.CurrentThread.ManagedThreadId == _mainManagedThreadId;
             }
         }
 
-        private static IntPtr _hWndExcel = IntPtr.Zero;
+        #region Get Window Handle
+        // NOTE: Careful not to call ExcelVersion here - might recurse causing StackOverflow
+
+        // NOTE: Previously we cached the value as an optimization (because the IsAnExcelWindow check below may be slow)
+        //       But under Excel 2013 the window handle is not stable - it's merely the most recently active of the SDI main windows.
+        //       Now that we (a) cache the Application object on the main thread, 
+        //       and (b) can run everything on the main thread with ExcelAsyncUtil, this is not really a problem.
+
+        // NOTE: Don't use Process.GetCurrentProcess().MainWindowHandle; here,
+        // it doesn't work when Excel is activated via COM, or when the add-in is installed.
+
         public static IntPtr WindowHandle
         {
             get
             {
-                // Return cached value if we have one
-                
-                // TODO: This is a bad idea under Excel 2013....
+                if (SafeIsExcelVersionPre15) return _mainWindowHandle;
 
-                if (_hWndExcel != IntPtr.Zero) return _hWndExcel;
+                // Under Excel 2013, the windo handles change according to the active workbook.
+                return GetWindowHandle15();
+            }
+        }
 
-                // NOTE: Don't use Process.GetCurrentProcess().MainWindowHandle; here,
-                // it doesn't work when Excel is activated via COM, or when the add-in is installed.
+        static IntPtr GetWindowHandle15()
+        {
+            IntPtr hWnd = IntPtr.Zero;
+            // We're on the main thread, and we already have an application object.
+            if (_application != null)
+            {
+                // This is the typical case.
+                // Get it from there - probably safest
+                hWnd = (IntPtr)(int)_application.GetType().InvokeMember("Hwnd", BindingFlags.GetProperty, null, _application, null, _enUsCulture);
+                if (IsWindowOfThisExcel(hWnd)) return hWnd;
+            }
 
-                // NOTE: Careful not to call ExcelVersion here - might recurse causing StackOverflow
-                // We try the Excel 2007+ case first.
+            // If we're on the main thread, try the C API
+            // This should be OK - if we've loaded a Ribbon or RTD server we should already have an Application object.
+            if (IsMainThread)
+            {
+                hWnd = GetWindowHandleApi();
+                if (hWnd != IntPtr.Zero)
+                    return hWnd;
+            }
 
-                // Excel 2007+ - should get whole handle ... - we try this case first
-                IntPtr hWnd = (IntPtr) (uint) (double) XlCall.Excel(XlCall.xlGetHwnd);
-                // ... but this call is not reliable, and I'm not sure about 64-bit, 
-                // so check if we actually got an Excel window, 
-                // and even then only accept the result if there is more than the low word,
-                // because many of the window functions seem to work even when passed only part of the window handle,
-                // which could otherwise cause us to accept a partial handle.
-                if (((uint)hWnd & 0xFFFF0000) != 0 && IsAnExcelWindow(hWnd))
+            StringBuilder buffer = new StringBuilder(256);
+            // If the main window handle is still valid, use that.
+            if (IsAnExcelWindow(_mainWindowHandle, buffer))
+                return _mainWindowHandle;
+
+            // Otherwise look for any XLMAIN window in the current process
+            EnumThreadWindows(_mainNativeThreadId, delegate(IntPtr hWndEnum, IntPtr param)
+            {
+                if (IsAnExcelWindow(hWndEnum, buffer))
                 {
-                    _hWndExcel = hWnd;
-                    return _hWndExcel;
+                    hWnd = hWndEnum;
+                    return false;	// Stop enumerating
                 }
+                return true;	// Continue enumerating
+            }, IntPtr.Zero);
+
+            if (hWnd != IntPtr.Zero)
+            {
+                // Change the MainWindowHandle - the previous one is no longer valid
+                _mainWindowHandle = hWnd;
+                return hWnd;
+            }
+
+            // Give up
+            throw new InvalidOperationException("Window handle cannot be retrieved at this time.");
+        }
+
+        // Get the window handle using the C API - should work on all Excel versions,
+        // but not in funny circumstances, like cluster or regsvr32...
+        static IntPtr GetWindowHandleApi()
+        {
+            // Should not throw exception
+            // (we expect the C API call to fail when running on Cluster or during automation)
+            try
+            {
+                IntPtr hWnd = (IntPtr)(uint)(double)XlCall.Excel(XlCall.xlGetHwnd);
+                if (IsWindowOfThisExcel(hWnd)) return hWnd;
 
                 // Do a check based on the lo-Word - should work in all versions.
                 ushort loWord = (ushort)hWnd;
-                _hWndExcel = FindAnExcelWindow(loWord);
-
-                // Might still be null...!
-                if (_hWndExcel == IntPtr.Zero)
-                {
-                    Debug.Print("Failed to get Excel WindowHandle.");
-                }
-                return _hWndExcel;
+                hWnd = FindAnExcelWindowWithLoWord(loWord);
+                if (IsWindowOfThisExcel(hWnd)) return hWnd;
             }
-        }
-
-        // Check if hWnd refers to a Window of class "XLMAIN" indicating and Excel top-level window.
-        static bool IsAnExcelWindow(IntPtr hWnd)
-        {
-            StringBuilder cname = new StringBuilder(256);
-            GetClassNameW(hWnd, cname, cname.Capacity);
-            return cname.ToString() == "XLMAIN";
-        }
-
-        // Try to find an Excel window with window handle that matches the passed lo word.
-        static IntPtr FindAnExcelWindow(ushort hWndLoWord)
-        {
-            IntPtr hWnd = IntPtr.Zero;
-            EnumWindows(delegate(IntPtr hWndEnum, IntPtr param)
+            catch (Exception e)
             {
-                // Check the loWord
-                if (((uint)hWndEnum & 0x0000FFFF) == (uint)hWndLoWord &&
-                    IsAnExcelWindow(hWndEnum))
-                {
-                    hWnd = hWndEnum;
-                    return false;  // Stop enumerating
-                }
-                return true;  // Continue enumerating
-            }, IntPtr.Zero);
-            return hWnd;
-        }
-
-        static int _mainThreadId;
-        internal static bool IsMainThread()
-        {
-            return Thread.CurrentThread.ManagedThreadId == _mainThreadId;
-        }
-
-        // Returns true if the cached _application reference is valid.
-        // - someone might have called Marshal.ReleaseComObject, making this reference invalid.
-        static bool IsApplicationOK()
-        {
-            if (_application == null) return false;
-            try
-            {
-                _application.GetType().InvokeMember("Version", BindingFlags.GetProperty, null, _application, null,  _enUsCulture);
-                return true;
+                Debug.Write("GetWindowHandle15 C API error - " + e);
+                // Ignore errors
             }
-            catch (Exception)
-            {
-                _application = null;
-                return false;
-            }
+            return IntPtr.Zero;
         }
 
+        static bool IsWindowOfThisExcel(IntPtr hWnd)
+        {
+            uint threadId = GetWindowThreadProcessId(hWnd, IntPtr.Zero);
+            // returns 0 if the window handle is not valid.
+            return threadId == _mainNativeThreadId;
+        }
+        #endregion
+
+        #region Get Application COM Object
         // CONSIDER: ThreadStatic not needed anymore - only cached and used on main thread anyway.
         // [ThreadStatic] 
         static object _application;
@@ -171,7 +199,7 @@ namespace ExcelDna.Integration
         {
             get
             {
-                if (!IsMainThread())
+                if (!IsMainThread)
                 {
                     // Nothing cached - possibly being called on a different thread
                     // Just get from window and return
@@ -188,57 +216,80 @@ namespace ExcelDna.Integration
                 _application = GetApplication();
                 return _application;
             }
-            internal set
-            {
-                // Should only be set on the main thread.
-                if (!IsMainThread()) throw new InvalidOperationException("Cached Application can only be set on the main thread.");
-                _application = value;
-            }
         }
-
+        
         private static object GetApplication()
         {
-            // Get main window as well as we can.
-            IntPtr hWndMain = WindowHandle;
-            if (hWndMain == IntPtr.Zero) return null;   // This is a problematic error case!
+            // Don't cache the one we get from the Window, it keeps Excel alive! 
+            // (?? Really ?? - Probably only when we're not on the main thread...)
+            object application = GetApplicationFromWindows();
+            if (application != null) return application;
+            
+            // DOCUMENT: Under some circumstances, the C API and Automation interfaces are not available.
+            //  This happens when there is no Workbook open in Excel.
+            // Now make workbook with VBA sheet, according to some Google post..
 
-            // Don't cache the one we get from the Window, it keeps Excel alive!
-            object application;
-            application = GetApplicationFromWindow(hWndMain);
-            if (application == null)
+            // We try a (possible) test for whether we can call the C API.
+            object output;
+            XlCall.XlReturn result = XlCall.TryExcel(XlCall.xlGetName, out output);
+            if (result == XlCall.XlReturn.XlReturnFailed)
             {
-                // I assume it failed because there was no workbook open
-                // Now make workbook with VBA sheet, according to some Google post
-
-                // CONSIDER: Alternative of sending WM_USER+18 to Excel - KB 147573
-                //           And trying to retrieve Excel from the ROT using GetActiveObject
-                //           Concern then is whether it is the right instance of the Excel.Application for this process.
-
-
-                // DOCUMENT: Under some circumstances, the C API and Automation interfaces are not available.
-                //  This happens when there is no Workbook open in Excel.
-                // We try a (possible) test for whether we can call the C API.
-                object output;
-                XlCall.XlReturn result = XlCall.TryExcel(XlCall.xlGetName, out output);
-                if (result == XlCall.XlReturn.XlReturnFailed)
-                {
-                    // no plan for getting Application (we're probably on a different thread?)
-                    throw new InvalidOperationException("Excel API is unavailable - cannot retrieve Application object.");
-                }
-
-                // Create new workbook with the right stuff
-                XlCall.Excel(XlCall.xlcEcho, false);
-                XlCall.Excel(XlCall.xlcNew, 5);
-                XlCall.Excel(XlCall.xlcWorkbookInsert, 6);
-
-                // Try again
-                application = GetApplicationFromWindow(hWndMain);
-
-                // Clean up
-                XlCall.Excel(XlCall.xlcFileClose, false);
-                XlCall.Excel(XlCall.xlcEcho, true);
+                // no plan for getting Application (we're probably on a different thread?)
+                throw new InvalidOperationException("Excel API is unavailable - cannot retrieve Application object.");
             }
-            return application;
+
+            // Create new workbook with the right stuff
+            // Echo calls removed for Excel 2013 - this caused trouble in the Excel 2013 'browse' scenario.
+            bool isExcelPre15 = SafeIsExcelVersionPre15;
+            if (isExcelPre15) XlCall.Excel(XlCall.xlcEcho, false);
+            XlCall.Excel(XlCall.xlcEcho, false);
+            XlCall.Excel(XlCall.xlcNew, 5);
+            XlCall.Excel(XlCall.xlcWorkbookInsert, 6);
+
+            // Try again
+            application = GetApplicationFromWindows();
+
+            // Clean up
+            XlCall.Excel(XlCall.xlcFileClose, false);
+            if (isExcelPre15) XlCall.Excel(XlCall.xlcEcho, true);
+
+            if (application != null) return application;
+            
+            // This is really bad - throwing an exception ...
+            throw new InvalidOperationException("Excel Application object could not be retrieved.");
+        }
+
+        static object GetApplicationFromWindows()
+        {
+            if (SafeIsExcelVersionPre15)
+            {
+                return GetApplicationFromWindow(WindowHandle);
+            }
+
+            return GetApplicationFromWindows15();
+        }
+
+        // Enumerate through all top-level windows of the main thread,
+        // and for those of class XLMAIN, dig down by calling GetApplicationFromWindow.
+        static object GetApplicationFromWindows15()
+        {
+            object application = null;
+            StringBuilder buffer = new StringBuilder(256);
+            EnumThreadWindows(_mainNativeThreadId, delegate(IntPtr hWndEnum, IntPtr param)
+            {
+                // Check the window class
+                if (IsAnExcelWindow(hWndEnum, buffer))
+                {
+                    application = GetApplicationFromWindow(hWndEnum);
+                    if (application != null)
+                    {
+                        return false;	// Stop enumerating
+                    }
+                    return true;
+                }
+                return true;	// Continue enumerating
+            }, IntPtr.Zero);
+            return application; // May or may not be null
         }
 
         private static object GetApplicationFromWindow(IntPtr hWndMain)
@@ -246,10 +297,10 @@ namespace ExcelDna.Integration
             // This is Andrew Whitechapel's plan for getting the Application object.
             // It does not work when there are no Workbooks open.
             IntPtr hWndChild = IntPtr.Zero;
+            StringBuilder cname = new StringBuilder(256);
             EnumChildWindows(hWndMain, delegate(IntPtr hWndEnum, IntPtr param)
             {
                 // Check the window class
-                StringBuilder cname = new StringBuilder(256);
                 GetClassNameW(hWndEnum, cname, cname.Capacity);
                 if (cname.ToString() == "EXCEL7")
                 {
@@ -266,46 +317,135 @@ namespace ExcelDna.Integration
                         IID_IDispatchBytes, ref pUnk);
                 if (hr >= 0)
                 {
+                    // Marshal to .NET, then call .Application
                     object obj = Marshal.GetObjectForIUnknown(pUnk);
                     Marshal.Release(pUnk);
 
                     object app = obj.GetType().InvokeMember("Application", System.Reflection.BindingFlags.GetProperty, null, obj, null, new CultureInfo(1033));
                     Marshal.ReleaseComObject(obj);
 
-                    //							object ver = app.GetType().InvokeMember("Version", System.Reflection.BindingFlags.GetProperty, null, app, null);
+                    //   object ver = app.GetType().InvokeMember("Version", System.Reflection.BindingFlags.GetProperty, null, app, null);
                     return app;
                 }
             }
             return null;
         }
 
+        // Returns true if the cached _application reference is valid.
+        // - someone might have called Marshal.ReleaseComObject, making this reference invalid.
+        static bool IsApplicationOK()
+        {
+            if (_application == null) return false;
+            try
+            {
+                _application.GetType().InvokeMember("Version", BindingFlags.GetProperty, null, _application, null, _enUsCulture);
+                return true;
+            }
+            catch (Exception)
+            {
+                _application = null;
+                return false;
+            }
+        }
+        #endregion
+
+        #region IsInFunctionWizard
+
         // CONSIDER: Might this be better?
         // return !XlCall.Excel(XlCall.xlfGetTool, 4, "Standard", 1);
+        // (I think not - apparently it doesn't work right under Excel 2013, 
+        //  but it can easily be called by the user in their helper)
         public static bool IsInFunctionWizard()
         {
+            if (SafeIsExcelVersionPre15)
+                return IsInFunctionWizardPre15(); 
+            
+            return IsInFunctionWizard15();
+        }
+
+        static bool IsInFunctionWizardPre15()
+        {
+            // WindowHandle is safe to call under Excel Pre 15.
+
             // TODO: Handle the Find and Replace dialog
             //       for international versions.
-            IntPtr hWndMain = WindowHandle;
             bool inFunctionWizard = false;
-            StringBuilder cname = new StringBuilder(256);
-            StringBuilder title = new StringBuilder(256);
-            EnumWindows(delegate(IntPtr hWndEnum, IntPtr param)
+            StringBuilder buffer = new StringBuilder(256);
+            EnumChildWindows(WindowHandle, delegate(IntPtr hWndEnum, IntPtr param)
             {
-                // Check the window class
-                GetClassNameW(hWndEnum, cname, cname.Capacity);
-                if (cname.ToString().StartsWith("bosa_sdm_XL"))
+                if (IsFunctionWizardWindow(hWndEnum, buffer))
                 {
-                    if (GetParent(hWndEnum) == hWndMain)
-                    {
-                        GetWindowTextW(hWndEnum, title, title.Capacity);
-                        if (!title.ToString().Contains("Replace"))
-                            inFunctionWizard = true; // will also work for older versions where paste box had no title
-                        return false;	// Stop enumerating
-                    }
+                    inFunctionWizard = true;
+                    return false; // Stop enumerating
                 }
                 return true;	// Continue enumerating
             }, IntPtr.Zero);
             return inFunctionWizard;
+        }
+
+        // In Excel 2013, the Function Arguments dialog is a top-level window.
+        // We enumerate these by getting the (native) thread id, from any WindowHandle,
+        // then enumerating non-child windows for this thread.
+        static bool IsInFunctionWizard15()
+        {
+            // TODO: Handle the Find and Replace dialog
+            //       for international versions.
+            StringBuilder buffer = new StringBuilder(256);
+            bool inFunctionWizard = false;
+            EnumThreadWindows(_mainNativeThreadId, delegate(IntPtr hWndEnum, IntPtr param)
+            {
+                if (IsFunctionWizardWindow(hWndEnum, buffer))
+                {
+                    inFunctionWizard = true;
+                    return false; // Stop enumerating
+                }
+                return true;	// Continue enumerating
+            }, IntPtr.Zero);
+            return inFunctionWizard;
+        }
+
+        static bool IsFunctionWizardWindow(IntPtr hWnd, StringBuilder buffer)
+        {
+            buffer.Length = 0;
+            // Check the window class
+            GetClassNameW(hWnd, buffer, buffer.Capacity);
+            if (!buffer.ToString().StartsWith("bosa_sdm_XL")) 
+                return false;
+
+            buffer.Length = 0;
+            GetWindowTextW(hWnd, buffer, buffer.Capacity);
+            if (buffer.ToString().Contains("Replace"))
+                return false;
+
+            return true;
+        }
+        #endregion
+
+        #region Version Helpers
+        // This version is used internally - it seems a bit safer than the API calls.
+        private static FileVersionInfo _excelExecutableInfo = null;
+        internal static FileVersionInfo ExcelExecutableInfo
+        {
+            get
+            {
+                if (_excelExecutableInfo == null)
+                {
+                    ProcessModule excel = Process.GetCurrentProcess().MainModule;
+                    _excelExecutableInfo = FileVersionInfo.GetVersionInfo(excel.FileName);
+                }
+                return _excelExecutableInfo;
+            }
+        }
+
+        // One of our many, many version helpers...
+        // This is safer than ExcelVersion since we can call it from initialization 
+        // (it does not use COM Application object) and we can call it from an IsMacroType=false function.
+        internal static bool SafeIsExcelVersionPre15
+        {
+            get
+            {
+                return ExcelExecutableInfo.FileMajorPart < 15;
+            }
         }
 
         // Updated for International Excel - Thanks to Martin Drecher
@@ -363,6 +503,37 @@ namespace ExcelDna.Integration
                 return _xlVersion;
             }
         }
+        #endregion
+
+        #region Window Helpers
+
+        // Check if hWnd refers to a Window of class "XLMAIN" indicating an Excel top-level window.
+        static bool IsAnExcelWindow(IntPtr hWnd, StringBuilder buffer)
+        {
+            buffer.Length = 0;
+            GetClassNameW(hWnd, buffer, buffer.Capacity);
+            return buffer.ToString() == "XLMAIN";
+        }
+
+        // Try to find an Excel window with window handle that matches the passed lo word.
+        static IntPtr FindAnExcelWindowWithLoWord(ushort hWndLoWord)
+        {
+            IntPtr hWnd = IntPtr.Zero;
+            StringBuilder buffer = new StringBuilder(256);
+            EnumThreadWindows(_mainNativeThreadId, delegate(IntPtr hWndEnum, IntPtr param)
+            {
+                // Check the loWord
+                if (((uint)hWndEnum & 0x0000FFFF) == (uint)hWndLoWord &&
+                    IsAnExcelWindow(hWndEnum, buffer))
+                {
+                    hWnd = hWndEnum;
+                    return false;  // Stop enumerating
+                }
+                return true;  // Continue enumerating
+            }, IntPtr.Zero);
+            return hWnd;
+        }
+        #endregion
 
         private static ExcelLimits _xlLimits;
         public static ExcelLimits ExcelLimits

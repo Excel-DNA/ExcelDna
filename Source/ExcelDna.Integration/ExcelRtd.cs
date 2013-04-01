@@ -43,7 +43,7 @@ namespace ExcelDna.Integration.Rtd
     //   or the 'real' COM interop types. 
     //   CONSIDER: This would not be needed for .NET 4.
 
-    // NOTE: We don't use this for the ExcelObservableRtdServer 
+    // NOTE: We don't use this(?) for the ExcelObservableRtdServer 
     //       - that case is directly registered with the ComServer, and in the registry via AsyncUtil.Register()
 
     internal static class RtdRegistration
@@ -79,29 +79,37 @@ namespace ExcelDna.Integration.Rtd
         public static object RTD(string progId, string server, params string[] topics)
         {
             // Check if this is any of our business.
-            if (!string.IsNullOrEmpty(server) || !registeredRtdServerTypes.ContainsKey(progId))
+            Type rtdServerType;
+            if (!string.IsNullOrEmpty(server) || !registeredRtdServerTypes.TryGetValue(progId, out rtdServerType))
             {
                 // Just pass on to Excel.
                 return CallRTD(progId, null, topics);
             }
 
+            // TODO: Check that ExcelRtdServer with stable ProgId case also works right here - 
+            //       might need to add to loadedRtdServers somehow
+
             // Check if already loaded.
-            if (loadedRtdServers.ContainsKey(progId))
+            string loadedProgId;
+            if (loadedRtdServers.TryGetValue(progId, out loadedProgId))
             {
+                if (rtdServerType.IsSubclassOf(typeof(ExcelRtdServer)) && Excel2010RtdBugHelper.ExcelVersionHasRtdBug)
+                {
+                    Excel2010RtdBugHelper.RecordRtdCall(progId, topics);
+                }
                 // Call Excel using the synthetic RtdSrv.xxx (or actual from attribute) ProgId
-                return CallRTD(loadedRtdServers[progId], null, topics);
+                return CallRTD(loadedProgId, null, topics);
             }
 
             // Not loaded already - need to get the Rtd server loaded
             // TODO: Need to reconsider registration here.....
             //       Sometimes need stable ProgIds.
-            Type rtdServerType = registeredRtdServerTypes[progId];
             object rtdServer = Activator.CreateInstance(rtdServerType);
             
             ExcelRtdServer excelRtdServer = rtdServer as ExcelRtdServer;
             if (excelRtdServer != null)
             {
-                // Set ProgId so that it can be 'unregistered' (removed from loadedRtdServers) when the RTD sever terminates.
+                // Set ProgId so that it can be 'unregistered' (removed from loadedRtdServers) when the RTD server terminates.
                 excelRtdServer.RegisteredProgId = progId;
             }
             else
@@ -132,7 +140,6 @@ namespace ExcelDna.Integration.Rtd
                     if (TryCallRTD(out result, progIdRegistered, null, topics))
                     {
                         // Mark as loaded - ServerTerminate in the wrapper will remove.
-                        // TODO: Consider multithread race condition...
                         loadedRtdServers[progId] = progIdRegistered;
                     }
                     return result;
@@ -144,18 +151,6 @@ namespace ExcelDna.Integration.Rtd
                 return ExcelErrorUtil.ToComError(ExcelError.ExcelErrorValue);
             }
         }
-
-        //private static Guid GetGuidFromString(string input)
-        //{
-        //    // CONSIDER: Not sure if this is really the right way - there is a real GUID category for hash -> Guid generation
-
-        //    //string path = @"D:\Files\CSharp\Excel\ExcelDna\SomeExampleXll.xll";
-        //    //byte[] tmp = System.Text.Encoding.Unicode.GetBytes(path); 
-        //    byte[] tmp = System.Text.Encoding.UTF8.GetBytes(input);
-        //    byte[] hash = System.Security.Cryptography.MD5.Create().ComputeHash(tmp);
-        //    Guid g = new Guid(hash);
-        //    return g;
-        //}
 
         // Returns true if the Excel call succeeded.
         private static bool TryCallRTD(out object result, string progId, string server, params string[] topics)
@@ -183,13 +178,12 @@ namespace ExcelDna.Integration.Rtd
 
         public static void UnregisterRTDServer(string progId)
         {
-            if (loadedRtdServers.ContainsKey(progId))
-            {
-                loadedRtdServers.Remove(progId);
-            }
+            // Dictionary.Remove is safe to call even if the key does not exist (just returns false)
+            loadedRtdServers.Remove(progId);
         }
     }
 
+    // This wrapper is not used with servers implemented from ExcelRtdServer 
     [ClassInterface(ClassInterfaceType.None)]
     internal class RtdServerWrapper : IRtdServer
     {

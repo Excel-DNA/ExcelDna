@@ -46,8 +46,11 @@ namespace ExcelDna.Integration.RxExcel
 
         public IDisposable Subscribe(IExcelObserver observer)
         {
+#if DEBUG
             return new DebuggingDisposable(_observable.Subscribe(value => observer.OnNext(value), observer.OnError, observer.OnCompleted));
-            //return _observable.Subscribe(value => observer.OnNext(value), observer.OnError, observer.OnCompleted);
+#else
+            return _observable.Subscribe(value => observer.OnNext(value), observer.OnError, observer.OnCompleted);
+#endif
         }
     }
 
@@ -62,7 +65,7 @@ namespace ExcelDna.Integration.RxExcel
 
         public void Dispose()
         {
-            Debug.Print("Disposing!");
+            Debug.Print("Disposing...");
             _disposable.Dispose();
         }
     }
