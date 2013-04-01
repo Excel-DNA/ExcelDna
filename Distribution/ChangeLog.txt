@@ -5,8 +5,10 @@ Version 0.31 (???)
 * Added completion synchronization for multiple async functions in a formula.
 * Disable IsExceptionSafe when there are DateTime parameters.
 * Added RegisterMethods overload with explicit attributes.
-* Added workaround for Excel 2010 RTD bug where TopicId is reused but not Disconnected.
-* Implement exception-free checks for type compatibility in method registration.
+* Implemented exception-free checks for type compatibility in method registration.
+* Added workaround for RTD disconnect bug in Excel 2010 RTM version (excluding ServerTerminate).
+* Restructured ExcelDnaUtil.WindowHandle and ExcelDnaUtil.Application to work better under Excel 2013.
+* Fixed ExcelDnaUtil.IsInFunctionWizard() under Excel 2013.
 
 Version 0.30 (12 December 2012)
 -------------------------------

@@ -1,0 +1,103 @@
+<DnaLibrary Name="RTD Server Tests" Language="C#" RuntimeVersion="v4.0">
+<![CDATA[
+    
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
+using System.Threading;
+using ExcelDna.Integration;
+using ExcelDna.Integration.Rtd;
+
+public class AsyncTestAddIn : IExcelAddIn
+{
+    public void AutoOpen()
+    {
+        ExcelIntegration.RegisterUnhandledExceptionHandler(ex => "!!! EXCEPTION: " + ex.ToString());
+    }
+
+    public void AutoClose()
+    {
+    }
+}
+
+public static class MyFunctions
+{
+    public static object WhatTimeIsIt()
+    {
+        return XlCall.RTD("MyRTDServers.TimeServer", null, "NOW");
+    }
+
+    public static object WhatTimeIsItEx(string input)
+    {
+        return XlCall.RTD("MyRTDServers.TimeServer", null, "NOW", input);
+    }
+
+    public static object GetExcelVersion()
+    {
+        dynamic app = ExcelDnaUtil.Application;
+        return app.Version;
+    }
+}
+
+namespace MyRTDServers
+{
+    // [ComVisible(true)]
+    public class TimeServer : ExcelRtdServer
+    {
+        string _logPath;
+        List<Topic> _topics;
+        Timer _timer;
+        public TimeServer()
+        {
+            _logPath = Path.ChangeExtension((string)XlCall.Excel(XlCall.xlGetName), ".log");
+            _topics = new List<Topic>();
+            _timer = new Timer(delegate
+                {
+                    string now = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss.fff");
+                    foreach (Topic topic in _topics) topic.UpdateValue(now);
+                }, null, 0, 1000);
+            Log("TimerServer created");
+        }
+
+        void Log(string format, params object[] args)
+        {
+            File.AppendAllText(_logPath, DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss.fff") + " - " + string.Format(format, args) + "\r\n");
+        }
+
+        int GetTopicId(Topic topic)
+        {
+            return (int)typeof(Topic)
+                        .GetField("TopicId", BindingFlags.GetField | BindingFlags.Instance | BindingFlags.NonPublic)
+                        .GetValue(topic);
+        }
+
+        protected override bool ServerStart()
+        {
+            Log("ServerStart");
+            return true;
+        }
+
+        protected override void ServerTerminate()
+        {
+            Log("ServerTerminate");
+        }
+
+        protected override object ConnectData(Topic topic, System.Collections.Generic.IList<string> topicInfo, ref bool newValues)
+        {
+            Log("ConnectData: {0} - {{{1}}}", GetTopicId(topic), string.Join(", ", topicInfo));
+            _topics.Add(topic);
+            return true;
+        }
+
+        protected override void DisconnectData(Topic topic)
+        {
+            _topics.Remove(topic);
+            Log("DisconnectData: {0}", GetTopicId(topic));
+        }
+    }
+}
+
+
+]]>
+</DnaLibrary>

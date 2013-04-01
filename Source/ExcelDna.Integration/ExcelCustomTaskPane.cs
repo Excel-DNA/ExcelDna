@@ -32,6 +32,9 @@ namespace ExcelDna.Integration.CustomUI
     public static class CustomTaskPaneFactory
     {
         private static ExcelCustomTaskPaneAddIn _addin;
+        // TODO: Need to review how we use this collection again.
+        //       Do we need to delete from here?
+        //       This becomes a bigger issue with Excel 2013, where they might be created and destroyed a lot.
         private static List<CustomTaskPane> _customTaskPanes = new List<CustomTaskPane>();
 
         public static CustomTaskPane CreateCustomTaskPane(Type userControlType, string title) 
@@ -91,7 +94,7 @@ namespace ExcelDna.Integration.CustomUI
         {
             ICTPFactory factory = GetCTPFactory();
             CustomTaskPane newCTP = factory.CreateCTP(controlProgId, title, parent);
-            _customTaskPanes.Add(newCTP);
+            _customTaskPanes.Add(newCTP);   // TODO: Only removed when add-in is unloaded...???
             return newCTP;
         }
 
@@ -135,7 +138,7 @@ namespace ExcelDna.Integration.CustomUI
 
         public override void OnDisconnection(Extensibility.ext_DisconnectMode RemoveMode, ref Array custom)
         {
-            // Unloading custom taks panes prevents the crash on Excel 2010 64-bit.
+            // Unloading custom task panes prevents the crash on Excel 2010 64-bit.
             CustomTaskPaneFactory.UnloadCustomTaskPanes();
             CustomTaskPaneFactory.DetachAddIn();
             if (Factory != null)

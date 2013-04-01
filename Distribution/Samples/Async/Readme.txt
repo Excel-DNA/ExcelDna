@@ -10,6 +10,6 @@ This folder contains a variety of examples and experiments with the Excel-DNA as
 
 5. ExcelTaskUtilTestCS(VB).dna - Sample add-in in C#(VB) using ExcelTaskUtil.
 
-6. HttpClientVB.vb - Module used in ExcelTaskUtilTestVB.dna - implements async web fetching with cancellation using the System.Net.Http libraries.
+6. HttpClientVB.vb - Module used in ExcelTaskUtilTestVB.dna - implements async web fetching with cancellation using the System.Net.Http libraries (from the Microsoft.Net.Http package on NuGet).
 
 7. FsAsync.dna - Samples in F# showing how the async workflows and native IObservable events can be hooked up to the Excel-DNA async support.

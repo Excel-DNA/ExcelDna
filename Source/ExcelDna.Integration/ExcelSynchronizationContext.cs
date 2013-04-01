@@ -64,7 +64,7 @@ namespace ExcelDna.Integration
 
         internal static void Install()
         {
-            if (!ExcelDnaUtil.IsMainThread())
+            if (!ExcelDnaUtil.IsMainThread)
             {
                 throw new InvalidOperationException("SynchronizationManager must be installed from the main Excel thread. Ensure that ExcelAsyncUtil.Initialize() is called from AutoOpen() or a macro on the main Excel thread.");
             }
@@ -77,7 +77,7 @@ namespace ExcelDna.Integration
 
         internal static void Uninstall()
         {
-            if (!ExcelDnaUtil.IsMainThread())
+            if (!ExcelDnaUtil.IsMainThread)
             {
                 throw new InvalidOperationException("SynchronizationManager must be uninstalled from the main Excel thread. Ensure that ExcelAsyncUtil.Uninitialize() is called from AutoOpen() or a macro on the main Excel thread.");
             }
