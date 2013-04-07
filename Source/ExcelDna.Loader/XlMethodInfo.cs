@@ -31,8 +31,6 @@ using System.Runtime.InteropServices;
 
 namespace ExcelDna.Loader
 {
-	// TODO: Refactor into XlFunctionInfo and XlCommandInfo ?
-
     internal class XlMethodInfo
     {
         public static int Index = 0;
@@ -42,7 +40,7 @@ namespace ExcelDna.Loader
         public IntPtr FunctionPointer;
 
         // Info for Excel Registration
-        public bool IsCommand;
+        public readonly bool IsCommand;
         public string Name; // Name of UDF/Macro in Excel
         public string Description;
         public bool IsHidden; // For Functions only
@@ -59,7 +57,7 @@ namespace ExcelDna.Loader
         public double RegisterId;
 
         public XlParameterInfo[] Parameters;
-        public XlParameterInfo ReturnType; // Macro will have ReturnType null
+        public XlParameterInfo ReturnType; // Macro will have ReturnType null (as will native async functions)
 
         // THROWS: Throws a DnaMarshalException if the method cannot be turned into an XlMethodInfo
         // TODO: Manage errors if things go wrong
@@ -86,19 +84,32 @@ namespace ExcelDna.Loader
             SetAttributeInfo(methodAttribute);
 
             // Return type conversion
-            if (targetMethod.ReturnType == typeof (void))
+            // Careful here - native async functions also return void
+            if (targetMethod.ReturnType == typeof(void))
             {
-                IsCommand = true;
                 ReturnType = null;
             }
             else
             {
-                IsCommand = false;
                 ReturnType = new XlParameterInfo(targetMethod.ReturnType, true, IsExceptionSafe);
             }
 
-            // Parameters - meta-data and type conversion
             ParameterInfo[] parameters = targetMethod.GetParameters();
+
+            // A command has no return type, and is not a native async function 
+            // (these have the ExcelAsyncHandle as last parameter)
+            if (HasReturnType || (parameters.Length > 0 &&
+                parameters[parameters.Length - 1].ParameterType == IntegrationMarshalHelpers.ExcelAsyncHandleType))
+            {
+                // It's a function, though it might return null
+                IsCommand = false;
+            }
+            else
+            {
+                IsCommand = true;
+            }
+
+            // Parameters - meta-data and type conversion
             Parameters = new XlParameterInfo[parameters.Length];
             for (int i = 0; i < parameters.Length; i++)
             {
@@ -302,14 +313,14 @@ namespace ExcelDna.Loader
             methodBuilder = typeBuilder.DefineMethod("Invoke",
                                                      MethodAttributes.Public | MethodAttributes.HideBySig |
                                                      MethodAttributes.NewSlot | MethodAttributes.Virtual,
-                                                     IsCommand ? typeof (void) : ReturnType.DelegateParamType,
+                                                     HasReturnType ? ReturnType.DelegateParamType : typeof(void),
                                                      // What here for macro? null or Void ?
                                                      paramTypes);
             methodBuilder.SetImplementationFlags(MethodImplAttributes.Runtime |
                                                  MethodImplAttributes.Managed);
 
             // Set Marshal Attributes for return type
-            if (!IsCommand && ReturnType.MarshalAsAttribute != null)
+            if (HasReturnType && ReturnType.MarshalAsAttribute != null)
             {
                 ParameterBuilder pb = methodBuilder.DefineParameter(0, ParameterAttributes.None, null);
                 pb.SetCustomAttribute(ReturnType.MarshalAsAttribute);
@@ -336,7 +347,7 @@ namespace ExcelDna.Loader
             if (IsExceptionSafe
                 && Array.TrueForAll(Parameters,
                                     delegate(XlParameterInfo pi) { return pi.BoxedValueType == null; })
-                && (IsCommand || ReturnType.BoxedValueType == null))
+                && (!HasReturnType || ReturnType.BoxedValueType == null))
             {
                 // Create the delegate directly
                 // Tvw: Added this line to check for a DynamicMethod
@@ -359,13 +370,13 @@ namespace ExcelDna.Loader
 
             DynamicMethod wrapper = new DynamicMethod(
                 string.Format("Wrapped_f{0}_{1}", Index, targetMethod.Name),
-                IsCommand ? typeof (void) : ReturnType.DelegateParamType,
+                HasReturnType ? ReturnType.DelegateParamType : typeof(void),
                 paramTypes, typeof (object), true);
             ILGenerator wrapIL = wrapper.GetILGenerator();
             Label endOfMethod = wrapIL.DefineLabel();
 
             LocalBuilder retobj = null;
-            if (!IsCommand)
+            if (HasReturnType)
             {
                 // Make a local to contain the return value
                 retobj = wrapIL.DeclareLocal(ReturnType.DelegateParamType);
@@ -389,13 +400,13 @@ namespace ExcelDna.Loader
             }
             // Call the real method
             wrapIL.EmitCall(OpCodes.Call, targetMethod, null);
-            if (!IsCommand && ReturnType.BoxedValueType != null)
+            if (HasReturnType)
             {
-                // Box the return value (which is on the stack)
-                wrapIL.Emit(OpCodes.Box, ReturnType.BoxedValueType);
-            }
-            if (!IsCommand)
-            {
+                if (ReturnType.BoxedValueType != null)
+                {
+                    // Box the return value (which is on the stack)
+                    wrapIL.Emit(OpCodes.Box, ReturnType.BoxedValueType);
+                }
                 // Store the return value into the local variable
                 wrapIL.Emit(OpCodes.Stloc_S, retobj);
             }
@@ -404,7 +415,7 @@ namespace ExcelDna.Loader
             {
                 wrapIL.Emit(OpCodes.Leave_S, endOfMethod);
                 wrapIL.BeginCatchBlock(typeof (object));
-                if (!IsCommand && ReturnType.DelegateParamType == typeof (object))
+                if (HasReturnType && ReturnType.DelegateParamType == typeof (object))
                 {
                     // Call Integration.HandleUnhandledException - Exception object is on the stack.
                     wrapIL.EmitCall(OpCodes.Call, IntegrationHelpers.UnhandledExceptionHandler, null);
@@ -424,7 +435,7 @@ namespace ExcelDna.Loader
                 wrapIL.EndExceptionBlock();
             }
             wrapIL.MarkLabel(endOfMethod);
-            if (!IsCommand)
+            if (HasReturnType)
             {
                 // Push the return value
                 wrapIL.Emit(OpCodes.Ldloc_S, retobj);
@@ -526,6 +537,8 @@ namespace ExcelDna.Loader
                 }
             }
         }
+
+        bool HasReturnType { get { return ReturnType != null; } }
     }
 
     internal static class TypeHelper

@@ -157,7 +157,8 @@ namespace ExcelDna.Integration
             typeof(ushort),
             typeof(decimal),
             typeof(long),
-            typeof(void)
+            typeof(void),
+            typeof(ExcelAsyncHandle)
         };
 
         static bool IsParameterTypeSupported(Type type)

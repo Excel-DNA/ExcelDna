@@ -106,5 +106,6 @@ namespace ExcelDna.Integration
         {
             XlCall.Excel(XlCall.xlcRun, macroName);
         }
+
     }
 }

@@ -51,6 +51,7 @@
     <Compile Include="AssemblyLoader.cs" />
     <Compile Include="AssemblyLoaderExcelServer.cs" />
     <Compile Include="AssemblyReference.cs" />
+    <Compile Include="ExcelAsyncHandle.cs" />
     <Compile Include="ExcelAsyncUtil.cs" />
     <Compile Include="ComRegistration.cs" />
     <Compile Include="ComInterop.cs" />
@@ -64,6 +65,7 @@
     <Compile Include="ExcelRibbon.cs" />
     <Compile Include="ExcelError.cs" />
     <Compile Include="ExcelReference.cs" />
+    <Compile Include="ExcelRtd2010BugHelper.cs" />
     <Compile Include="ExcelRtdObserver.cs" />
     <Compile Include="ExcelRtdServer.cs" />
     <Compile Include="ExcelSynchronizationContext.cs" />

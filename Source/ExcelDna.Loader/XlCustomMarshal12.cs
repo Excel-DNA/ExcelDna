@@ -82,7 +82,7 @@ namespace ExcelDna.Loader
         XlBitXLFree = 0x1000,	// Unused so far
         XlBitDLLFree = 0x4000,
 
-        XlTypeBigData = XlTypeString | XlTypeInt	// Unused so far (IntPtr) 
+        XlTypeBigData = XlTypeString | XlTypeInt	// Used only for marshaling the async handle for Excel 2010+ native async.
                                                     // Sometimes used by Excel to return a pointer
                                                     // For example in xlGetInstPtr: http://msdn.microsoft.com/en-us/library/ff475872.aspx
     }
@@ -145,6 +145,13 @@ namespace ExcelDna.Loader
 			public IntPtr SheetId;
 		}
 
+        [StructLayout(LayoutKind.Sequential)]
+        unsafe public struct XlBigData
+        {
+            public IntPtr hData;    // Handle or byte*, but we only use it as a handle.
+            public long cbData;
+        }
+
 		[FieldOffset(0)]
 		public double numValue;
 		[FieldOffset(0)]
@@ -161,6 +168,8 @@ namespace ExcelDna.Loader
 		public XlReference12 refValue;
 		[FieldOffset(0)]
 		public XlSReference12 srefValue;
+        [FieldOffset(0)]
+        public XlBigData bigData;
 		[FieldOffset(24)]
 		public XlType12 xlType;
     }
@@ -879,14 +888,26 @@ namespace ExcelDna.Loader
                     pOper->xlType = XlType12.XlTypeNumber;
                     return pNative;
                 }
+                else if (IntegrationMarshalHelpers.IsExcelAsyncHandleObject(ManagedObj))
+                {
+                    // This code is not actually used, since the ExcelAsyncHandle is only passed into
+                    // XlCall.Excel param array, so marshaled byt the object array marshaler.
+                    IntPtr handle = IntegrationMarshalHelpers.GetExcelAsyncHandleHandle(ManagedObj);
+
+                    XlOper12* pOper = (XlOper12*)pNative;
+                    pOper->bigData.hData = handle;
+                    pOper->bigData.cbData = IntPtr.Size;
+                    pOper->xlType = XlType12.XlTypeBigData;
+                    return pNative;
+                }
                 else
-				{
-					// Default error return
-					XlOper12* pOper = (XlOper12*)pNative;
-					pOper->errValue = IntegrationMarshalHelpers.ExcelError_ExcelErrorValue;
-					pOper->xlType = XlType12.XlTypeError;
-					return pNative;
-				}
+                {
+                    // Default error return
+                    XlOper12* pOper = (XlOper12*)pNative;
+                    pOper->errValue = IntegrationMarshalHelpers.ExcelError_ExcelErrorValue;
+                    pOper->xlType = XlType12.XlTypeError;
+                    return pNative;
+                }
 			}
 
 			unsafe public object MarshalNativeToManaged(IntPtr pNativeData)
@@ -1240,6 +1261,13 @@ namespace ExcelDna.Loader
 					{
 						pOper->xlType = XlType12.XlTypeEmpty;
 					}
+                    else if (IntegrationMarshalHelpers.IsExcelAsyncHandleObject(obj))
+                    {
+                        IntPtr handle = IntegrationMarshalHelpers.GetExcelAsyncHandleHandle(obj);
+                        pOper->bigData.hData = handle;
+                        pOper->bigData.cbData = IntPtr.Size;
+                        pOper->xlType = XlType12.XlTypeBigData;
+                    }
 					else if (obj is bool)
 					{
 						pOper->boolValue = (bool)obj ? 1 : 0;
@@ -1610,8 +1638,6 @@ namespace ExcelDna.Loader
 		}
 	}
 
-    // We would prefer to get a double, but need to take 
-    // XlOper to ensure marshaling
     public unsafe class XlDecimalParameter12Marshaler : ICustomMarshaler
     {
         static ICustomMarshaler instance;
@@ -1653,8 +1679,6 @@ namespace ExcelDna.Loader
         public int GetNativeDataSize() { return -1; }
     }
 
-    // We would prefer to get a double, but need to take 
-    // XlOper to ensure marshaling
     public unsafe class XlLongParameter12Marshaler : ICustomMarshaler
     {
         static ICustomMarshaler instance;
@@ -1695,4 +1719,55 @@ namespace ExcelDna.Loader
         public void CleanUpNativeData(IntPtr pNativeData) { } // Can't do anything useful here, as the managed to native marshaling is for a return parameter.
         public int GetNativeDataSize() { return -1; }
     }
+
+    // We make a separate marshaler for the incoming ExcelAsyncHandle to ensure we don't have to deal with XlTypeBigData as a general parameter input
+    // The ExcelAsyncHandle 'return' needs thread-safe memory management, and is dealt with in the XlObject12Marshaler / XlObjectArray12Marshaler
+    public unsafe class XlAsyncHandleParameter12Marshaler : ICustomMarshaler
+    {
+        static ICustomMarshaler instance;
+
+        public XlAsyncHandleParameter12Marshaler()
+        {
+        }
+
+        public static ICustomMarshaler GetInstance(string marshalCookie)
+        {
+            if (instance == null)
+                instance = new XlAsyncHandleParameter12Marshaler();
+            return instance;
+        }
+
+        public IntPtr MarshalManagedToNative(object ManagedObj)
+        {
+            // Not working in this direction at the moment
+            throw new NotImplementedException("This marshaler only used for native to managed parameter marshaling.");
+        }
+
+        public object MarshalNativeToManaged(IntPtr pNativeData)
+        {
+            // Make a nice object from the native OPER
+            object managed;
+            XlOper12* pOper = (XlOper12*)pNativeData;
+            // Ignore any Free flags
+            XlType12 type = pOper->xlType & ~XlType12.XlBitXLFree & ~XlType12.XlBitDLLFree;
+            switch (type)
+            {
+                case XlType12.XlTypeBigData:
+                    XlOper12.XlBigData bigData = pOper->bigData;
+                    managed = IntegrationMarshalHelpers.CreateExcelAsyncHandle(bigData.hData);
+                    break;
+                default:
+                    // unheard of !! 
+                    // (we should only be using this in the very sepcific case of an async call.
+                    managed = null; // this should be lead to an exception that is suppressed in the wrapper's exception handler.
+                    break;
+            }
+            return managed;
+        }
+
+        public void CleanUpManagedData(object ManagedObj) { }
+        public void CleanUpNativeData(IntPtr pNativeData) { } // Can't do anything useful here, as the managed to native marshaling is for a return parameter.
+        public int GetNativeDataSize() { return -1; }
+    }
+
 }

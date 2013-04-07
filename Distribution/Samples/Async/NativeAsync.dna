@@ -1,0 +1,129 @@
+<DnaLibrary Name="Excel-DNA Native Async Samples" Language="C#" RuntimeVersion="v4.0">
+  <![CDATA[
+  using System;
+  using System.Collections.Generic;
+  using System.Diagnostics;
+  using System.Reflection;
+  using System.Reflection.Emit;
+  using System.Threading;
+  using System.Threading.Tasks;
+  using ExcelDna.Integration;
+  using ExcelDna.Integration.Rtd;
+  
+  public class Test : IExcelAddIn
+  {
+    public void AutoOpen()
+    {
+      ExcelIntegration.RegisterUnhandledExceptionHandler( ex => "!!!Error " + ex);
+    }
+
+    public void AutoClose()
+    {
+    }
+
+    public static string dnaHello(string name)
+    {
+        return "Hello " + name;
+    }
+
+    public static object dnaEchoSynchronous(object valueToEcho, int msToSleep)
+    {
+        Thread.Sleep(msToSleep); 
+        return valueToEcho;
+    }
+
+    public static void dnaEchoAsync(object valueToEcho, int msToSleep, ExcelAsyncHandle asyncHandle)
+    {
+        ThreadPool.QueueUserWorkItem(delegate (object state) 
+        { 
+            Thread.Sleep(msToSleep); 
+            asyncHandle.SetResult(valueToEcho);
+        });
+    }
+
+    // Wrappers like this work fine, where the called function might be registered as IsHidden=true
+    // This will look fine in the function wiard already.
+    public static object dnaEchoWrapped(object value, int msToSleep)
+    {
+        // Call an async function that has been registered.
+        return XlCall.Excel(XlCall.xlUDF, "dnaEchoAsync", value, msToSleep);
+    }
+    
+    public static void dnaEchoTask(object valueToEcho, int msToSleep, ExcelAsyncHandle asyncHandle)
+    {
+        DelayedEcho(valueToEcho, msToSleep)
+        .ContinueWith(task =>
+        {
+            try 
+            {
+                // t.Result will throw an AggregateException if there was an error
+                asyncHandle.SetResult(task.Result);
+            }
+            catch (AggregateException ex)
+            {
+                // There may be multiple exceptions...
+                // Do we have to call Handle?
+                asyncHandle.SetException(ex.InnerException);
+            }
+            
+            // Unhandled exceptions here will crash Excel 
+            // and leave open workbooks in an unrecoverable state...
+            
+        }).Start();
+    }
+
+    // Using a more generic helper
+    // This might still be the wrong way round....
+    // (we want to call a helper from it inside DelayedEcho...?)
+    public static void dnaEchoTaskHelper(object valueToEcho, int msToSleep, ExcelAsyncHandle asyncHandle)
+    {
+        RunTask(() => DelayedEcho(valueToEcho, msToSleep), asyncHandle);
+    }
+    
+    static void RunTask<TResult>(Func<Task<TResult>> function, ExcelAsyncHandle asyncHandle)
+    {
+        function().ContinueWith(task =>
+        {
+            try 
+            {
+                // task.Result will throw an AggregateException if there was an error
+                asyncHandle.SetResult(task.Result);
+            }
+            catch (AggregateException ex)
+            {
+                // There may be multiple exceptions...
+                // Do we have to call Handle?
+                asyncHandle.SetException(ex.InnerException);
+            }
+            
+            // Unhandled exceptions here will crash Excel 
+            // and leave open workbooks in an unrecoverable state...
+            
+        }).Start();
+    }
+
+    // .NET 4.5 only (or using the .NET 4.0 async/await library)
+    [ExcelFunction(Description="This function wraps a call to the 'DelayedEcho' task")]
+    public static async void dnaEchoNewAsync(object valueToEcho, int msToSleep, ExcelAsyncHandle asyncHandle)
+    {
+        try
+        {
+            object result = await DelayedEcho(valueToEcho, msToSleep);
+            asyncHandle.SetResult(result);
+        }
+        catch (Exception ex)
+        {
+            asyncHandle.SetException(ex);
+        }
+    }
+
+    static async Task<object> DelayedEcho(object valueToEcho, int msToDelay)
+    {
+        if (valueToEcho.Equals("Boom!")) throw new Exception("Boom! Boom! Boom!");
+        await Task.Delay(msToDelay);
+        return valueToEcho;
+    }
+
+}
+  ]]>
+</DnaLibrary>

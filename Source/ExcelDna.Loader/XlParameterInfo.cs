@@ -394,7 +394,7 @@ namespace ExcelDna.Loader
             // and unboxed accordingly.
 
             // NOTE: There is also a list of supported parameter types in
-            // AssemblyLoaded.cs, where the methods to register are extracted.
+            // AssemblyLoader.cs, where the methods to register are extracted.
 
             // By default DelegateParamType is type
             // changed for some return types to ensure boxing,
@@ -637,6 +637,12 @@ namespace ExcelDna.Loader
                     DelegateParamType = typeof(object);
                     BoxedValueType = typeof(long);
                 }
+            }
+            else if (type == IntegrationMarshalHelpers.ExcelAsyncHandleType && !isReturnType)
+            {
+                XlType = "X"; // Async Handle in XLOPER12's BigData
+                MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlAsyncHandleParameter12Marshaler));
+                DelegateParamType = typeof(object);
             }
             else
             {

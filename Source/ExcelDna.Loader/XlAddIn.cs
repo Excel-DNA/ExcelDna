@@ -500,15 +500,22 @@ namespace ExcelDna.Loader
             String procName = String.Format("f{0}", index);
 
             string functionType;
-            if ( mi.IsCommand)
+            if (mi.ReturnType != null)
             {
-                if (mi.Parameters.Length == 0)
-                    functionType = "";  // OK since no other types will be added
-                else
-                    functionType = ">"; // Use the void / inplace indicator if needed.
+                functionType = mi.ReturnType.XlType;
             }
             else
-                functionType = mi.ReturnType.XlType;
+            {
+                if (mi.Parameters.Length == 0)
+                {
+                    functionType = "";  // OK since no other types will be added
+                }
+                else
+                {
+                    // This case is also be used for native async functions
+                    functionType = ">"; // Use the void / inplace indicator if needed.
+                }
+            }
 
             // TODO: The argument names and descriptions allow some undocumented ",..." form to support paramarray style functions.
             //       E.g. check the FuncSum function in Generic.c in the SDK.
@@ -561,7 +568,8 @@ namespace ExcelDna.Loader
                 }
             } // for each parameter
 
-            if (mi.IsClusterSafe && ProcessHelper.SupportsClusterSafe)
+            // Native async functions cannot be cluster safe
+            if (mi.IsClusterSafe && ProcessHelper.SupportsClusterSafe && mi.ReturnType != null)
                 functionType += "&"; 
             
             if (mi.IsMacroType)
