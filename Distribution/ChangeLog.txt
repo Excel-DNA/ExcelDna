@@ -6,9 +6,10 @@ Version 0.31 (???)
 * Disable IsExceptionSafe when there are DateTime parameters.
 * Added RegisterMethods overload with explicit attributes.
 * Implemented exception-free checks for type compatibility in method registration.
-* Added workaround for RTD disconnect bug in Excel 2010 RTM version (excluding ServerTerminate).
+* Added workaround for RTD disconnect bug in Excel 2010 RTM version.
 * Restructured ExcelDnaUtil.WindowHandle and ExcelDnaUtil.Application to work better under Excel 2013.
 * Fixed ExcelDnaUtil.IsInFunctionWizard() under Excel 2013.
+* Add support for Excel 2010+ native queued async functions.
 
 Version 0.30 (12 December 2012)
 -------------------------------

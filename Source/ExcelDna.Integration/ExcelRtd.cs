@@ -93,9 +93,9 @@ namespace ExcelDna.Integration.Rtd
             string loadedProgId;
             if (loadedRtdServers.TryGetValue(progId, out loadedProgId))
             {
-                if (rtdServerType.IsSubclassOf(typeof(ExcelRtdServer)) && Excel2010RtdBugHelper.ExcelVersionHasRtdBug)
+                if (ExcelRtd2010BugHelper.ExcelVersionHasRtdBug && rtdServerType.IsSubclassOf(typeof(ExcelRtdServer)))
                 {
-                    Excel2010RtdBugHelper.RecordRtdCall(progId, topics);
+                    ExcelRtd2010BugHelper.RecordRtdCall(progId, topics);
                 }
                 // Call Excel using the synthetic RtdSrv.xxx (or actual from attribute) ProgId
                 return CallRTD(loadedProgId, null, topics);
@@ -104,19 +104,26 @@ namespace ExcelDna.Integration.Rtd
             // Not loaded already - need to get the Rtd server loaded
             // TODO: Need to reconsider registration here.....
             //       Sometimes need stable ProgIds.
-            object rtdServer = Activator.CreateInstance(rtdServerType);
-            
-            ExcelRtdServer excelRtdServer = rtdServer as ExcelRtdServer;
-            if (excelRtdServer != null)
+            object rtdServer;
+            if (ExcelRtd2010BugHelper.ExcelVersionHasRtdBug && rtdServerType.IsSubclassOf(typeof(ExcelRtdServer)))
             {
-                // Set ProgId so that it can be 'unregistered' (removed from loadedRtdServers) when the RTD server terminates.
-                excelRtdServer.RegisteredProgId = progId;
+                rtdServer = new ExcelRtd2010BugHelper(progId, rtdServerType);
             }
             else
             {
-                // Make a wrapper if we are not an ExcelRtdServer
-                // (ExcelRtdServer implements exception-handling and XLCall supension itself)
-                rtdServer = new RtdServerWrapper(rtdServer, progId);
+                rtdServer = Activator.CreateInstance(rtdServerType);
+                ExcelRtdServer excelRtdServer = rtdServer as ExcelRtdServer;
+                if (excelRtdServer != null)
+                {
+                    // Set ProgId so that it can be 'unregistered' (removed from loadedRtdServers) when the RTD server terminates.
+                    excelRtdServer.RegisteredProgId = progId;
+                }
+                else
+                {
+                    // Make a wrapper if we are not an ExcelRtdServer
+                    // (ExcelRtdServer implements exception-handling and XLCall supension itself)
+                    rtdServer = new RtdServerWrapper(rtdServer, progId);
+                }
             }
             
             // We pick a new Guid as ClassId for this add-in...

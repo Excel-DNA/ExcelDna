@@ -26,28 +26,34 @@ using System.Runtime.InteropServices;
 
 namespace ExcelDna.Integration
 {
-	public enum ExcelError : ushort
-	{
-		ExcelErrorNull = 0,
-		ExcelErrorDiv0 = 7,
-		ExcelErrorValue = 15,
-		ExcelErrorRef = 23,
-		ExcelErrorName = 29,
-		ExcelErrorNum = 36,
-		ExcelErrorNA = 42,
+    public enum ExcelError : ushort
+    {
+        ExcelErrorNull = 0,
+        ExcelErrorDiv0 = 7,
+        ExcelErrorValue = 15,
+        ExcelErrorRef = 23,
+        ExcelErrorName = 29,
+        ExcelErrorNum = 36,
+        ExcelErrorNA = 42,
         ExcelErrorGettingData = 43
-	}
+    }
 
     public class ExcelMissing
     {
         public static readonly ExcelMissing Value = new ExcelMissing();
-        private ExcelMissing() {}
+
+        private ExcelMissing()
+        {
+        }
     }
 
     public class ExcelEmpty
     {
         public static readonly ExcelEmpty Value = new ExcelEmpty();
-        private ExcelEmpty() { }
+
+        private ExcelEmpty()
+        {
+        }
     }
 
     public static class ExcelErrorUtil
