@@ -25,6 +25,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.InteropServices;
@@ -82,6 +83,7 @@ namespace ExcelDna.Loader
             MenuText = null; // Menu is only 
 
             SetAttributeInfo(methodAttribute);
+            FixHelpTopic();
 
             // Return type conversion
             // Careful here - native async functions also return void
@@ -131,6 +133,8 @@ namespace ExcelDna.Loader
             DelegateHandle = GCHandle.Alloc(xlDelegate);
             FunctionPointer = Marshal.GetFunctionPointerForDelegate(xlDelegate);
         }
+
+        public bool IsExcelAsyncFunction { get { return Parameters[Parameters.Length - 1].IsExcelAsyncHandle; } }
 
         // Basic setup - get description, category etc.
         void SetAttributeInfo(object attrib)
@@ -284,6 +288,29 @@ namespace ExcelDna.Loader
                 }
 //                    IsHidden = isHidden;  // Only for functions.
                 IsExceptionSafe = isExceptionSafe;
+            }
+        }
+
+        void FixHelpTopic()
+        {
+            // Make HelpTopic without full path relative to xllPath
+            if (string.IsNullOrEmpty(HelpTopic))
+            {
+                return;
+            }
+           // DOCUMENT: If HelpTopic is not rooted - it is expanded relative to .xll path.
+            // If http url does not end with !0 it is appended.
+            // I don't think https is supported, but it should not be considered an 'unrooted' path anyway.
+            if (HelpTopic.StartsWith("http://") || HelpTopic.StartsWith("https://"))
+            {
+                if (!HelpTopic.EndsWith("!0"))
+                {
+                    HelpTopic = HelpTopic + "!0";
+                }
+            }
+            else if (!Path.IsPathRooted(HelpTopic))
+            {
+                HelpTopic = Path.Combine(Path.GetDirectoryName(XlAddIn.PathXll), HelpTopic);
             }
         }
 
@@ -539,6 +566,7 @@ namespace ExcelDna.Loader
         }
 
         bool HasReturnType { get { return ReturnType != null; } }
+
     }
 
     internal static class TypeHelper

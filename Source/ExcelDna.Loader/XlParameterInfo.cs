@@ -64,6 +64,8 @@ namespace ExcelDna.Loader
             SetTypeInfo(type, isReturnType, isExceptionSafe);
         }
 
+        public bool IsExcelAsyncHandle { get { return XlType == "X"; } }
+
         void SetAttributeInfo(object attrib)
         {
             if (attrib == null) return;

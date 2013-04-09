@@ -47,7 +47,7 @@ namespace ExcelDna.Integration
     public static class ExcelIntegration
     {
         // This version must match the version declared in ExcelDna.Loader.IntegrationHelpers.
-        const int ExcelIntegrationVersion = 1;
+        const int ExcelIntegrationVersion = 2;
 
         private static TryExcelImplDelegate tryExcelImpl;
         internal static void SetTryExcelImpl(TryExcelImplDelegate d)
