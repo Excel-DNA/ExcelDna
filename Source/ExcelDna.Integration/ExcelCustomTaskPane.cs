@@ -32,9 +32,11 @@ namespace ExcelDna.Integration.CustomUI
     public static class CustomTaskPaneFactory
     {
         private static ExcelCustomTaskPaneAddIn _addin;
+
         // TODO: Need to review how we use this collection again.
         //       Do we need to delete from here?
         //       This becomes a bigger issue with Excel 2013, where they might be created and destroyed a lot.
+        //       Maybe WeakReference? (But how does that work with COM RCWs?)
         private static List<CustomTaskPane> _customTaskPanes = new List<CustomTaskPane>();
 
         public static CustomTaskPane CreateCustomTaskPane(Type userControlType, string title) 
