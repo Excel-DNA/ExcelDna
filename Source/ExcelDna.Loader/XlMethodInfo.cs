@@ -134,7 +134,14 @@ namespace ExcelDna.Loader
             FunctionPointer = Marshal.GetFunctionPointerForDelegate(xlDelegate);
         }
 
-        public bool IsExcelAsyncFunction { get { return Parameters[Parameters.Length - 1].IsExcelAsyncHandle; } }
+        // Native async functions have a final parameter that is an EcelAsyncHandle.
+        public bool IsExcelAsyncFunction 
+        { 
+            get 
+            { 
+                return Parameters.Length > 0 && Parameters[Parameters.Length - 1].IsExcelAsyncHandle; 
+            } 
+        }
 
         // Basic setup - get description, category etc.
         void SetAttributeInfo(object attrib)
