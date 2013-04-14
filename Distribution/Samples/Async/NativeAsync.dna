@@ -124,6 +124,24 @@
         return valueToEcho;
     }
 
+    private static async Task<object> Delayed(int msToDelay) {
+            await Task.Delay(msToDelay);
+            var result = new object[1,2];
+            result[0, 0] = 100;
+            result[0, 1] = 200;
+            return result;
+        }
+
+        [ExcelFunction()]
+        public static async void AsyncArray(int msToSleep, ExcelAsyncHandle asyncHandle) {
+            try {
+                object result = await Delayed(msToSleep);
+                asyncHandle.SetResult(result);
+            }
+            catch (Exception ex) {
+                asyncHandle.SetException(ex);
+            }
+        }
 }
   ]]>
 </DnaLibrary>

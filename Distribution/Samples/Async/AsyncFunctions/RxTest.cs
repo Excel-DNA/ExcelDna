@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using ExcelDna.Integration;
 using ExcelDna.Integration.RxExcel;
@@ -138,6 +139,23 @@ namespace AsyncFunctions
                 result[i,0] = array[i];
             }
             return result;
+        }
+
+        [ExcelFunction()]
+        public static object TestObservable(object valueToEcho, int seconds)
+        {
+            return ExcelAsyncUtil.Observe("TestObservable", new[] { valueToEcho, seconds }, () => {
+                Func<IObservable<object>> observableSource = () => {
+                    return ((Func<IObservable<Notification<object>>>)(() =>
+                                               Observable.Interval(TimeSpan.FromSeconds(seconds))
+                                               .Select(x => (object)(valueToEcho.ToString() + x.ToString()))
+                                               .Materialize()))()
+                        .Where(n => n.Kind != NotificationKind.OnCompleted)
+                        .Select(v => v.HasValue ? v.Value : v.Exception);
+                };
+
+                return (IExcelObservable)new ExcelObservable<object>(observableSource());
+            });
         }
     }
 }

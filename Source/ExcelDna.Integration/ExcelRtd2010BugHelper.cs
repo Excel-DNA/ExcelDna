@@ -89,7 +89,7 @@ namespace ExcelDna.Integration
         public object ConnectData(int topicId, ref Array strings, ref bool newValues)
         {
             Debug.Print("ConnectData " + _wrappedServerRegisteredProgId + ":" + topicId);
-            if (_wrappedServer != null) 
+            if (_wrappedServer == null) 
             {
                 // We have to create and start a new server instance
                 CreateWrappedServer();
