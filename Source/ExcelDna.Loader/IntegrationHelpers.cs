@@ -116,5 +116,15 @@ namespace ExcelDna.Loader
         {
             integrationType.InvokeMember("SyncMacro", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] {dValue});
         }
+
+        internal static void CalculationCanceled()
+        {
+            integrationType.InvokeMember("CalculationCanceled", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, null);
+        }
+
+        internal static void CalculationEnded()
+        {
+            integrationType.InvokeMember("CalculationEnded", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, null);
+        }
     }
 }

@@ -63,6 +63,16 @@ namespace ExcelDna.Integration.Rtd
                 delegate { return new ThreadPoolDelegateObservable(func); });
         }
 
+        public static object ProcessFuncAsyncHandle(string functionName, object parameters, ExcelFuncAsyncHandle func)
+        {
+            return ProcessObservable(functionName, parameters,
+                delegate {
+                    ExcelAsyncHandleObservable asyncHandleObservable = new ExcelAsyncHandleObservable();
+                    func(asyncHandleObservable);
+                    return asyncHandleObservable;
+                });
+        }
+
         static bool GetValueIfRegistered(AsyncCallInfo callInfo, out object value)
         {
             Guid id;
@@ -466,8 +476,7 @@ namespace ExcelDna.Integration.Rtd
         }
     }
 
-    
-    // This managed the informaiton for a single Observable (one UDF+callinfo).
+    // This manages the information for a single Observable (one UDF+callinfo).
     internal class AsyncObservableState
     {
         readonly Guid _id;

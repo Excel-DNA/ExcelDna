@@ -10,8 +10,9 @@ Version 0.31 (???)
 * Restructured ExcelDnaUtil.WindowHandle and ExcelDnaUtil.Application to work better under Excel 2013.
 * Fixed ExcelDnaUtil.IsInFunctionWizard() under Excel 2013.
 * Add support for Excel 2010+ native queued async functions.
+* Add support for Excel 2010+ async calculation events.
 * Raise maximum number of functions exported to 5000.
-
+* Allow ExcelReference in object return values.
 
 Version 0.30 (12 December 2012)
 -------------------------------

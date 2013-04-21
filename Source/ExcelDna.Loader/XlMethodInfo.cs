@@ -97,20 +97,7 @@ namespace ExcelDna.Loader
             }
 
             ParameterInfo[] parameters = targetMethod.GetParameters();
-
-            // A command has no return type, and is not a native async function 
-            // (these have the ExcelAsyncHandle as last parameter)
-            if (HasReturnType || (parameters.Length > 0 &&
-                parameters[parameters.Length - 1].ParameterType == IntegrationMarshalHelpers.ExcelAsyncHandleType))
-            {
-                // It's a function, though it might return null
-                IsCommand = false;
-            }
-            else
-            {
-                IsCommand = true;
-            }
-
+            
             // Parameters - meta-data and type conversion
             Parameters = new XlParameterInfo[parameters.Length];
             for (int i = 0; i < parameters.Length; i++)
@@ -119,6 +106,19 @@ namespace ExcelDna.Loader
                 if ( argumentAttributes != null && i < argumentAttributes.Count)
                     argAttrib = argumentAttributes[i];
                  Parameters[i] = new XlParameterInfo(parameters[i], argAttrib);
+            }
+
+            // A command has no return type, and is not a native async function 
+            // (these have the ExcelAsyncHandle as last parameter)
+            // (This check needs the Parameters array to be set up already.)
+            if (HasReturnType || IsExcelAsyncFunction)
+            {
+                // It's a function, though it might return null
+                IsCommand = false;
+            }
+            else
+            {
+                IsCommand = true;
             }
 
             // Create the delegate type, wrap the targetMethod and create the delegate
@@ -134,7 +134,7 @@ namespace ExcelDna.Loader
             FunctionPointer = Marshal.GetFunctionPointerForDelegate(xlDelegate);
         }
 
-        // Native async functions have a final parameter that is an EcelAsyncHandle.
+        // Native async functions have a final parameter that is an ExcelAsyncHandle.
         public bool IsExcelAsyncFunction 
         { 
             get 

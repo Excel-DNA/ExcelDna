@@ -1,4 +1,28 @@
-﻿using System;
+﻿/*
+  Copyright (C) 2005-2013 Govert van Drimmelen
+
+  This software is provided 'as-is', without any express or implied
+  warranty.  In no event will the authors be held liable for any damages
+  arising from the use of this software.
+
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+
+
+  Govert van Drimmelen
+  govert@icon.co.za
+*/
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -332,6 +356,12 @@ namespace ExcelDna.Integration
         }
 
         #region AfterCalculate Handler
+
+        // We could try the Excel 2010 CalculationEnded event, but there is some Access Violation
+        // even though the registration seems OK.
+        // Anyway, mixing the C API calls and the COM stuff seems a bit risky, and we want to be able to make COM calls to the RTD server.
+        // Implementing in terms of Application.AfterCalculate is not pretty but seems to work OK.
+
         delegate void AfterCalculateEventHandler();
         static AppEventSink _appEventSink;
         static IConnectionPoint _connectionPoint;
@@ -394,6 +424,8 @@ namespace ExcelDna.Integration
             }
         }
 
+        // We need something like HashSet with fast contains lookup
+        // For .NET 2.0, Dictionary is a good replacement.
         class SimpleSet<T> : IEnumerable<T>
         {
             readonly Dictionary<T, object> _impl = new Dictionary<T, object>();

@@ -735,15 +735,19 @@ namespace ExcelDna.Loader
                 pOper->xlType = XlType.XlTypeNumber;
                 return pNative;
             }
-            // 13 November 2006 -- this marshaler is not used to set up the Excel4 return value anymore.
-            //else if (ManagedObj == null)
-            //{
-            //    // This is never the case for regular marshaling, only for 
-            //    // return value for Excel4 function
-            //    XlOper* pOper = (XlOper*)pNative;
-            //    pOper->xlType = XlType.XlTypeEmpty;
-            //    return pNative;
-            //}
+            // CONSIDER: Reimplement in this class (needs extra memory management)?
+            else if (IntegrationMarshalHelpers.IsExcelReferenceObject(ManagedObj))
+            {
+                // To avoid extra memory management in this class, wrap in an array and let the array marshaler deal with the reference.
+                object[] refArray = new object[1];
+                refArray[0] = ManagedObj;
+                ICustomMarshaler m = XlObjectArrayMarshaler.GetInstance("1");
+                IntPtr pArray = m.MarshalManagedToNative(refArray);
+
+                // Pick reference out of the returned array.
+                XlOper* pOper = (XlOper*)pArray;
+                return (IntPtr)pOper->arrayValue.pOpers;
+            }
             else
             {
                 // Default error return

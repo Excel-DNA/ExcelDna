@@ -47,7 +47,7 @@ namespace ExcelDna.Integration
     public static class ExcelIntegration
     {
         // This version must match the version declared in ExcelDna.Loader.IntegrationHelpers.
-        const int ExcelIntegrationVersion = 2;
+        const int ExcelIntegrationVersion = 3;
 
         private static TryExcelImplDelegate tryExcelImpl;
         internal static void SetTryExcelImpl(TryExcelImplDelegate d)
@@ -211,6 +211,18 @@ namespace ExcelDna.Integration
         {
             if (syncMacro != null)
                 syncMacro(dValue);
+        }
+
+        // Called via Reflection from Loader
+        internal static void CalculationCanceled()
+        {
+            ExcelAsyncUtil.OnCalculationCanceled();    
+        }
+
+        // Called via Reflection from Loader
+        internal static void CalculationEnded()
+        {
+            ExcelAsyncUtil.OnCalculationEnded();    
         }
 
         // This version check is made by the ExceDna.Loader to make sure we have matching versions.

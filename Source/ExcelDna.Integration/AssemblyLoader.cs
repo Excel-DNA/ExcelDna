@@ -157,13 +157,13 @@ namespace ExcelDna.Integration
             typeof(ushort),
             typeof(decimal),
             typeof(long),
-            typeof(void),
-            typeof(ExcelAsyncHandle)
+            typeof(void)
         };
 
         static bool IsParameterTypeSupported(Type type)
         {
-            return _supportedParameterTypes.Contains(type);
+            return _supportedParameterTypes.Contains(type) || 
+                   (ExcelDnaUtil.ExcelVersion >= 14.0 && type == typeof(ExcelAsyncHandle));    // Only Excel 2010+
         }
 
 	    // Some support for creating add-ins that are notified of open and close

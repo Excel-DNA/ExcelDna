@@ -207,6 +207,9 @@ namespace ExcelDna.Integration
         // Called from outside on any thread to enqueue work.
         public void RunAsMacroAsync(SendOrPostCallback d, object state)
         {
+            if (!SynchronizationManager.IsInstalled)
+                throw new InvalidOperationException("SynchronizationManager is not registered. Call ExcelAsyncUtil.Initialize from an IExcelAddIn.AutoOpen implementation.");
+
             lock (_sendOrPostLock)
             {
                 _postCallbacks.Enqueue(d);

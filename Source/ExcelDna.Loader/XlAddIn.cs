@@ -36,6 +36,7 @@ namespace ExcelDna.Loader
     internal delegate void fn_void_double(double dValue);
     internal delegate short fn_short_void();
     internal delegate void fn_void_intptr(IntPtr intPtr);
+    internal delegate void fn_void_void();
     internal delegate IntPtr fn_intptr_intptr(IntPtr intPtr);
     internal delegate HRESULT fn_hresult_void();
     internal delegate HRESULT fn_get_class_object(CLSID rclsid, IID riid, out IntPtr ppunk);
@@ -44,7 +45,7 @@ namespace ExcelDna.Loader
     internal struct XlAddInExportInfo
     {
         #pragma warning disable 0649 // Field 'field' is never assigned to, and will always have its default value 'value'
-        internal Int32 ExportInfoVersion; // Must be 6 for this version
+        internal Int32 ExportInfoVersion; // Must be 7 for this version
         internal Int32 AppDomainId; // Id of the Sandbox AppDomain where the add-in runs.
         internal IntPtr /* PFN_SHORT_VOID */ pXlAutoOpen;
         internal IntPtr /* PFN_SHORT_VOID */ pXlAutoClose;
@@ -57,6 +58,8 @@ namespace ExcelDna.Loader
         internal IntPtr /* PFN_GET_CLASS_OBJECT */ pDllGetClassObject;
         internal IntPtr /* PFN_HRESULT_VOID */ pDllCanUnloadNow;
         internal IntPtr /* PFN_VOID_DOUBLE */ pSyncMacro;
+        internal IntPtr /* PFN_VOID_VOID */ pCalculationCanceled;
+        internal IntPtr /* PFN_VOID_VOID */ pCalculationEnded;
         internal Int32 ThunkTableLength;  // Must be EXPORT_COUNT
         internal IntPtr /*PFN*/ ThunkTable; // Actually (PFN ThunkTable[EXPORT_COUNT])
         #pragma warning restore 0649
@@ -66,7 +69,7 @@ namespace ExcelDna.Loader
     public unsafe static class XlAddIn
     {
         // This version must match the version declared in ExcelDna.Integration.ExcelIntegration
-        const int ExcelIntegrationVersion = 2;
+        const int ExcelIntegrationVersion = 3;
 
         static int thunkTableLength;
         static IntPtr thunkTable;
@@ -103,7 +106,7 @@ namespace ExcelDna.Loader
             Debug.Print("InitializationInfo Address: 0x{0:x8}", xlAddInExportInfoAddress);
 			
 			XlAddInExportInfo* pXlAddInExportInfo = (XlAddInExportInfo*)xlAddInExportInfoAddress;
-            if (pXlAddInExportInfo->ExportInfoVersion != 6)
+            if (pXlAddInExportInfo->ExportInfoVersion != 7)
             {
                 Debug.Print("ExportInfoVersion not supported.");
                 return false;
@@ -152,6 +155,14 @@ namespace ExcelDna.Loader
             fn_void_double fnSyncMacro = (fn_void_double)SyncMacro;
             GCHandle.Alloc(fnSyncMacro);
             pXlAddInExportInfo->pSyncMacro = Marshal.GetFunctionPointerForDelegate(fnSyncMacro);
+
+            fn_void_void fnCalculationCanceled = (fn_void_void)CalculationCanceled;
+            GCHandle.Alloc(fnCalculationCanceled);
+            pXlAddInExportInfo->pCalculationCanceled = Marshal.GetFunctionPointerForDelegate(fnCalculationCanceled);
+
+            fn_void_void fnCalculationEnded = (fn_void_void)CalculationEnded;
+            GCHandle.Alloc(fnCalculationEnded);
+            pXlAddInExportInfo->pCalculationEnded = Marshal.GetFunctionPointerForDelegate(fnCalculationEnded);
 
             // Thunk table for registered functions
             thunkTableLength = pXlAddInExportInfo->ThunkTableLength;
@@ -472,6 +483,18 @@ namespace ExcelDna.Loader
         {
             if (_initialized)
                 IntegrationHelpers.SyncMacro(dValue);
+        }
+
+        internal static void CalculationCanceled()
+        {
+            if (_initialized)
+                IntegrationHelpers.CalculationCanceled();
+        }
+
+        internal static void CalculationEnded()
+        {
+            if (_initialized)
+                IntegrationHelpers.CalculationEnded();
         }
         #endregion
     }

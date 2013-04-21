@@ -46,7 +46,9 @@
     public static object dnaEchoWrapped(object value, int msToSleep)
     {
         // Call an async function that has been registered.
-        return XlCall.Excel(XlCall.xlUDF, "dnaEchoAsync", value, msToSleep);
+        object result = XlCall.Excel(XlCall.xlUDF, "dnaEchoAsync", value, msToSleep);
+        
+        return result;
     }
     
     public static void dnaEchoTask(object valueToEcho, int msToSleep, ExcelAsyncHandle asyncHandle)
