@@ -97,6 +97,7 @@ Object[,]
 ExcelDna.Integration.ExcelError
 ExcelDna.Integration.ExcelMissing.Value // Converted by Excel to be 0.0
 ExcelDna.Integration.ExcelEmpty.Value   // Converted by Excel to be 0.0
+ExcelDna.Integration.ExcelReference
 Int32 (int)
 Int16 (short)
 UInt16 (ushort)

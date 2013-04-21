@@ -888,17 +888,30 @@ namespace ExcelDna.Loader
                     pOper->xlType = XlType12.XlTypeNumber;
                     return pNative;
                 }
-                else if (IntegrationMarshalHelpers.IsExcelAsyncHandleObject(ManagedObj))
+                else if (IntegrationMarshalHelpers.IsExcelAsyncHandleNativeObject(ManagedObj))
                 {
                     // This code is not actually used, since the ExcelAsyncHandle is only passed into
                     // XlCall.Excel param array, so marshaled byt the object array marshaler.
-                    IntPtr handle = IntegrationMarshalHelpers.GetExcelAsyncHandleHandle(ManagedObj);
+                    IntPtr handle = IntegrationMarshalHelpers.GetExcelAsyncHandleNativeHandle(ManagedObj);
 
                     XlOper12* pOper = (XlOper12*)pNative;
                     pOper->bigData.hData = handle;
                     pOper->bigData.cbData = IntPtr.Size;
                     pOper->xlType = XlType12.XlTypeBigData;
                     return pNative;
+                }
+                // CONSIDER: Reimplement in this class (needs extra memory management)?
+                else if (IntegrationMarshalHelpers.IsExcelReferenceObject(ManagedObj))
+                {
+                    // To avoid extra memory management in this class, wrap in an array and let the array marshaler deal with the reference.
+                    object[] refArray = new object[1];
+                    refArray[0] = ManagedObj;
+                    ICustomMarshaler m = XlObjectArray12Marshaler.GetInstance("1");
+                    IntPtr pArray = m.MarshalManagedToNative(refArray);
+                    
+                    // Pick reference out of the returned array.
+                    XlOper12* pOper = (XlOper12*)pArray;
+                    return (IntPtr)pOper->arrayValue.pOpers;
                 }
                 else
                 {
@@ -1261,9 +1274,9 @@ namespace ExcelDna.Loader
 					{
 						pOper->xlType = XlType12.XlTypeEmpty;
 					}
-                    else if (IntegrationMarshalHelpers.IsExcelAsyncHandleObject(obj))
+                    else if (IntegrationMarshalHelpers.IsExcelAsyncHandleNativeObject(obj))
                     {
-                        IntPtr handle = IntegrationMarshalHelpers.GetExcelAsyncHandleHandle(obj);
+                        IntPtr handle = IntegrationMarshalHelpers.GetExcelAsyncHandleNativeHandle(obj);
                         pOper->bigData.hData = handle;
                         pOper->bigData.cbData = IntPtr.Size;
                         pOper->xlType = XlType12.XlTypeBigData;
@@ -1371,7 +1384,55 @@ namespace ExcelDna.Loader
                             pOper->errValue = IntegrationMarshalHelpers.ExcelError_ExcelErrorValue;
                         }
 					}
-					else if (obj is Missing)
+                    else if (obj is double[])
+                    {
+                        double[] doubles = (double[])obj;
+                        object[] objects = new object[doubles.Length];
+                        Array.Copy(doubles, objects, doubles.Length);
+
+						XlObjectArray12MarshalerImpl m = new XlObjectArray12MarshalerImpl(1);
+						nestedInstances.Add(m);
+						XlOper12* pNested = (XlOper12*)m.MarshalManagedToNative(objects);
+                        if (pNested->xlType == XlType12.XlTypeArray)
+                        {
+                            pOper->xlType = XlType12.XlTypeArray;
+                            pOper->arrayValue.Rows = pNested->arrayValue.Rows;
+                            pOper->arrayValue.Columns = pNested->arrayValue.Columns;
+                            pOper->arrayValue.pOpers = pNested->arrayValue.pOpers;
+                        }
+                        else
+                        {
+                            // This is the case where the array passed in has 0 length.
+                            // We set to an error to at least have a valid XLOPER
+                            pOper->xlType = XlType12.XlTypeError;
+                            pOper->errValue = IntegrationMarshalHelpers.ExcelError_ExcelErrorValue;
+                        }
+                    }
+                    else if (obj is double[,])
+                    {
+                        double[,] doubles = (double[,])obj;
+                        object[,] objects = new object[doubles.GetLength(0), doubles.GetLength(1)];
+                        Array.Copy(doubles, objects, doubles.GetLength(0) * doubles.GetLength(1));
+
+                        XlObjectArray12MarshalerImpl m = new XlObjectArray12MarshalerImpl(2);
+                        nestedInstances.Add(m);
+                        XlOper12* pNested = (XlOper12*)m.MarshalManagedToNative(objects);
+                        if (pNested->xlType == XlType12.XlTypeArray)
+                        {
+                            pOper->xlType = XlType12.XlTypeArray;
+                            pOper->arrayValue.Rows = pNested->arrayValue.Rows;
+                            pOper->arrayValue.Columns = pNested->arrayValue.Columns;
+                            pOper->arrayValue.pOpers = pNested->arrayValue.pOpers;
+                        }
+                        else
+                        {
+                            // This is the case where the array passed in has 0,0 length.
+                            // We set to an error to at least have a valid XLOPER
+                            pOper->xlType = XlType12.XlTypeError;
+                            pOper->errValue = IntegrationMarshalHelpers.ExcelError_ExcelErrorValue;
+                        }
+                    }
+                    else if (obj is Missing)
 					{
 						pOper->xlType = XlType12.XlTypeMissing;
 					}
@@ -1754,7 +1815,7 @@ namespace ExcelDna.Loader
             {
                 case XlType12.XlTypeBigData:
                     XlOper12.XlBigData bigData = pOper->bigData;
-                    managed = IntegrationMarshalHelpers.CreateExcelAsyncHandle(bigData.hData);
+                    managed = IntegrationMarshalHelpers.CreateExcelAsyncHandleNative(bigData.hData);
                     break;
                 default:
                     // unheard of !! 

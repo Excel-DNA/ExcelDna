@@ -25,8 +25,9 @@ namespace ExcelDna.Loader
         static object excelEmptyValue;
 
         static Type excelAsyncHandleType;
-        static ConstructorInfo excelAsyncHandleConstructor;
-        static FieldInfo excelAsyncHandleHandleField;
+        static Type excelAsyncHandleNativeType;
+        static ConstructorInfo excelAsyncHandleNativeConstructor;
+        static FieldInfo excelAsyncHandleNativeHandleField;
 
         internal static void Bind(Assembly integrationAssembly)
         {
@@ -48,8 +49,9 @@ namespace ExcelDna.Loader
             excelErrorType = integrationAssembly.GetType("ExcelDna.Integration.ExcelError");
 
             excelAsyncHandleType = integrationAssembly.GetType("ExcelDna.Integration.ExcelAsyncHandle");
-            excelAsyncHandleConstructor = excelAsyncHandleType.GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null, new Type[] { typeof(IntPtr) }, null);
-            excelAsyncHandleHandleField = excelAsyncHandleType.GetField("_handle", BindingFlags.Instance | BindingFlags.NonPublic);
+            excelAsyncHandleNativeType = integrationAssembly.GetType("ExcelDna.Integration.ExcelAsyncHandleNative");
+            excelAsyncHandleNativeConstructor = excelAsyncHandleNativeType.GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null, new Type[] { typeof(IntPtr) }, null);
+            excelAsyncHandleNativeHandleField = excelAsyncHandleNativeType.GetField("_handle", BindingFlags.Instance | BindingFlags.NonPublic);
 
             Debug.Assert( excelReferenceType != null &&
                           excelReferenceConstructor != null &&
@@ -66,9 +68,9 @@ namespace ExcelDna.Loader
                           excelEmptyType != null &&
                           excelEmptyValue != null &&
 
-                          excelAsyncHandleType != null &&
-                          excelAsyncHandleConstructor != null &&
-                          excelAsyncHandleHandleField != null);
+                          excelAsyncHandleNativeType != null &&
+                          excelAsyncHandleNativeConstructor != null &&
+                          excelAsyncHandleNativeHandleField != null);
         }
 
         #region ExcelReference
@@ -197,19 +199,19 @@ namespace ExcelDna.Loader
         #endregion
 
         #region ExcelAsyncHandle
-        internal static bool IsExcelAsyncHandleObject(object o)
+        internal static bool IsExcelAsyncHandleNativeObject(object o)
         {
-            return excelAsyncHandleType.IsInstanceOfType(o);
+            return excelAsyncHandleNativeType.IsInstanceOfType(o);
         }
 
-        internal static object CreateExcelAsyncHandle(IntPtr handle)
+        internal static object CreateExcelAsyncHandleNative(IntPtr handle)
         {
-            return excelAsyncHandleConstructor.Invoke(new object[] { handle });
+            return excelAsyncHandleNativeConstructor.Invoke(new object[] { handle });
         }
 
-        internal static IntPtr GetExcelAsyncHandleHandle(object o)
+        internal static IntPtr GetExcelAsyncHandleNativeHandle(object o)
         {
-            return (IntPtr)excelAsyncHandleHandleField.GetValue(o);
+            return (IntPtr)excelAsyncHandleNativeHandleField.GetValue(o);
         }
 
         // We need this for the parameter setup, which has  a special case for this type.

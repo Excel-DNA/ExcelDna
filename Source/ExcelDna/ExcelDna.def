@@ -13,3 +13,5 @@ EXPORTS
 	DllGetClassObject		PRIVATE
 	DllCanUnloadNow			PRIVATE
 	SyncMacro			    PRIVATE
+	CalculationCanceled		PRIVATE
+	CalculationEnded		PRIVATE
