@@ -32,6 +32,7 @@ namespace ExcelDna.Loader
     using CLSID = Guid;
 
     // This class has a friend in XlCustomMarshal.
+    // TODO: Nothing here is performance-critical, but the Invoke calls might be quite slow... use delegates?
     internal static class IntegrationHelpers
     {
         static Type integrationType;

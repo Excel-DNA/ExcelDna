@@ -33,8 +33,15 @@ namespace ExcelDna.Loader
     public static class XlRegistration
     {
         static readonly List<XlMethodInfo> registeredMethods = new List<XlMethodInfo>();
-        static List<string> addedShortCuts = new List<string>();
-
+        static readonly List<string> addedShortCuts = new List<string>();
+        
+        // This list is just to give access to the function information for UI enhancement.
+        // We should probably replace it with a general extension API when I am comfortable about how that would look.
+        // Populated by RecordFunctionInfo(...) below
+        // Each entry has: 
+        // name, category, helpTopic, argumentNames, [description], [argumentDescription_1] ... [argumentDescription_n].
+        static readonly List<List<string>> functionInfo = new List<List<string>>();
+        
         public static void RegisterMethods(List<MethodInfo> methods)
         {
             List<object> methodAttributes;
@@ -45,7 +52,37 @@ namespace ExcelDna.Loader
 
         public static void RegisterMethodsWithAttributes(List<MethodInfo> methods, List<object> methodAttributes, List<List<object>> argumentAttributes)
         {
-            List<XlMethodInfo> xlMethods = XlMethodInfo.ConvertToXlMethodInfos(methods, methodAttributes, argumentAttributes);
+            Register(methods, null,  methodAttributes, argumentAttributes);
+        }
+
+        public static void RegisterDelegatesWithAttributes(List<Delegate> delegates, List<object> methodAttributes, List<List<object>> argumentAttributes)
+        {
+            // I'm missing LINQ ...
+            List<MethodInfo> methods = new List<MethodInfo>();
+            List<object> targets = new List<object>();
+            for (int i = 0; i < delegates.Count; i++)
+            {
+                Delegate del = delegates[i];
+                // Using del.Method and del.Target from here is a problem 
+                // - then we have to deal with the open/closed situation very carefully.
+                // We'll pass and invoke the actual delegate, which means the method signature is correct.
+                // Overhead should be negligible.
+                methods.Add(del.GetType().GetMethod("Invoke"));
+                targets.Add(del);
+            }
+            Register(methods, targets, methodAttributes, argumentAttributes);
+        }
+
+        public static List<List<string>> GetFunctionRegistrationInfo()
+        {
+            return functionInfo;
+        }
+
+        static void Register(List<MethodInfo> methods, List<object> targets, List<object> methodAttributes, List<List<object>> argumentAttributes)
+        {
+            Debug.Assert(targets == null || targets.Count == methods.Count);
+
+            List<XlMethodInfo> xlMethods = XlMethodInfo.ConvertToXlMethodInfos(methods, targets, methodAttributes, argumentAttributes);
             xlMethods.ForEach(RegisterXlMethod);
         }
 
@@ -56,6 +93,10 @@ namespace ExcelDna.Loader
             String exportedProcName = String.Format("f{0}", index);
 
             object[] registerParameters = GetRegisterParameters(mi, exportedProcName);
+            if (!mi.IsCommand && !mi.IsHidden)
+            {
+                RecordFunctionInfo(registerParameters);
+            }
 
             // Basically suppress problems here !?
             try
@@ -244,15 +285,12 @@ namespace ExcelDna.Loader
             // DOCUMENT: If # is set and there is an R argument, Excel considers the function volatile anyway.
             // You can call xlfVolatile, false in beginning of function to clear.
 
-            // DOCUMENT: There is a bug? in Excel 2007 that limits the total argumentname string to 255 chars.
-            // TODO: Check whether this is fixed in Excel 2010/2013 yet.
-            // DOCUMENT: I truncate the argument string for all versions.
-            if (argumentNames.Length > 255)
-                argumentNames = argumentNames.Substring(0, 255);
+            string functionDescription = mi.Description;
+            // DOCUMENT: Truncate Description to 253 characters (for all versions)
+            functionDescription = Truncate(functionDescription, 253);
 
             // DOCUMENT: Here is the patch for the Excel Function Description bug.
             // DOCUMENT: I add ". " if the function takes no parameters and has a description.
-            string functionDescription = mi.Description;
             if (mi.Parameters.Length == 0 && functionDescription != "")
                 functionDescription += ". ";
 
@@ -277,17 +315,23 @@ namespace ExcelDna.Loader
                 numRegisterParameters = 9;
             }
 
+            // DOCUMENT: Additional truncations of registration info - registration fails with strings longer than 255 chars.
+            argumentNames = Truncate(argumentNames, 255);
+            string category = Truncate(mi.Category, 255);
+            string name = Truncate(mi.Name, 255);
+            string helpTopic = (mi.HelpTopic == null || mi.HelpTopic.Length <= 255) ? mi.HelpTopic : "";
+
             object[] registerParameters = new object[numRegisterParameters];
             registerParameters[0] = XlAddIn.PathXll;
             registerParameters[1] = exportedProcName;
             registerParameters[2] = functionType;
-            registerParameters[3] = mi.Name;
+            registerParameters[3] = name;
             registerParameters[4] = argumentNames;
             registerParameters[5] = mi.IsCommand ? 2 /*macro*/
                                                  : (mi.IsHidden ? 0 : 1); /*function*/
-            registerParameters[6] = mi.Category;
+            registerParameters[6] = category;
             registerParameters[7] = mi.ShortCut; /*shortcut_text*/
-            registerParameters[8] = mi.HelpTopic; /*help_topic*/ ;
+            registerParameters[8] = helpTopic; /*help_topic*/
 
             if (showDescriptions)
             {
@@ -300,6 +344,31 @@ namespace ExcelDna.Loader
             }
 
             return registerParameters;
+        }
+
+        private static void RecordFunctionInfo(object[] registerParameters)
+        {
+            // name, category, helpTopic, argumentNames, [description], [argumentDescription_1] ... [argumentDescription_n].
+            List<string> info = new List<string>();
+            info.Add((string)registerParameters[3]);    // name
+            info.Add((string)registerParameters[6]);    // category
+            info.Add((string)registerParameters[8]);    // helpTopic
+            info.Add((string)registerParameters[4]);    // argumentNames
+            if (registerParameters.Length >= 10)
+            {
+                info.Add((string)registerParameters[9]); // Description
+            }
+            for (int k = 10; k < registerParameters.Length; k++)
+            {
+                info.Add((string)registerParameters[k]);  // argumentDescription
+            }
+            functionInfo.Add(info);
+        }
+
+        static string Truncate(string s, int length)
+        {
+            if (s == null || s.Length <= length) return s;
+            return s.Substring(0, length);
         }
     }
 }

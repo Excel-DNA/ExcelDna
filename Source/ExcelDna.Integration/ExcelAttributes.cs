@@ -39,6 +39,7 @@ namespace ExcelDna.Integration
 		public bool   IsMacroType = false;
         public bool   IsThreadSafe = false;
         public bool   IsClusterSafe = false;
+        public bool   SuppressRegistration = false;
 
 		public ExcelFunctionAttribute()
 		{
@@ -77,6 +78,7 @@ namespace ExcelDna.Integration
 		public string MenuName = null;
 		public string MenuText = null;
         public bool IsExceptionSafe = false;
+        public bool SuppressRegistration = false;
 
         [Obsolete("ExcelFunctions can be declared hidden, not ExcelCommands.")]
 		public bool IsHidden = false;

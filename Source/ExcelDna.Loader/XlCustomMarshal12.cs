@@ -1692,8 +1692,8 @@ namespace ExcelDna.Loader
 			{
 				// This method is only called via AutoFree for an instance 
 				// instanceX are ThreadStatic
-				instance1.Reset(true);
-				instance2.Reset(true);
+                if (instance1 != null) instance1.Reset(true);
+				if (instance2 != null) instance2.Reset(true);
 			}
 
 		}

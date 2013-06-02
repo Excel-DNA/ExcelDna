@@ -917,8 +917,8 @@ namespace ExcelDna.Loader
 		public static void FreeMemory()
 		{
             // This method is only called via AutoFree for an instance 
-            instance1.Reset(true);
-            instance2.Reset(true);
+            if (instance1 != null) instance1.Reset(true);
+            if (instance2 != null) instance2.Reset(true);
 		}
 
         public static ICustomMarshaler GetInstance(string marshalCookie)

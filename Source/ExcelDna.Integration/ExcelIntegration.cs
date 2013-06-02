@@ -40,6 +40,8 @@ namespace ExcelDna.Integration
     internal delegate int TryExcelImplDelegate(int xlFunction, out object result, params object[] parameters);
     internal delegate void RegisterMethodsDelegate(List<MethodInfo> methods);
     internal delegate void RegisterMethodsWithAttributesDelegate(List<MethodInfo> methods, List<object> functionAttributes, List<List<object>> argumentAttributes);
+    internal delegate void RegisterDelegatesWithAttributesDelegate(List<Delegate> delegates, List<object> functionAttributes, List<List<object>> argumentAttributes);
+    internal delegate List<List<string>> GetFunctionRegistrationInfoDelegate();
     internal delegate byte[] GetResourceBytesDelegate(string resourceName, int type); // types: 0 - Assembly, 1 - Dna file, 2 - Image
     internal delegate void SyncMacroDelegate(double dValue);
 	public delegate object UnhandledExceptionHandler(object exceptionObject);
@@ -47,7 +49,7 @@ namespace ExcelDna.Integration
     public static class ExcelIntegration
     {
         // This version must match the version declared in ExcelDna.Loader.IntegrationHelpers.
-        const int ExcelIntegrationVersion = 3;
+        const int ExcelIntegrationVersion = 4;
 
         private static TryExcelImplDelegate tryExcelImpl;
         internal static void SetTryExcelImpl(TryExcelImplDelegate d)
@@ -77,6 +79,18 @@ namespace ExcelDna.Integration
             registerMethodsWithAttributes = d;
         }
 
+        private static RegisterDelegatesWithAttributesDelegate registerDelegatesWithAttributes;
+        internal static void SetRegisterDelegatesWithAttributes(RegisterDelegatesWithAttributesDelegate d)
+        {
+            registerDelegatesWithAttributes = d;
+        }
+
+        private static GetFunctionRegistrationInfoDelegate getFunctionRegistrationInfo;
+        internal static void SetGetFunctionRegistrationInfo(GetFunctionRegistrationInfoDelegate d)
+        {
+            getFunctionRegistrationInfo = d;
+        }
+
         // These are the only 'externally' exposed members.
         public static void RegisterMethods(List<MethodInfo> methods)
         {
@@ -88,6 +102,18 @@ namespace ExcelDna.Integration
                                            List<List<object>> argumentAttributes)
         {
             registerMethodsWithAttributes(methods, methodAttributes, argumentAttributes);
+        }
+
+        public static void RegisterDelegates(List<Delegate> delegates,
+                                             List<object> methodAttributes,
+                                             List<List<object>> argumentAttributes)
+        {
+            registerDelegatesWithAttributes(delegates, methodAttributes, argumentAttributes);
+        }
+
+        public static List<List<string>> GetFunctionRegistrationInfo()
+        {
+            return getFunctionRegistrationInfo();
         }
 
 		private static UnhandledExceptionHandler unhandledExceptionHandler;
