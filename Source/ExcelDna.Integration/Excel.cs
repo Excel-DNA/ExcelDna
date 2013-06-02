@@ -113,22 +113,21 @@ namespace ExcelDna.Integration
         static IntPtr GetWindowHandle15()
         {
             IntPtr hWnd = IntPtr.Zero;
-            // We're on the main thread, and we already have an application object.
-            if (_application != null)
-            {
-                // This is the typical case.
-                // Get it from there - probably safest
-                hWnd = (IntPtr)(int)_application.GetType().InvokeMember("Hwnd", BindingFlags.GetProperty, null, _application, null, _enUsCulture);
-                if (IsWindowOfThisExcel(hWnd)) return hWnd;
-            }
-
-            // If we're on the main thread, try the C API
-            // This should be OK - if we've loaded a Ribbon or RTD server we should already have an Application object.
             if (IsMainThread)
             {
+                // We're on the main thread, and might already have an application object.
+                if (_application != null)
+                {
+                    // This is the typical case.
+                    // Get it from there - probably safest
+                    // TODO: Can we turn this into a delegate somehow...(for performance)?
+                    hWnd = (IntPtr)(int)_application.GetType().InvokeMember("Hwnd", BindingFlags.GetProperty, null, _application, null, _enUsCulture);
+                    if (IsWindowOfThisExcel(hWnd)) return hWnd;
+                }
+
+                // If we're on the main thread, try the C API directly
                 hWnd = GetWindowHandleApi();
-                if (hWnd != IntPtr.Zero)
-                    return hWnd;
+                if (hWnd != IntPtr.Zero && IsWindowOfThisExcel(hWnd)) return hWnd;
             }
 
             StringBuilder buffer = new StringBuilder(256);
@@ -338,6 +337,7 @@ namespace ExcelDna.Integration
             if (_application == null) return false;
             try
             {
+                // TODO: Can we turn this into a delegate somehow - for performance.
                 _application.GetType().InvokeMember("Version", BindingFlags.GetProperty, null, _application, null, _enUsCulture);
                 return true;
             }
@@ -414,7 +414,9 @@ namespace ExcelDna.Integration
 
             buffer.Length = 0;
             GetWindowTextW(hWnd, buffer, buffer.Capacity);
-            if (buffer.ToString().Contains("Replace"))
+            string title = buffer.ToString();
+            // Another window that has been reported as causing issue has title "Collect and Paste 2.0"
+            if (title.Contains("Replace") || title.Contains("Paste"))
                 return false;
 
             return true;

@@ -62,37 +62,41 @@ namespace ExcelDna.ComInterop.ComRegistration
 
         public HRESULT CreateInstance([In] IntPtr pUnkOuter, [In] ref IID riid, [Out] out IntPtr ppvObject)
         {
-            ppvObject = IntPtr.Zero;
-            object instance = Activator.CreateInstance(_comClass.Type);
+            // Suspend the C API (helps to prevent some Excel-crashing scenarios)
+            using (XlCall.Suspend())
+            {
+                ppvObject = IntPtr.Zero;
+                object instance = Activator.CreateInstance(_comClass.Type);
 
-            // If not an ExcelRtdServer, create safe wrapper that also maps types.
-            if (_comClass.IsRtdServer && !instance.GetType().IsSubclassOf(typeof(ExcelRtdServer)))
-            {
-                // wrap instance in RtdWrapper
-                RtdServerWrapper rtdServerWrapper = new RtdServerWrapper(instance, _comClass.ProgId);
-                instance = rtdServerWrapper;
-            }
-
-            if (pUnkOuter != IntPtr.Zero)
-            {
-                // For now no aggregation support - could do Marshal.CreateAggregatedObject?
-                return ComAPI.CLASS_E_NOAGGREGATION;
-            }
-            if (riid == ComAPI.guidIUnknown)
-            {
-                ppvObject = Marshal.GetIUnknownForObject(instance);
-            }
-            else
-            {
-                ppvObject = Marshal.GetIUnknownForObject(instance);
-                HRESULT hrQI = Marshal.QueryInterface(ppvObject, ref riid, out ppvObject);
-                Marshal.Release(ppvObject);
-                if (hrQI != ComAPI.S_OK)
+                // If not an ExcelRtdServer, create safe wrapper that also maps types.
+                if (_comClass.IsRtdServer && !instance.GetType().IsSubclassOf(typeof(ExcelRtdServer)))
                 {
-                    return ComAPI.E_NOINTERFACE;
+                    // wrap instance in RtdWrapper
+                    RtdServerWrapper rtdServerWrapper = new RtdServerWrapper(instance, _comClass.ProgId);
+                    instance = rtdServerWrapper;
                 }
+
+                if (pUnkOuter != IntPtr.Zero)
+                {
+                    // For now no aggregation support - could do Marshal.CreateAggregatedObject?
+                    return ComAPI.CLASS_E_NOAGGREGATION;
+                }
+                if (riid == ComAPI.guidIUnknown)
+                {
+                    ppvObject = Marshal.GetIUnknownForObject(instance);
+                }
+                else
+                {
+                    ppvObject = Marshal.GetIUnknownForObject(instance);
+                    HRESULT hrQI = Marshal.QueryInterface(ppvObject, ref riid, out ppvObject);
+                    Marshal.Release(ppvObject);
+                    if (hrQI != ComAPI.S_OK)
+                    {
+                        return ComAPI.E_NOINTERFACE;
+                    }
+                }
+                return ComAPI.S_OK;
             }
-            return ComAPI.S_OK;
         }
 
         public int LockServer(bool fLock)
@@ -118,29 +122,32 @@ namespace ExcelDna.ComInterop.ComRegistration
 
         public HRESULT CreateInstance([In] IntPtr pUnkOuter, [In] ref IID riid, [Out] out IntPtr ppvObject)
         {
-            ppvObject = IntPtr.Zero;
-            if (pUnkOuter != IntPtr.Zero)
+            using (XlCall.Suspend())
             {
-                // For now no aggregation support - could do Marshal.CreateAggregatedObject?
-                return ComAPI.CLASS_E_NOAGGREGATION;
+                ppvObject = IntPtr.Zero;
+                if (pUnkOuter != IntPtr.Zero)
+                {
+                    // For now no aggregation support - could do Marshal.CreateAggregatedObject?
+                    return ComAPI.CLASS_E_NOAGGREGATION;
+                }
+                if (riid == ComAPI.guidIUnknown)
+                {
+                    ppvObject = Marshal.GetIUnknownForObject(_instance);
+                }
+                else if (riid == ComAPI.guidIDTExtensibility2)
+                {
+                    ppvObject = Marshal.GetComInterfaceForObject(_instance, typeof(IDTExtensibility2));
+                }
+                else if (riid == ComAPI.guidIRtdServer)
+                {
+                    ppvObject = Marshal.GetComInterfaceForObject(_instance, typeof(IRtdServer));
+                }
+                else // Unsupported interface for us.
+                {
+                    return ComAPI.E_NOINTERFACE;
+                }
+                return ComAPI.S_OK;
             }
-            if (riid == ComAPI.guidIUnknown)
-            {
-                ppvObject = Marshal.GetIUnknownForObject(_instance);
-            }
-            else if (riid == ComAPI.guidIDTExtensibility2)
-            {
-                ppvObject = Marshal.GetComInterfaceForObject(_instance, typeof(IDTExtensibility2));
-            }
-            else if (riid == ComAPI.guidIRtdServer)
-            {
-                ppvObject = Marshal.GetComInterfaceForObject(_instance, typeof(IRtdServer));
-            }
-            else // Unsupported interface for us.
-            {
-                return ComAPI.E_NOINTERFACE;
-            }
-            return ComAPI.S_OK;
         }
 
         public int LockServer(bool fLock)

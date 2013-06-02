@@ -50,7 +50,7 @@ namespace MyRTDServers
         Timer _timer;
         public TimeServer()
         {
-            _logPath = Path.ChangeExtension((string)XlCall.Excel(XlCall.xlGetName), ".log");
+            _logPath = @"C:\Temp\ExcelDnaRTD.log";
             _topics = new List<Topic>();
             _timer = new Timer(delegate
                 {

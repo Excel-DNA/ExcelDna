@@ -111,7 +111,10 @@ namespace ExcelDna.Integration.Rtd
             }
             else
             {
-                rtdServer = Activator.CreateInstance(rtdServerType);
+                using (XlCall.Suspend())
+                {
+                    rtdServer = Activator.CreateInstance(rtdServerType);
+                }
                 ExcelRtdServer excelRtdServer = rtdServer as ExcelRtdServer;
                 if (excelRtdServer != null)
                 {
@@ -186,7 +189,10 @@ namespace ExcelDna.Integration.Rtd
         public static void UnregisterRTDServer(string progId)
         {
             // Dictionary.Remove is safe to call even if the key does not exist (just returns false)
-            loadedRtdServers.Remove(progId);
+            if (progId != null)
+            {
+                loadedRtdServers.Remove(progId);
+            }
         }
     }
 

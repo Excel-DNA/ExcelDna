@@ -13,6 +13,11 @@ Version 0.31 (???)
 * Add support for Excel 2010+ async calculation events.
 * Raise maximum number of functions exported to 5000.
 * Allow ExcelReference in object return values.
+* Truncate strings for registration - long string caused registration to fail.
+* Implement ExcelIntegration.RegisterDelegates.
+* Add SuppressRegistration option to ExcelFunctionAttribute.
+* Fix Unregister bug for direct-created RTD servers.
+* Fix FreeMemory bug with uninitialized marshaler.
 
 Version 0.30 (12 December 2012)
 -------------------------------

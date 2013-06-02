@@ -41,6 +41,8 @@ namespace ExcelDna.Integration
     //      When A1 is changed, MyRtfFunc is called, the new RTD topic created, but DisconnectData never called.
     // The bug is discussed in this thrad: http://social.msdn.microsoft.com/Forums/en-US/exceldev/thread/ba06ac78-7b64-449b-bce4-9a03ac91f0eb/
 
+    // TODO: If a formula is moved from one cell to another, or some rows / cols are deleted, the UDFs will not be called automatically again.
+    //       Consider whether this might be a problem for us here.
     class ExcelRtd2010BugHelper : IRtdServer
     {
         public static readonly bool ExcelVersionHasRtdBug;

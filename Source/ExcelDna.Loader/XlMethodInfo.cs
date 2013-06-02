@@ -55,6 +55,7 @@ namespace ExcelDna.Loader
         public bool IsThreadSafe; // For Functions only
         public bool IsClusterSafe; // For Functions only
         public string HelpTopic;
+        public bool SuppressRegistration;
         public double RegisterId;
 
         public XlParameterInfo[] Parameters;
@@ -62,7 +63,7 @@ namespace ExcelDna.Loader
 
         // THROWS: Throws a DnaMarshalException if the method cannot be turned into an XlMethodInfo
         // TODO: Manage errors if things go wrong
-        XlMethodInfo(ModuleBuilder modBuilder, MethodInfo targetMethod, object methodAttribute, List<object> argumentAttributes)
+        XlMethodInfo(ModuleBuilder modBuilder, MethodInfo targetMethod, object target, object methodAttribute, List<object> argumentAttributes)
         {
             // Default Name, Description and Category
             Name = targetMethod.Name;
@@ -75,6 +76,7 @@ namespace ExcelDna.Loader
             IsMacroType = false;
             IsThreadSafe = false;
             IsClusterSafe = false;
+            SuppressRegistration = false;
 
             ShortCut = "";
             // DOCUMENT: Default MenuName is the library name
@@ -83,6 +85,9 @@ namespace ExcelDna.Loader
             MenuText = null; // Menu is only 
 
             SetAttributeInfo(methodAttribute);
+            // We shortcut the rest of the registration
+            if (SuppressRegistration) return;
+
             FixHelpTopic();
 
             // Return type conversion
@@ -122,8 +127,14 @@ namespace ExcelDna.Loader
             }
 
             // Create the delegate type, wrap the targetMethod and create the delegate
+
+            // CONSIDER: Currently we need a special delegate type here so that we can hook on the marshaling attributes.
+            //           Future version might do straight-forward marshaling, so we can get rid of these types (just use generic methods)
+            
+            // FirstArgument (if received) is not used in the delegate type created ...
             Type delegateType = CreateDelegateType(modBuilder);
-            Delegate xlDelegate = CreateMethodDelegate(targetMethod, delegateType);
+            // ... but is baked into the delegate itself.
+            Delegate xlDelegate = CreateMethodDelegate(delegateType, targetMethod, target);
 
             // Need to add a reference to prevent garbage collection of our delegate
             // Don't need to pin, according to 
@@ -232,7 +243,8 @@ namespace ExcelDna.Loader
                 bool isMacroType = (bool) attribType.GetField("IsMacroType").GetValue(attrib);
                 bool isHidden = (bool) attribType.GetField("IsHidden").GetValue(attrib);
                 bool isThreadSafe = (bool) attribType.GetField("IsThreadSafe").GetValue(attrib);
-                bool isClusterSafe = (bool) attribType.GetField("IsClusterSafe").GetValue(attrib);
+                bool isClusterSafe = (bool)attribType.GetField("IsClusterSafe").GetValue(attrib);
+                bool suppressRegistration = (bool)attribType.GetField("SuppressRegistration").GetValue(attrib);
                 if (name != null)
                 {
                     Name = name;
@@ -257,6 +269,7 @@ namespace ExcelDna.Loader
                 // DOCUMENT: IsClusterSafe function MUST NOT be marked as IsMacroType=true and MAY be marked as IsThreadSafe = true.
                 //           [xlfRegister (Form 1) page in the Microsoft Excel 2010 XLL SDK Documentation]
                 IsClusterSafe = (!isMacroType && isClusterSafe);
+                SuppressRegistration = suppressRegistration;
             }
             else if (TypeHelper.TypeHasAncestorWithFullName(attribType, "ExcelDna.Integration.ExcelCommandAttribute"))
             {
@@ -268,6 +281,7 @@ namespace ExcelDna.Loader
                 string menuText = (string) attribType.GetField("MenuText").GetValue(attrib);
 //                    bool isHidden = (bool)attribType.GetField("IsHidden").GetValue(attrib);
                 bool isExceptionSafe = (bool) attribType.GetField("IsExceptionSafe").GetValue(attrib);
+                bool suppressRegistration = (bool)attribType.GetField("SuppressRegistration").GetValue(attrib);
 
                 if (name != null)
                 {
@@ -295,6 +309,7 @@ namespace ExcelDna.Loader
                 }
 //                    IsHidden = isHidden;  // Only for functions.
                 IsExceptionSafe = isExceptionSafe;
+                SuppressRegistration = suppressRegistration;
             }
         }
 
@@ -321,6 +336,7 @@ namespace ExcelDna.Loader
             }
         }
 
+        // Delegate type created here ignores firstArgument (if we have one)
         Type CreateDelegateType(ModuleBuilder modBuilder)
         {
             TypeBuilder typeBuilder;
@@ -375,19 +391,30 @@ namespace ExcelDna.Loader
             return typeBuilder.CreateType();
         }
 
-        Delegate CreateMethodDelegate(MethodInfo targetMethod, Type delegateType)
+        Delegate CreateMethodDelegate(Type delegateType, MethodInfo targetMethod, object target)
         {
+            bool isInstanceMethod = !targetMethod.IsStatic;
+            // We expect static methods to have target null
+            Debug.Assert(isInstanceMethod || target == null);
+
             // Check whether we can skip wrapper completely
+            // TODO: Change this - we should always wrap in an exception handler, but for double return values
+            //       we let IsExceptionSafe mean we do a 1/0 in the exception handler, which Excel will catch and handle as #NUM!
+            //       For other types it shouldn't matter...
             if (IsExceptionSafe
                 && Array.TrueForAll(Parameters,
                                     delegate(XlParameterInfo pi) { return pi.BoxedValueType == null; })
                 && (!HasReturnType || ReturnType.BoxedValueType == null))
             {
                 // Create the delegate directly
-                // Tvw: Added this line to check for a DynamicMethod
+                if (isInstanceMethod)
+                {
+                    // Can't be DynamicMethod
+                    return Delegate.CreateDelegate(delegateType, target, targetMethod);
+                }
                 if (targetMethod is DynamicMethod)
-                    return ((DynamicMethod) targetMethod).CreateDelegate(delegateType);
-                return Delegate.CreateDelegate(delegateType, targetMethod);
+                        return ((DynamicMethod)targetMethod).CreateDelegate(delegateType);
+                    return Delegate.CreateDelegate(delegateType, targetMethod);
             }
 
             // DateTime input parameters are never exception safe - we need to be able to fail out of the 
@@ -401,6 +428,13 @@ namespace ExcelDna.Loader
             Type[] paramTypes = Array.ConvertAll<XlParameterInfo, Type>(Parameters,
                                                                         delegate(XlParameterInfo pi)
                                                                             { return pi.DelegateParamType; });
+            if (isInstanceMethod)
+            {
+                Type[] allParams = new Type[paramTypes.Length + 1];
+                allParams[0] = typeof(object);
+                Array.Copy(paramTypes, 0, allParams, 1, paramTypes.Length);
+                paramTypes = allParams;
+            }
 
             DynamicMethod wrapper = new DynamicMethod(
                 string.Format("Wrapped_f{0}_{1}", Index, targetMethod.Name),
@@ -421,11 +455,24 @@ namespace ExcelDna.Loader
                 wrapIL.BeginExceptionBlock();
             }
 
-            // Generate the body
-            // push all the arguments
-            for (byte i = 0; i < paramTypes.Length; i++)
+            // Generate the body - push all the arguments, including the target for instance methods
+            if (isInstanceMethod)
             {
-                wrapIL.Emit(OpCodes.Ldarg_S, i);
+                // First is the target of the delegate
+                wrapIL.Emit(OpCodes.Ldarg_S, 0);
+            }
+            for (byte i = 0; i < Parameters.Length; i++)
+            {
+                if (i < 255)
+                {
+                    byte argIndex = isInstanceMethod ? (byte)(i + 1) : i;
+                    wrapIL.Emit(OpCodes.Ldarg_S, argIndex);
+                }
+                else
+                {
+                    short argIndex = isInstanceMethod ? (short)(i + 1) : i;
+                    wrapIL.Emit(OpCodes.Ldarg, argIndex);
+                }
                 XlParameterInfo pi = Parameters[i];
                 if (pi.BoxedValueType != null)
                 {
@@ -477,11 +524,16 @@ namespace ExcelDna.Loader
             wrapIL.Emit(OpCodes.Ret);
             // End of Wrapper
 
+            if (isInstanceMethod)
+            {
+                return wrapper.CreateDelegate(delegateType, target);
+            }
             return wrapper.CreateDelegate(delegateType);
         }
 
         // This is the main conversion function called from XlLibrary.RegisterMethods
-        public static List<XlMethodInfo> ConvertToXlMethodInfos(List<MethodInfo> methodInfos, List<object> methodAttributes, List<List<object>> argumentAttributes)
+        // targets may be null - the typical case
+        public static List<XlMethodInfo> ConvertToXlMethodInfos(List<MethodInfo> methods, List<object> targets, List<object> methodAttributes, List<List<object>> argumentAttributes)
         {
             List<XlMethodInfo> xlMethodInfos = new List<XlMethodInfo>();
 
@@ -496,15 +548,22 @@ namespace ExcelDna.Loader
                 AssemblyBuilderAccess.Run /*AndSave*/);
             moduleBuilder = assemblyBuilder.DefineDynamicModule("DynamicDelegates");
 
-            for (int i = 0; i < methodInfos.Count; i++)
+            for (int i = 0; i < methods.Count; i++)
             {
-                MethodInfo mi  = methodInfos[i];
-                object methodAttrib = i < methodAttributes.Count ? methodAttributes[i] : null;
-                List<object> argAttribs = i < argumentAttributes.Count ? argumentAttributes[i] : null;
+                MethodInfo mi  = methods[i];
+                object target = (targets == null) ? null : targets[i];
+                object methodAttrib = (methodAttributes != null && i < methodAttributes.Count) ? methodAttributes[i] : null;
+                List<object> argAttribs = (argumentAttributes != null && i < argumentAttributes.Count) ? argumentAttributes[i] : null;
                 try
                 {
-                    XlMethodInfo xlmi = new XlMethodInfo(moduleBuilder, mi, methodAttrib, argAttribs);
-                    // Add if no Exceptions
+                    XlMethodInfo xlmi = new XlMethodInfo(moduleBuilder, mi, target, methodAttrib, argAttribs);
+                    // Skip if suppressed
+                    if (xlmi.SuppressRegistration)
+                    {
+                        Debug.Print("ExcelDNA -> Suppressing registration for " + mi.Name);
+                        continue;
+                    }
+                    // otherwise add
                     xlMethodInfos.Add(xlmi);
                 }
                 catch (DnaMarshalException e)

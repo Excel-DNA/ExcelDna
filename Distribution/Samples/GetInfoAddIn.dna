@@ -28,6 +28,20 @@
                 {                    
 		    return XlCall.Excel(XlCall.xlfGetWorkbook, type_num);
                 }
+				
+				[ExcelFunction(Description = "Returns the result of xlfGetWorkspace.", IsMacroType=true)]
+                public static object GetWorkspace(int type_num)
+                {                    
+		    return XlCall.Excel(XlCall.xlfGetWorkspace, type_num);
+                }
+				
+				[ExcelFunction(Description = "Returns the current list separator.", IsMacroType=true)]
+                public static string GetListSeparator(int type_num)
+                {                    
+					object[,] workspaceSettings = (object[,])XlCall.Excel(XlCall.xlfGetWorkspace, 37);
+					string listSeparator = (string)workspaceSettings[0, 4];
+					return listSeparator;
+                }
             }
 	]]>
 </DnaLibrary>

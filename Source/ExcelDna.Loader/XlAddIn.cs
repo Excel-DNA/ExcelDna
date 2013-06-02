@@ -69,7 +69,7 @@ namespace ExcelDna.Loader
     public unsafe static class XlAddIn
     {
         // This version must match the version declared in ExcelDna.Integration.ExcelIntegration
-        const int ExcelIntegrationVersion = 3;
+        const int ExcelIntegrationVersion = 4;
 
         static int thunkTableLength;
         static IntPtr thunkTable;
@@ -258,6 +258,16 @@ namespace ExcelDna.Loader
             Type registerWithAttDelegateType = integrationAssembly.GetType("ExcelDna.Integration.RegisterMethodsWithAttributesDelegate");
             Delegate registerWithAttDelegate = Delegate.CreateDelegate(registerWithAttDelegateType, registerWithAttMethod);
             integrationType.InvokeMember("SetRegisterMethodsWithAttributes", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] { registerWithAttDelegate });
+
+            MethodInfo registerDelAttMethod = typeof(XlRegistration).GetMethod("RegisterDelegatesWithAttributes", BindingFlags.Static | BindingFlags.Public);
+            Type registerDelAttDelegateType = integrationAssembly.GetType("ExcelDna.Integration.RegisterDelegatesWithAttributesDelegate");
+            Delegate registerDelAttDelegate = Delegate.CreateDelegate(registerDelAttDelegateType, registerDelAttMethod);
+            integrationType.InvokeMember("SetRegisterDelegatesWithAttributes", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] { registerDelAttDelegate });
+
+            MethodInfo getFuncRegInfoMethod = typeof(XlRegistration).GetMethod("GetFunctionRegistrationInfo", BindingFlags.Static | BindingFlags.Public);
+            Type getFuncRegInfoDelegateType = integrationAssembly.GetType("ExcelDna.Integration.GetFunctionRegistrationInfoDelegate");
+            Delegate getFuncRegInfoDelegate = Delegate.CreateDelegate(getFuncRegInfoDelegateType, getFuncRegInfoMethod);
+            integrationType.InvokeMember("SetGetFunctionRegistrationInfo", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] { getFuncRegInfoDelegate });
 
             MethodInfo getResourceBytesMethod = typeof(AssemblyManager).GetMethod("GetResourceBytes", BindingFlags.Static | BindingFlags.NonPublic);
             Type getResourceBytesDelegateType = integrationAssembly.GetType("ExcelDna.Integration.GetResourceBytesDelegate");
