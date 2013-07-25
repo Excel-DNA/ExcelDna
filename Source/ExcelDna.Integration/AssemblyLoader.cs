@@ -52,10 +52,25 @@ namespace ExcelDna.Integration
 
             foreach (ExportedAssembly assembly in assemblies)
             {
-                Type[] types = assembly.Assembly.GetTypes();
+                // Patch contributed by y_i on CodePlex:
+                // http://stackoverflow.com/questions/11915389/assembly-gettypes-throwing-an-exception
+                Type[] types;
+                try
+                {
+                    types = assembly.Assembly.GetTypes();
+                }
+                catch (ReflectionTypeLoadException e)
+                {
+                    // From MSDN:
+                    // [...]contains the array of classes (Types property) that were defined in the module and were loaded. 
+                    // The array can contain some null values.
+                    types = e.Types;
+                }
+
                 bool explicitExports = assembly.ExplicitExports;
                 foreach (Type type in types)
                 {
+                    if (type == null) continue; // We might get nulls from ReflectionTypeLoadException above
                     try
                     {
                         object[] attribs = type.GetCustomAttributes(false);

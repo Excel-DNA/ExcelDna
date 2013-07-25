@@ -34,13 +34,29 @@
 
     public static void dnaEchoAsync(object valueToEcho, int msToSleep, ExcelAsyncHandle asyncHandle)
     {
+		int managedThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
         ThreadPool.QueueUserWorkItem(delegate (object state) 
         { 
-            Thread.Sleep(msToSleep); 
-            asyncHandle.SetResult(valueToEcho);
+            Thread.Sleep(msToSleep);
+		    int completedThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
+			
+            asyncHandle.SetResult(valueToEcho + managedThreadId.ToString() + " - " + completedThreadId);
         });
     }
 
+	[ExcelFunction(IsThreadSafe=true)]
+	public static void dnaEchoAsyncThreadSafe(object valueToEcho, int msToSleep, ExcelAsyncHandle asyncHandle)
+    {
+		int managedThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
+        ThreadPool.QueueUserWorkItem(delegate (object state) 
+        { 
+            Thread.Sleep(msToSleep);
+		    int completedThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
+			
+            asyncHandle.SetResult(valueToEcho + managedThreadId.ToString() + " - " + completedThreadId);
+        });
+    }
+	
     // Wrappers like this work fine, where the called function might be registered as IsHidden=true
     // This will look fine in the function wiard already.
     public static object dnaEchoWrapped(object value, int msToSleep)

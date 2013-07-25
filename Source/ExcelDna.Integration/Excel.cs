@@ -355,38 +355,9 @@ namespace ExcelDna.Integration
         // return !XlCall.Excel(XlCall.xlfGetTool, 4, "Standard", 1);
         // (I think not - apparently it doesn't work right under Excel 2013, 
         //  but it can easily be called by the user in their helper)
-        public static bool IsInFunctionWizard()
-        {
-            if (SafeIsExcelVersionPre15)
-                return IsInFunctionWizardPre15(); 
-            
-            return IsInFunctionWizard15();
-        }
-
-        static bool IsInFunctionWizardPre15()
-        {
-            // WindowHandle is safe to call under Excel Pre 15.
-
-            // TODO: Handle the Find and Replace dialog
-            //       for international versions.
-            bool inFunctionWizard = false;
-            StringBuilder buffer = new StringBuilder(256);
-            EnumChildWindows(WindowHandle, delegate(IntPtr hWndEnum, IntPtr param)
-            {
-                if (IsFunctionWizardWindow(hWndEnum, buffer))
-                {
-                    inFunctionWizard = true;
-                    return false; // Stop enumerating
-                }
-                return true;	// Continue enumerating
-            }, IntPtr.Zero);
-            return inFunctionWizard;
-        }
-
-        // In Excel 2013, the Function Arguments dialog is a top-level window.
         // We enumerate these by getting the (native) thread id, from any WindowHandle,
         // then enumerating non-child windows for this thread.
-        static bool IsInFunctionWizard15()
+        public static bool IsInFunctionWizard()
         {
             // TODO: Handle the Find and Replace dialog
             //       for international versions.

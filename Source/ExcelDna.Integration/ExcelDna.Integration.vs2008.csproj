@@ -78,7 +78,7 @@
     <Compile Include="ExcelRtd.cs" />
     <Compile Include="SourceItem.cs" />
     <Compile Include="XlCall.cs" />
-    <Compile Include="Integration.cs" />
+    <Compile Include="ExcelIntegration.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="LogDisplay.resx">
