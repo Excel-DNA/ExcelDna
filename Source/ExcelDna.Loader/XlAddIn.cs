@@ -335,7 +335,7 @@ namespace ExcelDna.Loader
 
                 // START HERE: Better error display (with Exception info?)
                 Debug.WriteLine("ExcelDna.Loader.XlAddin.XlAutoOpen. Exception during Integration load: " + e.ToString());
-				string alertMessage = string.Format("A problem occurred while an add-in was being initialized (InitializeIntegration failed).\r\nThe add-in is built with ExcelDna and is being loaded from {0}", pathXll);
+				string alertMessage = string.Format("A problem occurred while an add-in was being initialized (InitializeIntegration failed - {1}).\r\nThe add-in is built with ExcelDna and is being loaded from {0}", pathXll, e.Message);
 				object xlCallResult;
 				XlCallImpl.TryExcelImpl(XlCallImpl.xlcAlert, out xlCallResult /*Ignored*/, alertMessage , 3 /* Only OK Button, Warning Icon*/);
                 result = 0;
@@ -345,6 +345,7 @@ namespace ExcelDna.Loader
                 // Clear the status bar message
                 object xlCallResult;
                 XlCallImpl.TryExcelImpl(XlCallImpl.xlcMessage, out xlCallResult /*Ignored*/ , false);
+                Debug.Print("Clear status bar message result: " + xlCallResult);
             }
             return result;
         }

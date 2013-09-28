@@ -54,7 +54,7 @@ namespace ExcelDna.Integration
         private static extern int AccessibleObjectFromWindow(
               IntPtr hwnd, uint dwObjectID, byte[] riid,
               ref IntPtr ptr /*ppUnk*/);
-        // Use the overload that' convenient when we don't need the ProcessId - pass IntPtr.Zero for the second parameter
+        // Use the overload that's convenient when we don't need the ProcessId - pass IntPtr.Zero for the second parameter
         [DllImport("user32.dll")]
         private static extern uint GetWindowThreadProcessId(IntPtr hWnd, /*out uint */ IntPtr refProcessId);
         [DllImport("Kernel32")]
@@ -205,7 +205,7 @@ namespace ExcelDna.Integration
                     return GetApplication();
                 }
 
-                // Check whether we have a chached App and it is valid
+                // Check whether we have a cached App and it is valid
                 if (IsApplicationOK())
                 {
                     return _application;
@@ -241,7 +241,7 @@ namespace ExcelDna.Integration
             // Echo calls removed for Excel 2013 - this caused trouble in the Excel 2013 'browse' scenario.
             bool isExcelPre15 = SafeIsExcelVersionPre15;
             if (isExcelPre15) XlCall.Excel(XlCall.xlcEcho, false);
-            XlCall.Excel(XlCall.xlcEcho, false);
+
             XlCall.Excel(XlCall.xlcNew, 5);
             XlCall.Excel(XlCall.xlcWorkbookInsert, 6);
 

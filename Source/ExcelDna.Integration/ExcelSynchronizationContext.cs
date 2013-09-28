@@ -28,6 +28,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using ExcelDna.Integration.Rtd;
@@ -348,8 +349,14 @@ namespace ExcelDna.Integration
         {
             try
             {
+                // If busy editing, don't even try to call Application.Run.
+                if (IsInFormulaEditMode()) return false;
+
                 object xlApp = ExcelDnaUtil.Application;
-                xlApp.GetType().InvokeMember("Run", BindingFlags.InvokeMethod, null, xlApp, new object[] { macroName, 0.0 }, _enUsCulture);
+                Type appType = xlApp.GetType();
+
+                // Now try Application.Run(macroName) if we are still alive.
+                appType.InvokeMember("Run", BindingFlags.InvokeMethod, null, xlApp, new object[] { macroName, 0.0 }, _enUsCulture);
                 return true;
             }
             catch (TargetInvocationException tie)
@@ -361,7 +368,6 @@ namespace ExcelDna.Integration
                 // Unexpected error
                 throw;
             }
-            // Not releasing the Application object here, since we are on the main thread.
         }
 
         #region Checks for known COM errors
@@ -385,6 +391,59 @@ namespace ExcelDna.Integration
                 default:
                     return false;
             }
+        }
+        #endregion
+
+        #region IsInFormulaEditMode helpers
+        // It's hard to know if Excel is in Edit mode without causing side effects.
+        // Using a COM call to check (Application.Interaction = ... / Application.ReferenceStyle = ...)
+        //   gives the right answer, but the resulting exception still causes the editing 
+        // abberations we see when calling Application.Run.
+        // Checking the focused window class doesn't always work (focus might be on another application)
+        // One proper solution might be a message hook to detect focus changes, but I'd not want to do that from 
+        //   managed code in every add-in, to hook every message on the main app.
+        // The UI Automation stuff would work, but might be hard to do from .NET 2.0.
+        // So as a first I attempt I try to check which window has the keyboard focus, 
+        //   and if it is not an Excel window (GetFocus returns 0), 
+        //   I fall back to the standard menu enabled check
+        //   (which still works under Excel 2007+, presumably for backward compatibility)
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        static extern IntPtr GetFocus();
+        
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
+
+        static string GetWindowClassName(IntPtr hWnd)
+        {
+            StringBuilder buffer = new StringBuilder(256);
+            GetClassName(hWnd, buffer, buffer.Capacity);
+            return buffer.ToString();
+        }
+
+        static bool IsFileOpenMenuEnabled()
+        {
+            CustomUI.CommandBars commandBars = CustomUI.ExcelCommandBarUtil.GetCommandBars();
+            CustomUI.CommandBar worksheetMenu = commandBars[1]; // Worksheet Menu Bar
+            CustomUI.CommandBarControl openMenuButton = worksheetMenu.FindControl(Missing.Value, /* ID:= */ 23, Missing.Value, Missing.Value, /* Recursive:= */ true);
+            return openMenuButton.Enabled;
+        }
+
+        static bool IsInFormulaEditMode()
+        {
+            IntPtr focusedWindow = GetFocus();
+            if (focusedWindow == IntPtr.Zero)
+            {
+                // Excel (this thread) does not have the keyboard focus. Use the Menu check instead.
+                bool menuEnabled = IsFileOpenMenuEnabled();
+                // Debug.Print("Menus Enabled: " + menuEnabled);
+                return !menuEnabled;
+            }
+
+            string className = GetWindowClassName(focusedWindow);
+            // Debug.Print("Focused window class: " + className);
+
+            return className == "EXCEL<" || className == "EXCEL6";
         }
         #endregion
     }

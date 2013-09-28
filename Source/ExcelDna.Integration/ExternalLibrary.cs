@@ -89,6 +89,14 @@ namespace ExcelDna.Integration
 			set { _ExplicitExports = value; }
 		}
 
+        private bool _ExplicitRegistration = false;
+        [XmlAttribute]
+        public bool ExplicitRegistration
+        {
+            get { return _ExplicitRegistration; }
+            set { _ExplicitRegistration = value; }
+        }
+
 		internal List<ExportedAssembly> GetAssemblies(string pathResolveRoot, DnaLibrary dnaLibrary)
 		{
 			List<ExportedAssembly> list = new List<ExportedAssembly>();
@@ -134,7 +142,7 @@ namespace ExcelDna.Integration
                         // even if not checking here.
                         byte[] rawAssembly = ExcelIntegration.GetAssemblyBytes(resourceName);
 					    Assembly assembly = Assembly.Load(rawAssembly);
-						list.Add(new ExportedAssembly(assembly, ExplicitExports, ComServer, false, typeLibPath, dnaLibrary));
+						list.Add(new ExportedAssembly(assembly, ExplicitExports, ExplicitRegistration, ComServer, false, typeLibPath, dnaLibrary));
 						return list;
 					}
 				}
@@ -173,7 +181,7 @@ namespace ExcelDna.Integration
                             {
                                 // Load as a regular assembly - TypeLib not supported.
                                 Assembly assembly = Assembly.LoadFrom(Path);
-                                list.Add(new ExportedAssembly(assembly, ExplicitExports, ComServer, false, null, dnaLibrary));
+                                list.Add(new ExportedAssembly(assembly, ExplicitExports, ExplicitRegistration, ComServer, false, null, dnaLibrary));
                                 return list;
                             }
                         }
@@ -256,7 +264,7 @@ namespace ExcelDna.Integration
                             resolvedTypeLibPath = tlbCheck;
                         }
                     }
-                    list.Add(new ExportedAssembly(assembly, ExplicitExports, ComServer, false, resolvedTypeLibPath, dnaLibrary));
+                    list.Add(new ExportedAssembly(assembly, ExplicitExports, ExplicitRegistration, ComServer, false, resolvedTypeLibPath, dnaLibrary));
 					return list;
 				}
 			}

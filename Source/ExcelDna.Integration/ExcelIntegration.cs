@@ -101,6 +101,7 @@ namespace ExcelDna.Integration
                                            List<object> methodAttributes,
                                            List<List<object>> argumentAttributes)
         {
+            ClearExplicitRegistration(methodAttributes);
             registerMethodsWithAttributes(methods, methodAttributes, argumentAttributes);
         }
 
@@ -108,7 +109,27 @@ namespace ExcelDna.Integration
                                              List<object> methodAttributes,
                                              List<List<object>> argumentAttributes)
         {
+            ClearExplicitRegistration(methodAttributes);
             registerDelegatesWithAttributes(delegates, methodAttributes, argumentAttributes);
+        }
+
+        // Fix up the ExplicitRegistration, since we are now explicitly registering
+        static void ClearExplicitRegistration(List<object> methodAttributes)
+        {
+            foreach (object attrib in methodAttributes)
+            {
+                ExcelFunctionAttribute funcAttrib = attrib as ExcelFunctionAttribute;
+                if (funcAttrib != null)
+                {
+                    funcAttrib.ExplicitRegistration = false;
+                    continue;
+                }
+                ExcelCommandAttribute cmdAttrib = attrib as ExcelCommandAttribute;
+                if (cmdAttrib != null)
+                {
+                    cmdAttrib.ExplicitRegistration = false;
+                }
+            }
         }
 
         public static List<List<string>> GetFunctionRegistrationInfo()

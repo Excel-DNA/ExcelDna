@@ -507,6 +507,13 @@ namespace ExcelDna.Integration.CustomUI
             }
         }
 
+        public CommandBarControl FindControl(object type, object id, object tag, object visible, object recursive)
+        {
+            object result = _type.InvokeMember("FindControl", BindingFlags.InvokeMethod, null, _object, new object[] { type, id, tag, visible, recursive });
+            if (result == null) return null;
+            return new CommandBarControl(result);
+        }
+
         public void Delete()
         {
             _type.InvokeMember("Delete", BindingFlags.InvokeMethod, null, _object, null);

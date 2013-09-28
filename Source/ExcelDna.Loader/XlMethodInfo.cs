@@ -55,7 +55,7 @@ namespace ExcelDna.Loader
         public bool IsThreadSafe; // For Functions only
         public bool IsClusterSafe; // For Functions only
         public string HelpTopic;
-        public bool SuppressRegistration;
+        public bool ExplicitRegistration;
         public double RegisterId;
 
         public XlParameterInfo[] Parameters;
@@ -76,7 +76,7 @@ namespace ExcelDna.Loader
             IsMacroType = false;
             IsThreadSafe = false;
             IsClusterSafe = false;
-            SuppressRegistration = false;
+            ExplicitRegistration = false;
 
             ShortCut = "";
             // DOCUMENT: Default MenuName is the library name
@@ -86,7 +86,7 @@ namespace ExcelDna.Loader
 
             SetAttributeInfo(methodAttribute);
             // We shortcut the rest of the registration
-            if (SuppressRegistration) return;
+            if (ExplicitRegistration) return;
 
             FixHelpTopic();
 
@@ -244,7 +244,7 @@ namespace ExcelDna.Loader
                 bool isHidden = (bool) attribType.GetField("IsHidden").GetValue(attrib);
                 bool isThreadSafe = (bool) attribType.GetField("IsThreadSafe").GetValue(attrib);
                 bool isClusterSafe = (bool)attribType.GetField("IsClusterSafe").GetValue(attrib);
-                bool suppressRegistration = (bool)attribType.GetField("SuppressRegistration").GetValue(attrib);
+                bool explicitRegistration = (bool)attribType.GetField("ExplicitRegistration").GetValue(attrib);
                 if (name != null)
                 {
                     Name = name;
@@ -269,7 +269,7 @@ namespace ExcelDna.Loader
                 // DOCUMENT: IsClusterSafe function MUST NOT be marked as IsMacroType=true and MAY be marked as IsThreadSafe = true.
                 //           [xlfRegister (Form 1) page in the Microsoft Excel 2010 XLL SDK Documentation]
                 IsClusterSafe = (!isMacroType && isClusterSafe);
-                SuppressRegistration = suppressRegistration;
+                ExplicitRegistration = explicitRegistration;
             }
             else if (TypeHelper.TypeHasAncestorWithFullName(attribType, "ExcelDna.Integration.ExcelCommandAttribute"))
             {
@@ -281,7 +281,7 @@ namespace ExcelDna.Loader
                 string menuText = (string) attribType.GetField("MenuText").GetValue(attrib);
 //                    bool isHidden = (bool)attribType.GetField("IsHidden").GetValue(attrib);
                 bool isExceptionSafe = (bool) attribType.GetField("IsExceptionSafe").GetValue(attrib);
-                bool suppressRegistration = (bool)attribType.GetField("SuppressRegistration").GetValue(attrib);
+                bool explicitRegistration = (bool)attribType.GetField("ExplicitRegistration").GetValue(attrib);
 
                 if (name != null)
                 {
@@ -309,7 +309,7 @@ namespace ExcelDna.Loader
                 }
 //                    IsHidden = isHidden;  // Only for functions.
                 IsExceptionSafe = isExceptionSafe;
-                SuppressRegistration = suppressRegistration;
+                ExplicitRegistration = explicitRegistration;
             }
         }
 
@@ -323,7 +323,8 @@ namespace ExcelDna.Loader
            // DOCUMENT: If HelpTopic is not rooted - it is expanded relative to .xll path.
             // If http url does not end with !0 it is appended.
             // I don't think https is supported, but it should not be considered an 'unrooted' path anyway.
-            if (HelpTopic.StartsWith("http://") || HelpTopic.StartsWith("https://"))
+            // I could not get file:/// working (only checked with Excel 2013)
+            if (HelpTopic.StartsWith("http://") || HelpTopic.StartsWith("https://") || HelpTopic.StartsWith("file://"))
             {
                 if (!HelpTopic.EndsWith("!0"))
                 {
@@ -558,7 +559,7 @@ namespace ExcelDna.Loader
                 {
                     XlMethodInfo xlmi = new XlMethodInfo(moduleBuilder, mi, target, methodAttrib, argAttribs);
                     // Skip if suppressed
-                    if (xlmi.SuppressRegistration)
+                    if (xlmi.ExplicitRegistration)
                     {
                         Debug.Print("ExcelDNA -> Suppressing registration for " + mi.Name);
                         continue;
