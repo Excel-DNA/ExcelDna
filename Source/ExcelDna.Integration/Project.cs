@@ -98,6 +98,14 @@ namespace ExcelDna.Integration
 			set { _ExplicitExports = value; }
 		}
 
+        private bool _ExplicitRegistration = false;
+        [XmlAttribute]
+        public bool ExplicitRegistration
+        {
+            get { return _ExplicitRegistration; }
+            set { _ExplicitRegistration = value; }
+        }
+
         private bool _ComServer = false;
         [XmlAttribute]
         public bool ComServer
@@ -359,7 +367,7 @@ namespace ExcelDna.Integration
 			}
 
             // TODO: Create TypeLib for execution-time compiled assemblies.
-			list.Add(new ExportedAssembly(cr.CompiledAssembly, ExplicitExports, ComServer, true, null, dnaLibrary));
+			list.Add(new ExportedAssembly(cr.CompiledAssembly, ExplicitExports, ExplicitRegistration, ComServer, true, null, dnaLibrary));
 			return list;
 		}
 

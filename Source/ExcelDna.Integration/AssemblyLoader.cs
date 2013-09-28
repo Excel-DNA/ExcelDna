@@ -68,6 +68,7 @@ namespace ExcelDna.Integration
                 }
 
                 bool explicitExports = assembly.ExplicitExports;
+                bool explicitRegistration = assembly.ExplicitRegistration;
                 foreach (Type type in types)
                 {
                     if (type == null) continue; // We might get nulls from ReflectionTypeLoadException above
@@ -75,7 +76,11 @@ namespace ExcelDna.Integration
                     {
                         object[] attribs = type.GetCustomAttributes(false);
                         bool isRtdServer;
-                        GetExcelMethods(type, explicitExports, methods);
+
+                        if (!explicitRegistration)
+                        {
+                            GetExcelMethods(type, explicitExports, methods);
+                        }
                         AssemblyLoaderExcelServer.GetExcelServerInfos(type, attribs, excelServerInfos);
                         GetExcelAddIns(assembly, type, loadRibbons, addIns);
                         GetRtdServerTypes(type, rtdServerTypes, out isRtdServer);

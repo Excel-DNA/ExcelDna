@@ -3,12 +3,10 @@
 //[assembly:System.Security.SecurityTransparent()]
 //[assembly:System.Security.SecurityRules(System.Security.SecurityRuleSet.Level1)]
 //#endif
-//[assembly:System.Reflection.AssemblyVersionAttribute("0.30.4390.42893")]
-//[assembly:System.Xml.Serialization.XmlSerializerVersionAttribute(ParentAssemblyId=@"6981d682-7dc2-4901-a5b8-9ede756a7433,", Version=@"4.0.0.0")]
-//namespace Microsoft.Xml.Serialization.GeneratedAssembly {
+//[assembly:System.Reflection.AssemblyVersionAttribute("0.31.5019.3238")]
+//[assembly:System.Xml.Serialization.XmlSerializerVersionAttribute(ParentAssemblyId=@"cf16aa56-f14f-463f-ab55-a4d6d6ddb3be,", Version=@"4.0.0.0")]
 namespace ExcelDna.Serialization
 {
-
     public class XmlSerializationWriterDnaLibrary : System.Xml.Serialization.XmlSerializationWriter {
 
         public void Write8_DnaLibrary(object o) {
@@ -159,6 +157,7 @@ namespace ExcelDna.Serialization
             WriteAttribute(@"DefaultReferences", @"", System.Xml.XmlConvert.ToString((global::System.Boolean)((global::System.Boolean)o.@DefaultReferences)));
             WriteAttribute(@"DefaultImports", @"", System.Xml.XmlConvert.ToString((global::System.Boolean)((global::System.Boolean)o.@DefaultImports)));
             WriteAttribute(@"ExplicitExports", @"", System.Xml.XmlConvert.ToString((global::System.Boolean)((global::System.Boolean)o.@ExplicitExports)));
+            WriteAttribute(@"ExplicitRegistration", @"", System.Xml.XmlConvert.ToString((global::System.Boolean)((global::System.Boolean)o.@ExplicitRegistration)));
             WriteAttribute(@"ComServer", @"", System.Xml.XmlConvert.ToString((global::System.Boolean)((global::System.Boolean)o.@ComServer)));
             {
                 global::System.Collections.Generic.List<global::ExcelDna.Integration.Reference> a = (global::System.Collections.Generic.List<global::ExcelDna.Integration.Reference>)o.@References;
@@ -227,6 +226,7 @@ namespace ExcelDna.Serialization
             WriteAttribute(@"Pack", @"", System.Xml.XmlConvert.ToString((global::System.Boolean)((global::System.Boolean)o.@Pack)));
             WriteAttribute(@"LoadFromBytes", @"", System.Xml.XmlConvert.ToString((global::System.Boolean)((global::System.Boolean)o.@LoadFromBytes)));
             WriteAttribute(@"ExplicitExports", @"", System.Xml.XmlConvert.ToString((global::System.Boolean)((global::System.Boolean)o.@ExplicitExports)));
+            WriteAttribute(@"ExplicitRegistration", @"", System.Xml.XmlConvert.ToString((global::System.Boolean)((global::System.Boolean)o.@ExplicitRegistration)));
             WriteEndElement(o);
         }
 
@@ -498,8 +498,8 @@ namespace ExcelDna.Serialization
             if ((object)(o.@References) == null) o.@References = new global::System.Collections.Generic.List<global::ExcelDna.Integration.Reference>();
             global::System.Collections.Generic.List<global::ExcelDna.Integration.Reference> a_3 = (global::System.Collections.Generic.List<global::ExcelDna.Integration.Reference>)o.@References;
             if ((object)(o.@SourceItems) == null) o.@SourceItems = new global::System.Collections.Generic.List<global::ExcelDna.Integration.SourceItem>();
-            global::System.Collections.Generic.List<global::ExcelDna.Integration.SourceItem> a_8 = (global::System.Collections.Generic.List<global::ExcelDna.Integration.SourceItem>)o.@SourceItems;
-            bool[] paramsRead = new bool[10];
+            global::System.Collections.Generic.List<global::ExcelDna.Integration.SourceItem> a_9 = (global::System.Collections.Generic.List<global::ExcelDna.Integration.SourceItem>)o.@SourceItems;
+            bool[] paramsRead = new bool[11];
             while (Reader.MoveToNextAttribute()) {
                 if (!paramsRead[0] && ((object) Reader.LocalName == (object)id3_Name && (object) Reader.NamespaceURI == (object)id2_Item)) {
                     o.@Name = Reader.Value;
@@ -525,12 +525,16 @@ namespace ExcelDna.Serialization
                     o.@ExplicitExports = System.Xml.XmlConvert.ToBoolean(Reader.Value);
                     paramsRead[6] = true;
                 }
-                else if (!paramsRead[7] && ((object) Reader.LocalName == (object)id20_ComServer && (object) Reader.NamespaceURI == (object)id2_Item)) {
-                    o.@ComServer = System.Xml.XmlConvert.ToBoolean(Reader.Value);
+                else if (!paramsRead[7] && ((object) Reader.LocalName == (object)id20_ExplicitRegistration && (object) Reader.NamespaceURI == (object)id2_Item)) {
+                    o.@ExplicitRegistration = System.Xml.XmlConvert.ToBoolean(Reader.Value);
                     paramsRead[7] = true;
                 }
+                else if (!paramsRead[8] && ((object) Reader.LocalName == (object)id21_ComServer && (object) Reader.NamespaceURI == (object)id2_Item)) {
+                    o.@ComServer = System.Xml.XmlConvert.ToBoolean(Reader.Value);
+                    paramsRead[8] = true;
+                }
                 else if (!IsXmlnsAttribute(Reader.Name)) {
-                    UnknownNode((object)o, @":Name, :Language, :CompilerVersion, :DefaultReferences, :DefaultImports, :ExplicitExports, :ComServer");
+                    UnknownNode((object)o, @":Name, :Language, :CompilerVersion, :DefaultReferences, :DefaultImports, :ExplicitExports, :ExplicitRegistration, :ComServer");
                 }
             }
             Reader.MoveToElement();
@@ -548,8 +552,8 @@ namespace ExcelDna.Serialization
                     if (((object) Reader.LocalName == (object)id13_Reference && (object) Reader.NamespaceURI == (object)id2_Item)) {
                         if ((object)(a_3) == null) Reader.Skip(); else a_3.Add(Read3_Reference(false, true));
                     }
-                    else if (((object) Reader.LocalName == (object)id21_SourceItem && (object) Reader.NamespaceURI == (object)id2_Item)) {
-                        if ((object)(a_8) == null) Reader.Skip(); else a_8.Add(Read4_SourceItem(false, true));
+                    else if (((object) Reader.LocalName == (object)id22_SourceItem && (object) Reader.NamespaceURI == (object)id2_Item)) {
+                        if ((object)(a_9) == null) Reader.Skip(); else a_9.Add(Read4_SourceItem(false, true));
                     }
                     else {
                         UnknownNode((object)o, @":Reference, :SourceItem");
@@ -647,17 +651,17 @@ namespace ExcelDna.Serialization
             if (isNull) return null;
             global::ExcelDna.Integration.ExternalLibrary o;
             o = new global::ExcelDna.Integration.ExternalLibrary();
-            bool[] paramsRead = new bool[6];
+            bool[] paramsRead = new bool[7];
             while (Reader.MoveToNextAttribute()) {
                 if (!paramsRead[0] && ((object) Reader.LocalName == (object)id16_Path && (object) Reader.NamespaceURI == (object)id2_Item)) {
                     o.@Path = Reader.Value;
                     paramsRead[0] = true;
                 }
-                else if (!paramsRead[1] && ((object) Reader.LocalName == (object)id22_TypeLibPath && (object) Reader.NamespaceURI == (object)id2_Item)) {
+                else if (!paramsRead[1] && ((object) Reader.LocalName == (object)id23_TypeLibPath && (object) Reader.NamespaceURI == (object)id2_Item)) {
                     o.@TypeLibPath = Reader.Value;
                     paramsRead[1] = true;
                 }
-                else if (!paramsRead[2] && ((object) Reader.LocalName == (object)id20_ComServer && (object) Reader.NamespaceURI == (object)id2_Item)) {
+                else if (!paramsRead[2] && ((object) Reader.LocalName == (object)id21_ComServer && (object) Reader.NamespaceURI == (object)id2_Item)) {
                     o.@ComServer = System.Xml.XmlConvert.ToBoolean(Reader.Value);
                     paramsRead[2] = true;
                 }
@@ -665,7 +669,7 @@ namespace ExcelDna.Serialization
                     o.@Pack = System.Xml.XmlConvert.ToBoolean(Reader.Value);
                     paramsRead[3] = true;
                 }
-                else if (!paramsRead[4] && ((object) Reader.LocalName == (object)id23_LoadFromBytes && (object) Reader.NamespaceURI == (object)id2_Item)) {
+                else if (!paramsRead[4] && ((object) Reader.LocalName == (object)id24_LoadFromBytes && (object) Reader.NamespaceURI == (object)id2_Item)) {
                     o.@LoadFromBytes = System.Xml.XmlConvert.ToBoolean(Reader.Value);
                     paramsRead[4] = true;
                 }
@@ -673,8 +677,12 @@ namespace ExcelDna.Serialization
                     o.@ExplicitExports = System.Xml.XmlConvert.ToBoolean(Reader.Value);
                     paramsRead[5] = true;
                 }
+                else if (!paramsRead[6] && ((object) Reader.LocalName == (object)id20_ExplicitRegistration && (object) Reader.NamespaceURI == (object)id2_Item)) {
+                    o.@ExplicitRegistration = System.Xml.XmlConvert.ToBoolean(Reader.Value);
+                    paramsRead[6] = true;
+                }
                 else if (!IsXmlnsAttribute(Reader.Name)) {
-                    UnknownNode((object)o, @":Path, :TypeLibPath, :ComServer, :Pack, :LoadFromBytes, :ExplicitExports");
+                    UnknownNode((object)o, @":Path, :TypeLibPath, :ComServer, :Pack, :LoadFromBytes, :ExplicitExports, :ExplicitRegistration");
                 }
             }
             Reader.MoveToElement();
@@ -705,52 +713,54 @@ namespace ExcelDna.Serialization
 
         string id2_Item;
         string id14_CustomUI;
-        string id22_TypeLibPath;
-        string id21_SourceItem;
+        string id24_LoadFromBytes;
+        string id16_Path;
         string id17_Pack;
         string id7_Language;
-        string id10_DefaultImports;
+        string id20_ExplicitRegistration;
+        string id11_ExternalLibrary;
         string id3_Name;
         string id6_CreateSandboxedAppDomain;
-        string id16_Path;
+        string id10_DefaultImports;
         string id9_DefaultReferences;
-        string id11_ExternalLibrary;
         string id12_Project;
         string id18_AssemblyPath;
-        string id23_LoadFromBytes;
+        string id22_SourceItem;
         string id13_Reference;
+        string id23_TypeLibPath;
         string id5_ShadowCopyFiles;
-        string id8_CompilerVersion;
         string id15_Image;
         string id19_ExplicitExports;
         string id1_DnaLibrary;
         string id4_RuntimeVersion;
-        string id20_ComServer;
+        string id8_CompilerVersion;
+        string id21_ComServer;
 
         protected override void InitIDs() {
             id2_Item = Reader.NameTable.Add(@"");
             id14_CustomUI = Reader.NameTable.Add(@"CustomUI");
-            id22_TypeLibPath = Reader.NameTable.Add(@"TypeLibPath");
-            id21_SourceItem = Reader.NameTable.Add(@"SourceItem");
+            id24_LoadFromBytes = Reader.NameTable.Add(@"LoadFromBytes");
+            id16_Path = Reader.NameTable.Add(@"Path");
             id17_Pack = Reader.NameTable.Add(@"Pack");
             id7_Language = Reader.NameTable.Add(@"Language");
-            id10_DefaultImports = Reader.NameTable.Add(@"DefaultImports");
+            id20_ExplicitRegistration = Reader.NameTable.Add(@"ExplicitRegistration");
+            id11_ExternalLibrary = Reader.NameTable.Add(@"ExternalLibrary");
             id3_Name = Reader.NameTable.Add(@"Name");
             id6_CreateSandboxedAppDomain = Reader.NameTable.Add(@"CreateSandboxedAppDomain");
-            id16_Path = Reader.NameTable.Add(@"Path");
+            id10_DefaultImports = Reader.NameTable.Add(@"DefaultImports");
             id9_DefaultReferences = Reader.NameTable.Add(@"DefaultReferences");
-            id11_ExternalLibrary = Reader.NameTable.Add(@"ExternalLibrary");
             id12_Project = Reader.NameTable.Add(@"Project");
             id18_AssemblyPath = Reader.NameTable.Add(@"AssemblyPath");
-            id23_LoadFromBytes = Reader.NameTable.Add(@"LoadFromBytes");
+            id22_SourceItem = Reader.NameTable.Add(@"SourceItem");
             id13_Reference = Reader.NameTable.Add(@"Reference");
+            id23_TypeLibPath = Reader.NameTable.Add(@"TypeLibPath");
             id5_ShadowCopyFiles = Reader.NameTable.Add(@"ShadowCopyFiles");
-            id8_CompilerVersion = Reader.NameTable.Add(@"CompilerVersion");
             id15_Image = Reader.NameTable.Add(@"Image");
             id19_ExplicitExports = Reader.NameTable.Add(@"ExplicitExports");
             id1_DnaLibrary = Reader.NameTable.Add(@"DnaLibrary");
             id4_RuntimeVersion = Reader.NameTable.Add(@"RuntimeVersion");
-            id20_ComServer = Reader.NameTable.Add(@"ComServer");
+            id8_CompilerVersion = Reader.NameTable.Add(@"CompilerVersion");
+            id21_ComServer = Reader.NameTable.Add(@"ComServer");
         }
     }
 
