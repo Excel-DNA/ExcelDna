@@ -30,7 +30,4 @@
 
 #include "mscorlib_extract.h"
 #include "metahost_extract.h"
-#include <atlbase.h>
-#include <atlfile.h>
-#include <atlpath.h>
-#include <atlsafe.h>
+

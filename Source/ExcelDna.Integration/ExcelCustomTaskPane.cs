@@ -33,11 +33,10 @@ namespace ExcelDna.Integration.CustomUI
     {
         private static ExcelCustomTaskPaneAddIn _addin;
 
-        // TODO: Need to review how we use this collection again.
-        //       Do we need to delete from here?
-        //       This becomes a bigger issue with Excel 2013, where they might be created and destroyed a lot.
-        //       Maybe WeakReference? (But how does that work with COM RCWs?)
-        private static List<CustomTaskPane> _customTaskPanes = new List<CustomTaskPane>();
+        // We keep a list of CustomTaksPanes, so that we can clean up when the add-in is removed or reopened.
+        // But we don't want to artificially extend the lifetime of CTPs if the add-in is not keeping a reference.
+        // So we use WeakReferences to not interfere with lifetime, but have a chance to clean up for live ones.
+        private static readonly List<WeakReference> _customTaskPanes = new List<WeakReference>();
 
         public static CustomTaskPane CreateCustomTaskPane(Type userControlType, string title) 
         {
@@ -96,7 +95,7 @@ namespace ExcelDna.Integration.CustomUI
         {
             ICTPFactory factory = GetCTPFactory();
             CustomTaskPane newCTP = factory.CreateCTP(controlProgId, title, parent);
-            _customTaskPanes.Add(newCTP);   // TODO: Only removed when add-in is unloaded...???
+            _customTaskPanes.Add(new WeakReference(newCTP));   // TODO: Only removed when add-in is unloaded...???
             return newCTP;
         }
 
@@ -113,10 +112,14 @@ namespace ExcelDna.Integration.CustomUI
 
         internal static void UnloadCustomTaskPanes()
         {
-            foreach (CustomTaskPane ctp in _customTaskPanes)
+            foreach (WeakReference ctpWr in _customTaskPanes)
             {
-                ctp.Delete();
-                Marshal.FinalReleaseComObject(ctp);
+                CustomTaskPane ctp = ctpWr.Target as CustomTaskPane;
+                if (ctp != null)
+                {
+                    ctp.Delete();
+                    Marshal.FinalReleaseComObject(ctp);
+                }
             }
             _customTaskPanes.Clear();
         }

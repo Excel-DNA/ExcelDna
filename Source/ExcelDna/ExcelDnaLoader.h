@@ -23,6 +23,7 @@
 */
 
 #pragma once
+#include <string>
 
 void LoaderInitialize(HMODULE hModule);
 void LoaderUnload();
@@ -30,6 +31,6 @@ void LoaderUnload();
 bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo);
 void XlLibraryUnload();
 
-CString GetAddInFullPath();
-HRESULT GetAddInName(CString& addInName);
+std::wstring GetAddInFullPath();
+HRESULT GetAddInName(std::wstring& addInName);
 

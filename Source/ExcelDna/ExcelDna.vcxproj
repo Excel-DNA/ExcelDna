@@ -223,6 +223,7 @@ copy "$(SolutionDir)ExcelDna.Loader\bin\debug\ExcelDna.Loader.*" "$(TargetDir)" 
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsManaged>
     </ClCompile>
+    <ClCompile Include="MiscUtils.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -237,6 +238,7 @@ copy "$(SolutionDir)ExcelDna.Loader\bin\debug\ExcelDna.Loader.*" "$(TargetDir)" 
     <ClInclude Include="ExcelDna.h" />
     <ClInclude Include="ExcelDnaLoader.h" />
     <ClInclude Include="metahost_extract.h" />
+    <ClInclude Include="MiscUtils.h" />
     <ClInclude Include="mscorlib_extract.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />

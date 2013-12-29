@@ -27,41 +27,54 @@
 // so that we can set the safe AppDomain flags when loading.
 
 #include "stdafx.h"
+#include <string>
+#include <tchar.h>
+#include "resource.h"
+#include "MiscUtils.h"
 #include "DetectFx.h"
 #include "ExcelDna.h"
 #include "ExcelDnaLoader.h"
-#include "resource.h"
 
 #define CountOf(x) sizeof(x)/sizeof(*x)
 const int MAX_MSG = 1024;
-const CString CLR_VERSION_20 = L"v2.0.50727";
+const std::wstring CLR_VERSION_20 = L"v2.0.50727";
 
 static HMODULE hModuleCurrent;
 // These don't use ATL classes to give us explicit control over when CLR is called
 static IUnknown* pAppDomain_ForUnload = NULL;
 static ICorRuntimeHost* pHost_ForUnload = NULL;
 // Temp file to be used if we need to write .config from resources.
-static CString tempConfigFileName = "";
+static TempFileHolder tempConfig;
 
 // Forward declarations for functions defined in this file.
-HRESULT LoadClr(CString clrVersion, ICorRuntimeHost **ppHost);
-HRESULT LoadClrMeta(CString clrVersion, ICLRMetaHost* pMetaHost, ICorRuntimeHost **ppHost);
+HRESULT LoadClr(std::wstring clrVersion, ICorRuntimeHost **ppHost);
+HRESULT LoadClrMeta(std::wstring clrVersion, ICLRMetaHost* pMetaHost, ICorRuntimeHost **ppHost);
 HRESULT LoadClr20(ICorRuntimeHost **ppHost);
-HRESULT LoadAppDomain(CComPtr<ICorRuntimeHost> pHost, CString addInFullPath, bool createSandboxedAppDomain, bool shadowCopyFiles, CComPtr<_Assembly>& loaderAssembly, CComQIPtr<_AppDomain>& addInAppDomain, bool& unloadAppDomain);
-HRESULT LoadLoaderIntoAppDomain(CComQIPtr<_AppDomain>& pAppDomain, CComPtr<_Assembly>& pLoaderAssembly, bool forceFromBytes);
-void ShowMessage(int headerId, int bodyId, int footerId, HRESULT hr = S_OK);
-HRESULT CreateTempFile(void* pBuffer, DWORD nBufSize, CString& fileName);
-HRESULT DeleteTempFile(CString fileName);
 
-HRESULT GetClrOptions(CString& clrVersion, bool& shadowCopyFiles, bool& createSandboxedAppDomain);
-HRESULT GetDnaHeader(bool showErrors, CString& header);
-HRESULT ParseDnaHeader(CString header, CString& addInName, CString& runtimeVersion, bool& shadowCopyFiles, CString& createSandboxedAppDomain);
-HRESULT GetAttributeValue(CString tag, CString attributeName, CString& attributeValue);
+_COM_SMARTPTR_TYPEDEF(ICorRuntimeHost, IID_ICorRuntimeHost);
+EXTERN_GUID(IID__Assembly,	0x17156360, 0x2f1a, 0x384a, 0xbc, 0x52, 0xfd, 0xe9, 0x3c, 0x21, 0x5c, 0x5b);
+_COM_SMARTPTR_TYPEDEF(_Assembly, IID__Assembly);
+_COM_SMARTPTR_TYPEDEF(_AppDomain, IID__AppDomain);
+_COM_SMARTPTR_TYPEDEF(IAppDomainSetup, IID_IAppDomainSetup);
+_COM_SMARTPTR_TYPEDEF(_Type, IID__Type);
+_COM_SMARTPTR_TYPEDEF(ICLRMetaHost, IID_ICLRMetaHost);
+_COM_SMARTPTR_TYPEDEF(ICLRRuntimeInfo, IID_ICLRRuntimeInfo);
+
+HRESULT LoadAppDomain(ICorRuntimeHostPtr pHost, std::wstring addInFullPath, bool createSandboxedAppDomain, bool shadowCopyFiles, _AssemblyPtr& loaderAssembly, _AppDomainPtr& addInAppDomain, bool& unloadAppDomain);
+HRESULT LoadLoaderIntoAppDomain(_AppDomainPtr& pAppDomain, _AssemblyPtr& pLoaderAssembly, bool forceFromBytes);
+void ShowMessage(int headerId, int bodyId, int footerId, HRESULT hr = S_OK);
+HRESULT CreateTempFile(void* pBuffer, DWORD nBufSize, std::wstring& fileName);
+HRESULT DeleteTempFile(std::wstring fileName);
+
+HRESULT GetClrOptions(std::wstring& clrVersion, bool& shadowCopyFiles, bool& createSandboxedAppDomain);
+HRESULT GetDnaHeader(bool showErrors, std::wstring& header);
+HRESULT ParseDnaHeader(std::wstring header, std::wstring& addInName, std::wstring& runtimeVersion, bool& shadowCopyFiles, std::wstring& createSandboxedAppDomain);
+HRESULT GetAttributeValue(std::wstring tag, std::wstring attributeName, std::wstring& attributeValue);
 
 BOOL IsRunningOnCluster();
 
 BOOL IsBufferUTF8(BYTE* buffer, DWORD bufferLength);
-CStringW UTF8toUTF16(const CStringA& utf8);
+std::wstring UTF8toUTF16(const std::string& utf8);
 
 // COR function pointer typedefs.
 typedef HRESULT (STDAPICALLTYPE *pfnGetCORVersion)(LPWSTR pBuffer, 
@@ -92,8 +105,8 @@ typedef HRESULT (STDAPICALLTYPE *pfnCLRCreateInstance)(
 bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 {
 	HRESULT hr;
-	CComPtr<ICorRuntimeHost> pHost;
-	CString clrVersion;
+	ICorRuntimeHostPtr pHost;
+	std::wstring clrVersion;
 	bool shadowCopyFiles;
 	bool createSandboxedAppDomain;
 	
@@ -105,7 +118,7 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 		return 0;
 	}
 #ifdef _M_X64
-	bool allowedVersion = clrVersion.CompareNoCase(L"v4.0") >= 0;
+	bool allowedVersion = CompareNoCase(clrVersion, L"v4.0") >= 0;
 	if (!allowedVersion)
 	{
 		ShowMessage(IDS_MSG_HEADER_64NET4, 
@@ -135,9 +148,9 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 	}
 
 	// Load (or find) the AppDomain that will contain the add-in
-	CString addInFullPath = GetAddInFullPath();
-	CComQIPtr<_AppDomain> pAppDomain;
-	CComQIPtr<_Assembly> pLoaderAssembly;
+	std::wstring addInFullPath = GetAddInFullPath();
+	_AppDomainPtr pAppDomain;
+	_AssemblyPtr pLoaderAssembly;
 	bool unloadAppDomain;
 
 	hr = LoadAppDomain(pHost, addInFullPath, createSandboxedAppDomain, shadowCopyFiles, pLoaderAssembly, pAppDomain, unloadAppDomain);
@@ -147,11 +160,8 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 		return 0;
 	}
 
-    CComBSTR appDomainName;
-	pAppDomain->get_FriendlyName(&appDomainName);
-
-	CComPtr<_Type> pXlAddInType;
-	hr = pLoaderAssembly->GetType_2(CComBSTR(L"ExcelDna.Loader.XlAddIn"), &pXlAddInType);
+	_TypePtr pXlAddInType;
+	hr = pLoaderAssembly->GetType_2(_bstr_t(L"ExcelDna.Loader.XlAddIn"), &pXlAddInType);
 	if (FAILED(hr) || pXlAddInType == NULL)
 	{
 		ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
@@ -161,21 +171,23 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 		return 0;
 	}
 
-	CComSafeArray<VARIANT> initArgs;
+	SafeVariantArray initArgs(3);
+	initArgs.lock();
 #ifndef _M_X64
-	initArgs.Add(CComVariant((INT32)pExportInfo));
-	initArgs.Add(CComVariant((INT32)hModuleCurrent));
+	initArgs.setElement(0, (INT32)pExportInfo);
+	initArgs.setElement(1, (INT32)hModuleCurrent);
 #else
-	initArgs.Add(CComVariant((INT64)pExportInfo));
-	initArgs.Add(CComVariant((INT64)hModuleCurrent));
+	initArgs.setElement(0, (INT64)pExportInfo);
+	initArgs.setElement(1, (INT64)hModuleCurrent);
 #endif
-	initArgs.Add(CComVariant(addInFullPath.AllocSysString()));
-	CComVariant initRetVal;
-	CComVariant target;
+	initArgs.setElement(2, SysAllocStringLen(addInFullPath.c_str(), static_cast<UINT>(addInFullPath.length())));
+	initArgs.unlock();
+	_variant_t initRetVal;
+	_variant_t target;
 #ifndef _M_X64
-	hr = pXlAddInType->InvokeMember_3(CComBSTR("Initialize32"), (BindingFlags)(BindingFlags_Static | BindingFlags_Public | BindingFlags_InvokeMethod), NULL, target, initArgs, &initRetVal);
+	hr = pXlAddInType->InvokeMember_3(_bstr_t("Initialize32"), (BindingFlags)(BindingFlags_Static | BindingFlags_Public | BindingFlags_InvokeMethod), NULL, target, initArgs, &initRetVal);
 #else
-	hr = pXlAddInType->InvokeMember_3(CComBSTR("Initialize64"), (BindingFlags)(BindingFlags_Static | BindingFlags_Public | BindingFlags_InvokeMethod), NULL, target, initArgs, &initRetVal);
+	hr = pXlAddInType->InvokeMember_3(_bstr_t("Initialize64"), (BindingFlags)(BindingFlags_Static | BindingFlags_Public | BindingFlags_InvokeMethod), NULL, target, initArgs, &initRetVal);
 #endif
 	if (FAILED(hr))
 	{
@@ -224,15 +236,11 @@ void XlLibraryUnload()
 		pHost_ForUnload = NULL;
 	}
 	// Also delete the temp .config file, if we made one.
-	if (tempConfigFileName != "")
-	{
-		DeleteTempFile(tempConfigFileName);
-		tempConfigFileName = "";
-	}
+	tempConfig.destroy();
 }
 
 // Try to get the right version of the CLR running.
-HRESULT LoadClr(CString clrVersion, ICorRuntimeHost **ppHost)
+HRESULT LoadClr(std::wstring clrVersion, ICorRuntimeHost **ppHost)
 {
 	// Check whether the .Net 4+ MetaHost interfaces are present.
 	// The checks here are according to this blog post: 
@@ -248,9 +256,9 @@ HRESULT LoadClr(CString clrVersion, ICorRuntimeHost **ppHost)
 
 	HRESULT hr = E_FAIL;
 	HMODULE hMscoree = NULL;
-	CComPtr<ICLRMetaHost> pMetaHost;
+	ICLRMetaHostPtr pMetaHost;
 
-	bool needNet40 = (clrVersion.CompareNoCase(L"v4.0") >= 0);
+	bool needNet40 = (CompareNoCase(clrVersion, L"v4.0") >= 0);
 	bool needMetaHost = needNet40;
 
 	hMscoree = LoadLibrary(L"mscoree.dll");
@@ -328,16 +336,16 @@ HRESULT LoadClr(CString clrVersion, ICorRuntimeHost **ppHost)
 }
 
 // Load the desired Clr version using .Net 4+ the MetaHost interfaces.
-HRESULT LoadClrMeta(CString clrVersion, ICLRMetaHost* pMetaHost, ICorRuntimeHost **ppHost)
+HRESULT LoadClrMeta(std::wstring clrVersion, ICLRMetaHost* pMetaHost, ICorRuntimeHost **ppHost)
 {
 	// Even if we want to load .Net 2.0, we might need to multi-host since .Net 4.0 runtime
 	// might also be loaded.
 
 	HRESULT hr = E_FAIL;
-	CComPtr<ICLRRuntimeInfo> pRuntimeInfo;
-	bool needNet40 = (clrVersion.CompareNoCase(L"v4.0") >= 0);
+	ICLRRuntimeInfoPtr pRuntimeInfo;
+	bool needNet40 = (CompareNoCase(clrVersion, L"v4.0") >= 0);
 
-	hr = pMetaHost->GetRuntime(clrVersion, IID_ICLRRuntimeInfo, (LPVOID*)&pRuntimeInfo);
+	hr = pMetaHost->GetRuntime(clrVersion.c_str(), IID_ICLRRuntimeInfo, (LPVOID*)&pRuntimeInfo);
 	if (FAILED(hr))
 	{
 		// The version we ask for is not installed.
@@ -487,12 +495,11 @@ HRESULT LoadClr20(ICorRuntimeHost **ppHost)
 	return hr;
 }
 
-HRESULT LoadAppDomain(CComPtr<ICorRuntimeHost> pHost, CString addInFullPath, bool createSandboxedAppDomain, bool shadowCopyFiles, CComPtr<_Assembly>& pLoaderAssembly , CComQIPtr<_AppDomain>& pAppDomain, bool& unloadAppDomain)
+HRESULT LoadAppDomain(ICorRuntimeHostPtr pHost, std::wstring addInFullPath, bool createSandboxedAppDomain, bool shadowCopyFiles, _AssemblyPtr& pLoaderAssembly , _AppDomainPtr& pAppDomain, bool& unloadAppDomain)
 {
 	HRESULT hr;
-	CPath xllDirectory(addInFullPath);
-	xllDirectory.RemoveFileSpec();
-	CComSafeArray<BYTE> loaderBytes;
+	std::wstring xllDirectory = addInFullPath;
+	RemoveFileSpecFromPath(xllDirectory);
 	unloadAppDomain = false;
 
 	if (IsRunningOnCluster())
@@ -524,7 +531,7 @@ HRESULT LoadAppDomain(CComPtr<ICorRuntimeHost> pHost, CString addInFullPath, boo
 	// End of RunningOnCluster path.
 
 	// Create and populate AppDomainSetup
-	CComPtr<IUnknown> pAppDomainSetupUnk;
+	IUnknownPtr pAppDomainSetupUnk;
 	hr = pHost->CreateDomainSetup(&pAppDomainSetupUnk);
 	if (FAILED(hr) || pAppDomainSetupUnk == NULL)
 	{
@@ -535,8 +542,8 @@ HRESULT LoadAppDomain(CComPtr<ICorRuntimeHost> pHost, CString addInFullPath, boo
 		return E_FAIL;
 	}
 
-	CComQIPtr<IAppDomainSetup> pAppDomainSetup = pAppDomainSetupUnk;
-	hr = pAppDomainSetup->put_ApplicationBase(CComBSTR(xllDirectory));
+	IAppDomainSetupPtr pAppDomainSetup = pAppDomainSetupUnk;
+	hr = pAppDomainSetup->put_ApplicationBase(_bstr_t(xllDirectory.c_str()));
 	if (FAILED(hr))
 	{
 		ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
@@ -546,7 +553,7 @@ HRESULT LoadAppDomain(CComPtr<ICorRuntimeHost> pHost, CString addInFullPath, boo
 		return E_FAIL;
 	}
 
-	hr = pAppDomainSetup->put_ShadowCopyFiles(CComBSTR(shadowCopyFiles ? L"true" : L"false"));
+	hr = pAppDomainSetup->put_ShadowCopyFiles(_bstr_t(shadowCopyFiles ? L"true" : L"false"));
 	if (FAILED(hr))
 	{
 		ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
@@ -557,17 +564,15 @@ HRESULT LoadAppDomain(CComPtr<ICorRuntimeHost> pHost, CString addInFullPath, boo
 	}
 
 	// AppDomainSetup.ApplicationName = "Excel-DNA: c:\MyAddins\MyAddIn.xll";
-	CComBSTR appDomainName = L"Excel-DNA: ";
-	appDomainName.Append(addInFullPath);
+	_bstr_t appDomainName((std::wstring(L"Excel-DNA: ") + addInFullPath).c_str());
 	pAppDomainSetup->put_ApplicationName(appDomainName);
 
 
 	// Check if a .config file exists next to the .xll as MyAddIn.xll.config. Use it if it exists.
-	CComBSTR configFileName = addInFullPath;
-	configFileName.Append(L".config");
-	if (ATLPath::FileExists(configFileName))
+	std::wstring configFileName = addInFullPath + L".config";
+	if (FileExists(configFileName.c_str()))
 	{
-		pAppDomainSetup->put_ConfigurationFile(configFileName);
+		pAppDomainSetup->put_ConfigurationFile(_bstr_t(configFileName.c_str()));
 	}
 	else
 	{
@@ -579,10 +584,11 @@ HRESULT LoadAppDomain(CComPtr<ICorRuntimeHost> pHost, CString addInFullPath, boo
 			void* pConfig = LockResource(hConfig);
 			DWORD sizeConfig = SizeofResource(hModuleCurrent, hResConfig);
 
+			std::wstring tempConfigFileName;
 			hr = CreateTempFile(pConfig, sizeConfig, tempConfigFileName);
 			if (SUCCEEDED(hr))
 			{
-				pAppDomainSetup->put_ConfigurationFile( CComBSTR(tempConfigFileName) );
+				pAppDomainSetup->put_ConfigurationFile(_bstr_t(tempConfigFileName.c_str()));
 			}
 			// tempConfigFile will be deleted after the AppDomain has been unloaded.
 		}
@@ -614,8 +620,8 @@ HRESULT LoadAppDomain(CComPtr<ICorRuntimeHost> pHost, CString addInFullPath, boo
 	
 	if (createSandboxedAppDomain)
 	{
-		CComPtr<_Type> pAppDomainHelperType;
-		hr = pLoaderAssembly->GetType_2(CComBSTR(L"ExcelDna.Loader.AppDomainHelper"), &pAppDomainHelperType);
+		_TypePtr pAppDomainHelperType;
+		hr = pLoaderAssembly->GetType_2(_bstr_t(L"ExcelDna.Loader.AppDomainHelper"), &pAppDomainHelperType);
 		if (FAILED(hr) || pAppDomainHelperType == NULL)
 		{
 			ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
@@ -625,10 +631,9 @@ HRESULT LoadAppDomain(CComPtr<ICorRuntimeHost> pHost, CString addInFullPath, boo
 			return E_FAIL;
 		}
 
-		CComSafeArray<VARIANT> sbArgs;
-		CComVariant sbRetVal;
-		CComVariant sbTarget;
-		hr = pAppDomainHelperType->InvokeMember_3(CComBSTR("CreateFullTrustSandbox"), (BindingFlags)(BindingFlags_Static | BindingFlags_Public | BindingFlags_InvokeMethod), NULL, sbTarget, sbArgs, &sbRetVal);
+		_variant_t  sbRetVal;
+		_variant_t  sbTarget;
+		hr = pAppDomainHelperType->InvokeMember_3(_bstr_t("CreateFullTrustSandbox"), (BindingFlags)(BindingFlags_Static | BindingFlags_Public | BindingFlags_InvokeMethod), NULL, sbTarget, NULL, &sbRetVal);
 		if (FAILED(hr))
 		{
 			ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
@@ -638,8 +643,8 @@ HRESULT LoadAppDomain(CComPtr<ICorRuntimeHost> pHost, CString addInFullPath, boo
 			return E_FAIL;
 		}
 
-		CComQIPtr<_AppDomain> pSandbox(sbRetVal.punkVal);
-		if (!pAppDomain.IsEqualObject(pSandbox))
+		_AppDomainPtr pSandbox(sbRetVal.punkVal);
+		if (!IsEqualObject(pAppDomain, pSandbox))
 		{
 			// Unload the loader AppDomain.
 			pLoaderAssembly.Release();
@@ -660,15 +665,14 @@ HRESULT LoadAppDomain(CComPtr<ICorRuntimeHost> pHost, CString addInFullPath, boo
 	return S_OK;
 }
 
-HRESULT LoadLoaderIntoAppDomain(CComQIPtr<_AppDomain>& pAppDomain, CComPtr<_Assembly>& pLoaderAssembly, bool forceFromBytes)
+HRESULT LoadLoaderIntoAppDomain(_AppDomainPtr& pAppDomain, _AssemblyPtr& pLoaderAssembly, bool forceFromBytes)
 {
 	HRESULT hr;
-	CComSafeArray<BYTE> loaderBytes;
 	
 	if (!forceFromBytes)
 	{
 		// Try regular load first 
-		hr = pAppDomain->Load_2(CComBSTR(L"ExcelDna.Loader"), &pLoaderAssembly);
+		hr = pAppDomain->Load_2(_bstr_t(L"ExcelDna.Loader"), &pLoaderAssembly);
 	}
 
 	if (forceFromBytes || FAILED(hr) || pLoaderAssembly == NULL)
@@ -687,7 +691,7 @@ HRESULT LoadLoaderIntoAppDomain(CComQIPtr<_AppDomain>& pAppDomain, CComPtr<_Asse
 		void* pLoader = LockResource(hLoader);
 		ULONG sizeLoader = (ULONG)SizeofResource(hModuleCurrent, hResInfoLoader);
 		
-		loaderBytes.Add(sizeLoader, (byte*)pLoader);
+		SafeByteArray loaderBytes(pLoader, sizeLoader);
 
 		hr = pAppDomain->Load_3(loaderBytes, &pLoaderAssembly);
 		if (FAILED(hr))
@@ -699,9 +703,6 @@ HRESULT LoadLoaderIntoAppDomain(CComQIPtr<_AppDomain>& pAppDomain, CComPtr<_Asse
 			return E_FAIL;
 		}
 
-		// Is this just for debugging?
-		CComBSTR pFullName;
-		hr = pLoaderAssembly->get_FullName(&pFullName);
 		if (FAILED(hr))
 		{
 			ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
@@ -727,11 +728,9 @@ BOOL WINAPI FindExcelWindowCallback(HWND hwnd, LPARAM lParam)
 	GetWindowThreadProcessId(hwnd, &processId);
 	if (processId == pParam->processId)
 	{
-		CString className;
-		LPTSTR pBuffer = className.GetBuffer(10);
-		DWORD count = RealGetWindowClass(hwnd, pBuffer, 10);
-		className.ReleaseBuffer(count);
-		if (className == L"XLMAIN")
+		wchar_t className[11];
+		DWORD count = RealGetWindowClass(hwnd, className, 10);
+		if (_tcsncmp(className, L"XLMAIN", 6))
 		{
 			pParam->hwndFound = hwnd;
 			SetLastError(0);
@@ -767,30 +766,25 @@ void ShowMessage(int headerId, int bodyId, int footerId, HRESULT hr)
 	HWND hwndExcel = FindCurrentExcelWindow();
 	try
 	{
-		CString addInFullPath = GetAddInFullPath();
+		std::wstring  addInFullPath = GetAddInFullPath();
+		std::wstring  addInFileName = addInFullPath;
+		StripPath(addInFileName);
 
-		CPath addInFileName = addInFullPath;
-		addInFileName.StripPath();
+		std::wstring msgTitle = FormatString(LoadStringFromResource(hModuleCurrent, IDS_MSG_TITLE), addInFileName.c_str());
 
-		CString msgTitle;
-		msgTitle.FormatMessage(IDS_MSG_TITLE, addInFileName);
+		std::wstring header = LoadStringFromResource(hModuleCurrent, headerId);
+		std::wstring body = LoadStringFromResource(hModuleCurrent, bodyId);
+		std::wstring footer = LoadStringFromResource(hModuleCurrent, footerId);
 
-		CString header;
-		header.LoadString(headerId);
-		CString body;
-		body.LoadString(bodyId);
-		CString footer;
-		footer.LoadString(footerId);
-		CString hresult = "";
+		std::wstring hresult = L"";
 		if (hr != S_OK)
 		{
-			hresult.FormatMessage(IDS_MSG_HRESULT, hr);
+			_com_error error(hr);
+			hresult = FormatString(LoadStringFromResource(hModuleCurrent, IDS_MSG_HRESULT), error.ErrorMessage());
 		}
 
-		CString msg;
-		msg.FormatMessage(IDS_MSG_TEMPLATE, header, body, footer, hresult, addInFullPath);
-
-		MessageBox(hwndExcel, msg, msgTitle, MB_ICONEXCLAMATION);
+		std::wstring msg = FormatString(LoadStringFromResource(hModuleCurrent, IDS_MSG_TEMPLATE), header.c_str(), body.c_str(), footer.c_str(), hresult.c_str(), addInFullPath.c_str());
+		MessageBox(hwndExcel, msg.c_str(), msgTitle.c_str(), MB_ICONEXCLAMATION);
 	}
 	catch (...)
 	{
@@ -798,20 +792,18 @@ void ShowMessage(int headerId, int bodyId, int footerId, HRESULT hr)
 	}
 }
 
-CString GetAddInFullPath()
+std::wstring GetAddInFullPath()
 {
-	CString addInFullPath;
-	LPTSTR pBuffer = addInFullPath.GetBuffer(MAX_PATH);
-	DWORD count = GetModuleFileName(hModuleCurrent, pBuffer, MAX_PATH);
-	addInFullPath.ReleaseBuffer(count); // pBuffer is now invalid
-	return addInFullPath;
+	wchar_t buffer[MAX_PATH];
+	DWORD count = GetModuleFileName(hModuleCurrent, buffer, MAX_PATH);
+	return std::wstring(buffer);
 }
 
 // CONSIDER: DELETE_FILE_ON_CLOSE should actually work?
 //           http://www.drdobbs.com/article/print?articleId=184416443&siteSectionName=windows
 // Create a new temp file with the given content.
 // Most of this copied from CAtlTemporaryFile....
-HRESULT CreateTempFile(void* pBuffer, DWORD nBufSize, CString& fileName)
+HRESULT CreateTempFile(void* pBuffer, DWORD nBufSize, std::wstring& fileName)
 {
 		TCHAR szPath[_MAX_PATH]; 
 		TCHAR tmpFileName[_MAX_PATH]; 
@@ -819,7 +811,7 @@ HRESULT CreateTempFile(void* pBuffer, DWORD nBufSize, CString& fileName)
 		if (dwRet == 0)
 		{
 			// Couldn't find temporary path;
-			return AtlHresultFromLastError();
+			return HResultFromLastError();
 		}
 		else if (dwRet > _MAX_DIR)
 		{
@@ -829,7 +821,7 @@ HRESULT CreateTempFile(void* pBuffer, DWORD nBufSize, CString& fileName)
 		if (!GetTempFileName(szPath, _T("DNA"), 0, tmpFileName))
 		{
 			// Couldn't create temporary filename;
-			return AtlHresultFromLastError();
+			return HResultFromLastError();
 		}
 		tmpFileName[_countof(tmpFileName)-1]='\0';
 
@@ -843,27 +835,18 @@ HRESULT CreateTempFile(void* pBuffer, DWORD nBufSize, CString& fileName)
 			NULL);	// no template
 
 		if (hFile == INVALID_HANDLE_VALUE)
-			return AtlHresultFromLastError();
+			return HResultFromLastError();
 
 		DWORD nBytesWritten;
 		BOOL writeOK = ::WriteFile(hFile, pBuffer, nBufSize, &nBytesWritten, NULL);
 		if (!writeOK)
-			return AtlHresultFromLastError();
+			return HResultFromLastError();
 
 		BOOL closeOK = ::CloseHandle(hFile);
 		if (!closeOK)
-			return AtlHresultFromLastError();
+			return HResultFromLastError();
 
 		fileName = tmpFileName;
-		return S_OK;
-}
-
-HRESULT DeleteTempFile(CString fileName)
-{
-		BOOL deleteOK = ::DeleteFile(tempConfigFileName);
-		if (!deleteOK)
-			return AtlHresultFromLastError();
-		
 		return S_OK;
 }
 
@@ -880,11 +863,7 @@ void LoaderInitialize(HMODULE hModule)
 // We just delete the temp .config file if we created one.
 void LoaderUnload()
 {
-	if (tempConfigFileName != "")
-	{
-		DeleteTempFile(tempConfigFileName);
-		tempConfigFileName = "";
-	}
+	tempConfig.destroy();
 }
 
 BOOL IsRunningOnCluster()
@@ -892,17 +871,13 @@ BOOL IsRunningOnCluster()
 	// Our check is to see if the current process is called Excel.exe.
 	// Hopefully this doen't change soon.
 	
-	CString excelExeName = "EXCEL.EXE";
+	TCHAR hostPathName[MAX_PATH];
+	DWORD count = GetModuleFileName(NULL, hostPathName, MAX_PATH);
 
-	CString hostPathName;
-	LPTSTR pBuffer = hostPathName.GetBuffer(MAX_PATH);
-	DWORD count = GetModuleFileName(NULL, pBuffer, MAX_PATH);
-	hostPathName.ReleaseBuffer(count); // pBuffer is now invalid
+	std::wstring hostPath = hostPathName;
+	StripPath(hostPath);
 
-	CPath hostPath(hostPathName);
-	hostPath.StripPath();
-
-	if (excelExeName.CompareNoCase(hostPath) == 0)
+	if (CompareNoCase(hostPath, L"EXCEL.EXE") == 0)
 	{
 		return false;
 	}
@@ -910,13 +885,13 @@ BOOL IsRunningOnCluster()
 	return true;
 }
 
-HRESULT GetAddInName(CString& addInName)
+HRESULT GetAddInName(std::wstring& addInName)
 {
 	HRESULT hr;
-	CString header;
-	CString clrVersion;
+	std::wstring header;
+	std::wstring clrVersion;
 	bool shadowCopyFiles;
-	CString createSandboxedAppDomainValue;
+	std::wstring createSandboxedAppDomainValue;
 
 	hr = GetDnaHeader(false, header);	// Don't show errors here.
 	if (!FAILED(hr))
@@ -926,12 +901,12 @@ HRESULT GetAddInName(CString& addInName)
 		{
 			return E_FAIL;
 		}
-		if (addInName == "")
+		if (addInName.empty())
 		{
-			CPath xllPath(GetAddInFullPath());
-			xllPath.StripPath();
-			xllPath.RemoveExtension();
-			addInName = (CString)xllPath;
+			std::wstring xllPath(GetAddInFullPath());
+			StripPath(xllPath);
+			RemoveExtension(xllPath);
+			addInName = xllPath;
 		}
 	}
 	return hr;
@@ -945,12 +920,12 @@ HRESULT GetAddInName(CString& addInName)
 //	"v2.0" -> "v2.0.50727"
 //	"v4.0" -> "v4.0.30319"
 
-HRESULT GetClrOptions(CString& clrVersion, bool& shadowCopyFiles, bool& createSandboxedAppDomain)
+HRESULT GetClrOptions(std::wstring& clrVersion, bool& shadowCopyFiles, bool& createSandboxedAppDomain)
 {
 	HRESULT hr;
-	CString header;
-	CString addInName;
-	CString createSandboxedAppDomainValue;
+	std::wstring header;
+	std::wstring addInName;
+	std::wstring createSandboxedAppDomainValue;
 
 	hr = GetDnaHeader(true, header);	// Errors will be shown in there.
 	if (!FAILED(hr))
@@ -972,18 +947,18 @@ HRESULT GetClrOptions(CString& clrVersion, bool& shadowCopyFiles, bool& createSa
 		if (clrVersion == L"v4.0") clrVersion = L"v4.0.30319";
 
 		// Default sandboxedAppDomain options
-		if (createSandboxedAppDomainValue.CompareNoCase(L"true") == 0)
+		if (CompareNoCase(createSandboxedAppDomainValue, L"true") == 0)
 		{
 			createSandboxedAppDomain = true;
 		}
-		else if (createSandboxedAppDomainValue.CompareNoCase(L"false") == 0)
+		else if (CompareNoCase(createSandboxedAppDomainValue, L"false") == 0)
 		{
 			createSandboxedAppDomain = false;
 		}
 		else
 		{
 			// Default => true under .NET >= 4.0, else false
-			if (clrVersion.CompareNoCase(L"v4.0") >= 0)
+			if (CompareNoCase(clrVersion, L"v4.0") >= 0)
 				createSandboxedAppDomain = true;
 			else
 				createSandboxedAppDomain = false;
@@ -992,25 +967,25 @@ HRESULT GetClrOptions(CString& clrVersion, bool& shadowCopyFiles, bool& createSa
 	return hr;
 }
 
-HRESULT ParseDnaHeader(CString header, CString& addInName, CString& runtimeVersion, bool& shadowCopyFiles, CString& createSandboxedAppDomain)
+HRESULT ParseDnaHeader(std::wstring header, std::wstring& addInName, std::wstring& runtimeVersion, bool& shadowCopyFiles, std::wstring& createSandboxedAppDomain)
 {
 	HRESULT hr;
 
-	int rootTagStart = header.Find(L"<DnaLibrary");
+	size_t rootTagStart = header.find(L"<DnaLibrary");
 	if (rootTagStart == -1)
 	{
 		// Parse error
 		return E_FAIL;
 	}
 
-	int rootTagEnd = header.Find(L">", rootTagStart);
+	size_t rootTagEnd = header.find(L">", rootTagStart);
 	if (rootTagEnd == -1)
 	{
 		// Parse error
 		return E_FAIL;
 	}
 
-	CString rootTag = header.Mid(rootTagStart, rootTagEnd - rootTagStart + 1);
+	std::wstring rootTag = header.substr(rootTagStart, rootTagEnd - rootTagStart + 1);
 
 	// CONSIDER: Some checks, e.g. "v.X..."
 	hr = GetAttributeValue(rootTag, L"RuntimeVersion", runtimeVersion);
@@ -1025,7 +1000,7 @@ HRESULT ParseDnaHeader(CString header, CString& addInName, CString& runtimeVersi
 		hr = S_OK;
 	}
 
-	CString shadowCopyFilesValue;
+	std::wstring shadowCopyFilesValue;
 	hr = GetAttributeValue(rootTag, L"ShadowCopyFiles", shadowCopyFilesValue);
 	if (FAILED(hr))
 	{
@@ -1039,7 +1014,7 @@ HRESULT ParseDnaHeader(CString header, CString& addInName, CString& runtimeVersi
 	}
 	else // attribute read OK
 	{
-		if (shadowCopyFilesValue.CompareNoCase(L"true") == 0)
+		if (CompareNoCase(shadowCopyFilesValue, L"true") == 0)
 			shadowCopyFiles = true;
 		else
 			shadowCopyFiles = false;
@@ -1053,7 +1028,7 @@ HRESULT ParseDnaHeader(CString header, CString& addInName, CString& runtimeVersi
 	}
 	if (hr == S_FALSE)
 	{
-		createSandboxedAppDomain = "";
+		createSandboxedAppDomain = L"";
 		hr = S_OK;
 	}
 
@@ -1065,7 +1040,7 @@ HRESULT ParseDnaHeader(CString header, CString& addInName, CString& runtimeVersi
 	}
 	if (hr == S_FALSE)
 	{
-		addInName = "";
+		addInName = L"";
 		hr = S_OK;
 	}
 	return hr;
@@ -1076,36 +1051,36 @@ HRESULT ParseDnaHeader(CString header, CString& addInName, CString& runtimeVersi
 //			E_FAIL if there was an XML syntax error in the tag.
 // TODO: There is a bug here - I don't check the character before attributeName starts, so I also match XXXName="NotMyName"
 //		 For not the .dna schema does not define any conflicts here, but it's not great.
-HRESULT GetAttributeValue(CString tag, CString attributeName, CString& attributeValue)
+HRESULT GetAttributeValue(std::wstring tag, std::wstring attributeName, std::wstring& attributeValue)
 {
-	attributeName.Append(L"=");
-	int attributeNameLength = attributeName.GetLength();
+	attributeName += L"=";
+	size_t attributeNameLength = attributeName.size();
 
-	int attributeNameStart = tag.Find(attributeName);
+	size_t attributeNameStart = tag.find(attributeName);
 	if (attributeNameStart == -1)
 	{
 		return S_FALSE;
 	}
 
-	TCHAR quoteChar = tag[attributeNameStart + attributeNameLength];
+	wchar_t quoteChar = tag[attributeNameStart + attributeNameLength];
 	if (quoteChar != L'\'' && quoteChar != L'\"')
 	{
 		// XML syntax error - not a valid attribute.
 		return E_FAIL;
 	}
 
-	int attributeValueStart = attributeNameStart + attributeNameLength + 1;
-	int attributeValueEnd = tag.Find(quoteChar, attributeValueStart);
+	size_t attributeValueStart = attributeNameStart + attributeNameLength + 1;
+	size_t attributeValueEnd = tag.find(quoteChar, attributeValueStart);
 	if (attributeValueEnd == -1)
 	{
 		// XML syntax error - not a valid attribute.
 		return E_FAIL;
 	}
-	attributeValue = tag.Mid(attributeValueStart, attributeValueEnd - attributeValueStart);
+	attributeValue = tag.substr(attributeValueStart, attributeValueEnd - attributeValueStart);
 	return S_OK;
 }
 
-HRESULT GetDnaHeader(bool showErrors, CString& header)
+HRESULT GetDnaHeader(bool showErrors, std::wstring& header)
 {
 	// We find the .dna file and load a 1k string from the file.
 	// To locate the file:
@@ -1131,10 +1106,10 @@ HRESULT GetDnaHeader(bool showErrors, CString& header)
 	}
 	else
 	{
-		CAtlFile dnaFile;
-		CPath dnaPath(GetAddInFullPath());
-		dnaPath.RenameExtension(L".dna");
-		if (!dnaPath.FileExists())
+		SafeFile dnaFile;
+		std::wstring dnaPath(GetAddInFullPath());
+		RenameExtension(dnaPath, L".dna");
+		if (!FileExists(dnaPath.c_str()))
 		{
 			if (showErrors)
 			{
@@ -1172,11 +1147,11 @@ HRESULT GetDnaHeader(bool showErrors, CString& header)
 	}
 	if (IsBufferUTF8(headerBuffer, headerLength))
 	{
-		header = UTF8toUTF16(CStringA((char*)headerBuffer, headerLength));
+		header = UTF8toUTF16(std::string((char*)headerBuffer, headerLength));
 	}
 	else
 	{
-		header = CString((wchar_t*)headerBuffer, headerLength);
+		header = std::wstring((wchar_t*)headerBuffer, headerLength);
 	}
 	return S_OK;
 }
@@ -1222,16 +1197,16 @@ BOOL IsBufferUTF8(BYTE* buffer, DWORD bufferLength)
 	return true;
 }
 
-// Snippet from http://www.codeproject.com/KB/string/utfConvert.aspx
-CStringW UTF8toUTF16(const CStringA& utf8)
-{
-   CStringW utf16;
-   int len = MultiByteToWideChar(CP_UTF8, 0, utf8, -1, NULL, 0);
-   if (len>1)
-   { 
-      wchar_t *ptr = utf16.GetBuffer(len-1);
-      if (ptr) MultiByteToWideChar(CP_UTF8, 0, utf8, -1, ptr, len);
-      utf16.ReleaseBuffer();
-   }
-   return utf16;
-}
+//// Snippet from http://www.codeproject.com/KB/string/utfConvert.aspx
+//CStringW UTF8toUTF16(const CStringA& utf8)
+//{
+//   CStringW utf16;
+//   int len = MultiByteToWideChar(CP_UTF8, 0, utf8, -1, NULL, 0);
+//   if (len>1)
+//   { 
+//      wchar_t *ptr = utf16.GetBuffer(len-1);
+//      if (ptr) MultiByteToWideChar(CP_UTF8, 0, utf8, -1, ptr, len);
+//      utf16.ReleaseBuffer();
+//   }
+//   return utf16;
+//}

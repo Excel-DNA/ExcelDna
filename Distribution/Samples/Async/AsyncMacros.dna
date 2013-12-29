@@ -37,10 +37,6 @@ public static class AsyncTestFunctions
     {
         // To make a unique async call identifier, 
         // we pass the function name and the parameter(s).
-
-        // In this case we want calls from different cells and different timeouts to be distinct
-        var caller = XlCall.Excel(XlCall.xlfCaller);
-    
         return ExcelAsyncUtil.Run("slowFunction", new[] {(double)timeToSleepMs}, 
             delegate 
             {

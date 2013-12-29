@@ -79,7 +79,7 @@ namespace ExcelDna.Integration.Rtd
                 _server.SetDirty(this);
             }
 
-            internal Topic(ExcelRtdServer server, int topicId)
+            protected internal Topic(ExcelRtdServer server, int topicId)
             {
                 _server = server;
                 TopicId = topicId;
@@ -106,7 +106,7 @@ namespace ExcelDna.Integration.Rtd
             }
 
             public event EventHandler Disconnected;
-            internal void OnDisconnected()
+            protected internal virtual void OnDisconnected()
             {
                 EventHandler disconnected = Disconnected;
                 if (disconnected != null)
@@ -155,6 +155,12 @@ namespace ExcelDna.Integration.Rtd
         protected virtual int Heartbeat()
         {
             return 1;
+        }
+
+        // Topic creation - allows derived Topic classes to be used.
+        protected virtual Topic CreateTopic(int topicId, IList<string> topicInfo, ref bool newValues)
+        {
+            return new Topic(this, topicId);
         }
 
         // Add the topic to the dirty set and calls UpdateNotify()
@@ -221,19 +227,31 @@ namespace ExcelDna.Integration.Rtd
                 // and SP1 )
                 if (_activeTopics.ContainsKey(topicId))
                 {
-                    ((IRtdServer)this).DisconnectData(topicId);
+                    using (XlCall.Suspend())
+                    {
+                        ((IRtdServer)this).DisconnectData(topicId);
+                    }
                 }
 
                 List<string> topicInfo = new List<string>(strings.Length);
                 for (int i = 0; i < strings.Length; i++) topicInfo.Add((string)strings.GetValue(i));
 
-                Topic topic = new Topic(this, topicId);
+                Topic topic;
+                using (XlCall.Suspend())
+                {
+                    topic = CreateTopic(topicId, topicInfo, ref newValues);
+                }
+                if (topic == null)
+                {
+                    Logging.LogDisplay.WriteLine("Error in RTD server {0} CreateTopic returned null.", GetType().Name);
+                    return null;
+                }
                 _activeTopics[topicId] = topic;
-
                 using (XlCall.Suspend())
                 {
                     return ConnectData(topic, topicInfo, ref newValues);
                 }
+                
             }
             catch (Exception e)
             {
