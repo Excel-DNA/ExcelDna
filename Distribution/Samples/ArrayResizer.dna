@@ -25,12 +25,26 @@ namespace AsyncFunctions
 	{
         public static object MakeArray(int rows, int columns)
         {
-            object[,] result = new string[rows, columns];
+            object[,] result = new object [rows, columns];
             for (int i = 0; i < rows; i++)
             {
                 for (int j = 0; j < columns; j++)
                 {
-                    result[i,j] = string.Format("({0},{1})", i, j);
+                    result[i,j] = i + j;
+                }
+            }
+            
+            return result;
+        }
+
+        public static double[,] MakeArrayDoubles(int rows, int columns)
+        {
+            double[,] result = new double[rows, columns];
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < columns; j++)
+                {
+                    result[i,j] = i + (j/1000.0);
                 }
             }
             
@@ -42,6 +56,13 @@ namespace AsyncFunctions
             object result = MakeArray(rows, columns);            
             // Call Resize via Excel - so if the Resize add-in is not part of this code, it should still work.
             return XlCall.Excel(XlCall.xlUDF, "Resize", result);
+        }
+
+        public static double[,] MakeArrayAndResizeDoubles(int rows, int columns)
+        {
+            double[,] result = MakeArrayDoubles(rows, columns);            
+            // Call Resize via Excel - so if the Resize add-in is not part of this code, it should still work.
+            return ArrayResizer.ResizeDoubles(result);
         }
     }
 
@@ -67,6 +88,28 @@ namespace AsyncFunctions
                 EnqueueResize(caller, rows, columns);
                 ExcelAsyncUtil.QueueAsMacro(DoResizing);
                 return ExcelError.ExcelErrorNA;
+            }
+
+            // Size is already OK - just return result
+            return array;
+        }
+
+        public static double[,] ResizeDoubles(double[,] array)
+        {
+            ExcelReference caller = XlCall.Excel(XlCall.xlfCaller) as ExcelReference;
+            if (caller == null) return array;
+
+            int rows = array.GetLength(0);
+            int columns = array.GetLength(1);
+
+            if ((caller.RowLast - caller.RowFirst + 1 != rows) ||
+                (caller.ColumnLast - caller.ColumnFirst + 1 != columns))
+            {
+                // Size problem: enqueue job, call async update and return #N/A
+                // TODO: Add guard for ever-changing result?
+                EnqueueResize(caller, rows, columns);
+                ExcelAsyncUtil.QueueAsMacro(DoResizing);
+                return null;
             }
 
             // Size is already OK - just return result

@@ -78,6 +78,9 @@ namespace ExcelDna.Integration
             // Under Excel 2013 we have a problem, the window is not stable.
             // We get the current main window here, and deal with changes later.
             _mainWindowHandle = GetWindowHandleApi();
+            // Extra attempt via dinwo enumeration if the Api approach failed.
+            if (_mainWindowHandle == IntPtr.Zero)
+                _mainWindowHandle = GetWindowHandleThread();
         }
 
         internal static bool IsMainThread
@@ -105,7 +108,7 @@ namespace ExcelDna.Integration
             {
                 if (SafeIsExcelVersionPre15) return _mainWindowHandle;
 
-                // Under Excel 2013, the windo handles change according to the active workbook.
+                // Under Excel 2013, the window handles change according to the active workbook.
                 return GetWindowHandle15();
             }
         }
@@ -125,26 +128,17 @@ namespace ExcelDna.Integration
                     if (IsWindowOfThisExcel(hWnd)) return hWnd;
                 }
 
-                // If we're on the main thread, try the C API directly
+                // We're on the main thread, try the C API directly
                 hWnd = GetWindowHandleApi();
                 if (hWnd != IntPtr.Zero && IsWindowOfThisExcel(hWnd)) return hWnd;
             }
 
             StringBuilder buffer = new StringBuilder(256);
-            // If the main window handle is still valid, use that.
+            // If the main window handle stored in Initialization is still valid, use that.
             if (IsAnExcelWindow(_mainWindowHandle, buffer))
                 return _mainWindowHandle;
 
-            // Otherwise look for any XLMAIN window in the current process
-            EnumThreadWindows(_mainNativeThreadId, delegate(IntPtr hWndEnum, IntPtr param)
-            {
-                if (IsAnExcelWindow(hWndEnum, buffer))
-                {
-                    hWnd = hWndEnum;
-                    return false;	// Stop enumerating
-                }
-                return true;	// Continue enumerating
-            }, IntPtr.Zero);
+            hWnd = GetWindowHandleThread();
 
             if (hWnd != IntPtr.Zero)
             {
@@ -165,22 +159,61 @@ namespace ExcelDna.Integration
             // (we expect the C API call to fail when running on Cluster or during automation)
             try
             {
-                IntPtr hWnd = (IntPtr)(uint)(double)XlCall.Excel(XlCall.xlGetHwnd);
+                double apiHwnd = (double)XlCall.Excel(XlCall.xlGetHwnd);
+
+                // I have no idea how Excel converts the window handle into a double.
+                // Under 32-bit I've had reported values > Int32.MaxValue and negative values...
+
+                IntPtr hWnd;
+                if (apiHwnd < 0)
+                    hWnd = (IntPtr)(int)apiHwnd;
+                else
+                    hWnd = (IntPtr)(uint)apiHwnd;
+
                 if (IsWindowOfThisExcel(hWnd)) return hWnd;
 
-                // Do a check based on the lo-Word - should work in all versions.
-                ushort loWord = (ushort)hWnd;
-                hWnd = FindAnExcelWindowWithLoWord(loWord);
-                if (IsWindowOfThisExcel(hWnd)) return hWnd;
+                if (hWnd != IntPtr.Zero)
+                {
+                    // We might have a partial handle... try to find a window that matches.
+                    // Do a check based on the lo-Word - should work in all versions.
+                    ushort loWord = (ushort)hWnd;
+                    hWnd = FindAnExcelWindowWithLoWord(loWord);
+                    if (IsWindowOfThisExcel(hWnd)) return hWnd;
+                }
             }
             catch (Exception e)
             {
-                Debug.Write("GetWindowHandle15 C API error - " + e);
+                Debug.Write("GetWindowHandleApi error - " + e);
                 // Ignore errors
             }
+
+            // This is pretty bad - caller needs to try another approach.
             return IntPtr.Zero;
         }
 
+        // Tries to get the window handle by enumerating thread windows of the main thread, 
+        // and accepting any XLMAIN window.
+        // Returns Zero if that fails.
+        static IntPtr GetWindowHandleThread()
+        {
+            IntPtr hWnd = IntPtr.Zero;
+
+            StringBuilder buffer = new StringBuilder(255);
+            EnumThreadWindows(_mainNativeThreadId, delegate(IntPtr hWndEnum, IntPtr param)
+            {
+                if (IsAnExcelWindow(hWndEnum, buffer))
+                {
+                    hWnd = hWndEnum;
+                    return false;	// Stop enumerating
+                }
+                return true;	// Continue enumerating
+            }, IntPtr.Zero);
+
+            // hWnd might still be Zero...?
+            return hWnd;
+        }
+
+        // Checks whether a handle is a valid window handle on our main thread.
         static bool IsWindowOfThisExcel(IntPtr hWnd)
         {
             uint threadId = GetWindowThreadProcessId(hWnd, IntPtr.Zero);
@@ -532,6 +565,15 @@ namespace ExcelDna.Integration
                     }
                 }
                 return _xlLimits;
+            }
+        }
+
+        // Public access to the XllPath, safe in any context
+        public static string XllPath
+        {
+            get
+            {
+                return DnaLibrary.XllPath;
             }
         }
     }

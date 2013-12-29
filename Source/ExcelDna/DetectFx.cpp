@@ -2,6 +2,7 @@
 
 #include "stdafx.h"
 #include "DetectFx.h"
+#include <tchar.h>
 
 #define CountOf(x) sizeof(x)/sizeof(*x)
 

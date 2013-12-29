@@ -61,21 +61,13 @@ namespace ExcelDna.Integration
             set { _Projects = value; }
         }
 
-        private static string _XllPath = null;
+        private static string _XllPath;
         [XmlIgnore]
         internal static string XllPath
         {
             get
             {
-                if (_XllPath == null)
-                {
-                    _XllPath = (string)XlCall.Excel(XlCall.xlGetName);
-                }
                 return _XllPath;
-            }
-            set
-            {
-                _XllPath = value;
             }
         }
 
@@ -404,7 +396,7 @@ namespace ExcelDna.Integration
             // 2. Look for the .dna file in the same directory as the .xll file, with the same name and extension .dna.
 
             Debug.WriteLine("Enter DnaLibrary.InitializeRootLibrary");
-            XllPath = xllPath;
+            _XllPath = xllPath;
             Logging.LogDisplay.CreateInstance();
             byte[] dnaBytes = ExcelIntegration.GetDnaFileBytes("__MAIN__");
             if (dnaBytes != null)
@@ -559,8 +551,7 @@ namespace ExcelDna.Integration
             {
                 if (rootLibrary == null)
                 {
-                    string dllName = XllPath;
-                    return Path.GetFileNameWithoutExtension(dllName);
+                    return Path.GetFileNameWithoutExtension(XllPath);
                 }
                 return CurrentLibrary.Name;
             }

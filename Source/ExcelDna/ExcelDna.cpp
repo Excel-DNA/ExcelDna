@@ -25,6 +25,7 @@
 #include "stdafx.h"
 #include "ExcelDna.h"
 #include "ExcelDnaLoader.h"
+#include "MiscUtils.h"
 
 // Minimal parts of XLOPER types, 
 // used only for xlAddInManagerInfo(12). Really.
@@ -134,9 +135,9 @@ void LockModule()
 {
 	if (!locked)
 	{
-		CPath xllPath(GetAddInFullPath());
-		xllPath.StripPath();
-		lockModule = LoadLibrary(xllPath);
+		std::wstring xllPath = GetAddInFullPath();
+		StripPath(xllPath);
+		lockModule = LoadLibrary(xllPath.c_str());
 		locked = true;
 	}
 }
@@ -286,16 +287,15 @@ extern "C"
 
 		if (pXloper->xltype == 1 && pXloper->val.num == 1.0)
 		{
-			CString addInNameW;
+			std::wstring addInNameW;
 			HRESULT hr = GetAddInName(addInNameW);
 			if (!FAILED(hr))
 			{
-				CStringA addInName(addInNameW);
-				byte length = (byte)min(addInName.GetLength(), 255);
+				std::string addInName(addInNameW.begin(), addInNameW.end());
+				byte length = (byte)min(addInName.length(), 255);
 				name[0] = (char)length;
-				const char* pAddInName = addInName;
 				char* pName = (char*)name + 1;
-				CStringA::CopyChars(pName, 255, pAddInName, length);
+				strncpy_s(pName, 255, addInName.c_str(), length + 1);
 
 				result.xltype = xltypeStr;
 				result.val.str = name;
@@ -316,16 +316,15 @@ extern "C"
 
 		if (pXloper->xltype == 1 && pXloper->val.num == 1.0)
 		{
-			CString addInName;
+			std::wstring addInName;
 			HRESULT hr = GetAddInName(addInName);
 			if (!FAILED(hr))
 			{
 				// We could probably use CString as is (maybe with truncation)!?
-				int length = (int)min(addInName.GetLength(), 255);
+				int length = (int)min(addInName.length(), 254);
 				name[0] = (wchar_t)length;
-				const wchar_t* pAddInName = addInName;
 				wchar_t* pName = (wchar_t*)name + 1;
-				CString::CopyChars(pName, 255, pAddInName, length);
+				lstrcpyn(pName, addInName.c_str(), length + 1);
 				result.xltype = xltypeStr;
 				result.val.str = name;
 			}
