@@ -301,7 +301,7 @@ namespace ExcelDna.Integration
         {
             // CONSIDER: Can this be cleaned up by calling ExcelDna.Loader?
             // We must not be in a function when this is run, nor in an RTD method call.
-            _syncMacroName = "SyncMacro_" + ExcelDnaUtil.GuidFromXllPath(ExcelDnaUtil.XllPath).ToString("N");
+            _syncMacroName = "SyncMacro_" + ExcelDnaUtil.XllGuid.ToString("N");
             ExcelIntegration.SetSyncMacro(SyncMacro);
 
             object[] registerParameters = new object[6];
