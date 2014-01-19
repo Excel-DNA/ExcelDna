@@ -581,10 +581,10 @@ namespace ExcelDna.Integration
 
         #region Registration Info
         static readonly Guid _excelDnaNamespaceGuid = new Guid("{306D016E-CCE8-4861-9DA1-51A27CBE341A}");
-        internal static readonly Guid XllGuid = GuidFromXllPath(XllPath);
+        internal static Guid XllGuid { get { return GuidFromXllPath(XllPath); } }
 
         // Return a stable Guid from the xll path - used for COM registration and helper functions
-        internal static Guid GuidFromXllPath(string path)
+        static Guid GuidFromXllPath(string path)
         {
             return GuidUtility.Create(_excelDnaNamespaceGuid, path);
         }

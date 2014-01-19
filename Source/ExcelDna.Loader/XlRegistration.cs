@@ -78,9 +78,12 @@ namespace ExcelDna.Loader
             for (int i = 0; i < registrationInfo.Count; i++)
             {
                 object[] info = registrationInfo[i];
-                for (int j = 0; j < info.Length; j++)
+                for (int j = 0; j < 255; j++)
                 {
-                    result[i, j] = info[j];
+                    if (j < info.Length)
+                        result[i, j] = info[j];
+                    else
+                        result[i, j] = IntegrationMarshalHelpers.GetExcelMissingValue();
                 }
             }
             return result;
@@ -126,7 +129,7 @@ namespace ExcelDna.Loader
                     Debug.Print("Registration Error! - Register call failed for method {0}", mi.Name);
                 }
                 // Now clear out the xll path and store the parameters to support RegistrationInfo access.
-                registerParameters[0] = null;
+                registerParameters[0] = string.Empty;
                 registrationInfo.Add(registerParameters);
             }
             catch (Exception e)
