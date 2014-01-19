@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2013 Govert van Drimmelen
+  Copyright (C) 2005-2014 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -41,15 +41,15 @@ namespace ExcelDna.Integration
     internal delegate void RegisterMethodsDelegate(List<MethodInfo> methods);
     internal delegate void RegisterMethodsWithAttributesDelegate(List<MethodInfo> methods, List<object> functionAttributes, List<List<object>> argumentAttributes);
     internal delegate void RegisterDelegatesWithAttributesDelegate(List<Delegate> delegates, List<object> functionAttributes, List<List<object>> argumentAttributes);
-    internal delegate List<List<string>> GetFunctionRegistrationInfoDelegate();
+    internal delegate object[,] GetRegistrationInfoDelegate();
     internal delegate byte[] GetResourceBytesDelegate(string resourceName, int type); // types: 0 - Assembly, 1 - Dna file, 2 - Image
     internal delegate void SyncMacroDelegate(double dValue);
 	public delegate object UnhandledExceptionHandler(object exceptionObject);
 
     public static class ExcelIntegration
     {
-        // This version must match the version declared in ExcelDna.Loader.IntegrationHelpers.
-        const int ExcelIntegrationVersion = 4;
+        // This version must match the version declared in ExcelDna.Loader.XlAddIn.
+        const int ExcelIntegrationVersion = 5;
 
         private static TryExcelImplDelegate tryExcelImpl;
         internal static void SetTryExcelImpl(TryExcelImplDelegate d)
@@ -85,10 +85,10 @@ namespace ExcelDna.Integration
             registerDelegatesWithAttributes = d;
         }
 
-        private static GetFunctionRegistrationInfoDelegate getFunctionRegistrationInfo;
-        internal static void SetGetFunctionRegistrationInfo(GetFunctionRegistrationInfoDelegate d)
+        private static GetRegistrationInfoDelegate getRegistrationInfo;
+        internal static void SetGetRegistrationInfo(GetRegistrationInfoDelegate d)
         {
-            getFunctionRegistrationInfo = d;
+            getRegistrationInfo = d;
         }
 
         // These are the only 'externally' exposed members.
@@ -113,7 +113,7 @@ namespace ExcelDna.Integration
             registerDelegatesWithAttributes(delegates, methodAttributes, argumentAttributes);
         }
 
-        // Fix up the ExplicitRegistration, since we are now explicitly registering
+        // Fix up the ExplicitRegistration, since we _are_ now explicitly registering
         static void ClearExplicitRegistration(List<object> methodAttributes)
         {
             foreach (object attrib in methodAttributes)
@@ -132,9 +132,22 @@ namespace ExcelDna.Integration
             }
         }
 
-        public static List<List<string>> GetFunctionRegistrationInfo()
+        // This function is registered with Excel under the name RegistrationInfo_XXXX with the Guid from the .xll path
+        // It returns the 255 column string array with the xlfRegister call info.
+        // TODO: This will create an extra assembly - try to consolidate with main registration 
+        //       until we properly fix up registration and marshaling
+        internal static void RegisterRegistrationInfo()
         {
-            return getFunctionRegistrationInfo();
+            ExcelFunctionAttribute attrib = new ExcelFunctionAttribute
+                {
+                    Name = ExcelDnaUtil.RegistrationInfoName(ExcelDnaUtil.XllPath),
+                    IsHidden = true
+                };
+
+            List<Delegate> delegates = new List<Delegate> { getRegistrationInfo };
+            List<object> functionAttributes = new List<object> { attrib };
+            List<List<object>> argumentAttributes = new List<List<object>>();
+            RegisterDelegates(delegates, functionAttributes, argumentAttributes);
         }
 
 		private static UnhandledExceptionHandler unhandledExceptionHandler;

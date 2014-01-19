@@ -15,11 +15,12 @@ Version 0.31 (???)
 * Allow ExcelReference in object return values.
 * Truncate strings for registration - long string caused registration to fail.
 * Implement ExcelIntegration.RegisterDelegates.
-* Implement ExcelIntegration.GetFunctionRegistrationInfo.
+* Implement RegistrationInfo access function.
 * Add SuppressRegistration option to ExcelFunctionAttribute.
 * Fix Unregister bug for direct-created RTD servers.
 * Fix FreeMemory bug with uninitialized marshaler.
 * Apply patch to be more tolerant of type loading errors.
+* Change to stable ProgId (dependent on XllPath)  for COM add-ins.
 
 Version 0.30 (12 December 2012)
 -------------------------------

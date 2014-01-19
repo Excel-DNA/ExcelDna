@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2013 Govert van Drimmelen
+  Copyright (C) 2005-2014 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -595,6 +595,7 @@ namespace ExcelDna.Loader
 			unsafe private void AllocateFP12AndCopy(double* pSrc, int rows, int columns)
 			{
                 // CONSIDER: Fast memcpy: http://stackoverflow.com/questions/1715224/very-fast-memcpy-for-image-processing
+                // CONSIDER: https://connect.microsoft.com/VisualStudio/feedback/details/766977/il-bytecode-method-cpblk-badly-implemented-by-x86-clr
 				XlFP12* pFP;
 				
 				int size = Marshal.SizeOf(typeof(XlFP12)) +
@@ -736,6 +737,8 @@ namespace ExcelDna.Loader
 				// (A null pointer is immediately returned to Excel, resulting in #NUM!)
 
 				// Debug.Print("XlObject12Marshaler {0} - Marshaling for thread {1} ", instanceId, System.Threading.Thread.CurrentThread.ManagedThreadId);
+
+                // CONSIDER: Use TypeHandle of Type.GetTypeCode(type) lookup instead of if/else?
 
 				if (ManagedObj is double)
 				{

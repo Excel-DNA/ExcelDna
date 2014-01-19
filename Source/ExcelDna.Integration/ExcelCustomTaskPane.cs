@@ -1,5 +1,5 @@
 ﻿/*
-  Copyright (C) 2005-2013 Govert van Drimmelen
+  Copyright (C) 2005-2014 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -104,7 +104,7 @@ namespace ExcelDna.Integration.CustomUI
             if (_addin == null)
             {
                 // Register and create addin
-                _addin = new ExcelCustomTaskPaneAddIn() { DnaLibrary = DnaLibrary.CurrentLibrary };
+                _addin = new ExcelCustomTaskPaneAddIn { DnaLibrary = DnaLibrary.CurrentLibrary };
                 ExcelComAddInHelper.LoadComAddIn(_addin);
             }
             return _addin.Factory;

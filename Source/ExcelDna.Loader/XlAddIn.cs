@@ -1,5 +1,5 @@
 ﻿/*
-  Copyright (C) 2005-2013 Govert van Drimmelen
+  Copyright (C) 2005-2014 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -69,7 +69,7 @@ namespace ExcelDna.Loader
     public unsafe static class XlAddIn
     {
         // This version must match the version declared in ExcelDna.Integration.ExcelIntegration
-        const int ExcelIntegrationVersion = 4;
+        const int ExcelIntegrationVersion = 5;
 
         static int thunkTableLength;
         static IntPtr thunkTable;
@@ -264,10 +264,10 @@ namespace ExcelDna.Loader
             Delegate registerDelAttDelegate = Delegate.CreateDelegate(registerDelAttDelegateType, registerDelAttMethod);
             integrationType.InvokeMember("SetRegisterDelegatesWithAttributes", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] { registerDelAttDelegate });
 
-            MethodInfo getFuncRegInfoMethod = typeof(XlRegistration).GetMethod("GetFunctionRegistrationInfo", BindingFlags.Static | BindingFlags.Public);
-            Type getFuncRegInfoDelegateType = integrationAssembly.GetType("ExcelDna.Integration.GetFunctionRegistrationInfoDelegate");
-            Delegate getFuncRegInfoDelegate = Delegate.CreateDelegate(getFuncRegInfoDelegateType, getFuncRegInfoMethod);
-            integrationType.InvokeMember("SetGetFunctionRegistrationInfo", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] { getFuncRegInfoDelegate });
+            MethodInfo getRegInfoMethod = typeof(XlRegistration).GetMethod("GetRegistrationInfo", BindingFlags.Static | BindingFlags.Public);
+            Type getRegInfoDelegateType = integrationAssembly.GetType("ExcelDna.Integration.GetRegistrationInfoDelegate");
+            Delegate getRegInfoDelegate = Delegate.CreateDelegate(getRegInfoDelegateType, getRegInfoMethod);
+            integrationType.InvokeMember("SetGetRegistrationInfo", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] { getRegInfoDelegate });
 
             MethodInfo getResourceBytesMethod = typeof(AssemblyManager).GetMethod("GetResourceBytes", BindingFlags.Static | BindingFlags.NonPublic);
             Type getResourceBytesDelegateType = integrationAssembly.GetType("ExcelDna.Integration.GetResourceBytesDelegate");
@@ -333,7 +333,6 @@ namespace ExcelDna.Loader
             {
                 // TODO: What to do here - maybe prefer Trace...?
 
-                // START HERE: Better error display (with Exception info?)
                 Debug.WriteLine("ExcelDna.Loader.XlAddin.XlAutoOpen. Exception during Integration load: " + e.ToString());
 				string alertMessage = string.Format("A problem occurred while an add-in was being initialized (InitializeIntegration failed - {1}).\r\nThe add-in is built with ExcelDna and is being loaded from {0}", pathXll, e.Message);
 				object xlCallResult;

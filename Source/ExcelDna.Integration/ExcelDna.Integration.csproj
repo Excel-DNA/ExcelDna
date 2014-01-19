@@ -29,6 +29,7 @@
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    <LangVersion>default</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -39,6 +40,7 @@
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    <LangVersion>default</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -71,6 +73,7 @@
     <Compile Include="ExcelSynchronizationContext.cs" />
     <Compile Include="ExportedAssembly.cs" />
     <Compile Include="ExternalLibrary.cs" />
+    <Compile Include="GuidUtility.cs" />
     <Compile Include="IExcelAddIn.cs" />
     <Compile Include="LogDisplay.cs">
       <SubType>Form</SubType>

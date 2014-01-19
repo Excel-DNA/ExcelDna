@@ -1,5 +1,5 @@
 ﻿/*
-  Copyright (C) 2005-2013 Govert van Drimmelen
+  Copyright (C) 2005-2014 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -134,6 +134,7 @@ namespace ExcelDna.Integration.Rtd
             
             // ... (bad idea - this will cause Excel to try to load this RTD server while it is not registered.)
             // Guid typeGuid = GuidUtilit.CreateGuid(..., DnaLibrary.XllPath + ":" + rtdServerType.FullName);
+            // or something based on ExcelDnaUtil.XllGuid
             // string progIdRegistered = "RtdSrv." + typeGuid.ToString("N");
 
             // by making a fresh progId, we are sure Excel will try to load when we are ready.

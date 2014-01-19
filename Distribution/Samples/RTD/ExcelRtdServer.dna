@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Threading;
 using ExcelDna.Integration;
 using ExcelDna.Integration.Rtd;
+using ExcelDna.Logging;
 
 public class AsyncTestAddIn : IExcelAddIn
 {
@@ -37,7 +38,7 @@ public static class MyFunctions
     {
         dynamic app = ExcelDnaUtil.Application;
         return app.Version;
-    }
+    }  
 }
 
 namespace MyRTDServers
@@ -56,7 +57,7 @@ namespace MyRTDServers
                 {
                     string now = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss.fff");
                     foreach (Topic topic in _topics) topic.UpdateValue(now);
-                }, null, 0, 1000);
+                }, null, 0, 2000);
             Log("TimerServer created");
         }
 

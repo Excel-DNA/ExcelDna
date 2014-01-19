@@ -156,10 +156,10 @@ namespace ExcelDna.Integration.CustomUI
             }
             else
             {
-                // We pick a new Guid as ClassId for this add-in.
-                clsId = Guid.NewGuid();
+                // Use a stable Guid derived from the Xll Path (since Excel stores load-times and other info for every COM add-in loaded in the registry)
+                clsId = ExcelDnaUtil.XllGuid;
                 // and make the ProgId from this Guid - max 39 chars....
-                progId = "AddIn." + clsId.ToString("N");
+                progId = "Dna." + clsId.ToString("N") + "." + loadedComAddIns.Count;
             }
             addIn.SetProgId(progId);
 
