@@ -1,5 +1,5 @@
 ﻿/*
-  Copyright (C) 2005-2013 Govert van Drimmelen
+  Copyright (C) 2005-2014 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -35,12 +35,10 @@ namespace ExcelDna.Loader
         static readonly List<XlMethodInfo> registeredMethods = new List<XlMethodInfo>();
         static readonly List<string> addedShortCuts = new List<string>();
         
-        // This list is just to give access to the function information for UI enhancement.
-        // We should probably replace it with a general extension API when I am comfortable about how that would look.
-        // Populated by RecordFunctionInfo(...) below
-        // Each entry has: 
-        // name, category, helpTopic, argumentNames, [description], [argumentDescription_1] ... [argumentDescription_n].
-        static readonly List<List<string>> functionInfo = new List<List<string>>();
+        // This list is just to give access to the registration details for UI enhancement.
+        // Each entry corresponds exactly to the xlfRegister call (except first entry with xllPath is cleared) 
+        // - max length of each array is 255.
+        static readonly List<object[]> registrationInfo = new List<object[]>();
         
         public static void RegisterMethods(List<MethodInfo> methods)
         {
@@ -73,9 +71,19 @@ namespace ExcelDna.Loader
             Register(methods, targets, methodAttributes, argumentAttributes);
         }
 
-        public static List<List<string>> GetFunctionRegistrationInfo()
+        public static object[,] GetRegistrationInfo()
         {
-            return functionInfo;
+            // Copy from the jagged List to a 2D array with 255 columns
+            object[,] result = new object[registrationInfo.Count, 255];
+            for (int i = 0; i < registrationInfo.Count; i++)
+            {
+                object[] info = registrationInfo[i];
+                for (int j = 0; j < info.Length; j++)
+                {
+                    result[i, j] = info[j];
+                }
+            }
+            return result;
         }
 
         static void Register(List<MethodInfo> methods, List<object> targets, List<object> methodAttributes, List<List<object>> argumentAttributes)
@@ -93,11 +101,7 @@ namespace ExcelDna.Loader
             String exportedProcName = String.Format("f{0}", index);
 
             object[] registerParameters = GetRegisterParameters(mi, exportedProcName);
-            if (!mi.IsCommand && !mi.IsHidden)
-            {
-                RecordFunctionInfo(registerParameters);
-            }
-
+            
             // Basically suppress problems here !?
             try
             {
@@ -121,6 +125,9 @@ namespace ExcelDna.Loader
                     // TODO: What to do here? LogDisplay??
                     Debug.Print("Registration Error! - Register call failed for method {0}", mi.Name);
                 }
+                // Now clear out the xll path and store the parameters to support RegistrationInfo access.
+                registerParameters[0] = null;
+                registrationInfo.Add(registerParameters);
             }
             catch (Exception e)
             {
@@ -130,6 +137,9 @@ namespace ExcelDna.Loader
         }
 
         // NOTE: We are not currently removing the functions from the Jmp array
+        //       That would be needed to do a proper per-method deregistration,
+        //       together with a garbage-collectable story for the wrapper methods and delegates, 
+        //       instead of the currently runtime-compiled and loaded assemblies.
         internal static void UnregisterMethods()
         {
             object xlCallResult;
@@ -159,6 +169,7 @@ namespace ExcelDna.Loader
                 }
             }
             registeredMethods.Clear();
+            registrationInfo.Clear();
         }
 
         private static void RegisterMenu(XlMethodInfo mi)
@@ -344,25 +355,6 @@ namespace ExcelDna.Loader
             }
 
             return registerParameters;
-        }
-
-        private static void RecordFunctionInfo(object[] registerParameters)
-        {
-            // name, category, helpTopic, argumentNames, [description], [argumentDescription_1] ... [argumentDescription_n].
-            List<string> info = new List<string>();
-            info.Add((string)registerParameters[3]);    // name
-            info.Add((string)registerParameters[6]);    // category
-            info.Add((string)registerParameters[8]);    // helpTopic
-            info.Add((string)registerParameters[4]);    // argumentNames
-            if (registerParameters.Length >= 10)
-            {
-                info.Add((string)registerParameters[9]); // Description
-            }
-            for (int k = 10; k < registerParameters.Length; k++)
-            {
-                info.Add((string)registerParameters[k]);  // argumentDescription
-            }
-            functionInfo.Add(info);
         }
 
         static string Truncate(string s, int length)

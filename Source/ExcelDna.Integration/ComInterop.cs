@@ -186,6 +186,15 @@ namespace ExcelDna.Integration.CustomUI
         void Invalidate();
         [DispId(2)]
         void InvalidateControl([In, MarshalAs(UnmanagedType.BStr)] string ControlID);
+        [DispId(3)]
+        void InvalidateControlMso([MarshalAs(UnmanagedType.BStr)] [In] string ControlID);
+        // The ActiveTab methods were added in Office 2010
+        [DispId(4)]
+        void ActivateTab([MarshalAs(UnmanagedType.BStr)] [In] string ControlID);
+        [DispId(5)]
+        void ActivateTabMso([MarshalAs(UnmanagedType.BStr)] [In] string ControlID);
+        [DispId(6)]
+        void ActivateTabQ([MarshalAs(UnmanagedType.BStr)] [In] string ControlID, [MarshalAs(UnmanagedType.BStr)] [In] string Namespace);
     }
 
     //// Actually from System.Windows.Forms.UnsafeNativeMethods

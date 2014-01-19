@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2013 Govert van Drimmelen
+  Copyright (C) 2005-2014 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -292,7 +292,7 @@ extern "C"
 			if (!FAILED(hr))
 			{
 				std::string addInName(addInNameW.begin(), addInNameW.end());
-				byte length = (byte)min(addInName.length(), 255);
+				byte length = (byte)min(addInName.length(), 254);
 				name[0] = (char)length;
 				char* pName = (char*)name + 1;
 				strncpy_s(pName, 255, addInName.c_str(), length + 1);

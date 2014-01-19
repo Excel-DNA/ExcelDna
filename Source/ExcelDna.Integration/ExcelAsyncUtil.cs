@@ -1,5 +1,5 @@
 ﻿/*
-  Copyright (C) 2005-2013 Govert van Drimmelen
+  Copyright (C) 2005-2014 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -74,12 +74,22 @@ namespace ExcelDna.Integration
         // TODO: This should not be called from a ThreadSafe function. Check...?
         public static object Observe(string callerFunctionName, object callerParameters, ExcelObservableSource observableSource)
         {
+            if (!SynchronizationManager.IsInstalled)
+            {
+                // We typically can't install in this context - either in a function or on a different thread.
+                throw new InvalidOperationException("ExcelAsyncUtil has not been initialized. Add a call to ExcelAsyncUtil.Initialize() in an IExcelAddIn.AutoOpen() handler, bfore making this call.");
+            }
             return AsyncObservableImpl.ProcessObservable(callerFunctionName, callerParameters, observableSource);
         }
 
         // Async function support
         public static object Run(string callerFunctionName, object callerParameters, ExcelFunc asyncFunc)
         {
+            if (!SynchronizationManager.IsInstalled)
+            {
+                // We typically can't install in this context - either in a function or on a different thread.
+                throw new InvalidOperationException("ExcelAsyncUtil has not been initialized. Add a call to ExcelAsyncUtil.Initialize() in an IExcelAddIn.AutoOpen() handler, bfore making this call.");
+            }
             return AsyncObservableImpl.ProcessFunc(callerFunctionName, callerParameters, asyncFunc);
         }
 
@@ -88,6 +98,11 @@ namespace ExcelDna.Integration
         // but can spawn a thread and return the value later.
         public static object Run(string callerFunctionName, object callerParameters, ExcelFuncAsyncHandle asyncFunc)
         {
+            if (!SynchronizationManager.IsInstalled)
+            {
+                // We typically can't install in this context - either in a function or on a different thread.
+                throw new InvalidOperationException("ExcelAsyncUtil has not been initialized. Add a call to ExcelAsyncUtil.Initialize() in an IExcelAddIn.AutoOpen() handler, bfore making this call.");
+            }
             return AsyncObservableImpl.ProcessFuncAsyncHandle(callerFunctionName, callerParameters, asyncFunc);
         }
 
@@ -105,6 +120,11 @@ namespace ExcelDna.Integration
 
         public static void QueueAsMacro(SendOrPostCallback callback, object state)
         {
+            if (!SynchronizationManager.IsInstalled)
+            {
+                // We typically can't install in this context - either in a function or on a different thread.
+                throw new InvalidOperationException("ExcelAsyncUtil has not been initialized. Add a call to ExcelAsyncUtil.Initialize() in an IExcelAddIn.AutoOpen() handler, bfore making this call.");
+            }
             SynchronizationManager.RunMacroSynchronization.RunAsMacroAsync(callback, state);
         }
 

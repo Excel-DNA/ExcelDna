@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2013 Govert van Drimmelen
+  Copyright (C) 2005-2014 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -541,6 +541,7 @@ namespace ExcelDna.Integration
         }
         #endregion
 
+        #region ExcelLimits
         private static ExcelLimits _xlLimits;
         public static ExcelLimits ExcelLimits
         {
@@ -576,6 +577,38 @@ namespace ExcelDna.Integration
                 return DnaLibrary.XllPath;
             }
         }
+        #endregion
+
+        #region Registration Info
+        static readonly Guid _excelDnaNamespaceGuid = new Guid("{306D016E-CCE8-4861-9DA1-51A27CBE341A}");
+        internal static readonly Guid XllGuid = GuidFromXllPath(XllPath);
+
+        // Return a stable Guid from the xll path - used for COM registration and helper functions
+        internal static Guid GuidFromXllPath(string path)
+        {
+            return GuidUtility.Create(_excelDnaNamespaceGuid, path);
+        }
+
+
+        // Name of the Registration Helper function, registered in ExcelIntegration.RegisterRegistrationInfo
+        internal static string RegistrationInfoName(string xllPath)
+        {
+            return "RegistrationInfo_" + GuidFromXllPath(xllPath).ToString("N");
+        }
+
+        // Public function to get registration info for this or other Excel-DNA .xlls
+        // Return null if the matching RegistrationInfo function is not found.
+        public static object[,] RegistrationInfo(string xllPath)
+        {
+            string regInfoName = RegistrationInfoName(xllPath);
+            object result;
+            if (XlCall.TryExcel(XlCall.xlUDF, out result, regInfoName) == XlCall.XlReturn.XlReturnSuccess)
+            {
+                return (object[,])result;
+            }
+            return null;
+        }
+        #endregion
     }
 
     public class ExcelLimits

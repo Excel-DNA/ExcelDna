@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2013 Govert van Drimmelen
+  Copyright (C) 2005-2014 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -234,7 +234,7 @@ namespace ExcelDna.Integration
         [XmlIgnore]
         private List<MethodInfo> _methods = new List<MethodInfo>();
 
-        // The idea is that initialize compiles, loads and sorts out the assemblies,
+        // The idea is that Initialize compiles, loads and sorts out the assemblies,
         //    but does not depend on any calls to Excel.
         // Then Initialize can be called during RTD registration or loading, 
         //    without 'AutoOpening' the add-in
@@ -269,8 +269,11 @@ namespace ExcelDna.Integration
             ComServer.RegisterComClassTypes(comClassTypes);
         }
 
+        // Only called for the Root DnaLibrary.
         internal void AutoOpen()
         {
+            // Register special RegistrationInfo function
+            ExcelIntegration.RegisterRegistrationInfo();
             // Register my Methods
             ExcelIntegration.RegisterMethods(_methods);
 

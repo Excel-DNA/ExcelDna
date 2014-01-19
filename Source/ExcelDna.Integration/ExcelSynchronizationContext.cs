@@ -1,5 +1,5 @@
 ﻿/*
-  Copyright (C) 2005-2013 Govert van Drimmelen
+  Copyright (C) 2005-2014 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -296,12 +296,12 @@ namespace ExcelDna.Integration
             }
         }
 
-        // Regsiter the helper macro with Excel, so that Application.Run can call it.
+        // Register the helper macro with Excel, so that Application.Run can call it.
         void Register()
         {
             // CONSIDER: Can this be cleaned up by calling ExcelDna.Loader?
             // We must not be in a function when this is run, nor in an RTD method call.
-            _syncMacroName = "SyncMacro_" + Guid.NewGuid().ToString("N");
+            _syncMacroName = "SyncMacro_" + ExcelDnaUtil.GuidFromXllPath(ExcelDnaUtil.XllPath).ToString("N");
             ExcelIntegration.SetSyncMacro(SyncMacro);
 
             object[] registerParameters = new object[6];
@@ -407,6 +407,8 @@ namespace ExcelDna.Integration
         //   and if it is not an Excel window (GetFocus returns 0), 
         //   I fall back to the standard menu enabled check
         //   (which still works under Excel 2007+, presumably for backward compatibility)
+
+        // TODO: Use LPenHelper where available
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         static extern IntPtr GetFocus();

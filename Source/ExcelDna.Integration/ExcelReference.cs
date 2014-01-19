@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2005-2013 Govert van Drimmelen
+  Copyright (C) 2005-2014 Govert van Drimmelen
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -256,7 +256,7 @@ namespace ExcelDna.Integration
 
         public override string ToString()
         {
-            return string.Format("({0},{1} : {2},{3}) - 4", RowFirst, ColumnFirst, RowLast, ColumnLast, SheetId);
+            return string.Format("({0},{1} : {2},{3}) - {4}", RowFirst, ColumnFirst, RowLast, ColumnLast, SheetId);
         }
 	}
 }

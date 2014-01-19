@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Excel-DNA Add-In Framework for Microsoft Excel")]
-[assembly: AssemblyCopyright("Copyright © 2005-2013 Govert van Drimmelen")]
+[assembly: AssemblyCopyright("Copyright © 2005-2014 Govert van Drimmelen")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,4 +32,4 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("0.32.*")]
-[assembly: AssemblyFileVersion("0.32.11.1")]
+[assembly: AssemblyFileVersion("0.32.12.1")]
