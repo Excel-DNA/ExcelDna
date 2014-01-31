@@ -1,5 +1,6 @@
 ﻿// This code retrieved from: https://github.com/LogosBible/Logos.Utility/blob/master/src/Logos.Utility/GuidUtility.cs
-// on 19 January 2014, with license:
+// on 19 January 2014, having this license:
+
 // Copyright 2007-2013 Logos Bible Software
    
 // Permission is hereby granted, free of charge, to any person obtaining a copy of

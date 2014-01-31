@@ -43,7 +43,7 @@ public static class MyFunctions
 
 namespace MyRTDServers
 {
-    // [ComVisible(true)]
+    // [ComVisible(true)] should be set for this class if your project is set as [ComVisible(false)] - the default under Visual Studio.
     public class TimeServer : ExcelRtdServer
     {
         string _logPath;
