@@ -14,6 +14,14 @@
         MsgBox("My Button Pressed on control " & control.Id,,"ExcelDna Ribbon!")
     End Sub
     
+    Dim checkState As Boolean = True
+	Public Function Checkbox1_getPressed(control As IRibbonControl) As Boolean
+		Return checkState
+	End Function
+	Public Sub Checkbox1_onAction(control As IRibbonControl, pressed As Boolean)
+		checkState = pressed
+	End Sub
+
   End Class
   
   Public Module Module1
@@ -48,6 +56,11 @@
 screentip="This is the screentip of button1" supertip="This is the supertip of button1"
  />
               <button id='Button2' label='My Second 2010 Button' image='M' size='normal' onAction='OnButtonPressed'/>
+              <checkBox 
+						id="Checkbox1"
+						label="Test CheckBox"
+						getPressed="Checkbox1_getPressed"
+						onAction="Checkbox1_onAction"/>
             </group >
           </tab>
         </tabs>

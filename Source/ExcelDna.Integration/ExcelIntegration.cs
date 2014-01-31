@@ -91,7 +91,14 @@ namespace ExcelDna.Integration
             getRegistrationInfo = d;
         }
 
-        // These are the only 'externally' exposed members.
+        // These are the public 'externally' exposed members.
+
+        // Get the assemblies that were considered for registration - both ExternalLibraries and Projects or code from the .dna file.
+        public static IEnumerable<Assembly> GetExportedAssemblies()
+        {
+            return DnaLibrary.CurrentLibrary.GetExportedAssemblies();
+        }
+
         public static void RegisterMethods(List<MethodInfo> methods)
         {
             registerMethods(methods);

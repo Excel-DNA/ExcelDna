@@ -21,6 +21,7 @@ Version 0.31 (???)
 * Fix FreeMemory bug with uninitialized marshaler.
 * Apply patch to be more tolerant of type loading errors.
 * Change to stable ProgId (dependent on XllPath)  for COM add-ins.
+* Add ExcelIntegration.GetExportedAssemblies()
 
 Version 0.30 (12 December 2012)
 -------------------------------

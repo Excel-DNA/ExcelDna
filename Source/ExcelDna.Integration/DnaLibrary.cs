@@ -231,8 +231,11 @@ namespace ExcelDna.Integration
         // Kept so that AutoClose can be called later.
         [XmlIgnore]
         private List<AssemblyLoader.ExcelAddInInfo> _addIns = new List<AssemblyLoader.ExcelAddInInfo>();
+        // Filled in during Initialize()
         [XmlIgnore]
         private List<MethodInfo> _methods = new List<MethodInfo>();
+        [XmlIgnore]
+        private List<ExportedAssembly> _exportedAssemblies;
 
         // The idea is that Initialize compiles, loads and sorts out the assemblies,
         //    but does not depend on any calls to Excel.
@@ -245,8 +248,8 @@ namespace ExcelDna.Integration
             List<ExcelComClassType> comClassTypes = new List<ExcelComClassType>();
 
             // Recursively get assemblies down .dna tree.
-            List<ExportedAssembly> assemblies = GetAssemblies(dnaResolveRoot);
-            AssemblyLoader.ProcessAssemblies(assemblies, _methods, _addIns, rtdServerTypes, comClassTypes);
+            _exportedAssemblies = GetAssemblies(dnaResolveRoot);
+            AssemblyLoader.ProcessAssemblies(_exportedAssemblies, _methods, _addIns, rtdServerTypes, comClassTypes);
 
             // Register RTD Server Types immediately
             RtdRegistration.RegisterRtdServerTypes(rtdServerTypes);
@@ -387,6 +390,16 @@ namespace ExcelDna.Integration
             // This is safe, even if no Com Add-Ins were loaded.
             ExcelComAddInHelper.UnloadComAddIns();
             ExcelCommandBarUtil.UnloadCommandBars();
+        }
+
+        internal IEnumerable<Assembly> GetExportedAssemblies()
+        {
+            List<Assembly> assemblies = new List<Assembly>();
+            foreach (ExportedAssembly exp in _exportedAssemblies)
+            {
+                assemblies.Add(exp.Assembly);
+            }
+            return assemblies;
         }
 
         // Statics
