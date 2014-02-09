@@ -561,7 +561,7 @@ namespace ExcelDna.Integration
                     {
                         _xlLimits.MaxRows = 1048576;
                         _xlLimits.MaxColumns = 16384;
-                        _xlLimits.MaxArguments = 255;
+                        _xlLimits.MaxArguments = 256;
                         _xlLimits.MaxStringLength = 32767;
                     }
                 }
@@ -607,6 +607,16 @@ namespace ExcelDna.Integration
                 return (object[,])result;
             }
             return null;
+        }
+
+        public static void UnregisterXLL(string xllPath)
+        {
+            Debug.Print("## Unregistering Add-In: " + xllPath);
+            // Little detour to get Excel-DNA to fully unregister the function names.
+            object removeId = XlCall.Excel(XlCall.xlfRegister, xllPath, "xlAutoRemove", "I", ExcelEmpty.Value, ExcelEmpty.Value, 2);
+            object removeResult = XlCall.Excel(XlCall.xlfCall, removeId);
+            object removeUnregister = XlCall.Excel(XlCall.xlfUnregister, removeId);
+            XlCall.Excel(XlCall.xlfUnregister, xllPath);
         }
         #endregion
     }

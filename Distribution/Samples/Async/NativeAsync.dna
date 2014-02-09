@@ -57,7 +57,7 @@
         });
     }
 	
-    // Wrappers like this don't seen to work...
+    // Wrappers like this don't seem to work...
     // This function will just return #VALUE ... Why?
     public static object dnaEchoWrapped(object value, int msToSleep)
     {

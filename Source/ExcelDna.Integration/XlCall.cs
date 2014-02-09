@@ -23,6 +23,7 @@
 */
 
 using System;
+using System.Runtime.InteropServices;
 
 namespace ExcelDna.Integration
 {
@@ -86,7 +87,7 @@ namespace ExcelDna.Integration
 		public static readonly int xlDisableXLMsgs =    (11 | xlSpecial);
 		public static readonly int xlDefineBinaryName = (12 | xlSpecial);
 		public static readonly int xlGetBinaryName =    (13 | xlSpecial);
-
+        public static readonly int xlGetFmlaInfo =      (14 | xlSpecial);
         public static readonly int xlAsyncReturn =      (16 | xlSpecial);	/* Set return value from an asynchronous function call */
         public static readonly int xlEventRegister =    (17 | xlSpecial);	/* Register an XLL event */
         public static readonly int xlRunningOnCluster = (18 | xlSpecial);	/* Returns true if running on Compute Cluster */
@@ -1132,6 +1133,23 @@ namespace ExcelDna.Integration
             }
             return ExcelIntegration.TryExcelImpl(xlFunction, out result, parameters);
         }
+
+
+        #region PenHelper
+        [DllImport("XLCALL32.DLL")]
+        internal static extern int LPenHelper(int wCode, ref FmlaInfo fmlaInfo); // 'long' return value means 'int' in C (so why different?)
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct FmlaInfo
+        {
+            public int wPointMode;    // current edit mode.  0 => rest of struct undefined
+            public int cch;           // count of characters in formula
+            public IntPtr lpch;       // pointer to formula characters.  READ ONLY!!!
+            public int ichFirst;      // char offset to start of selection
+            public int ichLast;       // char offset to end of selection (may be > cch)
+            public int ichCaret;      // char offset to blinking caret
+        }
+        #endregion
 
         /// <summary>
         /// Supports the registration-free RTD service.
