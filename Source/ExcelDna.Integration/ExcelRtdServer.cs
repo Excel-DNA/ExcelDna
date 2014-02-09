@@ -73,6 +73,8 @@ namespace ExcelDna.Integration.Rtd
 
             /// <summary>
             /// Calls UpdateNotify on the RTD server to refresh.
+            /// Does not normally need to be called if UpdateValue(newValue) has been called,
+            /// but can be used to force a recalculation of the RTD cell even if the value has not changed.
             /// </summary>
             public void UpdateNotify()
             {
@@ -223,8 +225,7 @@ namespace ExcelDna.Integration.Rtd
                 
                 // (Does not address the Excel 2010 bug documented here:
                 // http://social.msdn.microsoft.com/Forums/en-US/exceldev/thread/ba06ac78-7b64-449b-bce4-9a03ac91f0eb/
-                // fixed by hotfix: http://support.microsoft.com/kb/2405840 
-                // and SP1 )
+                // fixed by hotfix: http://support.microsoft.com/kb/2405840 and SP1. This problem is fixed by the ExcelRtd2010BugHelper. )
                 if (_activeTopics.ContainsKey(topicId))
                 {
                     using (XlCall.Suspend())

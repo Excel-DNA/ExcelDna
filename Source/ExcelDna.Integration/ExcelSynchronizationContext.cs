@@ -416,6 +416,9 @@ namespace ExcelDna.Integration
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
 
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        internal static extern IntPtr GetProcAddress([In] IntPtr hModule, [In, MarshalAs(UnmanagedType.LPStr)] string lpProcName);
+
         static string GetWindowClassName(IntPtr hWnd)
         {
             StringBuilder buffer = new StringBuilder(256);
@@ -433,6 +436,20 @@ namespace ExcelDna.Integration
 
         static bool IsInFormulaEditMode()
         {
+            // If PenHelper is available
+            if (ExcelDnaUtil.ExcelVersion >= 12.0)
+            {
+                // check edit state directly
+                var fmlaInfo = new XlCall.FmlaInfo();
+                var result = XlCall.LPenHelper(XlCall.xlGetFmlaInfo, ref fmlaInfo);
+                if (result == 0)
+                {
+                    // Succeeded
+                    return fmlaInfo.wPointMode != XlCall.xlModeReady;
+                }
+            }
+
+            // Otherwise try Focus windows check, else menu check.
             IntPtr focusedWindow = GetFocus();
             if (focusedWindow == IntPtr.Zero)
             {

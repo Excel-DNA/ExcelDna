@@ -222,7 +222,7 @@ namespace ExcelDna.Integration.Rtd
     // Used as Keys in a Dictionary - should be immutable. 
     // We allow parameters to be null or primitives or ExcelReference objects, 
     // or a 1D array or 2D array with primitives or arrays.
-    internal struct AsyncCallInfo
+    internal struct AsyncCallInfo : IEquatable<AsyncCallInfo>
     {
         readonly string _functionName;
         readonly object _parameters;
@@ -336,7 +336,7 @@ namespace ExcelDna.Integration.Rtd
             return Equals((AsyncCallInfo)obj);
         }
 
-        bool Equals(AsyncCallInfo other)
+        public bool Equals(AsyncCallInfo other)
         {
             if (_hashCode != other._hashCode) return false;
             return Equals(other._functionName, _functionName)

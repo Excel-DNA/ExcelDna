@@ -227,9 +227,6 @@ namespace ExcelDna.Loader
                 }
             }
 
-            // TODO: The argument names and descriptions allow some undocumented ",..." form to support paramarray style functions.
-            //       E.g. check the FuncSum function in Generic.c in the SDK.
-            //       We should try some support for this...
             string argumentNames = "";
             bool showDescriptions = false;
             // For async functions, we need to leave off the last argument
