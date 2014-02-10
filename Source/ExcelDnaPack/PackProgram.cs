@@ -45,6 +45,9 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 //			//ResourceHelper.ResourceUpdater.Test(testLib);
 //			return;
 
+            // Set to an 'Error' exit unless we get to the end.
+            Environment.ExitCode = 0;
+
 			// Force jit-load of ExcelDna.Integration assembly
 			int unused = XlCall.xlAbort;
 
@@ -166,6 +169,8 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 			Console.WriteLine("Press any key to exit.");
 			Console.ReadKey();
 #endif
+            // All OK - set process exit code to 'Success'
+            Environment.ExitCode = 0;
 		}
 
 		static int lastPackIndex = 0;

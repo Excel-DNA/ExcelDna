@@ -87,7 +87,18 @@ namespace ExcelDna.Logging
             string message;
             try
             {
-                message = LogDisplay.LogStrings[messageIndex];
+                // Check whether we want to count from the beginning or the end, when displaying the messages.
+                int listIndex;
+                if (LogDisplay.DisplayOrder == DisplayOrder.NewestLast)
+                {
+                    listIndex = messageIndex;
+                }
+                else
+                {
+                    listIndex = LogDisplay.LogStrings.Count - messageIndex - 1;
+                }
+
+                message = LogDisplay.LogStrings[listIndex];
                 if (message.Length > 259)
                 {
                     message = message.Substring(0, 253) + " [...]";
@@ -184,6 +195,12 @@ namespace ExcelDna.Logging
             ChangeType = MessageBufferChangeType.AddLast;
             AddedMessage = addedMessage;
         }
+    }
+
+    public enum DisplayOrder
+    {
+        NewestLast,
+        NewestFirst
     }
 
     public static class LogDisplay
@@ -283,6 +300,17 @@ namespace ExcelDna.Logging
                 sb.AppendLine(msg);
             }
             return sb.ToString();
+        }
+
+        static DisplayOrder _displayOrder;
+        public static DisplayOrder DisplayOrder 
+        {
+            get { return _displayOrder; }
+            set 
+            { 
+                _displayOrder = value;
+                LogStringsUpdated = false;
+            }
         }
 
     }

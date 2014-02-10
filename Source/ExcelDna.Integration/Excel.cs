@@ -420,7 +420,7 @@ namespace ExcelDna.Integration
             GetWindowTextW(hWnd, buffer, buffer.Capacity);
             string title = buffer.ToString();
             // Another window that has been reported as causing issue has title "Collect and Paste 2.0"
-            if (title.Contains("Replace") || title.Contains("Paste"))
+            if (title.Contains("Replace") || title.Contains("Paste") || title.Contains("Recovery"))
                 return false;
 
             return true;

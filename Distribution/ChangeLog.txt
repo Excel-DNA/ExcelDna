@@ -1,4 +1,4 @@
-Version 0.31 (???)
+Version 0.32 (???)
 ------------------
 * Fixed method registration to avoid generic methods (for F# standalone).
 * Improved method deregistration to leave functions with #NAME? (thanks to kh).
@@ -21,7 +21,11 @@ Version 0.31 (???)
 * Fix FreeMemory bug with uninitialized marshaler.
 * Apply patch to be more tolerant of type loading errors.
 * Change to stable ProgId (dependent on XllPath)  for COM add-ins.
-* Add ExcelIntegration.GetExportedAssemblies()
+* Add ExcelIntegration.GetExportedAssemblies().
+* Update async COM run check.
+* Add check for Document Recovery window in IsInFunctionWizard().
+* Add exit code for ExcelDnaPack.
+* Add DisplayOrder option for LogDisplay.
 
 Version 0.30 (12 December 2012)
 -------------------------------
