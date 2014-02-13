@@ -23,6 +23,7 @@
 */
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using ExcelDna.Integration.Rtd;
 
@@ -85,6 +86,7 @@ namespace ExcelDna.Integration
         // Async function support
         public static object Run(string callerFunctionName, object callerParameters, ExcelFunc asyncFunc)
         {
+            Debug.Print("ExcelAsyncUtil.Run - {0} : {1}", callerFunctionName, callerParameters);
             if (!SynchronizationManager.IsInstalled)
             {
                 // We typically can't install in this context - either in a function or on a different thread.
