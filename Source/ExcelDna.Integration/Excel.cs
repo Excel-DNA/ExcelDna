@@ -78,7 +78,7 @@ namespace ExcelDna.Integration
             // Under Excel 2013 we have a problem, the window is not stable.
             // We get the current main window here, and deal with changes later.
             _mainWindowHandle = GetWindowHandleApi();
-            // Extra attempt via dinwo enumeration if the Api approach failed.
+            // Extra attempt via window enumeration if the Api approach failed.
             if (_mainWindowHandle == IntPtr.Zero)
                 _mainWindowHandle = GetWindowHandleThread();
         }
@@ -259,7 +259,7 @@ namespace ExcelDna.Integration
             
             // DOCUMENT: Under some circumstances, the C API and Automation interfaces are not available.
             //  This happens when there is no Workbook open in Excel.
-            // Now make workbook with VBA sheet, according to some Google post..
+            // Now make workbook with VBA sheet, according to some Google post.
 
             // We try a (possible) test for whether we can call the C API.
             object output;

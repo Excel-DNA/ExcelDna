@@ -79,6 +79,7 @@ namespace ExcelDna.Integration.Rtd
             if (_asyncCallIds.TryGetValue(callInfo, out id))
             {
                 // Already registered.
+                Debug.Print("AsyncObservableImpl GetValueIfRegistered - Found Id: {0}", id);
                 AsyncObservableState state = _observableStates[id];
                 value = state.GetValue();
                 return true;
@@ -97,6 +98,7 @@ namespace ExcelDna.Integration.Rtd
             // Caller might be null if not from worksheet
             ExcelReference caller = XlCall.Excel(XlCall.xlfCaller) as ExcelReference;
             Guid id = Guid.NewGuid();
+            Debug.Print("AsyncObservableImpl.RegisterObservable - Id: {0}", id);
             _asyncCallIds[callInfo] = id;
             AsyncObservableState state = new AsyncObservableState(id, callInfo, caller, observable);
             _observableStates[id] = state;
@@ -105,20 +107,39 @@ namespace ExcelDna.Integration.Rtd
             return state.GetValue();
         }
 
+        // Safe to call with an invalid Id, but that's not expected.
         internal static void ConnectObserver(Guid id, ExcelRtdObserver rtdObserver)
         {
-            // TODO: Checking...(huh?)
-            AsyncObservableState state = _observableStates[id];
-            // Start the work for this AsyncCallInfo, and subscribe the topic to the result
-            state.Subscribe(rtdObserver);
+            Debug.Print("AsyncObservableImpl.ConnectObserver - Id: {0}", id);
+
+            // It's an error if the id is not on the list - the ExcelObserverRtdServer should protect is from the onw known case 
+            // - when RTD is called from sheet open
+            AsyncObservableState state;
+            if (_observableStates.TryGetValue(id, out state))
+            {
+                // Start the work for this AsyncCallInfo, and subscribe the topic to the result
+                state.Subscribe(rtdObserver);
+            }
+            else
+            {
+                // Not expected - the ExcelObserverRtdServer should have protected us, 
+                // since the only invalid id call would be for sheet open with direct RTD refresh.
+                Debug.Fail("AsyncObservableImpl.ConnectObserver - Invalid Id: " + id);
+            }
         }
 
+        // Safe to call even if the id is not valid
         internal static void DisconnectObserver(Guid id)
         {
-            AsyncObservableState state = _observableStates[id];
-            state.Unsubscribe();
-            _observableStates.Remove(id);
-            _asyncCallIds.Remove(state.GetCallInfo());
+            Debug.Print("AsyncObservableImpl.DisconnectObserver - Id: {0}", id);
+
+            AsyncObservableState state;
+            if (_observableStates.TryGetValue(id, out state))
+            {
+                state.Unsubscribe();
+                _observableStates.Remove(id);   // Remove is safe even if key is not found.
+                _asyncCallIds.Remove(state.GetCallInfo());
+            }
         }
     }
 
@@ -173,34 +194,80 @@ namespace ExcelDna.Integration.Rtd
     [ComVisible(true)]
     internal class ExcelObserverRtdServer : ExcelRtdServer
     {
-        readonly Dictionary<Topic, Guid> _topicGuids = new Dictionary<Topic, Guid>();
+        class ObserverRtdTopic : Topic
+        {
+            public readonly Guid Id;
+            public ObserverRtdTopic(ExcelObserverRtdServer server, int topicId, Guid id)
+                : base(server, topicId)
+            {
+                Id = id;
+            }
+        }
 
+        protected override Topic CreateTopic(int topicId, IList<string> topicInfo)
+        {
+            Guid id = new Guid(topicInfo[0]);
+            return new ObserverRtdTopic(this, topicId, id);
+        }
+        
         protected override object ConnectData(Topic topic, IList<string> topicInfo, ref bool newValues)
         {
+            Debug.Print("ExcelObserverRtdServer.ConnectData: ProgId: {0}, TopicId: {1}, TopicInfo: {2}, NewValues: {3}", RegisteredProgId, topic.TopicId, topicInfo[0], newValues);
+
+            if (newValues == false)
+            {
+                // Excel has a cached value, and we are being called from the file open refresh.
+
+                // Calling UpdateNotify here seems to work (it causes the wrapper function to recalc, 
+                //    which Disconnects the bad topic, and allows a fresh one to be created)
+                // Not needed if we return a new 'fake' value, which is safe since it is consistent with normal updates.
+                // Result should be a Disconnect followed by a proper Connect via the wrapper.
+                // topic.UpdateNotify();   
+
+                newValues = true;
+                return DateTime.UtcNow.ToOADate();
+            }
             // Retrieve and store the GUID from the topic's first info string - used to hook up to the Async state
-            Guid id = new Guid(topicInfo[0]);
-            _topicGuids[topic] = id;
+            Guid id = ((ObserverRtdTopic)topic).Id;
 
             // Create a new ExcelRtdObserver, for the Topic, which will listen to the Observable
-            // (Internally also set initial value - #N/A for now)
+            // (Internally this will also set the initial value to #N/A)
             ExcelRtdObserver rtdObserver = new ExcelRtdObserver(topic);
             // ... and subscribe it
             AsyncObservableImpl.ConnectObserver(id, rtdObserver);
 
-            // Return something: #N/A for now. Not currently used.
-            // TODO: Allow customize?
-            return ExcelErrorUtil.ToComError(ExcelError.ExcelErrorNA);
+            // Now ConnectData needs to return some value, which will only be used by Excel internally (and saved in the book's RTD topic value).
+            // Our wrapper function (ExcelAsyncUtil.Run or ExcelAsyncUtil.Observe) will return #N/A no matter what we return here.
+            // However, it seems that Excel handles the special 'busy' error #N/A here (return ExcelErrorUtil.ToComError(ExcelError.ExcelErrorNA))
+            // in a special way (<tp t="e"><v>#N/A</v> in volatileDependencies.xml) - while other values seem to trigger a recalculate on file open, 
+            // when Excel attempts to restart the RTD server and fails (due to transient ProgId).
+            // So we already return the same kind of value we'd return for updates, putting Excel into the 'value has been updated' state
+            // even if the sheet is saved. That will trigger a proper formula recals on file open.
+            return DateTime.UtcNow.ToOADate();
         }
 
         protected override void DisconnectData(Topic topic)
         {
-            // Retrieve the GUID from the topic's first info string - used to hook up to the Async state
-            Guid id = _topicGuids[topic];
+            Debug.Print("ExcelObserverRtdServer.DisconnectData: ProgId: {0}, TopicId: {1}", RegisteredProgId, topic.TopicId);
 
+            // Retrieve the GUID from the topic's first info string - used to hook up to the Async state
+            Guid id = ((ObserverRtdTopic)topic).Id;
             // ... and unsubscribe it
             AsyncObservableImpl.DisconnectObserver(id);
-            _topicGuids.Remove(topic);
         }
+
+#if DEBUG
+        protected override bool ServerStart()
+        {
+            Debug.Print("ExcelObserverRtdServer.ServerStart");
+            return true;
+        }
+
+        protected override void ServerTerminate()
+        {
+            Debug.Print("ExcelObserverRtdServer.ServerTerminate");
+        }
+#endif
 
         // This makes sure the hook up with the registration-free RTD loading is in place.
         // For a user RTD server the add-in loading would ensure this, but not for this class since it is declared inside Excel-DNA.

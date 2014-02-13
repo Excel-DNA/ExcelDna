@@ -20,12 +20,14 @@ Version 0.32 (???)
 * Fix Unregister bug for direct-created RTD servers.
 * Fix FreeMemory bug with uninitialized marshaler.
 * Apply patch to be more tolerant of type loading errors.
-* Change to stable ProgId (dependent on XllPath)  for COM add-ins.
+* Change to stable ProgId (dependent on XllPath) for COM add-ins.
 * Add ExcelIntegration.GetExportedAssemblies().
 * Update async COM run check.
 * Add check for Document Recovery window in IsInFunctionWizard().
 * Add exit code for ExcelDnaPack.
 * Add DisplayOrder option for LogDisplay.
+* Fix RTD-based Async error when reopening file while RTD server is still running.
+* Fix RTD-based Async to restart consistently when re-opening
 
 Version 0.30 (12 December 2012)
 -------------------------------

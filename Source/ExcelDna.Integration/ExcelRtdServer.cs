@@ -160,7 +160,7 @@ namespace ExcelDna.Integration.Rtd
         }
 
         // Topic creation - allows derived Topic classes to be used.
-        protected virtual Topic CreateTopic(int topicId, IList<string> topicInfo, ref bool newValues)
+        protected virtual Topic CreateTopic(int topicId, IList<string> topicInfo)
         {
             return new Topic(this, topicId);
         }
@@ -215,6 +215,11 @@ namespace ExcelDna.Integration.Rtd
             }
         }
 
+        // Understanding newValues
+        // -----------------------
+        // As input: If Excel has a cached value to display, newValues passed in will be false.
+        // On return: if newValues is now false, Excel will use cached value if it has one, (else #N/A if passed in as true)
+        //            if newValues is now true, Excel will use the value returned by ConnectData.
         object IRtdServer.ConnectData(int topicId, ref Array strings, ref bool newValues)
         {
             try
@@ -240,7 +245,7 @@ namespace ExcelDna.Integration.Rtd
                 Topic topic;
                 using (XlCall.Suspend())
                 {
-                    topic = CreateTopic(topicId, topicInfo, ref newValues);
+                    topic = CreateTopic(topicId, topicInfo);
                 }
                 if (topic == null)
                 {

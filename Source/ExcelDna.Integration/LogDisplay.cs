@@ -1,11 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
-using System.Drawing;
-using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -87,20 +82,11 @@ namespace ExcelDna.Logging
             string message;
             try
             {
-                // Check whether we want to count from the beginning or the end, when displaying the messages.
-                int listIndex;
-                if (LogDisplay.DisplayOrder == DisplayOrder.NewestLast)
-                {
-                    listIndex = messageIndex;
-                }
-                else
-                {
-                    listIndex = LogDisplay.LogStrings.Count - messageIndex - 1;
-                }
-
-                message = LogDisplay.LogStrings[listIndex];
+                message = LogDisplay.LogStrings[messageIndex];
                 if (message.Length > 259)
                 {
+                    // truncating here, rather than when we insert into the list, 
+                    // so that save and export will preserve the full string.
                     message = message.Substring(0, 253) + " [...]";
                 }
             }
@@ -272,14 +258,37 @@ namespace ExcelDna.Logging
         {
             lock (SyncRoot)
             {
-                if (LogStrings.Count > maxLogSize)
-                {
-                    LogStrings.RemoveAt(0);
-                }
                 string message = string.Format(format, args);
                 string[] messageLines = message.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                LogStrings.AddRange(messageLines);
+                if (DisplayOrder == DisplayOrder.NewestLast)
+                {
+                    // Insert at the end
+                    LogStrings.AddRange(messageLines);
+                }
+                else
+                {
+                    // Insert at the beginning.
+                    LogStrings.InsertRange(0, messageLines);
+                }
+                TruncateLog();
                 LogStringsUpdated = true;
+            }
+        }
+
+        static void TruncateLog()
+        {
+            while (LogStrings.Count > maxLogSize)
+            {
+                if (DisplayOrder == DisplayOrder.NewestLast)
+                {
+                    // Remove from the front
+                    LogStrings.RemoveAt(0);
+                }
+                else
+                {
+                    // Remove from the back
+                    LogStrings.RemoveAt(LogStrings.Count - 1);
+                }
             }
         }
 
@@ -307,9 +316,13 @@ namespace ExcelDna.Logging
         {
             get { return _displayOrder; }
             set 
-            { 
-                _displayOrder = value;
-                LogStringsUpdated = false;
+            {
+                if (_displayOrder != value)
+                {
+                    _displayOrder = value;
+                    LogStrings.Reverse();
+                    LogStringsUpdated = true;
+                }
             }
         }
 

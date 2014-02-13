@@ -58,11 +58,11 @@ namespace ExcelDna.Integration
                 ExcelVersionHasRtdBug = true;
                 return;
             }
-#if DEBUG
-            ExcelVersionHasRtdBug = true;   // To test a bit...
-#else
+//#if DEBUG
+//            ExcelVersionHasRtdBug = true;   // To test a bit...
+//#else
             ExcelVersionHasRtdBug = false;
-#endif
+//#endif
         }
 
         static Dictionary<string, ExcelRtd2010BugHelper> _wrappers;
