@@ -125,7 +125,7 @@ namespace ExcelDna.Integration
                     // TODO: Deal with error here...
                     _wrappedServer.ServerTerminate();
                     _wrappedServer = null;
-                    return null;
+                    return ExcelErrorUtil.ToComError(ExcelError.ExcelErrorValue);
                 }
             }
 

@@ -27,7 +27,7 @@ Version 0.32 (???)
 * Add exit code for ExcelDnaPack.
 * Add DisplayOrder option for LogDisplay.
 * Fix RTD-based Async error when reopening file while RTD server is still running.
-* Fix RTD-based Async to restart consistently when re-opening
+* Fix RTD-based Async to restart consistently when re-opening.
 
 Version 0.30 (12 December 2012)
 -------------------------------
