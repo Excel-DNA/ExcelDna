@@ -85,6 +85,7 @@ namespace ExcelDna.Integration.Rtd
             {
                 _server = server;
                 TopicId = topicId;
+                _value = ExcelErrorUtil.ToComError(ExcelError.ExcelErrorNA);
             }
 
             object FixValue(object value)
@@ -140,7 +141,10 @@ namespace ExcelDna.Integration.Rtd
 
         protected virtual object ConnectData(Topic topic, IList<string> topicInfo, ref bool newValues)
         {
-            return null;
+            // By default topic.Value will be #N/A. But if the CreateTopic changed the value, we'll return the new value here.
+            // Since newValues is not altered unless this methods is overridden, it means that for fresh topics (where newValues == true) this 
+            // return value will be used. That seems right.
+            return topic.Value;
         }
 
         protected virtual void DisconnectData(Topic topic)
@@ -245,12 +249,14 @@ namespace ExcelDna.Integration.Rtd
                 Topic topic;
                 using (XlCall.Suspend())
                 {
+                    // We create the topic, but what if it's value is set here...?
                     topic = CreateTopic(topicId, topicInfo);
                 }
                 if (topic == null)
                 {
                     Logging.LogDisplay.WriteLine("Error in RTD server {0} CreateTopic returned null.", GetType().Name);
-                    return null;
+                    // Not sure what to return here for error. We try the COM error version of #VALUE !?
+                    return ExcelErrorUtil.ToComError(ExcelError.ExcelErrorValue);
                 }
                 _activeTopics[topicId] = topic;
                 using (XlCall.Suspend())
@@ -262,7 +268,8 @@ namespace ExcelDna.Integration.Rtd
             catch (Exception e)
             {
                 Logging.LogDisplay.WriteLine("Error in RTD server {0} ConnectData: {1}", GetType().Name, e.ToString());
-                return null;
+                // Not sure what to return here for error. We try the COM error version of #VALUE !?
+                return ExcelErrorUtil.ToComError(ExcelError.ExcelErrorValue);
             }
         }
 
