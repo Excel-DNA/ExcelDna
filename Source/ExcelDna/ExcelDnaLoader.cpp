@@ -189,7 +189,7 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 #else
 	hr = pXlAddInType->InvokeMember_3(_bstr_t("Initialize64"), (BindingFlags)(BindingFlags_Static | BindingFlags_Public | BindingFlags_InvokeMethod), NULL, target, initArgs, &initRetVal);
 #endif
-	if (FAILED(hr))
+	if (FAILED(hr) || initRetVal.boolVal == 0)
 	{
 		ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
 					IDS_MSG_BODY_XLADDININIT, 

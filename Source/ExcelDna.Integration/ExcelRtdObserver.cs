@@ -36,12 +36,19 @@ namespace ExcelDna.Integration.Rtd
         static readonly Dictionary<Guid, AsyncObservableState> _observableStates = new Dictionary<Guid, AsyncObservableState>();
 
         // This is the most general RTD registration
-        // TODO: This should not be called from a ThreadSafe function. Check...?
+        // This should not be called from a ThreadSafe function. Checked in the callers.
         public static object ProcessObservable(string functionName, object parameters, ExcelObservableSource getObservable)
         {
-            // TODO: Check here that registration has happened.
-            // CONSIDER: Why not same problems with all RTD servers?
+            if (!SynchronizationManager.IsInstalled)
+            {
+                throw new InvalidOperationException("ExcelAsyncUtil has not been initialized. This is an unexpected error.");
+            }
+            if (!ExcelDnaUtil.IsMainThread)
+            {
+                throw new InvalidOperationException("ExcelAsyncUtil.Run / ExcelAsyncUtil.Observe may not be called from a ThreadSafe function.");
+            }
 
+            // CONSIDER: Why not same problems with all RTD servers?
             AsyncCallInfo callInfo = new AsyncCallInfo(functionName, parameters);
 
             // Shortcut if already registered
