@@ -28,6 +28,9 @@ Version 0.32 (???)
 * Add DisplayOrder option for LogDisplay.
 * Fix RTD-based Async error when reopening file while RTD server is still running.
 * Fix RTD-based Async to restart consistently when re-opening.
+* Change ExcelAsyncUtil initialization - remove ExcelAsyncUtil.Initialize() requirement.
+* Improve ExcelIntegration.GetRegistrationInfo(...)
+* Add message for mismatched ExcelDna.Integration.dll.
 
 Version 0.30 (12 December 2012)
 -------------------------------

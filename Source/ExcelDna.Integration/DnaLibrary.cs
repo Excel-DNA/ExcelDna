@@ -238,9 +238,10 @@ namespace ExcelDna.Integration
         private List<ExportedAssembly> _exportedAssemblies;
 
         // The idea is that Initialize compiles, loads and sorts out the assemblies,
-        //    but does not depend on any calls to Excel.
+        //    but does not depend on any calls to Excel (except if we need to install the sync manager).
         // Then Initialize can be called during RTD registration or loading, 
-        //    without 'AutoOpening' the add-in
+        //    without 'AutoOpening' the add-in.
+        // TODO: Check that the registration calls we make in SyncContext.Install are safe in the COM Server context!?
         internal void Initialize()
         {
             // Get MethodsInfos and AddIn classes from assemblies
@@ -266,7 +267,7 @@ namespace ExcelDna.Integration
                     break;
                 }
             }
-            if (registerSyncManager) SynchronizationManager.Install();
+            if (registerSyncManager) SynchronizationManager.Install();  // TODO: Careful here!?
 
             // Register COM Server Types immediately
             ComServer.RegisterComClassTypes(comClassTypes);
@@ -276,7 +277,8 @@ namespace ExcelDna.Integration
         internal void AutoOpen()
         {
             // Register special RegistrationInfo function
-            ExcelIntegration.RegisterRegistrationInfo();
+            RegistrationInfo.Register();
+            SynchronizationManager.Install();
             // Register my Methods
             ExcelIntegration.RegisterMethods(_methods);
 
@@ -322,6 +324,7 @@ namespace ExcelDna.Integration
             }
             // This is safe, even if never registered
             SynchronizationManager.Uninstall();
+            RegistrationInfo.Unregister();
             _addIns.Clear();
         }
 

@@ -45,21 +45,22 @@ namespace ExcelDna.Loader
     internal struct XlAddInExportInfo
     {
         #pragma warning disable 0649 // Field 'field' is never assigned to, and will always have its default value 'value'
-        internal Int32 ExportInfoVersion; // Must be 7 for this version
+        internal Int32 ExportInfoVersion; // Must be 8 for this version
         internal Int32 AppDomainId; // Id of the Sandbox AppDomain where the add-in runs.
-        internal IntPtr /* PFN_SHORT_VOID */ pXlAutoOpen;
-        internal IntPtr /* PFN_SHORT_VOID */ pXlAutoClose;
-        internal IntPtr /* PFN_SHORT_VOID */ pXlAutoRemove;
-        internal IntPtr /* PFN_VOID_LPXLOPER */     pXlAutoFree;
-        internal IntPtr /* PFN_VOID_LPXLOPER12 */   pXlAutoFree12;
-        internal IntPtr /* PFN_PFNEXCEL12 */ pSetExcel12EntryPt;
-        internal IntPtr /* PFN_HRESULT_VOID */ pDllRegisterServer;
-        internal IntPtr /* PFN_HRESULT_VOID */ pDllUnregisterServer;
-        internal IntPtr /* PFN_GET_CLASS_OBJECT */ pDllGetClassObject;
-        internal IntPtr /* PFN_HRESULT_VOID */ pDllCanUnloadNow;
-        internal IntPtr /* PFN_VOID_DOUBLE */ pSyncMacro;
-        internal IntPtr /* PFN_VOID_VOID */ pCalculationCanceled;
-        internal IntPtr /* PFN_VOID_VOID */ pCalculationEnded;
+        internal IntPtr /* PFN_SHORT_VOID */            pXlAutoOpen;
+        internal IntPtr /* PFN_SHORT_VOID */            pXlAutoClose;
+        internal IntPtr /* PFN_SHORT_VOID */            pXlAutoRemove;
+        internal IntPtr /* PFN_VOID_LPXLOPER */         pXlAutoFree;
+        internal IntPtr /* PFN_VOID_LPXLOPER12 */       pXlAutoFree12;
+        internal IntPtr /* PFN_PFNEXCEL12 */            pSetExcel12EntryPt;
+        internal IntPtr /* PFN_HRESULT_VOID */          pDllRegisterServer;
+        internal IntPtr /* PFN_HRESULT_VOID */          pDllUnregisterServer;
+        internal IntPtr /* PFN_GET_CLASS_OBJECT */      pDllGetClassObject;
+        internal IntPtr /* PFN_HRESULT_VOID */          pDllCanUnloadNow;
+        internal IntPtr /* PFN_VOID_DOUBLE */           pSyncMacro;
+        internal IntPtr /* PFN_LPXLOPER12_LPXLOPER12 */ pRegistrationInfo;
+        internal IntPtr /* PFN_VOID_VOID */             pCalculationCanceled;
+        internal IntPtr /* PFN_VOID_VOID */             pCalculationEnded;
         internal Int32 ThunkTableLength;  // Must be EXPORT_COUNT
         internal IntPtr /*PFN*/ ThunkTable; // Actually (PFN ThunkTable[EXPORT_COUNT])
         #pragma warning restore 0649
@@ -69,7 +70,7 @@ namespace ExcelDna.Loader
     public unsafe static class XlAddIn
     {
         // This version must match the version declared in ExcelDna.Integration.ExcelIntegration
-        const int ExcelIntegrationVersion = 5;
+        const int ExcelIntegrationVersion = 6;
 
         static int thunkTableLength;
         static IntPtr thunkTable;
@@ -106,7 +107,7 @@ namespace ExcelDna.Loader
             Debug.Print("InitializationInfo Address: 0x{0:x8}", xlAddInExportInfoAddress);
 			
 			XlAddInExportInfo* pXlAddInExportInfo = (XlAddInExportInfo*)xlAddInExportInfoAddress;
-            if (pXlAddInExportInfo->ExportInfoVersion != 7)
+            if (pXlAddInExportInfo->ExportInfoVersion != 8)
             {
                 Debug.Print("ExportInfoVersion not supported.");
                 return false;
@@ -155,6 +156,10 @@ namespace ExcelDna.Loader
             fn_void_double fnSyncMacro = (fn_void_double)SyncMacro;
             GCHandle.Alloc(fnSyncMacro);
             pXlAddInExportInfo->pSyncMacro = Marshal.GetFunctionPointerForDelegate(fnSyncMacro);
+
+            fn_intptr_intptr fnRegistrationInfo = (fn_intptr_intptr)RegistrationInfo;
+            GCHandle.Alloc(fnRegistrationInfo);
+            pXlAddInExportInfo->pRegistrationInfo = Marshal.GetFunctionPointerForDelegate(fnRegistrationInfo);
 
             fn_void_void fnCalculationCanceled = (fn_void_void)CalculationCanceled;
             GCHandle.Alloc(fnCalculationCanceled);
@@ -263,11 +268,6 @@ namespace ExcelDna.Loader
             Type registerDelAttDelegateType = integrationAssembly.GetType("ExcelDna.Integration.RegisterDelegatesWithAttributesDelegate");
             Delegate registerDelAttDelegate = Delegate.CreateDelegate(registerDelAttDelegateType, registerDelAttMethod);
             integrationType.InvokeMember("SetRegisterDelegatesWithAttributes", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] { registerDelAttDelegate });
-
-            MethodInfo getRegInfoMethod = typeof(XlRegistration).GetMethod("GetRegistrationInfo", BindingFlags.Static | BindingFlags.Public);
-            Type getRegInfoDelegateType = integrationAssembly.GetType("ExcelDna.Integration.GetRegistrationInfoDelegate");
-            Delegate getRegInfoDelegate = Delegate.CreateDelegate(getRegInfoDelegateType, getRegInfoMethod);
-            integrationType.InvokeMember("SetGetRegistrationInfo", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] { getRegInfoDelegate });
 
             MethodInfo getResourceBytesMethod = typeof(AssemblyManager).GetMethod("GetResourceBytes", BindingFlags.Static | BindingFlags.NonPublic);
             Type getResourceBytesDelegateType = integrationAssembly.GetType("ExcelDna.Integration.GetResourceBytesDelegate");
@@ -488,11 +488,32 @@ namespace ExcelDna.Loader
             InitializeIntegration();
             return IntegrationHelpers.DllCanUnloadNow();
         }
+        #endregion
 
+        #region Extensions support
         internal static void SyncMacro(double dValue)
         {
             if (_initialized)
                 IntegrationHelpers.SyncMacro(dValue);
+        }
+
+        internal static IntPtr RegistrationInfo(IntPtr pParam)
+        {
+            if (!_initialized)
+            {
+                return IntPtr.Zero;
+            }
+
+            // CONSIDER: This might not be the right place for this.
+            ICustomMarshaler m = XlObject12Marshaler.GetInstance("");
+            object param = m.MarshalNativeToManaged(pParam);
+            object regInfo = XlRegistration.GetRegistrationInfo(param);
+            if (regInfo == null)
+            {
+                return IntPtr.Zero; // Converted to #NUM
+            }
+
+            return m.MarshalManagedToNative(regInfo);
         }
 
         internal static void CalculationCanceled()

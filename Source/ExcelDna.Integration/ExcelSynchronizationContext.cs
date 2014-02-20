@@ -35,18 +35,12 @@ using ExcelDna.Integration.Rtd;
 
 namespace ExcelDna.Integration
 {
-
     // TODO: Not sure how this should be used yet.... it was a good anchor for developing the rest.
     // CONSIDER: Do we want these to run 'as macro', or just run on the main thread?
     public class ExcelSynchronizationContext : SynchronizationContext
     {
         public override void Post(SendOrPostCallback d, object state)
         {
-            if (!SynchronizationManager.IsInstalled)
-            {
-                throw new InvalidOperationException("SynchronizationManager is not registered. Call ExcelAsyncUtil.Initialize() before use.");
-            }
-
             SynchronizationManager.RunMacroSynchronization.RunAsMacroAsync(d, state);
         }
 
@@ -61,33 +55,22 @@ namespace ExcelDna.Integration
     internal static class SynchronizationManager
     {
         static SynchronizationWindow _syncWindow;
-        static int _installCount = 0;
 
+        // Called from the Initialize (loading COM /RTD server) and/or from AutoOpen
         internal static void Install()
         {
-            if (!ExcelDnaUtil.IsMainThread)
-            {
-                throw new InvalidOperationException("SynchronizationManager must be installed from the main Excel thread. Ensure that ExcelAsyncUtil.Initialize() is called from AutoOpen() or a macro on the main Excel thread.");
-            }
+            Debug.Assert(ExcelDnaUtil.IsMainThread, "SynchronizationManager must be Installed from the main Excel thread.");
             if (_syncWindow == null)
             {
                 _syncWindow = new SynchronizationWindow();
             }
-            _installCount++;
         }
 
         internal static void Uninstall()
         {
-            if (!ExcelDnaUtil.IsMainThread)
-            {
-                throw new InvalidOperationException("SynchronizationManager must be uninstalled from the main Excel thread. Ensure that ExcelAsyncUtil.Uninitialize() is called from AutoOpen() or a macro on the main Excel thread.");
-            }
-            _installCount--;
-            if (_installCount == 0 && _syncWindow != null)
-            {
-                _syncWindow.Dispose();
-                _syncWindow = null;
-            }
+            Debug.Assert(ExcelDnaUtil.IsMainThread, "SynchronizationManager must be Uninstalled from the main Excel thread.");
+            _syncWindow.Dispose();
+            _syncWindow = null;
         }
 
         internal static bool IsInstalled
@@ -209,7 +192,9 @@ namespace ExcelDna.Integration
         public void RunAsMacroAsync(SendOrPostCallback d, object state)
         {
             if (!SynchronizationManager.IsInstalled)
-                throw new InvalidOperationException("SynchronizationManager is not registered. Call ExcelAsyncUtil.Initialize from an IExcelAddIn.AutoOpen implementation.");
+            {
+                throw new InvalidOperationException("SynchronizationManager is not registered. This is an unexpected error.");
+            }
 
             lock (_sendOrPostLock)
             {
@@ -333,6 +318,8 @@ namespace ExcelDna.Integration
 
         void Unregister()
         {
+            // Clear the name and unregister
+            XlCall.Excel(XlCall.xlfSetName, _syncMacroName);
             XlCall.Excel(XlCall.xlfUnregister, _syncMacroRegistrationId);
             _syncMacroRegistrationId = null;
         }

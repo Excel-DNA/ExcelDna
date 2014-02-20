@@ -161,6 +161,12 @@ namespace ExcelDna.Integration.Rtd
                 Logging.LogDisplay.WriteLine("The RTD server of type {0} required by add-in {1} could not be registered.\r\nThis may be due to restricted permissions on the user's HKCU\\Software\\Classes key.\r\nError message: {2}", rtdServerType.FullName, DnaLibrary.CurrentLibrary.Name, secex.Message );
                 return ExcelErrorUtil.ToComError(ExcelError.ExcelErrorValue);
             }
+            catch (Exception ex)
+            {
+                Logging.LogDisplay.WriteLine("The RTD server of type {0} required by add-in {1} could not be registered.\r\nThis is an unexpected error.\r\nError message: {2}", rtdServerType.FullName, DnaLibrary.CurrentLibrary.Name, ex.Message);
+                Debug.Print("RtdRegistration.RTD exception: " + ex.ToString());
+                return ExcelErrorUtil.ToComError(ExcelError.ExcelErrorValue);
+            }
         }
 
         // Returns true if the Excel call succeeded.

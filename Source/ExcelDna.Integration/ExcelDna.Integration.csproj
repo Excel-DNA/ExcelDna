@@ -59,6 +59,7 @@
     <Compile Include="ComInterop.cs" />
     <Compile Include="ComServer.cs" />
     <Compile Include="DnaLibrarySerialization.cs" />
+    <Compile Include="ExcelComAddIn.cs" />
     <Compile Include="ExcelCommandBars.cs" />
     <Compile Include="DnaLibrary.cs" />
     <Compile Include="Excel.cs" />
@@ -86,6 +87,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Reference.cs" />
     <Compile Include="ExcelRtd.cs" />
+    <Compile Include="RegistrationInfo.cs" />
     <Compile Include="SourceItem.cs" />
     <Compile Include="XlCall.cs" />
     <Compile Include="ExcelIntegration.cs" />

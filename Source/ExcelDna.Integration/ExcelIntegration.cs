@@ -41,7 +41,6 @@ namespace ExcelDna.Integration
     internal delegate void RegisterMethodsDelegate(List<MethodInfo> methods);
     internal delegate void RegisterMethodsWithAttributesDelegate(List<MethodInfo> methods, List<object> functionAttributes, List<List<object>> argumentAttributes);
     internal delegate void RegisterDelegatesWithAttributesDelegate(List<Delegate> delegates, List<object> functionAttributes, List<List<object>> argumentAttributes);
-    internal delegate object[,] GetRegistrationInfoDelegate();
     internal delegate byte[] GetResourceBytesDelegate(string resourceName, int type); // types: 0 - Assembly, 1 - Dna file, 2 - Image
     internal delegate void SyncMacroDelegate(double dValue);
 	public delegate object UnhandledExceptionHandler(object exceptionObject);
@@ -49,7 +48,7 @@ namespace ExcelDna.Integration
     public static class ExcelIntegration
     {
         // This version must match the version declared in ExcelDna.Loader.XlAddIn.
-        const int ExcelIntegrationVersion = 5;
+        const int ExcelIntegrationVersion = 6;
 
         private static TryExcelImplDelegate tryExcelImpl;
         internal static void SetTryExcelImpl(TryExcelImplDelegate d)
@@ -83,12 +82,6 @@ namespace ExcelDna.Integration
         internal static void SetRegisterDelegatesWithAttributes(RegisterDelegatesWithAttributesDelegate d)
         {
             registerDelegatesWithAttributes = d;
-        }
-
-        private static GetRegistrationInfoDelegate getRegistrationInfo;
-        internal static void SetGetRegistrationInfo(GetRegistrationInfoDelegate d)
-        {
-            getRegistrationInfo = d;
         }
 
         // These are the public 'externally' exposed members.
@@ -139,29 +132,32 @@ namespace ExcelDna.Integration
             }
         }
 
-        // This function is registered with Excel under the name RegistrationInfo_XXXX with the Guid from the .xll path
-        // It returns the 255 column string array with the xlfRegister call info.
-        // TODO: This will create an extra assembly - try to consolidate with main registration 
-        //       until we properly fix up registration and marshaling
-        internal static void RegisterRegistrationInfo()
-        {
-            ExcelFunctionAttribute attrib = new ExcelFunctionAttribute
-                {
-                    Name = ExcelDnaUtil.RegistrationInfoName(ExcelDnaUtil.XllPath),
-                    IsHidden = true
-                };
-
-            List<Delegate> delegates = new List<Delegate> { getRegistrationInfo };
-            List<object> functionAttributes = new List<object> { attrib };
-            List<List<object>> argumentAttributes = new List<List<object>>();
-            RegisterDelegates(delegates, functionAttributes, argumentAttributes);
-        }
-
 		private static UnhandledExceptionHandler unhandledExceptionHandler;
 		public static void RegisterUnhandledExceptionHandler(UnhandledExceptionHandler h)
 		{
 			unhandledExceptionHandler = h;
 		}
+
+
+        #region Registration Info
+        // Public function to get registration info for this or other Excel-DNA .xlls
+        // Return null if the matching RegistrationInfo function is not found.
+        public static object GetRegistrationInfo(string xllPath, double registrationUpdateVersion)
+        {
+            return RegistrationInfo.GetRegistrationInfo(xllPath, registrationUpdateVersion);
+        }
+
+        public static void UnregisterXLL(string xllPath)
+        {
+            Debug.Print("## Unregistering Add-In: " + xllPath);
+            // Little detour to get Excel-DNA to fully unregister the function names.
+            object removeId = XlCall.Excel(XlCall.xlfRegister, xllPath, "xlAutoRemove", "I", ExcelEmpty.Value, ExcelEmpty.Value, 2);
+            object removeResult = XlCall.Excel(XlCall.xlfCall, removeId);
+            object removeUnregister = XlCall.Excel(XlCall.xlfUnregister, removeId);
+            XlCall.Excel(XlCall.xlfUnregister, xllPath);
+        }
+        #endregion
+
 
 		// WARNING: This method is bound by name from the ExcelDna.Loader in IntegrationHelpers.Bind.
 		// It should not throw an exception, and is called directly from the UDF exceptionhandler.
@@ -299,6 +295,7 @@ namespace ExcelDna.Integration
         }
     }
 
+    #region Obsolete classes
     [Obsolete("Use ExcelDna.Integration.ExcelIntegration class")]
     public class XlLibrary
     {
@@ -322,5 +319,5 @@ namespace ExcelDna.Integration
             ExcelIntegration.RegisterUnhandledExceptionHandler(h);
         }
     }
-
+    #endregion
 }

@@ -541,6 +541,26 @@ namespace ExcelDna.Integration
         }
         #endregion
 
+        #region Path Helpers
+        // Public access to the XllPath, safe in any context
+        public static string XllPath
+        {
+            get
+            {
+                return DnaLibrary.XllPath;
+            }
+        }
+
+        static readonly Guid _excelDnaNamespaceGuid = new Guid("{306D016E-CCE8-4861-9DA1-51A27CBE341A}");
+        internal static Guid XllGuid { get { return GuidFromXllPath(XllPath); } }
+
+        // Return a stable Guid from the xll path - used for COM registration and helper functions
+        internal static Guid GuidFromXllPath(string path)
+        {
+            return GuidUtility.Create(_excelDnaNamespaceGuid, path);
+        }
+        #endregion
+
         #region ExcelLimits
         private static ExcelLimits _xlLimits;
         public static ExcelLimits ExcelLimits
@@ -567,56 +587,6 @@ namespace ExcelDna.Integration
                 }
                 return _xlLimits;
             }
-        }
-
-        // Public access to the XllPath, safe in any context
-        public static string XllPath
-        {
-            get
-            {
-                return DnaLibrary.XllPath;
-            }
-        }
-        #endregion
-
-        #region Registration Info
-        static readonly Guid _excelDnaNamespaceGuid = new Guid("{306D016E-CCE8-4861-9DA1-51A27CBE341A}");
-        internal static Guid XllGuid { get { return GuidFromXllPath(XllPath); } }
-
-        // Return a stable Guid from the xll path - used for COM registration and helper functions
-        static Guid GuidFromXllPath(string path)
-        {
-            return GuidUtility.Create(_excelDnaNamespaceGuid, path);
-        }
-
-
-        // Name of the Registration Helper function, registered in ExcelIntegration.RegisterRegistrationInfo
-        internal static string RegistrationInfoName(string xllPath)
-        {
-            return "RegistrationInfo_" + GuidFromXllPath(xllPath).ToString("N");
-        }
-
-        // Public function to get registration info for this or other Excel-DNA .xlls
-        // Return null if the matching RegistrationInfo function is not found.
-        public static object[,] RegistrationInfo(string xllPath)
-        {
-            string regInfoName = RegistrationInfoName(xllPath);
-            object result;
-            if (XlCall.TryExcel(XlCall.xlUDF, out result, regInfoName) == XlCall.XlReturn.XlReturnSuccess)
-            {
-                return (object[,])result;
-            }
-            return null;
-        }
-
-        public static void UnregisterXLL(string xllPath)
-        {
-            Debug.Print("## Unregistering Add-In: " + xllPath);
-            // Little detour to get Excel-DNA to fully unregister the function names.
-            object removeId = XlCall.Excel(XlCall.xlfRegister, xllPath, "xlAutoRemove", "I", ExcelEmpty.Value, ExcelEmpty.Value, 2);
-            object removeResult = XlCall.Excel(XlCall.xlfCall, removeId);
-            object removeUnregister = XlCall.Excel(XlCall.xlfUnregister, removeId);
-            XlCall.Excel(XlCall.xlfUnregister, xllPath);
         }
         #endregion
     }

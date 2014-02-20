@@ -39,6 +39,7 @@ namespace ExcelDna.Loader
         // Each entry corresponds exactly to the xlfRegister call (except first entry with xllPath is cleared) 
         // - max length of each array is 255.
         static readonly List<object[]> registrationInfo = new List<object[]>();
+        static double registrationInfoVersion = 0.0; // Incremented every time the registration changes, used by GetRegistrationInfo to short-circuit.
         
         public static void RegisterMethods(List<MethodInfo> methods)
         {
@@ -71,19 +72,37 @@ namespace ExcelDna.Loader
             Register(methods, targets, methodAttributes, argumentAttributes);
         }
 
-        public static object[,] GetRegistrationInfo()
+        // This function provides access to the registration info from an IntelliSense provider.
+        // To allow polling, we return as the first row a (double) version which can be passed to short-circuit the call if nothing has changed.
+        // The signature and behaviour should be flexible enough to allow future non-breaking extension.
+        public static object GetRegistrationInfo(object param)
         {
+            if (param is double && (double)param == registrationInfoVersion)
+            {
+                // Short circuit, to prevent returning the whole string story every time, allowing fast polling.
+                return null;
+            }
+
             // Copy from the jagged List to a 2D array with 255 columns
-            object[,] result = new object[registrationInfo.Count, 255];
+            // (missing bits are returned as null, which is marshaled to XlEmpty)
+            object[,] result = new object[registrationInfo.Count + 1, 255];
+            // Return xll path and registrationVersion in first row
+            result[0, 0] = XlAddIn.PathXll;
+            result[0, 1] = registrationInfoVersion;
+
+            // Other rows contain the registation info 
             for (int i = 0; i < registrationInfo.Count; i++)
             {
+                int resultRow = i + 1;
                 object[] info = registrationInfo[i];
                 for (int j = 0; j < 255; j++)
                 {
-                    if (j < info.Length)
-                        result[i, j] = info[j];
-                    else
-                        result[i, j] = IntegrationMarshalHelpers.GetExcelMissingValue();
+                    if (j >= info.Length)
+                    {
+                        // Done with this row
+                        break;
+                    }
+                    result[resultRow, j] = info[j];
                 }
             }
             return result;
@@ -95,6 +114,8 @@ namespace ExcelDna.Loader
 
             List<XlMethodInfo> xlMethods = XlMethodInfo.ConvertToXlMethodInfos(methods, targets, methodAttributes, argumentAttributes);
             xlMethods.ForEach(RegisterXlMethod);
+            // Increment the registration version (safe to call a few times)
+            registrationInfoVersion += 1.0;
         }
 
         private static void RegisterXlMethod(XlMethodInfo mi)
@@ -129,7 +150,7 @@ namespace ExcelDna.Loader
                     Debug.Print("Registration Error! - Register call failed for method {0}", mi.Name);
                 }
                 // Now clear out the xll path and store the parameters to support RegistrationInfo access.
-                registerParameters[0] = string.Empty;
+                registerParameters[0] = null;
                 registrationInfo.Add(registerParameters);
             }
             catch (Exception e)
@@ -154,14 +175,17 @@ namespace ExcelDna.Loader
             // Now take out the methods
             foreach (XlMethodInfo mi in registeredMethods)
             {
-                // Clear the name and unregister
-                XlCallImpl.TryExcelImpl(XlCallImpl.xlfSetName, out xlCallResult, mi.Name);
-                XlCallImpl.TryExcelImpl(XlCallImpl.xlfUnregister, out xlCallResult, mi.RegisterId);
-
-                if (!mi.IsCommand)
+                if (mi.IsCommand)
                 {
+                    // Clear the name and unregister
+                    XlCallImpl.TryExcelImpl(XlCallImpl.xlfSetName, out xlCallResult, mi.Name);
+                    XlCallImpl.TryExcelImpl(XlCallImpl.xlfUnregister, out xlCallResult, mi.RegisterId);
+                }
+                else
+                {
+                    // And Unregister the real function
+                    XlCallImpl.TryExcelImpl(XlCallImpl.xlfUnregister, out xlCallResult, mi.RegisterId);
                     // I follow the advice from X-Cell website to get function out of Wizard (with fix from kh)
-                    // clear the new name, and unregister
                     XlCallImpl.TryExcelImpl(XlCallImpl.xlfRegister, out xlCallResult, XlAddIn.PathXll, "xlAutoRemove", "I", mi.Name, IntegrationMarshalHelpers.GetExcelMissingValue(), 2);
                     if (xlCallResult is double)
                     {

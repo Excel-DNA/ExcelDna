@@ -78,7 +78,7 @@ extern "C"
 XlAddInExportInfo* CreateExportInfo()
 {
 	pExportInfo = new XlAddInExportInfo();
-	pExportInfo->ExportInfoVersion = 7;
+	pExportInfo->ExportInfoVersion = 8;
 	pExportInfo->AppDomainId = -1;
 	pExportInfo->pXlAutoOpen = NULL;
 	pExportInfo->pXlAutoClose = NULL;
@@ -91,6 +91,7 @@ XlAddInExportInfo* CreateExportInfo()
 	pExportInfo->pDllGetClassObject = NULL;
 	pExportInfo->pDllCanUnloadNow = NULL;
 	pExportInfo->pSyncMacro = NULL;
+	pExportInfo->pRegistrationInfo = NULL;
 	pExportInfo->pCalculationCanceled = NULL;
 	pExportInfo->pCalculationEnded = NULL;
 	pExportInfo->ThunkTableLength = EXPORT_COUNT;
@@ -399,6 +400,16 @@ extern "C"
 			pExportInfo->pSyncMacro(param);
 		}
 	}
+
+    XLOPER12* __stdcall RegistrationInfo(XLOPER12* param)
+    {
+        if (EnsureInitialized() && 
+			pExportInfo->pRegistrationInfo != NULL)
+		{
+			return (XLOPER12*)pExportInfo->pRegistrationInfo(param);
+		}
+        return NULL;
+    }
 
 	void __stdcall CalculationCanceled()
 	{

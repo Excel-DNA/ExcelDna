@@ -31,8 +31,8 @@
 // The function pointers will be exported from managed code in the StdCall convention.
 typedef void    (__stdcall *PFN)();
 typedef short   (__stdcall *PFN_SHORT_VOID)();
-typedef short   (__stdcall *PFN_VOID_LPXLOPER)(void*);
-typedef short   (__stdcall *PFN_VOID_LPXLOPER12)(void*);
+typedef void    (__stdcall *PFN_VOID_LPXLOPER)(void*);
+typedef void    (__stdcall *PFN_VOID_LPXLOPER12)(void*);
 typedef void*   (__stdcall *PFN_LPXLOPER_LPXLOPER)(void*);
 typedef void*   (__stdcall *PFN_LPXLOPER12_LPXLOPER12)(void*);
 typedef void    (__stdcall *PFN_PFNEXCEL12)(void*);
@@ -58,6 +58,7 @@ struct XlAddInExportInfo
 	PFN_GET_CLASS_OBJECT		pDllGetClassObject;
 	PFN_HRESULT_VOID			pDllCanUnloadNow;
 	PFN_VOID_DOUBLE				pSyncMacro;
+	PFN_LPXLOPER12_LPXLOPER12	pRegistrationInfo;
 	PFN_VOID_VOID				pCalculationCanceled;
 	PFN_VOID_VOID				pCalculationEnded;
 	// The thunk table that hooks up the fxxx exports from the .xll with the marshaled function pointers.

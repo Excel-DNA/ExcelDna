@@ -28,6 +28,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using SevenZip.Compression.LZMA;
 
@@ -50,7 +51,8 @@ namespace ExcelDna.Loader
 
             AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolve;
         }
-       
+
+        [MethodImpl(MethodImplOptions.Synchronized)]
         private static Assembly AssemblyResolve(object sender, ResolveEventArgs args)
         {
 			string name;
