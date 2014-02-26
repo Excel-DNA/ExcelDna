@@ -242,12 +242,30 @@ namespace ExcelDna.Integration
         // ComServer related exports just delegates to ComServer class.
         internal static HRESULT DllRegisterServer()
         {
-            return ComServer.DllRegisterServer();
+            try
+            {
+                return ComServer.DllRegisterServer();
+            }
+            catch (UnauthorizedAccessException uae)
+            {
+                Debug.Write("DllRegisterServer error: " + uae.Message);
+                // Expected only if we can't write to HKCU\Software\Classes.
+                return ComAPI.E_ACCESSDENIED;
+            }
         }
 
         internal static HRESULT DllUnregisterServer()
         {
-            return ComServer.DllUnregisterServer();
+            try
+            {
+                return ComServer.DllUnregisterServer();
+            }
+            catch (UnauthorizedAccessException uae)
+            {
+                Debug.Write("DllRegisterServer error: " + uae.Message);
+                // Expected only if we can't write to HKCU\Software\Classes.
+                return ComAPI.E_ACCESSDENIED;
+            }
         }
 
         // internal static HRESULT DllGetClassObject([In] ref CLSID rclsid, [In] ref IID riid, [Out, MarshalAs(UnmanagedType.Interface)] out object ppunk)

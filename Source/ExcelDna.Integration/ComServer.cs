@@ -130,6 +130,7 @@ namespace ExcelDna.ComInterop
         public bool IsRtdServer;
         public string TypeLibPath;
 
+        // Can throw UnauthorizedAccessException if nothing is writeable
         public void RegisterServer()
         {
             // Registering under the user key is problematic when Excel runs under an elevated account, e.g. when "Run as Administrator" 
@@ -161,6 +162,7 @@ namespace ExcelDna.ComInterop
             }
         }
         
+        // Can throw UnauthorizedAccessException if nothing is writeable
         public void UnregisterServer()
         {
             RegistryKey rootKey = CanWriteMachineHive() ? Registry.ClassesRoot : 
