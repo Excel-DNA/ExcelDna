@@ -235,7 +235,7 @@ namespace ExcelDna.Integration
                 {
                     // Nothing cached - possibly being called on a different thread
                     // Just get from window and return
-                    return GetApplication();
+                    return GetApplicationFromWindows();
                 }
 
                 // Check whether we have a cached App and it is valid
@@ -249,7 +249,29 @@ namespace ExcelDna.Integration
                 return _application;
             }
         }
-        
+
+        // This call might throw an access violation 
+        // .NET40: If this assembly is compiled for .NET 4, add this attribute to get the expected behaviour.
+        // (Also for CallPenHelper)
+        // [HandleProcessCorruptedStateExceptions]
+        private static void CheckExcelApiAvailable()
+        {
+            try
+            {
+                object output;
+                XlCall.XlReturn result = XlCall.TryExcel(XlCall.xlGetName, out output);
+                if (result == XlCall.XlReturn.XlReturnFailed)
+                {
+                    // no plan for getting Application (we're probably on a different thread?)
+                    throw new InvalidOperationException("Excel API is unavailable - cannot retrieve Application object.");
+                }
+            }
+            catch (AccessViolationException ave)
+            {
+                throw new InvalidOperationException("Excel API is unavailable - cannot retrieve Application object. Excel may be shutting down", ave);
+            }
+        }
+
         private static object GetApplication()
         {
             // Don't cache the one we get from the Window, it keeps Excel alive! 
@@ -262,13 +284,7 @@ namespace ExcelDna.Integration
             // Now make workbook with VBA sheet, according to some Google post.
 
             // We try a (possible) test for whether we can call the C API.
-            object output;
-            XlCall.XlReturn result = XlCall.TryExcel(XlCall.xlGetName, out output);
-            if (result == XlCall.XlReturn.XlReturnFailed)
-            {
-                // no plan for getting Application (we're probably on a different thread?)
-                throw new InvalidOperationException("Excel API is unavailable - cannot retrieve Application object.");
-            }
+            CheckExcelApiAvailable();
 
             // Create new workbook with the right stuff
             // Echo calls removed for Excel 2013 - this caused trouble in the Excel 2013 'browse' scenario.
