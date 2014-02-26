@@ -231,6 +231,11 @@ namespace ExcelDna.Integration
                     }
                 }
             }
+            catch (InvalidOperationException)
+            {
+                // Expected when Excel is shutting down - abandon
+                Debug.Print("Error trying to run SyncMacro - Excel is shutting down. Async macro queue abandoned.");
+            }
             catch (Exception ex)
             {
                 // TODO: Handle unexpected error
@@ -348,6 +353,7 @@ namespace ExcelDna.Integration
             }
             catch (TargetInvocationException tie)
             {
+                // Deal with the COM exception that we get if the Application object does not allow us to call 'Run' right now.
                 COMException cex = tie.InnerException as COMException;
                 if (cex != null && IsRetry(cex))
                     return false;
@@ -406,6 +412,9 @@ namespace ExcelDna.Integration
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         internal static extern IntPtr GetProcAddress([In] IntPtr hModule, [In, MarshalAs(UnmanagedType.LPStr)] string lpProcName);
 
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)] static extern bool IsWindow(IntPtr hWnd);
+
         static string GetWindowClassName(IntPtr hWnd)
         {
             StringBuilder buffer = new StringBuilder(256);
@@ -421,14 +430,36 @@ namespace ExcelDna.Integration
             return openMenuButton.Enabled;
         }
 
+        // The call to LPenHelper will cause an AccessViolation after Excel starts shutting down.
+        // If this library is recompiled to target .NET 4+, we need to add an attribute to indicate that this exception 
+        // (which might indicate corrupted state) should be handled in our code.
+        // For now, we target .NET 2.0, and even when running under .NET 4.0 we'll see the exception and be able to handle is.
+        // See: http://msdn.microsoft.com/en-us/magazine/dd419661.aspx
+
+        // [HandleProcessCorruptedStateExceptions]
+        static int CallPenHelper(int wCode, ref XlCall.FmlaInfo fmlaInfo)
+        {
+            try
+            {
+                // (If Excel is shutting down, we see an Access Violation here, reading at 0x00000018.)
+                return XlCall.LPenHelper(XlCall.xlGetFmlaInfo, ref fmlaInfo);
+            }
+            catch (AccessViolationException ave)
+            {
+                throw new InvalidOperationException("LPenHelper call failed. Excel is shutting down.", ave);
+            }
+        }
+
         static bool IsInFormulaEditMode()
         {
-            // If PenHelper is available
+            // I assume LPenHelper is available under Excel 2007+
             if (ExcelDnaUtil.ExcelVersion >= 12.0)
             {
                 // check edit state directly
                 var fmlaInfo = new XlCall.FmlaInfo();
-                var result = XlCall.LPenHelper(XlCall.xlGetFmlaInfo, ref fmlaInfo);
+
+                // If Excel is shutting down, CallPenHelper will throw an InvalidOperationException.
+                var result = CallPenHelper(XlCall.xlGetFmlaInfo, ref fmlaInfo);
                 if (result == 0)
                 {
                     // Succeeded
@@ -504,7 +535,6 @@ namespace ExcelDna.Integration
                 case WM_TIMER:
                     RunMacroSynchronization.ProcessRunSyncMacroMessage();
                     break;
-                // TODO: case WM_CLOSE / WM_DESTROY: ????
                 default:
                     base.WndProc(ref m);
                     break;

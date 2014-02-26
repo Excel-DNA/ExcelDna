@@ -258,6 +258,7 @@ copy "$(SolutionDir)ExcelDna.Loader\bin\debug\ExcelDna.Loader.*" "$(TargetDir)" 
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(FileName).obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml64 -c "-Fo$(IntDir)%(FileName).obj" "%(FullPath)"</Command>
     </CustomBuild>
+    <None Include="Debug\ExcelDna.dna" />
     <None Include="ExcelDna.def" />
   </ItemGroup>
   <ItemGroup>

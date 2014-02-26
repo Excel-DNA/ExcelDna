@@ -31,7 +31,7 @@ using ExcelDna.Integration.Extensibility;
 using ExcelDna.Integration.Rtd;
 
 using CLSID     = System.Guid;
-using DWORD     = System.UInt32;
+using DWORD     = System.Int32;
 using HRESULT   = System.Int32;
 using IID       = System.Guid;
 

@@ -183,6 +183,7 @@ namespace ExcelDna.Integration
 			return XlCall.Excel(XlCall.xlCoerce, this);
 		}
 
+        // DOCUMENT: Strange behaviour with SetValue...
 		public bool SetValue(object value)
 		{
 			return (bool)XlCall.Excel(XlCall.xlSet, this, value);

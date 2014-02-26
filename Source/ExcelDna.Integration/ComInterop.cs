@@ -6,7 +6,7 @@ using ExcelDna.ComInterop;
 using HRESULT = System.Int32;
 using IID     = System.Guid;
 using CLSID   = System.Guid;
-using DWORD   = System.UInt32;
+using DWORD   = System.Int32;
 using System.Runtime.CompilerServices;
 using System.Reflection;
 using System.Collections;
@@ -20,6 +20,7 @@ namespace ExcelDna.ComInterop
         public const HRESULT S_FALSE = 1;
         public const HRESULT CLASS_E_NOAGGREGATION = unchecked((int)0x80040110);
         public const HRESULT CLASS_E_CLASSNOTAVAILABLE = unchecked((int)0x80040111);
+        public const HRESULT E_ACCESSDENIED = unchecked((int)0x80070005);
         public const HRESULT E_INVALIDARG = unchecked((int)0x80070057);
         public const HRESULT E_NOINTERFACE = unchecked((int)0x80004002);
         public const HRESULT E_UNEXPECTED = unchecked((int)0x8000FFFF);

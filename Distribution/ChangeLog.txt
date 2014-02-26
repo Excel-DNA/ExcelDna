@@ -1,14 +1,14 @@
 Version 0.32 (???)
 ------------------
-* Fixed method registration to avoid generic methods (for F# standalone).
-* Improved method deregistration to leave functions with #NAME? (thanks to kh).
-* Added completion synchronization for multiple async functions in a formula.
+* Fix method registration to avoid generic methods (for F# standalone).
+* Improve method deregistration to leave functions with #NAME? (thanks to kh).
+* Add completion synchronization for multiple async functions in a formula.
 * Disable IsExceptionSafe when there are DateTime parameters.
-* Added RegisterMethods overload with explicit attributes.
-* Implemented exception-free checks for type compatibility in method registration.
-* Added workaround for RTD disconnect bug in Excel 2010 RTM version.
-* Restructured ExcelDnaUtil.WindowHandle and ExcelDnaUtil.Application to work better under Excel 2013.
-* Fixed ExcelDnaUtil.IsInFunctionWizard() under Excel 2013.
+* Add RegisterMethods overload with explicit attributes.
+* Implement exception-free checks for type compatibility in method registration.
+* Add workaround for RTD disconnect bug in Excel 2010 RTM version.
+* Restructure ExcelDnaUtil.WindowHandle and ExcelDnaUtil.Application to work better under Excel 2013.
+* Fix ExcelDnaUtil.IsInFunctionWizard() under Excel 2013.
 * Add support for Excel 2010+ native queued async functions.
 * Add support for Excel 2010+ async calculation events.
 * Raise maximum number of functions exported to 5000.
@@ -31,6 +31,8 @@ Version 0.32 (???)
 * Change ExcelAsyncUtil initialization - remove ExcelAsyncUtil.Initialize() requirement.
 * Improve ExcelIntegration.GetRegistrationInfo(...)
 * Add message for mismatched ExcelDna.Integration.dll.
+* Add Synchronized attribute to AssemblyResolve event.
+* Fix handling of UnauthorizedAccessException in DllRegisterServer.
 
 Version 0.30 (12 December 2012)
 -------------------------------
