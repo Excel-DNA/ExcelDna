@@ -571,9 +571,12 @@ namespace ExcelDna.Integration
         internal static Guid XllGuid { get { return GuidFromXllPath(XllPath); } }
 
         // Return a stable Guid from the xll path - used for COM registration and helper functions
+        // Uses the .ToUpperInvariant() of the path name.
+        // CONSIDER: Should we use only the file name, not the full path (the path used might not be canonical)
+        //           I'm still a bit unsure about having different add-ins with the same file name.
         internal static Guid GuidFromXllPath(string path)
         {
-            return GuidUtility.Create(_excelDnaNamespaceGuid, path);
+            return GuidUtility.Create(_excelDnaNamespaceGuid, path.ToUpperInvariant());
         }
         #endregion
 
