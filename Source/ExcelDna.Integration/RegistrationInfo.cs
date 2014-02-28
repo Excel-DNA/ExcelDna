@@ -67,10 +67,14 @@ namespace ExcelDna.Integration
         {
             string regInfoName = RegistrationInfoName(xllPath);
             object result;
-            if (XlCall.TryExcel(XlCall.xlUDF, out result, regInfoName, registrationInfoVersion) == XlCall.XlReturn.XlReturnSuccess)
+
+            // To prevent the error dialog, we first call xlfEvaluate with the name
+            if (XlCall.Excel(XlCall.xlfEvaluate, regInfoName) is double &&
+                XlCall.TryExcel(XlCall.xlUDF, out result, regInfoName, registrationInfoVersion) == XlCall.XlReturn.XlReturnSuccess)
             {
-                return result;
+                    return result;
             }
+
             return ExcelError.ExcelErrorNA;
         }
     }

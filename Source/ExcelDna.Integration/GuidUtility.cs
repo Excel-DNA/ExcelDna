@@ -30,7 +30,7 @@ namespace ExcelDna.Integration
     /// <summary>
     /// Helper methods for working with <see cref="Guid"/>.
     /// </summary>
-    public static class GuidUtility
+    internal static class GuidUtility
     {
         /// <summary>
         /// Creates a name-based UUID using the algorithm from RFC 4122 §4.3.
