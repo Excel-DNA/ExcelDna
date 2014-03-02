@@ -1,4 +1,4 @@
-<DnaLibrary Language="CS">
+<DnaLibrary RuntimeVersion="v4.0" Language="CS">
 <![CDATA[
 using System;
 using System.Collections.Generic;
@@ -6,23 +6,10 @@ using ExcelDna.Integration;
 
 namespace AsyncFunctions
 {
-    public class MyAddIn : IExcelAddIn
-    {
-        public void AutoOpen()
-        {
-            // Install the synchronization helper.
-            ExcelAsyncUtil.Initialize();
-        }
-
-        public void AutoClose()
-        {
-            // Probably not useful ...
-            ExcelAsyncUtil.Uninitialize();       
-        }
-    }
-    
+    // This class defines a few test functions that can be used to explore the automatic array resizing.
 	public static class ResizeTestFunctions
 	{
+        // Just returns an array of the given size
         public static object MakeArray(int rows, int columns)
         {
             object[,] result = new object [rows, columns];
@@ -51,142 +38,172 @@ namespace AsyncFunctions
             return result;
         }
 
+        // Makes an array, but automatically resizes the result
         public static object MakeArrayAndResize(int rows, int columns)
         {
             object result = MakeArray(rows, columns);            
-            // Call Resize via Excel - so if the Resize add-in is not part of this code, it should still work.
-            return XlCall.Excel(XlCall.xlUDF, "Resize", result);
+            
+            // Can also call Resize via Excel - so if the Resize add-in is not part of this code, it should still work
+            // (though calling direct is better for large arrays - it prevents extra marshaling).
+            // return XlCall.Excel(XlCall.xlUDF, "Resize", result);
+            
+            return ArrayResizer.Resize(array);
         }
 
         public static double[,] MakeArrayAndResizeDoubles(int rows, int columns)
         {
             double[,] result = MakeArrayDoubles(rows, columns);            
-            // Call Resize via Excel - so if the Resize add-in is not part of this code, it should still work.
             return ArrayResizer.ResizeDoubles(result);
         }
     }
 
-    public class ArrayResizer
+    public class ArrayResizer : XlCall
     {
-        static Queue<ExcelReference> ResizeJobs = new Queue<ExcelReference>();
-
         // This function will run in the UDF context.
         // Needs extra protection to allow multithreaded use.
         public static object Resize(object[,] array)
         {
-            ExcelReference caller = XlCall.Excel(XlCall.xlfCaller) as ExcelReference;
+            ExcelReference caller = Excel(xlfCaller) as ExcelReference;
             if (caller == null) return array;
 
             int rows = array.GetLength(0);
             int columns = array.GetLength(1);
+            
+            if (rows == 0 || columns == 0) return array;
 
-            if ((caller.RowLast - caller.RowFirst + 1 != rows) ||
-                (caller.ColumnLast - caller.ColumnFirst + 1 != columns))
+            if ((caller.RowLast - caller.RowFirst + 1 == rows) &&
+                (caller.ColumnLast - caller.ColumnFirst + 1 == columns))
             {
-                // Size problem: enqueue job, call async update and return #N/A
-                // TODO: Add guard for ever-changing result?
-                EnqueueResize(caller, rows, columns);
-                ExcelAsyncUtil.QueueAsMacro(DoResizing);
-                return ExcelError.ExcelErrorNA;
+                // Size is already OK - just return result
+                return array;
+            }            
+
+            var rowLast = caller.RowFirst + rows - 1;
+            var columnLast = caller.ColumnFirst + columns - 1;
+
+            if (rowLast > ExcelDnaUtil.ExcelLimits.MaxRows - 1 ||
+                columnLast > ExcelDnaUtil.ExcelLimits.MaxColumns - 1)
+            {
+                // Can't resize - goes beyond the end of the sheet - just return #VALUE
+                // (Can't give message here, or change cells)
+                return ExcelError.ExcelErrorValue;
             }
 
-            // Size is already OK - just return result
+            // TODO: Add guard for ever-changing result?
+            ExcelAsyncUtil.QueueAsMacro(() =>
+            {
+                // Create a reference of the right size
+                var target = new ExcelReference(caller.RowFirst, rowLast, caller.ColumnFirst, columnLast, caller.SheetId);
+                DoResize(target); // Will trigger a recalc by writing formula
+            });
+            // Return what we have - to prevent flashing #N/A
             return array;
         }
 
         public static double[,] ResizeDoubles(double[,] array)
         {
-            ExcelReference caller = XlCall.Excel(XlCall.xlfCaller) as ExcelReference;
+            ExcelReference caller = Excel(xlfCaller) as ExcelReference;
             if (caller == null) return array;
 
             int rows = array.GetLength(0);
             int columns = array.GetLength(1);
 
-            if ((caller.RowLast - caller.RowFirst + 1 != rows) ||
-                (caller.ColumnLast - caller.ColumnFirst + 1 != columns))
+            if (rows == 0 || columns == 0) return array;
+            
+            if ((caller.RowLast - caller.RowFirst + 1 == rows) &&
+                (caller.ColumnLast - caller.ColumnFirst + 1 == columns))
             {
-                // Size problem: enqueue job, call async update and return #N/A
-                // TODO: Add guard for ever-changing result?
-                EnqueueResize(caller, rows, columns);
-                ExcelAsyncUtil.QueueAsMacro(DoResizing);
+                // Size is already OK - just return result
+                return array;
+            }
+            
+            var rowLast = caller.RowFirst + rows - 1;
+            var columnLast = caller.ColumnFirst + columns - 1;
+
+            if (rowLast > ExcelDnaUtil.ExcelLimits.MaxRows - 1 ||
+                columnLast > ExcelDnaUtil.ExcelLimits.MaxColumns - 1)
+            {
+                // Can't resize - goes beyond the end of the sheet - just return null (for #NUM!)
+                // (Can't give message here, or change cells)
                 return null;
             }
 
-            // Size is already OK - just return result
-            return array;
-        }
-
-        static void EnqueueResize(ExcelReference caller, int rows, int columns)
-        {
-            ExcelReference target = new ExcelReference(caller.RowFirst, caller.RowFirst + rows - 1, caller.ColumnFirst, caller.ColumnFirst + columns - 1, caller.SheetId);
-            ResizeJobs.Enqueue(target);
-        }
-
-        static void DoResizing()
-        {
-            while (ResizeJobs.Count > 0)
+            // TODO: Add guard for ever-changing result?
+            ExcelAsyncUtil.QueueAsMacro(() =>
             {
-                DoResize(ResizeJobs.Dequeue());
-            }
+                // Create a reference of the right size
+                var target = new ExcelReference(caller.RowFirst, rowLast, caller.ColumnFirst, columnLast, caller.SheetId);
+                DoResize(target); // Will trigger a recalc by writing formula
+            });
+            // Return what we have - to prevent flashing #N/A
+            return array;
         }
 
         static void DoResize(ExcelReference target)
         {
+            // Get the current state for reset later
+            object oldEcho = Excel(xlfGetWorkspace, 40);
+            object oldCalculationMode = Excel(xlfGetDocument, 14);
             try
             {
-                XlCall.Excel(XlCall.xlcEcho, false);
+                Excel(xlcEcho, false);
+                Excel(xlcOptionsCalculation, 3);
 
-                // Get the formula in the first cell of the target
-                string formula = (string)XlCall.Excel(XlCall.xlfGetCell, 41, target);
                 ExcelReference firstCell = new ExcelReference(target.RowFirst, target.RowFirst, target.ColumnFirst, target.ColumnFirst, target.SheetId);
-
-                bool isFormulaArray = (bool)XlCall.Excel(XlCall.xlfGetCell, 49, target);
+                
+                // Get the formula in the first cell of the target
+                string formula = (string)Excel(xlfGetCell, 41, firstCell);
+                bool isFormulaArray = (bool)Excel(xlfGetCell, 49, firstCell);
                 if (isFormulaArray)
                 {
-                    object oldSelectionOnActiveSheet = XlCall.Excel(XlCall.xlfSelection);
-                    object oldActiveCell = XlCall.Excel(XlCall.xlfActiveCell);
+                    object oldSelectionOnActiveSheet = Excel(xlfSelection);
+                    object oldActiveCell = Excel(xlfActiveCell);
 
                     // Remember old selection and select the first cell of the target
-                    string firstCellSheet = (string)XlCall.Excel(XlCall.xlSheetNm, firstCell);
-                    XlCall.Excel(XlCall.xlcWorkbookSelect, new object[] { firstCellSheet });
-                    object oldSelectionOnArraySheet = XlCall.Excel(XlCall.xlfSelection);
-                    XlCall.Excel(XlCall.xlcFormulaGoto, firstCell);
+                    string firstCellSheet = (string)Excel(xlSheetNm, firstCell);
+                    Excel(xlcWorkbookSelect, new object[] { firstCellSheet });
+                    object oldSelectionOnArraySheet = Excel(xlfSelection);
+                    Excel(xlcFormulaGoto, firstCell);
 
                     // Extend the selection to the whole array and clear
-                    XlCall.Excel(XlCall.xlcSelectSpecial, 6);
-                    ExcelReference oldArray = (ExcelReference)XlCall.Excel(XlCall.xlfSelection);
+                    Excel(xlcSelectSpecial, 6);
+                    ExcelReference oldArray = (ExcelReference)Excel(xlfSelection);
 
                     oldArray.SetValue(ExcelEmpty.Value);
-                    XlCall.Excel(XlCall.xlcSelect, oldSelectionOnArraySheet);
-                    XlCall.Excel(XlCall.xlcFormulaGoto, oldSelectionOnActiveSheet);
+                    Excel(xlcSelect, oldSelectionOnArraySheet);
+                    Excel(xlcFormulaGoto, oldSelectionOnActiveSheet);
                 }
                 // Get the formula and convert to R1C1 mode
-                bool isR1C1Mode = (bool)XlCall.Excel(XlCall.xlfGetWorkspace, 4);
+                bool isR1C1Mode = (bool)Excel(xlfGetWorkspace, 4);
                 string formulaR1C1 = formula;
                 if (!isR1C1Mode)
                 {
                     // Set the formula into the whole target
-                    formulaR1C1 = (string)XlCall.Excel(XlCall.xlfFormulaConvert, formula, true, false, ExcelMissing.Value, firstCell);
+                    formulaR1C1 = (string)Excel(xlfFormulaConvert, formula, true, false, ExcelMissing.Value, firstCell);
                 }
                 // Must be R1C1-style references
                 object ignoredResult;
-                XlCall.XlReturn retval = XlCall.TryExcel(XlCall.xlcFormulaArray, out ignoredResult, formulaR1C1, target);
-                if (retval != XlCall.XlReturn.XlReturnSuccess)
+                //Debug.Print("Resizing START: " + target.RowLast);
+                XlReturn retval = TryExcel(xlcFormulaArray, out ignoredResult, formulaR1C1, target);
+                //Debug.Print("Resizing FINISH");
+
+                // TODO: Find some dummy macro to clear the undo stack
+                
+                if (retval != XlReturn.XlReturnSuccess)
                 {
-                    // TODO: Consider what to do now!?
+                    string firstCellAddress = (string)Excel(xlfReftext, firstCell, true);
+                    Excel(xlcAlert, "Cannot resize array formula at " + firstCellAddress + " - result might overlap another array.");
                     // Might have failed due to array in the way.
                     firstCell.SetValue("'" + formula);
                 }
             }
-            // catch (Exception ex)
-            // {
-            //     XlCall.Excel(XlCall.xlcAlert, ex.ToString(), true);
-            // }
             finally
             {
-                XlCall.Excel(XlCall.xlcEcho, true);
+                Excel(xlcEcho, oldEcho);
+                Excel(xlcOptionsCalculation, oldCalculationMode);
             }
         }
     }
-}]]>
+}
+]]>
 </DnaLibrary>
