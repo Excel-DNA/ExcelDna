@@ -41,7 +41,7 @@ namespace ExcelDna.Loader
         public IntPtr FunctionPointer;
 
         // Info for Excel Registration
-        public readonly bool IsCommand;
+        public bool IsCommand;
         public string Name; // Name of UDF/Macro in Excel
         public string Description;
         public bool IsHidden; // For Functions only
@@ -84,6 +84,11 @@ namespace ExcelDna.Loader
             MenuName = IntegrationHelpers.DnaLibraryGetName();
             MenuText = null; // Menu is only 
 
+            // Set default IsCommand - overridden by having an [ExcelCommand] attribute,
+            // or by being a native async function.
+            // (Must be done before SetAttributeInfo)
+            IsCommand = (targetMethod.ReturnType == typeof(void));
+
             SetAttributeInfo(methodAttribute);
             // We shortcut the rest of the registration
             if (ExplicitRegistration) return;
@@ -113,17 +118,13 @@ namespace ExcelDna.Loader
                  Parameters[i] = new XlParameterInfo(parameters[i], argAttrib);
             }
 
-            // A command has no return type, and is not a native async function 
+            // A native async function might still be marked as a command - check and fix.
             // (these have the ExcelAsyncHandle as last parameter)
             // (This check needs the Parameters array to be set up already.)
-            if (HasReturnType || IsExcelAsyncFunction)
+            if (IsExcelAsyncFunction)
             {
-                // It's a function, though it might return null
+                // It really is a function, though it might return null
                 IsCommand = false;
-            }
-            else
-            {
-                IsCommand = true;
             }
 
             // Create the delegate type, wrap the targetMethod and create the delegate
@@ -226,8 +227,8 @@ namespace ExcelDna.Loader
             //    {
             //        MenuText = xlcmd.MenuText;
             //    }
-            //    IsHidden = xlcmd.IsHidden;
             //    IsExceptionSafe = xlcmd.IsExceptionSafe;
+            //    IsCommand = true;
             //}
 
             Type attribType = attrib.GetType();
@@ -270,6 +271,7 @@ namespace ExcelDna.Loader
                 //           [xlfRegister (Form 1) page in the Microsoft Excel 2010 XLL SDK Documentation]
                 IsClusterSafe = (!isMacroType && isClusterSafe);
                 ExplicitRegistration = explicitRegistration;
+                IsCommand = false;
             }
             else if (TypeHelper.TypeHasAncestorWithFullName(attribType, "ExcelDna.Integration.ExcelCommandAttribute"))
             {
@@ -310,6 +312,11 @@ namespace ExcelDna.Loader
 //                    IsHidden = isHidden;  // Only for functions.
                 IsExceptionSafe = isExceptionSafe;
                 ExplicitRegistration = explicitRegistration;
+
+                // Override IsCommand, even though this 'macro' might have a return value.
+                // Allow for more flexibility in what kind of macros are supported, particularly for calling
+                // via Application.Run.
+                IsCommand = true;   
             }
         }
 

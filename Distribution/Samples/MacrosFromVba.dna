@@ -1,0 +1,45 @@
+<DnaLibrary RuntimeVersion="v4.0" Language="VB" >
+<![CDATA[
+
+' Not really needed in .dna files
+' Allows us to get to the Application object via ExcelDnaUtil.Application,
+' and defined the <ExcelFunction> and <ExcelCommand> attributes.
+Imports ExcelDna.Integration
+
+Public Module Macros
+	
+	' Sample should has macros can be created that may take parameters and return values
+	' These can be called from VBA via Application.Run
+
+	' Call from VBA as     Application.Run "DnaMacro"
+	Sub DnaMacro()
+		Dim Application = ExcelDnaUtil.Application
+		Application.Range("A1").Value = "Hello from .NET!"
+	End Sub
+
+	' Call from VBA as     Application.Run "DnaMacroWithParam", "World!"
+	Sub DnaMacroWithParam(name As String)
+		Dim Application = ExcelDnaUtil.Application
+
+		Application.Range("A1").Value = "Hello " & name
+	End Sub
+
+	' Use attribute to change the name
+	' Call from VBA as     Application.Run "DnaRenamedMacro"
+	<ExcelCommand(Name:="DnaRenamedMacro")>
+	Sub NameHereIsNotUsed()
+		Dim Application = ExcelDnaUtil.Application
+		Application.Range("A1").Value = "Hello from .NET!"
+	End Sub
+
+	' Function which should not be registered as a worksheet function, but only available as a macro to VBA
+	' Call from VBA as	   result = Application.Run("DnaHelloFunc", "World!")
+	<ExcelCommand>
+	Function DnaHelloFunc(name As String)
+		Return "Hello " & name
+	End Function
+		
+End Module
+
+]]>
+</DnaLibrary>
