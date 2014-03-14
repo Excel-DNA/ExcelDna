@@ -1,4 +1,4 @@
-<DnaLibrary Name="Child2" Language="CS">
+<DnaLibrary RuntimeVersion="v4.0" Name="Child2" Language="CS">
 <![CDATA[
 	public class SomeClass
 	{

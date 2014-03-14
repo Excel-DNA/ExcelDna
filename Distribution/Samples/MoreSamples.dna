@@ -1,4 +1,4 @@
-<DnaLibrary Name="ExcelDna Test AddIn">
+<DnaLibrary RuntimeVersion="v4.0" Name="ExcelDna Test AddIn">
 	<!-- This library has two projects, one in C#, the other in VB -->
 	<Project Language="CS">
 		<Reference Path="System.Windows.Forms.dll"/>

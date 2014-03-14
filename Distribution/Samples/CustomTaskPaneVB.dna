@@ -1,4 +1,4 @@
-<DnaLibrary Language="VB">
+<DnaLibrary RuntimeVersion="v4.0" Language="VB">
 <Reference Path="System.Windows.Forms.dll"/>
 <Reference Path="System.Drawing.dll"/>
 <![CDATA[

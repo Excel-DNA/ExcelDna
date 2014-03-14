@@ -1,4 +1,4 @@
-<DnaLibrary RuntimeVersion="v4.0" CompilerVersion="v5.0" >
+<DnaLibrary RuntimeVersion="v4.0" Language="CS" >
 
 <!-- 
 
@@ -286,6 +286,7 @@ using System.Threading;
                     // Set the formatting of the function caller
                     if (caller is ExcelReference)
                     {
+                        using (new ExcelEchoOffHelper)
                         using (new ExcelSelectionHelper((ExcelReference)caller))
                         {
                             XlCall.Excel(XlCall.xlcFormatNumber, "h:mm:ss");
@@ -310,6 +311,7 @@ using System.Threading;
                     ExcelAsyncUtil.QueueAsMacro(delegate
                         {
                             // Set the formatting of the function caller
+                            using (new ExcelEchoOffHelper)
                             using (new ExcelSelectionHelper((ExcelReference)caller))
                             {
                                 XlCall.Excel(XlCall.xlcFormatNumber, desiredFormat);
@@ -321,10 +323,45 @@ using System.Threading;
         }
     }
 
-    // RIIA helper to deal with Excel selections
+    // RIIA-style helpers to deal with Excel selections    
+    // Don't use if you agree with Eric Lippert here: http://stackoverflow.com/a/1757344/44264
+    public class ExcelEchoOffHelper : XlCall, IDisposable
+    {
+        object oldEcho;
+
+        public ExcelEchoOffHelper()
+        {
+            oldEcho = Excel(xlfGetWorkspace, 40);
+            Excel(xlcEcho, false);
+        }
+        
+        public void Dispose()
+        {
+            Excel(xlcEcho, oldEcho);
+        }
+    }
+    
+    public class ExcelCalculationManualHelper : XlCall, IDisposable
+    {
+        object oldCalculationMode;
+
+        public ExcelCalculationManualHelper()
+        {
+            oldCalculationMode = Excel(xlfGetDocument, 14);
+            Excel(xlcOptionsCalculation, 3);
+        }
+        
+        public void Dispose()
+        {
+            Excel(xlcOptionsCalculation, oldCalculationMode);
+        }
+    }
+
+    // Select an ExcelReference (perhaps on another sheet) allowing changes to be made there.
+    // On clean-up, resets all the selections and the active sheet.
+    // Should not be used if the work you are going to do will switch sheets, amke new sheets etc.
     public class ExcelSelectionHelper : XlCall, IDisposable
     {
-        object oldScreenUpdating;
         object oldSelectionOnActiveSheet;
         object oldActiveCellOnActiveSheet;
 
@@ -333,9 +370,6 @@ using System.Threading;
 
         public ExcelSelectionHelper(ExcelReference refToSelect)
         {
-            oldScreenUpdating = Excel(xlfGetWorkspace, 40);
-            Excel(xlcEcho, false);
-
             // Remember old selection state on the active sheet
             oldSelectionOnActiveSheet = Excel(xlfSelection);
             oldActiveCellOnActiveSheet = Excel(xlfActiveCell);
@@ -354,14 +388,15 @@ using System.Threading;
 
         public void Dispose()
         {
+            // Reset the selection on the target sheet
             Excel(xlcSelect, oldSelectionOnRefSheet, oldActiveCellOnRefSheet);
 
+            // Reset the sheet originally selected
             string oldActiveSheet = (string)Excel(xlSheetNm, oldSelectionOnActiveSheet);
             Excel(xlcWorkbookSelect, new object[] { oldActiveSheet });
 
+            // Reset the selection in the active sheet (some bugs make this change sometimes too)
             Excel(xlcSelect, oldSelectionOnActiveSheet, oldActiveCellOnActiveSheet);
-
-            Excel(xlcEcho, oldScreenUpdating);
         }
     }
 }

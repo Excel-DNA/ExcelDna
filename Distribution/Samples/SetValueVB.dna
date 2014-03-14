@@ -1,4 +1,4 @@
-<DnaLibrary>
+<DnaLibrary RuntimeVersion="v4.0" Language="VB">
 <![CDATA[
 
 Public Module Test

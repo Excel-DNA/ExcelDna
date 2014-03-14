@@ -1,4 +1,4 @@
-<DnaLibrary Description="PackLib Test Add-In" Language="CS">
+<DnaLibrary RuntimeVersion="v4.0" Description="PackLib Test Add-In" Language="CS">
 <Reference AssemblyPath="MyLib.dll" Pack="true" />
 <![CDATA[
 	public class SomeRefClass

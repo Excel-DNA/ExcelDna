@@ -26,7 +26,7 @@ using System.Runtime.InteropServices;
 
 namespace ExcelDna.Integration
 {
-    public enum ExcelError : ushort
+    public enum ExcelError : short
     {
         ExcelErrorNull = 0,
         ExcelErrorDiv0 = 7,

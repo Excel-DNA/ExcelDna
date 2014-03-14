@@ -1,4 +1,4 @@
-<DnaLibrary Name="PackConfig" Language="CS">
+<DnaLibrary RuntimeVersion="v4.0"  Name="PackConfig" Language="CS">
 <![CDATA[
 	
 	#define TRACE 

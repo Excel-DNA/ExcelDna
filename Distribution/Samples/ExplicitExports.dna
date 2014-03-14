@@ -1,4 +1,4 @@
-<DnaLibrary Name="ExplicitExports Sample">
+<DnaLibrary RuntimeVersion="v4.0" Name="ExplicitExports Sample">
 <Project Language="VB"  ExplicitExports="true">
 <![CDATA[
 

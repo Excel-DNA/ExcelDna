@@ -1,4 +1,4 @@
-<DnaLibrary>
+<DnaLibrary RuntimeVersion="v4.0" >
 
 <ExternalLibrary Path="CompiledLibs\SimpleComServer.dll" ComServer="true" Pack="true" />
 <ExternalLibrary Path="CompiledLibs\SimpleComServerVB.dll" ComServer="true" LoadFromBytes="true" Pack="true" />

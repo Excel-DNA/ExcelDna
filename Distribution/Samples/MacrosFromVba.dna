@@ -20,7 +20,6 @@ Public Module Macros
 	' Call from VBA as     Application.Run "DnaMacroWithParam", "World!"
 	Sub DnaMacroWithParam(name As String)
 		Dim Application = ExcelDnaUtil.Application
-
 		Application.Range("A1").Value = "Hello " & name
 	End Sub
 

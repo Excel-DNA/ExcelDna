@@ -1,6 +1,6 @@
 ComServer sample
 ----------------
-Shows how Excel-DNA can serve .NET classes in an add-in library from within the same AppDomain as the add-in/ This allows easy interaction between UDFs and VBA code, and give another way to integrate .NET code into Excel.
+Shows how Excel-DNA can serve .NET classes in an add-in library from within the same AppDomain as the add-in. This allows easy interaction between UDFs and VBA code, and give another way to integrate .NET code into Excel.
 
 To run the sample:
 1. Run BuildSample.bat to compile the libraries, create and registier the ComServerPacked.xll add-in.

@@ -1,4 +1,4 @@
-<DnaLibrary Language="VB">
+<DnaLibrary RuntimeVersion="v4.0" Language="VB">
 <Reference Name="Microsoft.Office.Interop.Excel" />
 <Reference Name="System.Windows.Forms" />
 

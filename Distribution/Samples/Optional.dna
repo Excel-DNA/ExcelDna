@@ -1,4 +1,4 @@
-<DnaLibrary Name="Optional and defaultValue arguments" Language="C#">
+<DnaLibrary RuntimeVersion="v4.0" Name="Optional and defaultValue arguments" Language="C#">
 <!--
 There is currently no special support in Excel-DNA for optional parameters or default values. 
 This example shows how to implement these by changing your parameter type to be 'object' and then dealing with the different options explicitly.

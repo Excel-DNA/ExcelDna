@@ -1,4 +1,4 @@
-<DnaLibrary Name="Ribbon Tests - Shared Group 2">
+<DnaLibrary RuntimeVersion="v4.0" Name="Ribbon Tests - Shared Group 2">
    <![CDATA[
   
   Imports System.Runtime.InteropServices

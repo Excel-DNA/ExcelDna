@@ -1,4 +1,4 @@
-﻿<DnaLibrary Name="ExcelDna Test OnRecalc" Language="CS">
+﻿<DnaLibrary RuntimeVersion="v4.0" Name="ExcelDna Test OnRecalc" Language="CS">
 <![CDATA[
 
 	using System;

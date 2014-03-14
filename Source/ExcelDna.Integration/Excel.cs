@@ -58,7 +58,7 @@ namespace ExcelDna.Integration
         [DllImport("user32.dll")]
         private static extern uint GetWindowThreadProcessId(IntPtr hWnd, /*out uint */ IntPtr refProcessId);
         [DllImport("Kernel32")]
-        public static extern uint GetCurrentThreadId();
+        private static extern uint GetCurrentThreadId();
 
         private const uint OBJID_NATIVEOM = 0xFFFFFFF0;
         private static readonly byte[] IID_IDispatchBytes = new Guid("{00020400-0000-0000-C000-000000000046}").ToByteArray();

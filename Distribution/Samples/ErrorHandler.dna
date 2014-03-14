@@ -1,4 +1,4 @@
-<DnaLibrary Name="ErrorHandler Sample" Language="CS">
+<DnaLibrary RuntimeVersion="v4.0" Name="ErrorHandler Sample" Language="CS">
 <![CDATA[
 using System;
 using ExcelDna.Integration;
@@ -9,7 +9,7 @@ public class MyAddIn : IExcelAddIn
 
 	public void AutoOpen()
 	{
-		Integration.RegisterUnhandledExceptionHandler( ErrorHandler );
+		ExcelIntegration.RegisterUnhandledExceptionHandler( ErrorHandler );
 	}
 
 	private object ErrorHandler(object exceptionObject)

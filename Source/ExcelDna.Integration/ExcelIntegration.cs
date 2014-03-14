@@ -147,13 +147,25 @@ namespace ExcelDna.Integration
             return RegistrationInfo.GetRegistrationInfo(xllPath, registrationUpdateVersion);
         }
 
+        // Just added for symmetry
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="xllPath"></param>
+        /// <returns>Either a string with the name of the XLL, or the ExcelError.ExcelErrorValue error.</returns>
+        public static object RegisterXLL(string xllPath)
+        {
+            Debug.Print("## Registering Add-In: " + xllPath);
+            return XlCall.Excel(XlCall.xlfRegister, xllPath);
+        }
+
         public static void UnregisterXLL(string xllPath)
         {
             Debug.Print("## Unregistering Add-In: " + xllPath);
             // Little detour to get Excel-DNA to fully unregister the function names.
             object removeId = XlCall.Excel(XlCall.xlfRegister, xllPath, "xlAutoRemove", "I", ExcelEmpty.Value, ExcelEmpty.Value, 2);
             object removeResult = XlCall.Excel(XlCall.xlfCall, removeId);
-            object removeUnregister = XlCall.Excel(XlCall.xlfUnregister, removeId);
+            object removeUnregisterResult = XlCall.Excel(XlCall.xlfUnregister, removeId);
             XlCall.Excel(XlCall.xlfUnregister, xllPath);
         }
         #endregion

@@ -1,4 +1,4 @@
-<DnaLibrary Name="PackDnaTree" Language="CS">
+<DnaLibrary RuntimeVersion="v4.0" Name="PackDnaTree" Language="CS">
 <ExternalLibrary Path="GrandChild.dna" Pack="true" />
 <![CDATA[
 	public class SomeClass

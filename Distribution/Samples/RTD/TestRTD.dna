@@ -1,4 +1,4 @@
-<DnaLibrary Name="RTD Server Tests" Language="C#">
+<DnaLibrary RuntimeVersion="v4.0" Name="RTD Server Tests" Language="C#">
     <Reference AssemblyPath="System.Windows.Forms.dll" />
     <![CDATA[
     

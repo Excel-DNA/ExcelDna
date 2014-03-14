@@ -463,25 +463,25 @@ namespace ExcelDna.Integration.CustomUI
 
     public class CommandBar
     {
-        object _object;
-        Type _type;
+        object ComObject;
+        Type ComObjectType;
         
         internal CommandBar(object commandBar)
         {
-            _object = commandBar;
-            _type = _object.GetType();
+            ComObject = commandBar;
+            ComObjectType = ComObject.GetType();
         }
 
         public object GetComObject()
         {
-            return _object;
+            return ComObject;
         }
 
         public CommandBarControls Controls
         {
             get
             {
-                object controls = _type.InvokeMember("Controls", BindingFlags.GetProperty, null, _object, null);
+                object controls = ComObjectType.InvokeMember("Controls", BindingFlags.GetProperty, null, ComObject, null);
                 return new CommandBarControls(controls);
             }
         }
@@ -490,7 +490,7 @@ namespace ExcelDna.Integration.CustomUI
         {
             get
             {
-                object controls = _type.InvokeMember("Name", BindingFlags.GetProperty, null, _object, null);
+                object controls = ComObjectType.InvokeMember("Name", BindingFlags.GetProperty, null, ComObject, null);
                 return controls.ToString();
             }
         }
@@ -499,24 +499,24 @@ namespace ExcelDna.Integration.CustomUI
         {
             get
             {
-                return (bool)_type.InvokeMember("Visible", BindingFlags.GetProperty, null, _object, null);
+                return (bool)ComObjectType.InvokeMember("Visible", BindingFlags.GetProperty, null, ComObject, null);
             }
             set
             {
-                _type.InvokeMember("Visible", BindingFlags.SetProperty, null, _object, new object[] { value });
+                ComObjectType.InvokeMember("Visible", BindingFlags.SetProperty, null, ComObject, new object[] { value });
             }
         }
 
         public CommandBarControl FindControl(object type, object id, object tag, object visible, object recursive)
         {
-            object result = _type.InvokeMember("FindControl", BindingFlags.InvokeMethod, null, _object, new object[] { type, id, tag, visible, recursive });
+            object result = ComObjectType.InvokeMember("FindControl", BindingFlags.InvokeMethod, null, ComObject, new object[] { type, id, tag, visible, recursive });
             if (result == null) return null;
             return new CommandBarControl(result);
         }
 
         public void Delete()
         {
-            _type.InvokeMember("Delete", BindingFlags.InvokeMethod, null, _object, null);
+            ComObjectType.InvokeMember("Delete", BindingFlags.InvokeMethod, null, ComObject, null);
         }
 
     }
@@ -589,13 +589,13 @@ namespace ExcelDna.Integration.CustomUI
         private static Guid guidCommandBarPopup = new Guid("000C030A-0000-0000-C000-000000000046");
         private static Guid guidCommandBarComboBox = new Guid("000C030C-0000-0000-C000-000000000046");
 
-        internal protected object _object;
-        internal protected Type _type;
+        internal protected object ComObject;
+        internal protected Type ComObjectType;
         
         internal CommandBarControl(object commandBarControl)
         {
-            _object = commandBarControl;
-            _type = _object.GetType();
+            ComObject = commandBarControl;
+            ComObjectType = ComObject.GetType();
         }
 
         internal static CommandBarControl CreateCommandBarControl(MsoControlType controlType, object commandBarControl)
@@ -647,18 +647,18 @@ namespace ExcelDna.Integration.CustomUI
 
         public object GetComObject()
         {
-            return _object;
+            return ComObject;
         }
 
         public string Caption
         {
             get
             {
-                return (string)_type.InvokeMember("Caption", BindingFlags.GetProperty, null, _object, null);
+                return (string)ComObjectType.InvokeMember("Caption", BindingFlags.GetProperty, null, ComObject, null);
             }
             set
             {
-                _type.InvokeMember("Caption", BindingFlags.SetProperty, null, _object, new object[] { value });
+                ComObjectType.InvokeMember("Caption", BindingFlags.SetProperty, null, ComObject, new object[] { value });
             }
         }
 
@@ -666,11 +666,11 @@ namespace ExcelDna.Integration.CustomUI
         {
             get
             {
-                return (string)_type.InvokeMember("Tag", BindingFlags.GetProperty, null, _object, null);
+                return (string)ComObjectType.InvokeMember("Tag", BindingFlags.GetProperty, null, ComObject, null);
             }
             set
             {
-                _type.InvokeMember("Tag", BindingFlags.SetProperty, null, _object, new object[] { value });
+                ComObjectType.InvokeMember("Tag", BindingFlags.SetProperty, null, ComObject, new object[] { value });
             }
         }
 
@@ -678,11 +678,11 @@ namespace ExcelDna.Integration.CustomUI
         {
             get
             {
-                return (string)_type.InvokeMember("TooltipText", BindingFlags.GetProperty, null, _object, null);
+                return (string)ComObjectType.InvokeMember("TooltipText", BindingFlags.GetProperty, null, ComObject, null);
             }
             set
             {
-                _type.InvokeMember("TooltipText", BindingFlags.SetProperty, null, _object, new object[] { value });
+                ComObjectType.InvokeMember("TooltipText", BindingFlags.SetProperty, null, ComObject, new object[] { value });
             }
         }
 
@@ -690,11 +690,11 @@ namespace ExcelDna.Integration.CustomUI
         {
             get
             {
-                return (string)_type.InvokeMember("OnAction", BindingFlags.GetProperty, null, _object, null);
+                return (string)ComObjectType.InvokeMember("OnAction", BindingFlags.GetProperty, null, ComObject, null);
             }
             set
             {
-                _type.InvokeMember("OnAction", BindingFlags.SetProperty, null, _object, new object[] { value });
+                ComObjectType.InvokeMember("OnAction", BindingFlags.SetProperty, null, ComObject, new object[] { value });
             }
         }
 
@@ -702,11 +702,11 @@ namespace ExcelDna.Integration.CustomUI
         {
             get
             {
-                return (bool)_type.InvokeMember("BeginGroup", BindingFlags.GetProperty, null, _object, null);
+                return (bool)ComObjectType.InvokeMember("BeginGroup", BindingFlags.GetProperty, null, ComObject, null);
             }
             set
             {
-                _type.InvokeMember("BeginGroup", BindingFlags.SetProperty, null, _object, new object[] { value });
+                ComObjectType.InvokeMember("BeginGroup", BindingFlags.SetProperty, null, ComObject, new object[] { value });
             }
         }
 
@@ -714,11 +714,11 @@ namespace ExcelDna.Integration.CustomUI
         {
             get
             {
-                return (bool)_type.InvokeMember("Enabled", BindingFlags.GetProperty, null, _object, null);
+                return (bool)ComObjectType.InvokeMember("Enabled", BindingFlags.GetProperty, null, ComObject, null);
             }
             set
             {
-                _type.InvokeMember("Enabled", BindingFlags.SetProperty, null, _object, new object[] { value });
+                ComObjectType.InvokeMember("Enabled", BindingFlags.SetProperty, null, ComObject, new object[] { value });
             }
         }
 
@@ -726,11 +726,11 @@ namespace ExcelDna.Integration.CustomUI
         {
             get
             {
-                return (int)_type.InvokeMember("Height", BindingFlags.GetProperty, null, _object, null);
+                return (int)ComObjectType.InvokeMember("Height", BindingFlags.GetProperty, null, ComObject, null);
             }
             set
             {
-                _type.InvokeMember("Height", BindingFlags.SetProperty, null, _object, new object[] { value });
+                ComObjectType.InvokeMember("Height", BindingFlags.SetProperty, null, ComObject, new object[] { value });
             }
         }
 
@@ -738,11 +738,11 @@ namespace ExcelDna.Integration.CustomUI
         {
             get
             {
-                return (string)_type.InvokeMember("HelpFile", BindingFlags.GetProperty, null, _object, null);
+                return (string)ComObjectType.InvokeMember("HelpFile", BindingFlags.GetProperty, null, ComObject, null);
             }
             set
             {
-                _type.InvokeMember("HelpFile", BindingFlags.SetProperty, null, _object, new object[] { value });
+                ComObjectType.InvokeMember("HelpFile", BindingFlags.SetProperty, null, ComObject, new object[] { value });
             }
         }
 
@@ -750,11 +750,11 @@ namespace ExcelDna.Integration.CustomUI
         {
             get
             {
-                return (int)_type.InvokeMember("HelpContextId", BindingFlags.GetProperty, null, _object, null);
+                return (int)ComObjectType.InvokeMember("HelpContextId", BindingFlags.GetProperty, null, ComObject, null);
             }
             set
             {
-                _type.InvokeMember("HelpContextId", BindingFlags.SetProperty, null, _object, new object[] { value });
+                ComObjectType.InvokeMember("HelpContextId", BindingFlags.SetProperty, null, ComObject, new object[] { value });
             }
         }
 
@@ -762,11 +762,11 @@ namespace ExcelDna.Integration.CustomUI
         {
             get
             {
-                return (bool)_type.InvokeMember("Visible", BindingFlags.GetProperty, null, _object, null);
+                return (bool)ComObjectType.InvokeMember("Visible", BindingFlags.GetProperty, null, ComObject, null);
             }
             set
             {
-                _type.InvokeMember("Visible", BindingFlags.SetProperty, null, _object, new object[] { value });
+                ComObjectType.InvokeMember("Visible", BindingFlags.SetProperty, null, ComObject, new object[] { value });
             }
         }
 
@@ -774,37 +774,37 @@ namespace ExcelDna.Integration.CustomUI
         {
             get
             {
-                return (int)_type.InvokeMember("Index", BindingFlags.GetProperty, null, _object, null);
+                return (int)ComObjectType.InvokeMember("Index", BindingFlags.GetProperty, null, ComObject, null);
             }
         }
             
         public void Delete(object Temporary)
         {
-            _type.InvokeMember("Delete", BindingFlags.InvokeMethod, null, _object, new object[] { Temporary });
+            ComObjectType.InvokeMember("Delete", BindingFlags.InvokeMethod, null, ComObject, new object[] { Temporary });
         }
     }
 
     public class CommandBarControls
     {
-        object _object;
-        Type _type;
+        object ComObject;
+        Type ComObjectTtpe;
 
         internal CommandBarControls(object commandBarControls)
         {
-            _object = commandBarControls;
-            _type = _object.GetType();
+            ComObject = commandBarControls;
+            ComObjectTtpe = ComObject.GetType();
         }
 
         public object GetComObject()
         {
-            return _object;
+            return ComObject;
         }
 
         public CommandBarControl this[string name]
         {
             get
             {
-                object commandBarControl = _type.InvokeMember("", BindingFlags.GetProperty, null, _object, new object[] { name });
+                object commandBarControl = ComObjectTtpe.InvokeMember("", BindingFlags.GetProperty, null, ComObject, new object[] { name });
                 return CommandBarControl.CreateCommandBarControl(commandBarControl);
             }
         }
@@ -813,15 +813,15 @@ namespace ExcelDna.Integration.CustomUI
         {
             get
             {
-                object commandBarControl = _type.InvokeMember(
-                    "", BindingFlags.GetProperty, null, _object, new object[] { id });
+                object commandBarControl = ComObjectTtpe.InvokeMember(
+                    "", BindingFlags.GetProperty, null, ComObject, new object[] { id });
                 return CommandBarControl.CreateCommandBarControl(commandBarControl);
             }
         }
 
         public int Count()
         {
-            object i = _type.InvokeMember("Count", BindingFlags.GetProperty, null, _object, null);
+            object i = ComObjectTtpe.InvokeMember("Count", BindingFlags.GetProperty, null, ComObject, null);
             return Convert.ToInt32(i);
         }
 
@@ -846,7 +846,7 @@ namespace ExcelDna.Integration.CustomUI
                 }
             }
 
-            object /*CommandBarControl*/ newControl = _type.InvokeMember("Add", BindingFlags.InvokeMethod, null, _object,
+            object /*CommandBarControl*/ newControl = ComObjectTtpe.InvokeMember("Add", BindingFlags.InvokeMethod, null, ComObject,
                 new object[] { controlType, Id, Parameter, Before, Temporary });
 
             return CommandBarControl.CreateCommandBarControl(controlType, newControl);
@@ -948,8 +948,8 @@ namespace ExcelDna.Integration.CustomUI
 
     public class CommandBarButton : CommandBarControl
     {
-        internal CommandBarButton(object CommandBarControl)
-            : base(CommandBarControl)
+        internal CommandBarButton(object commandBarCom)
+            : base(commandBarCom)
         {
         }
 
@@ -961,9 +961,9 @@ namespace ExcelDna.Integration.CustomUI
 
             // IDataObject oldContent = Clipboard.GetDataObject();
             Clipboard.SetImage(buttonImage);
-            Type t = _object.GetType();
-            t.InvokeMember("Style", BindingFlags.SetProperty, null, _object, new object[] { MsoButtonStyle.msoButtonIconAndCaption });
-            t.InvokeMember("PasteFace", BindingFlags.InvokeMethod, null, _object, null);
+            Type t = ComObject.GetType();
+            t.InvokeMember("Style", BindingFlags.SetProperty, null, ComObject, new object[] { MsoButtonStyle.msoButtonIconAndCaption });
+            t.InvokeMember("PasteFace", BindingFlags.InvokeMethod, null, ComObject, null);
             Clipboard.Clear();
             // Clipboard.SetDataObject(oldContent);
         }
@@ -972,11 +972,11 @@ namespace ExcelDna.Integration.CustomUI
         {
             get
             {
-                return (int)_type.InvokeMember("FaceId", BindingFlags.GetProperty, null, _object, null);
+                return (int)ComObjectType.InvokeMember("FaceId", BindingFlags.GetProperty, null, ComObject, null);
             }
             set
             {
-                _type.InvokeMember("FaceId", BindingFlags.SetProperty, null, _object, new object[] { value });
+                ComObjectType.InvokeMember("FaceId", BindingFlags.SetProperty, null, ComObject, new object[] { value });
             }
         }
 
@@ -984,11 +984,11 @@ namespace ExcelDna.Integration.CustomUI
         {
             get
             {
-                return (MsoButtonStyle)_type.InvokeMember("Style", BindingFlags.GetProperty, null, _object, null);
+                return (MsoButtonStyle)ComObjectType.InvokeMember("Style", BindingFlags.GetProperty, null, ComObject, null);
             }
             set
             {
-                _type.InvokeMember("Style", BindingFlags.SetProperty, null, _object, new object[] { value });
+                ComObjectType.InvokeMember("Style", BindingFlags.SetProperty, null, ComObject, new object[] { value });
             }
         }
 
@@ -996,11 +996,11 @@ namespace ExcelDna.Integration.CustomUI
         {
             get
             {
-                return (string)_type.InvokeMember("ShortcutText", BindingFlags.GetProperty, null, _object, null);
+                return (string)ComObjectType.InvokeMember("ShortcutText", BindingFlags.GetProperty, null, ComObject, null);
             }
             set
             {
-                _type.InvokeMember("ShortcutText", BindingFlags.SetProperty, null, _object, new object[] { value });
+                ComObjectType.InvokeMember("ShortcutText", BindingFlags.SetProperty, null, ComObject, new object[] { value });
             }
         }
 
@@ -1017,8 +1017,8 @@ namespace ExcelDna.Integration.CustomUI
 
     public class CommandBarPopup : CommandBarControl
     {
-        public CommandBarPopup(object CommandBarControl)
-            : base(CommandBarControl)
+        public CommandBarPopup(object commandBarCom)
+            : base(commandBarCom)
         {
         }
 
@@ -1026,7 +1026,7 @@ namespace ExcelDna.Integration.CustomUI
         {
             get
             {
-                object controls = _type.InvokeMember("Controls", BindingFlags.GetProperty, null, _object, null);
+                object controls = ComObjectType.InvokeMember("Controls", BindingFlags.GetProperty, null, ComObject, null);
                 return new CommandBarControls(controls);
             }
         }
@@ -1034,8 +1034,8 @@ namespace ExcelDna.Integration.CustomUI
 
     public class CommandBarComboBox : CommandBarControl
     {
-        public CommandBarComboBox(object CommandBarControl)
-            : base(CommandBarControl)
+        public CommandBarComboBox(object commandBarCom)
+            : base(commandBarCom)
         {
         }
     }
