@@ -8,13 +8,12 @@ open System.Net
 open Microsoft.FSharp.Control.WebExtensions
 open ExcelDna.Integration
 
-/// This class implements the IExcelAddin which allows us to initialize the ExcelAsyncUtil support.
+/// This class implements the IExcelAddin which allows us to do stuff when the add-in is loaded
 /// It must not be a nested class (e.g. defined as a type inside a module) but a top-level class (inside a namespace)
 type FsAsyncAddIn () =
     interface IExcelAddIn with
-        member this.AutoOpen ()  = 
-            ExcelAsyncUtil.Initialize ()
-        member this.AutoClose () = ExcelAsyncUtil.Uninitialize ()
+        member this.AutoOpen ()  = ()
+        member this.AutoClose () = ()
     static member fsaAddThem x y = x + y
 
 /// Some utility functions for connecting Excel-DNA async with F#

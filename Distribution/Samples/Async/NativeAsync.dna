@@ -14,7 +14,7 @@
   {
     public void AutoOpen()
     {
-      ExcelIntegration.RegisterUnhandledExceptionHandler( ex => "!!!Error " + ex);
+        ExcelIntegration.RegisterUnhandledExceptionHandler( ex => "!!!Error " + ex);
     }
 
     public void AutoClose()

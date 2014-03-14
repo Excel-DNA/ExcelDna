@@ -1,4 +1,4 @@
-<DnaLibrary Name="FSharp Sample" Language="F#">
+<DnaLibrary RuntimeVersion="v4.0" Name="FSharp Sample" Language="F#">
 <![CDATA[
 
 #light

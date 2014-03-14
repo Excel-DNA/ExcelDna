@@ -1,4 +1,4 @@
-<DnaLibrary Name="CompilerV35 Sample" Language="CS" CompilerVersion="v3.5">
+<DnaLibrary Name="CompilerV35 Sample" Language="CS" RuntimeVersion="v2.0" CompilerVersion="v3.5">
 <Reference Name="System.Core" />
 <![CDATA[
 

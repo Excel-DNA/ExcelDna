@@ -1,4 +1,4 @@
-<DnaLibrary Language="C#">
+<DnaLibrary RuntimeVersion="v4.0" Language="C#">
 <Reference AssemblyPath="System.Windows.Forms.dll" />
 
 <![CDATA[

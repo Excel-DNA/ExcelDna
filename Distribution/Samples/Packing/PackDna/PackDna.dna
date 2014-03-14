@@ -1,4 +1,4 @@
-<DnaLibrary Name="PackDna" Language="CS">
+<DnaLibrary RuntimeVersion="v4.0" Name="PackDna" Language="CS">
 <![CDATA[
 	using System;
 	public class SomeClass

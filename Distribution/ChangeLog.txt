@@ -33,6 +33,7 @@ Version 0.32 (???)
 * Add message for mismatched ExcelDna.Integration.dll.
 * Add Synchronized attribute to AssemblyResolve event.
 * Fix handling of UnauthorizedAccessException in DllRegisterServer.
+* Fix ExcelCommand to always register as a macro
 
 Version 0.30 (12 December 2012)
 -------------------------------

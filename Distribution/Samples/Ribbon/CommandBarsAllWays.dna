@@ -1,4 +1,4 @@
-<DnaLibrary Name="CommandBar Wrapper Tests">
+<DnaLibrary RuntimeVersion="v4.0" Name="CommandBar Wrapper Tests">
   <Reference Name="System.Windows.Forms" />
   <Reference Name="System.Drawing" />
    <![CDATA[

@@ -1,4 +1,4 @@
-<DnaLibrary Name="ExcelDna MTR Test AddIn" Language="C#">
+<DnaLibrary RuntimeVersion="v4.0" Name="ExcelDna MTR Test AddIn" Language="C#">
 <![CDATA[
 	using System;
 	using ExcelDna.Integration;

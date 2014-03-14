@@ -10,7 +10,7 @@ namespace AsyncFunctions
 	public static class ResizeTestFunctions
 	{
         // Just returns an array of the given size
-        public static object MakeArray(int rows, int columns)
+        public static object[,] MakeArray(int rows, int columns)
         {
             object[,] result = new object [rows, columns];
             for (int i = 0; i < rows; i++)
@@ -37,17 +37,34 @@ namespace AsyncFunctions
             
             return result;
         }
+        
+        public static object MakeMixedArrayAndResize(int rows, int columns)
+        {
+            object[,] result = new object [rows, columns];
+            for (int j = 0; j < columns; j++)
+                {
+                    result[0,j] = "Col " + j;
+                }
+            for (int i = 1; i < rows; i++)
+            {
+                for (int j = 0; j < columns; j++)
+                {
+                    result[i,j] = i + (j * 0.1);
+                }
+            }
+            
+            return ArrayResizer.Resize(result);
+        }
 
         // Makes an array, but automatically resizes the result
         public static object MakeArrayAndResize(int rows, int columns)
         {
-            object result = MakeArray(rows, columns);            
+            object[,] result = MakeArray(rows, columns);            
+            return ArrayResizer.Resize(result);
             
             // Can also call Resize via Excel - so if the Resize add-in is not part of this code, it should still work
             // (though calling direct is better for large arrays - it prevents extra marshaling).
             // return XlCall.Excel(XlCall.xlUDF, "Resize", result);
-            
-            return ArrayResizer.Resize(array);
         }
 
         public static double[,] MakeArrayAndResizeDoubles(int rows, int columns)
@@ -81,6 +98,7 @@ namespace AsyncFunctions
             var rowLast = caller.RowFirst + rows - 1;
             var columnLast = caller.ColumnFirst + columns - 1;
 
+            // Check for the sheet limits
             if (rowLast > ExcelDnaUtil.ExcelLimits.MaxRows - 1 ||
                 columnLast > ExcelDnaUtil.ExcelLimits.MaxColumns - 1)
             {
@@ -89,7 +107,7 @@ namespace AsyncFunctions
                 return ExcelError.ExcelErrorValue;
             }
 
-            // TODO: Add guard for ever-changing result?
+            // TODO: Add some kind of guard for ever-changing result?
             ExcelAsyncUtil.QueueAsMacro(() =>
             {
                 // Create a reference of the right size
@@ -138,17 +156,13 @@ namespace AsyncFunctions
             // Return what we have - to prevent flashing #N/A
             return array;
         }
-
+        
         static void DoResize(ExcelReference target)
         {
             // Get the current state for reset later
-            object oldEcho = Excel(xlfGetWorkspace, 40);
-            object oldCalculationMode = Excel(xlfGetDocument, 14);
-            try
+            using (new ExcelEchoOffHelper())
+            using (new ExcelCalculationManualHelper())
             {
-                Excel(xlcEcho, false);
-                Excel(xlcOptionsCalculation, 3);
-
                 ExcelReference firstCell = new ExcelReference(target.RowFirst, target.RowFirst, target.ColumnFirst, target.ColumnFirst, target.SheetId);
                 
                 // Get the formula in the first cell of the target
@@ -156,22 +170,15 @@ namespace AsyncFunctions
                 bool isFormulaArray = (bool)Excel(xlfGetCell, 49, firstCell);
                 if (isFormulaArray)
                 {
-                    object oldSelectionOnActiveSheet = Excel(xlfSelection);
-                    object oldActiveCell = Excel(xlfActiveCell);
+                    // Select the sheet and firstCell - needed because we want to use SelectSpecial.
+                    using (new ExcelSelectionHelper(firstCell))
+                    {
+                        // Extend the selection to the whole array and clear
+                        Excel(xlcSelectSpecial, 6);
+                        ExcelReference oldArray = (ExcelReference)Excel(xlfSelection);
 
-                    // Remember old selection and select the first cell of the target
-                    string firstCellSheet = (string)Excel(xlSheetNm, firstCell);
-                    Excel(xlcWorkbookSelect, new object[] { firstCellSheet });
-                    object oldSelectionOnArraySheet = Excel(xlfSelection);
-                    Excel(xlcFormulaGoto, firstCell);
-
-                    // Extend the selection to the whole array and clear
-                    Excel(xlcSelectSpecial, 6);
-                    ExcelReference oldArray = (ExcelReference)Excel(xlfSelection);
-
-                    oldArray.SetValue(ExcelEmpty.Value);
-                    Excel(xlcSelect, oldSelectionOnArraySheet);
-                    Excel(xlcFormulaGoto, oldSelectionOnActiveSheet);
+                        oldArray.SetValue(ExcelEmpty.Value);
+                    }
                 }
                 // Get the formula and convert to R1C1 mode
                 bool isR1C1Mode = (bool)Excel(xlfGetWorkspace, 4);
@@ -197,13 +204,86 @@ namespace AsyncFunctions
                     firstCell.SetValue("'" + formula);
                 }
             }
-            finally
-            {
-                Excel(xlcEcho, oldEcho);
-                Excel(xlcOptionsCalculation, oldCalculationMode);
-            }
         }
     }
+    
+    // RIIA-style helpers to deal with Excel selections    
+    // Don't use if you agree with Eric Lippert here: http://stackoverflow.com/a/1757344/44264
+    public class ExcelEchoOffHelper : XlCall, IDisposable
+    {
+        object oldEcho;
+
+        public ExcelEchoOffHelper()
+        {
+            oldEcho = Excel(xlfGetWorkspace, 40);
+            Excel(xlcEcho, false);
+        }
+        
+        public void Dispose()
+        {
+            Excel(xlcEcho, oldEcho);
+        }
+    }
+    
+    public class ExcelCalculationManualHelper : XlCall, IDisposable
+    {
+        object oldCalculationMode;
+
+        public ExcelCalculationManualHelper()
+        {
+            oldCalculationMode = Excel(xlfGetDocument, 14);
+            Excel(xlcOptionsCalculation, 3);
+        }
+        
+        public void Dispose()
+        {
+            Excel(xlcOptionsCalculation, oldCalculationMode);
+        }
+    }
+
+    // Select an ExcelReference (perhaps on another sheet) allowing changes to be made there.
+    // On clean-up, resets all the selections and the active sheet.
+    // Should not be used if the work you are going to do will switch sheets, amke new sheets etc.
+    public class ExcelSelectionHelper : XlCall, IDisposable
+    {
+        object oldSelectionOnActiveSheet;
+        object oldActiveCellOnActiveSheet;
+
+        object oldSelectionOnRefSheet;
+        object oldActiveCellOnRefSheet;
+
+        public ExcelSelectionHelper(ExcelReference refToSelect)
+        {
+            // Remember old selection state on the active sheet
+            oldSelectionOnActiveSheet = Excel(xlfSelection);
+            oldActiveCellOnActiveSheet = Excel(xlfActiveCell);
+
+            // Switch to the sheet we want to select
+            string refSheet = (string)Excel(xlSheetNm, refToSelect);
+            Excel(xlcWorkbookSelect, new object[] { refSheet });
+
+            // record selection and active cell on the sheet we want to select
+            oldSelectionOnRefSheet = Excel(xlfSelection);
+            oldActiveCellOnRefSheet = Excel(xlfActiveCell);
+
+            // make the selection
+            Excel(xlcFormulaGoto, refToSelect);
+        }
+
+        public void Dispose()
+        {
+            // Reset the selection on the target sheet
+            Excel(xlcSelect, oldSelectionOnRefSheet, oldActiveCellOnRefSheet);
+
+            // Reset the sheet originally selected
+            string oldActiveSheet = (string)Excel(xlSheetNm, oldSelectionOnActiveSheet);
+            Excel(xlcWorkbookSelect, new object[] { oldActiveSheet });
+
+            // Reset the selection in the active sheet (some bugs make this change sometimes too)
+            Excel(xlcSelect, oldSelectionOnActiveSheet, oldActiveCellOnActiveSheet);
+        }
+    }
+    
 }
 ]]>
 </DnaLibrary>

@@ -1,4 +1,4 @@
-﻿<DnaLibrary Name="Testing Errors" Language="CS">
+﻿<DnaLibrary RuntimeVersion="v4.0" Name="Testing Errors" Language="CS">
 using ExcelDna.Integration;
 public static class MyFunctions
 {

@@ -159,7 +159,7 @@ namespace ExcelDna.Loader
 
         internal static int ExcelErrorGetValue(object e)
         {
-            return (int)(ushort)e;
+            return (int)(short)e;
         }
 
         internal static Type GetExcelErrorType()

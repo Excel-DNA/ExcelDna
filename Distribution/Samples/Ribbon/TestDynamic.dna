@@ -1,4 +1,4 @@
-<DnaLibrary Name="Ribbon Tests" Language="C#">
+<DnaLibrary RuntimeVersion="v4.0" Name="Ribbon Tests" Language="C#">
 <Reference AssemblyPath="System.Windows.Forms.dll" />
 <![CDATA[
 

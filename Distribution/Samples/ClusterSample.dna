@@ -1,4 +1,4 @@
-<DnaLibrary Name='Excel-Dna ClusterSample' Language='C#'>
+<DnaLibrary RuntimeVersion="v4.0" Name='Excel-Dna ClusterSample' Language='C#'>
 <![CDATA[
 using System;
 using System.Collections.Generic;
