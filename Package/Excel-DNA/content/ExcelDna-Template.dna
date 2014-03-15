@@ -1,0 +1,20 @@
+<DnaLibrary Name="%ProjectName% Add-In" RuntimeVersion="v4.0">
+  <ExternalLibrary Path="%OutputFileName%" LoadFromBytes="true" Pack="true" />
+  
+  <!-- 
+       The RuntimeVersion attribute above allows two settings:
+       * RuntimeVersion="v2.0" - for .NET 2.0, 3.0 and 3.5
+       * RuntimeVersion="v4.0" - for .NET 4 and 4.5
+
+       Additional referenced assemblies can be specified by adding 'Reference' tags. 
+       These libraries will not be examined and registered with Excel as add-in libraries, 
+       but will be packed into the -packed.xll file and loaded at runtime as needed.
+       For example:
+       
+       <Reference Path="Another.Library.dll" Pack="true" />
+  
+       Excel-DNA also allows the xml for ribbon UI extensions to be specified in the .dna file.
+       See the main Excel-DNA site at http://excel-dna.net for downloads of the full distribution.
+  -->
+
+</DnaLibrary>

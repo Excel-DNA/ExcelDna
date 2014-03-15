@@ -264,7 +264,7 @@ namespace ExcelDna.Loader
                 functionType += pi.XlType;
 
                 if (j > 0)
-                    argumentNames += ",";
+                    argumentNames += ",";   // TODO: Should this be a comma, or the Excel list separator?
                 argumentNames += pi.Name;
                 argumentDescriptions[j] = pi.Description;
 
@@ -352,6 +352,7 @@ namespace ExcelDna.Loader
 
             // DOCUMENT: Additional truncations of registration info - registration fails with strings longer than 255 chars.
             argumentNames = Truncate(argumentNames, 255);
+            argumentNames = argumentNames.TrimEnd(','); // Also trim trailing commas (for params case)
             string category = Truncate(mi.Category, 255);
             string name = Truncate(mi.Name, 255);
             string helpTopic = (mi.HelpTopic == null || mi.HelpTopic.Length <= 255) ? mi.HelpTopic : "";
