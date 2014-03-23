@@ -1,0 +1,75 @@
+<DnaLibrary RuntimeVersion="v4.0" Language="C#" >
+<Reference Name="System.Windows.Forms" />
+<![CDATA[
+
+using System;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
+using ExcelDna.Integration;
+using ExcelDna.Integration.CustomUI;
+using ExcelDna.Integration.Extensibility;
+
+namespace TestComAddIn
+{
+    public class ExcelAddIn : IExcelAddIn 
+    { 
+        private MyComAddIn com_addin; 
+
+        public void AutoOpen() 
+        { 
+            try 
+            { 
+                com_addin = new MyComAddIn(); 
+                ExcelComAddInHelper.LoadComAddIn(com_addin); 
+            } 
+            catch (Exception ex) 
+            { 
+                MessageBox.Show("Error loading COM AddIn: " + ex); 
+            } 
+        } 
+        public void AutoClose() 
+        {
+        } 
+    } 
+
+    [ComVisible(true)]
+    [Guid("6EBB3413-E604-4FAF-897D-E2B6262CBEBA")]
+    [ProgId("Test.ComAddIn")]
+    public class MyComAddIn : ExcelComAddIn
+    {
+        public override void OnConnection(object Application, ext_ConnectMode ConnectMode, object AddInInst, ref Array custom)
+        {
+            MessageBox.Show("In OnConnection.");
+            try
+            {
+                dynamic addIn = AddInInst;
+                addIn.Object = new SharedClass();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error: " + ex);
+            }
+        }
+    }
+
+    [ComVisible(true)]
+    public class SharedClass
+    {
+        public string SayHello() 
+        {
+            return "Hello from .NET!";
+        }  
+    }
+
+}
+]]>
+<!-- VBA Code to access the SharedClass:
+Sub TestShared()
+    Dim addIn As COMAddIn
+    Dim csShared As Variant
+    Set addIn = Application.COMAddIns("Test.ComAddIn")
+    Set csShared = addIn.Object
+    Debug.Print csShared.SayHello()
+End Sub
+-->
+</DnaLibrary>

@@ -78,6 +78,7 @@ namespace ExcelDna.Integration.Rtd
         // Loads the RTD server with temporary ProgId.
         public static object RTD(string progId, string server, params string[] topics)
         {
+            Debug.Print("### RtdRegistration.RTD " + progId);
             // Check if this is any of our business.
             Type rtdServerType;
             if (!string.IsNullOrEmpty(server) || !registeredRtdServerTypes.TryGetValue(progId, out rtdServerType))
@@ -107,6 +108,7 @@ namespace ExcelDna.Integration.Rtd
             object rtdServer;
             if (ExcelRtd2010BugHelper.ExcelVersionHasRtdBug && rtdServerType.IsSubclassOf(typeof(ExcelRtdServer)))
             {
+                Debug.Print("### Creating Wrapper " + progId);
                 rtdServer = new ExcelRtd2010BugHelper(progId, rtdServerType);
             }
             else
@@ -148,10 +150,12 @@ namespace ExcelDna.Integration.Rtd
                 using (new ClsIdRegistration(clsId, progIdRegistered))
                 {
                     object result;
+                    Debug.Print("### About to call TryCallRTD " + progId);
                     if (TryCallRTD(out result, progIdRegistered, null, topics))
                     {
                         // Mark as loaded - ServerTerminate in the wrapper will remove.
                         loadedRtdServers[progId] = progIdRegistered;
+                        Debug.Print("### Added to loadedRtdServers " + progId);
                     }
                     return result;
                 }
@@ -195,6 +199,7 @@ namespace ExcelDna.Integration.Rtd
 
         public static void UnregisterRTDServer(string progId)
         {
+            Debug.Print("### UnregisterRTDServer " + progId);
             // Dictionary.Remove is safe to call even if the key does not exist (just returns false)
             if (progId != null)
             {

@@ -258,12 +258,12 @@ namespace ExcelDna.Loader
 		}
 	}
 
-	public class XlBoolean12ReturnMarshaler : ICustomMarshaler
+	public unsafe class XlBoolean12Marshaler : ICustomMarshaler
 	{
 		// One and only instance of this marshaler shared by all threads.
-		static XlBoolean12ReturnMarshaler instance;
+		static XlBoolean12Marshaler instance;
 
-		public XlBoolean12ReturnMarshaler()
+		public XlBoolean12Marshaler()
 		{
 		}
 
@@ -271,20 +271,42 @@ namespace ExcelDna.Loader
 		public static ICustomMarshaler GetInstance(string marshalCookie)
 		{
 			if (instance == null)
-				instance = new XlBoolean12ReturnMarshaler();
+				instance = new XlBoolean12Marshaler();
 			return instance;
 		}
 
 		public IntPtr MarshalManagedToNative(object ManagedObj)
 		{
 			// Forward to the correct instance for this thread.
-			return XlBoolean12ReturnMarshalerImpl.GetInstance().MarshalManagedToNative(ManagedObj);
+			return XlBoolean12MarshalerImpl.GetInstance().MarshalManagedToNative(ManagedObj);
 		}
 
-		public object MarshalNativeToManaged(IntPtr pNativeData)
-		{
-			throw new NotImplementedException("This marshaler only used for managed to native return type marshaling.");
-		}
+        public object MarshalNativeToManaged(IntPtr pNativeData)
+        {
+            try
+            {
+                // We want to get the same semantics as conversion to bool, to emulate VBA
+                // This needs to be different to double, since we want to accept strings that say "TRUE" etc.
+                ICustomMarshaler objectMarshaler = XlObject12Marshaler.GetInstance(null);
+                object value = objectMarshaler.MarshalNativeToManaged(pNativeData);
+                object result;
+                int retVal = XlCallImpl.TryExcelImpl(XlCallImpl.xlCoerce, out result, value, (int)XlType.XlTypeBoolean);
+                if (retVal == 0)
+                    return (bool)result;
+
+                // failed - as a fallback, try to convert to a double
+                retVal = XlCallImpl.TryExcelImpl(XlCallImpl.xlCoerce, out result, value, (int)XlType.XlTypeNumber);
+                if (retVal == 0)
+                    return ((double)result != 0.0);
+                
+                // We give up. This will throw a NullReferenceException in the unboxing, processed in the wrapper as #VALUE
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
 
 		// Unused ICustomMarshaler methods.
 		public void CleanUpManagedData(object ManagedObj) { }
@@ -295,24 +317,24 @@ namespace ExcelDna.Loader
 		// Boolean returns are returned as an XLOPER 
 		// - can't make it short due to marshaling limitations,
 		// so we force a boxing
-		private unsafe class XlBoolean12ReturnMarshalerImpl
+		private unsafe class XlBoolean12MarshalerImpl
 		{
 			[ThreadStatic]
-			static XlBoolean12ReturnMarshalerImpl instance;
+			static XlBoolean12MarshalerImpl instance;
 			IntPtr pNative; // this is really an XlOper, and is is allocated once, 
 			// when the marshaller is constructed, 
 			// and is never reclaimed
 
-			public XlBoolean12ReturnMarshalerImpl()
+			public XlBoolean12MarshalerImpl()
 			{
 				int size = Marshal.SizeOf(typeof(XlOper12));
 				pNative = Marshal.AllocCoTaskMem(size);
 			}
 
-			public static XlBoolean12ReturnMarshalerImpl GetInstance()
+			public static XlBoolean12MarshalerImpl GetInstance()
 			{
 				if (instance == null)
-					instance = new XlBoolean12ReturnMarshalerImpl();
+					instance = new XlBoolean12MarshalerImpl();
 				return instance;
 			}
 
@@ -349,11 +371,21 @@ namespace ExcelDna.Loader
 			return XlDateTime12MarshalerImpl.GetInstance().MarshalManagedToNative(ManagedObj);
 		}
 
-		public object MarshalNativeToManaged(IntPtr pNativeData)
-		{
-			// Forward to the correct instance for this thread.
-			return XlDateTime12MarshalerImpl.GetInstance().MarshalNativeToManaged(pNativeData);
-		}
+        unsafe public object MarshalNativeToManaged(IntPtr pNativeData)
+        {
+            try
+            {
+                double dateSerial = *(double*)pNativeData;
+                return DateTime.FromOADate(dateSerial);
+            }
+            catch
+            {
+                // This case is where the range of the OADate is exceeded.
+                // By returning null, the unboxing code will fail,
+                // causing a runtime exception that is caught and returned as a #Value error.
+                return null;
+            }
+        }
 
 		// Unused ICustomMarshaler methods.
 		public void CleanUpManagedData(object ManagedObj) { }
@@ -386,23 +418,6 @@ namespace ExcelDna.Loader
 				*(double*)pNative = ((DateTime)ManagedObj).ToOADate();
 				return pNative;
 			}
-
-			unsafe public object MarshalNativeToManaged(IntPtr pNativeData)
-			{
-				try
-				{
-					double dateSerial = *(double*)pNativeData;
-					return DateTime.FromOADate(dateSerial);
-				}
-				catch
-				{
-					// This case is where the range of the OADate is exceeded.
-					// By returning null, the unboxing code will fail,
-					// causing a runtime exception that is caught and returned as a #Value error.
-					return null;
-				}
-			}
-
 		}
 	}
 
@@ -687,10 +702,97 @@ namespace ExcelDna.Loader
 			return XlObject12MarshalerImpl.GetInstance().MarshalManagedToNative(ManagedObj);
 		}
 
-		public object MarshalNativeToManaged(IntPtr pNativeData)
-		{
-			return XlObject12MarshalerImpl.GetInstance().MarshalNativeToManaged(pNativeData);
-		}
+        unsafe public object MarshalNativeToManaged(IntPtr pNativeData)
+        {
+            // Make a nice object from the native OPER
+            object managed;
+            XlOper12* pOper = (XlOper12*)pNativeData;
+            // Ignore any Free flags
+            XlType12 type = pOper->xlType & ~XlType12.XlBitXLFree & ~XlType12.XlBitDLLFree;
+            switch (type)
+            {
+                case XlType12.XlTypeNumber:
+                    managed = pOper->numValue;
+                    break;
+                case XlType12.XlTypeString:
+                    XlString12* pString = pOper->pstrValue;
+                    managed = new string(pString->Data, 0, pString->Length);
+                    break;
+                case XlType12.XlTypeBoolean:
+                    managed = pOper->boolValue == 1;
+                    break;
+                case XlType12.XlTypeError:
+                    managed = IntegrationMarshalHelpers.GetExcelErrorObject(pOper->errValue);
+                    break;
+                case XlType12.XlTypeMissing:
+                    // DOCUMENT: Changed in version 0.17.
+                    // managed = System.Reflection.Missing.Value;
+                    managed = IntegrationMarshalHelpers.GetExcelMissingValue();
+                    break;
+                case XlType12.XlTypeEmpty:
+                    // DOCUMENT: Changed in version 0.17.
+                    // managed = null;
+                    managed = IntegrationMarshalHelpers.GetExcelEmptyValue();
+                    break;
+                case XlType12.XlTypeArray:
+                    int rows = pOper->arrayValue.Rows;
+                    int columns = pOper->arrayValue.Columns;
+                    object[,] array = new object[rows, columns];
+                    XlOper12* opers = (XlOper12*)pOper->arrayValue.pOpers;
+                    for (int i = 0; i < rows; i++)
+                    {
+                        for (int j = 0; j < columns; j++)
+                        {
+                            int pos = i * columns + j;
+                            array[i, j] = MarshalNativeToManaged((IntPtr)(opers + pos));
+                        }
+                    }
+                    managed = array;
+                    break;
+                case XlType12.XlTypeReference:
+                    object /*ExcelReference*/ r;
+                    if (pOper->refValue.pMultiRef == (XlOper12.XlMultiRef12*)IntPtr.Zero)
+                    {
+                        r = IntegrationMarshalHelpers.CreateExcelReference(0, 0, 0, 0, pOper->refValue.SheetId);
+                    }
+                    else
+                    {
+                        ushort numAreas = *(ushort*)pOper->refValue.pMultiRef;
+                        // XlOper12.XlRectangle12* pAreas = (XlOper12.XlRectangle12*)((uint)pOper->refValue.pMultiRef + 4 /* FieldOffset for XlRectangles */);
+                        XlOper12.XlRectangle12* pAreas = (XlOper12.XlRectangle12*)((byte*)(pOper->refValue.pMultiRef) + 4 /* FieldOffset for XlRectangles */);
+                        r = IntegrationMarshalHelpers.CreateExcelReference(
+                            pAreas[0].RowFirst, pAreas[0].RowLast,
+                            pAreas[0].ColumnFirst, pAreas[0].ColumnLast, pOper->refValue.SheetId);
+                        for (int i = 1; i < numAreas; i++)
+                        {
+                            IntegrationMarshalHelpers.ExcelReferenceAddReference(r,
+                                           pAreas[i].RowFirst, pAreas[i].RowLast,
+                                           pAreas[i].ColumnFirst, pAreas[i].ColumnLast);
+                        }
+                    }
+                    managed = r;
+                    break;
+                case XlType12.XlTypeSReference:
+                    IntPtr sheetId = XlCallImpl.GetCurrentSheetId12();
+                    object /*ExcelReference*/ sref;
+                    sref = IntegrationMarshalHelpers.CreateExcelReference(
+                                            pOper->srefValue.Reference.RowFirst,
+                                            pOper->srefValue.Reference.RowLast,
+                                            pOper->srefValue.Reference.ColumnFirst,
+                                            pOper->srefValue.Reference.ColumnLast,
+                                            sheetId /*Current sheet (not active sheet)*/);
+                    managed = sref;
+                    break;
+                case XlType12.XlTypeInt: // Never passed from Excel to a UDF! int32 in XlOper12
+                    managed = (double)pOper->intValue;
+                    break;
+                default:
+                    // unheard of !!
+                    managed = null;
+                    break;
+            }
+            return managed;
+        }
 
 		public void CleanUpManagedData(object ManagedObj) { }
 		public void CleanUpNativeData(IntPtr pNativeData) { } // Can't do anything useful here, as the managed to native marshaling is for a return parameter.
@@ -926,97 +1028,7 @@ namespace ExcelDna.Loader
                 }
 			}
 
-			unsafe public object MarshalNativeToManaged(IntPtr pNativeData)
-			{
-				// Make a nice object from the native OPER
-				object managed;
-				XlOper12* pOper = (XlOper12*)pNativeData;
-				// Ignore any Free flags
-				XlType12 type = pOper->xlType & ~XlType12.XlBitXLFree & ~XlType12.XlBitDLLFree;
-				switch (type)
-				{
-					case XlType12.XlTypeNumber:
-						managed = pOper->numValue;
-						break;
-					case XlType12.XlTypeString:
-						XlString12* pString = pOper->pstrValue;
-						managed = new string(pString->Data, 0, pString->Length);
-						break;
-					case XlType12.XlTypeBoolean:
-						managed = pOper->boolValue == 1;
-						break;
-					case XlType12.XlTypeError:
-						managed = IntegrationMarshalHelpers.GetExcelErrorObject(pOper->errValue);
-						break;
-					case XlType12.XlTypeMissing:
-						// DOCUMENT: Changed in version 0.17.
-						// managed = System.Reflection.Missing.Value;
-						managed = IntegrationMarshalHelpers.GetExcelMissingValue();
-						break;
-					case XlType12.XlTypeEmpty:
-						// DOCUMENT: Changed in version 0.17.
-						// managed = null;
-						managed = IntegrationMarshalHelpers.GetExcelEmptyValue();
-						break;
-					case XlType12.XlTypeArray:
-						int rows = pOper->arrayValue.Rows;
-						int columns = pOper->arrayValue.Columns;
-						object[,] array = new object[rows, columns];
-						XlOper12* opers = (XlOper12*)pOper->arrayValue.pOpers;
-						for (int i = 0; i < rows; i++)
-						{
-							for (int j = 0; j < columns; j++)
-							{
-								int pos = i * columns + j;
-								array[i, j] = MarshalNativeToManaged((IntPtr)(opers + pos));
-							}
-						}
-						managed = array;
-						break;
-					case XlType12.XlTypeReference:
-						object /*ExcelReference*/ r;
-						if (pOper->refValue.pMultiRef == (XlOper12.XlMultiRef12*)IntPtr.Zero)
-						{
-							r = IntegrationMarshalHelpers.CreateExcelReference(0, 0, 0, 0, pOper->refValue.SheetId);
-						}
-						else
-						{
-							ushort numAreas = *(ushort*)pOper->refValue.pMultiRef;
-                            // XlOper12.XlRectangle12* pAreas = (XlOper12.XlRectangle12*)((uint)pOper->refValue.pMultiRef + 4 /* FieldOffset for XlRectangles */);
-                            XlOper12.XlRectangle12* pAreas = (XlOper12.XlRectangle12*)((byte*)(pOper->refValue.pMultiRef) + 4 /* FieldOffset for XlRectangles */);
-							r = IntegrationMarshalHelpers.CreateExcelReference(
-								pAreas[0].RowFirst, pAreas[0].RowLast,
-								pAreas[0].ColumnFirst, pAreas[0].ColumnLast, pOper->refValue.SheetId);
-							for (int i = 1; i < numAreas; i++)
-							{
-								IntegrationMarshalHelpers.ExcelReferenceAddReference(r,
-											   pAreas[i].RowFirst, pAreas[i].RowLast,
-											   pAreas[i].ColumnFirst, pAreas[i].ColumnLast);
-							}
-						}
-						managed = r;
-						break;
-					case XlType12.XlTypeSReference:
-						IntPtr sheetId = XlCallImpl.GetCurrentSheetId12();
-						object /*ExcelReference*/ sref;
-						sref = IntegrationMarshalHelpers.CreateExcelReference(
-												pOper->srefValue.Reference.RowFirst,
-												pOper->srefValue.Reference.RowLast,
-												pOper->srefValue.Reference.ColumnFirst,
-												pOper->srefValue.Reference.ColumnLast,
-												sheetId /*Current sheet (not active sheet)*/);
-						managed = sref;
-						break;
-					case XlType12.XlTypeInt: // Never passed from Excel to a UDF! int32 in XlOper12
-						managed = (double)pOper->intValue;
-						break;
-					default:
-						// unheard of !!
-						managed = null;
-						break;
-				}
-				return managed;
-			}
+			
 		}
 	}
 
@@ -1743,18 +1755,18 @@ namespace ExcelDna.Loader
         public int GetNativeDataSize() { return -1; }
     }
 
-    public unsafe class XlLongParameter12Marshaler : ICustomMarshaler
+    public unsafe class XlUInt16Parameter12Marshaler : ICustomMarshaler
     {
         static ICustomMarshaler instance;
 
-        public XlLongParameter12Marshaler()
+        public XlUInt16Parameter12Marshaler()
         {
         }
 
         public static ICustomMarshaler GetInstance(string marshalCookie)
         {
             if (instance == null)
-                instance = new XlLongParameterMarshaler();
+                instance = new XlUInt16Parameter12Marshaler();
             return instance;
         }
 
@@ -1768,7 +1780,130 @@ namespace ExcelDna.Loader
         {
             try
             {
-                return (long)*((double*)pNativeData);
+                return checked((ushort)(Math.Round(*(double*)pNativeData, MidpointRounding.ToEven)));
+            }
+            catch
+            {
+                // This case is where the range of the long is exceeded.
+                // By returning null, the unboxing code will fail,
+                // causing a runtime exception that is caught and returned as a #Value error.
+                return null;
+            }
+        }
+
+        public void CleanUpManagedData(object ManagedObj) { }
+        public void CleanUpNativeData(IntPtr pNativeData) { } // Can't do anything useful here, as the managed to native marshaling is for a return parameter.
+        public int GetNativeDataSize() { return -1; }
+    }
+
+    public unsafe class XlInt16Parameter12Marshaler : ICustomMarshaler
+    {
+        static ICustomMarshaler instance;
+
+        public XlInt16Parameter12Marshaler()
+        {
+        }
+
+        public static ICustomMarshaler GetInstance(string marshalCookie)
+        {
+            if (instance == null)
+                instance = new XlInt16Parameter12Marshaler();
+            return instance;
+        }
+
+        public IntPtr MarshalManagedToNative(object ManagedObj)
+        {
+            // Not working in this direction at the moment
+            throw new NotImplementedException("This marshaler only used for native to managed parameter marshaling.");
+        }
+
+        public object MarshalNativeToManaged(IntPtr pNativeData)
+        {
+            try
+            {
+                return checked((short)(Math.Round(*(double*)pNativeData, MidpointRounding.ToEven)));
+            }
+            catch
+            {
+                // This case is where the range of the long is exceeded.
+                // By returning null, the unboxing code will fail,
+                // causing a runtime exception that is caught and returned as a #Value error.
+                return null;
+            }
+        }
+
+        public void CleanUpManagedData(object ManagedObj) { }
+        public void CleanUpNativeData(IntPtr pNativeData) { } // Can't do anything useful here, as the managed to native marshaling is for a return parameter.
+        public int GetNativeDataSize() { return -1; }
+    }
+
+    public unsafe class XlInt32Parameter12Marshaler : ICustomMarshaler
+    {
+        static ICustomMarshaler instance;
+
+        public XlInt32Parameter12Marshaler()
+        {
+        }
+
+        public static ICustomMarshaler GetInstance(string marshalCookie)
+        {
+            if (instance == null)
+                instance = new XlInt32Parameter12Marshaler();
+            return instance;
+        }
+
+        public IntPtr MarshalManagedToNative(object ManagedObj)
+        {
+            // Not working in this direction at the moment
+            throw new NotImplementedException("This marshaler only used for native to managed parameter marshaling.");
+        }
+
+        public object MarshalNativeToManaged(IntPtr pNativeData)
+        {
+            try
+            {
+                return checked((int)(Math.Round(*(double*)pNativeData, MidpointRounding.ToEven)));
+            }
+            catch
+            {
+                // This case is where the range of the int is exceeded.
+                // By returning null, the unboxing code will fail,
+                // causing a runtime exception that is caught and returned as a #Value error.
+                return null;
+            }
+        }
+
+        public void CleanUpManagedData(object ManagedObj) { }
+        public void CleanUpNativeData(IntPtr pNativeData) { } // Can't do anything useful here, as the managed to native marshaling is for a return parameter.
+        public int GetNativeDataSize() { return -1; }
+    }
+
+    public unsafe class XlInt64Parameter12Marshaler : ICustomMarshaler
+    {
+        static ICustomMarshaler instance;
+
+        public XlInt64Parameter12Marshaler()
+        {
+        }
+
+        public static ICustomMarshaler GetInstance(string marshalCookie)
+        {
+            if (instance == null)
+                instance = new XlInt64Parameter12Marshaler();
+            return instance;
+        }
+
+        public IntPtr MarshalManagedToNative(object ManagedObj)
+        {
+            // Not working in this direction at the moment
+            throw new NotImplementedException("This marshaler only used for native to managed parameter marshaling.");
+        }
+
+        public object MarshalNativeToManaged(IntPtr pNativeData)
+        {
+            try
+            {
+                return checked((long)(Math.Round(*(double*)pNativeData, MidpointRounding.ToEven)));
             }
             catch
             {

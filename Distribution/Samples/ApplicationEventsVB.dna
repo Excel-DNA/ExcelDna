@@ -1,0 +1,61 @@
+<DnaLibrary RuntimeVersion="v4.0" Name="Application Events Test" Language="VB" >
+<Reference Name="Microsoft.Office.Interop.Excel" />
+<Reference Name="Office" />
+<![CDATA[
+
+Imports Microsoft.Office.Interop.Excel
+Imports Microsoft.Office.Core
+Imports ExcelDna.Integration
+
+' This defines a module, where we add a new worksheet function
+Public Module MyFunctions
+
+    <ExcelFunction(Description:="My first .NET function", Category:="Useful Excel-DNA Functions")>
+    Public Function dnaHello(name As String) As String
+        Return "Hello " & name
+    End Function
+    
+    <ExcelCommand(MenuName:="Excel-DNA Test Macros", MenuText:="Say Hello") >
+    Sub SayHello()
+        MsgBox("Hello from Excel-DNA!", Title := "Excel-DNA Test")
+    End Sub
+End Module
+
+' This Class which implements IExcelAddIn allows us to do some work when the add-in is loaded.
+' We get hold of the Application object, and then hook an event and add a new context menu button
+Public Class AddIn 
+    Implements IExcelAddIn
+
+    WithEvents Application As Application
+    WithEvents Button As CommandBarButton
+
+    Public Sub AutoOpen() Implements IExcelAddIn.AutoOpen
+        Application = ExcelDnaUtil.Application
+
+        ' Add Cell context menu
+        Dim ContextMenu As CommandBar
+
+        ContextMenu = Application.CommandBars("Cell")
+        Button = ContextMenu.Controls.Add(Type := MsoControlType.msoControlButton, Before := ContextMenu.Controls.Count, Temporary := true)
+        Button.Caption = "Excel-DNA Test Button"
+        ' NOTE: For some reason we MUST set a Tag for the button, otherwise the events don't work
+        Button.Tag = "Excel-DNA-Test"
+    End Sub
+
+    Public Sub AutoClose() Implements IExcelAddIn.AutoClose
+        Button.Delete
+    End Sub
+
+    Private Sub Application_SheetSelectionChange(Sh As Object, Target As Range) Handles Application.SheetSelectionChange
+        Application.StatusBar = "Selection on sheet " + CType(Sh, Worksheet).Name & " is now " & Target.Address 
+    End Sub
+
+    Private Sub Button_Click(Ctrl As CommandBarButton, ByRef CancelDefault As Boolean) Handles Button.Click
+        Application.StatusBar = "Excel-DNA Test Button - Clicked!"
+    End Sub
+End Class
+
+
+
+]]>
+</DnaLibrary>

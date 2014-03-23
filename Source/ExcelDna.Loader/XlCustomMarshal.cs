@@ -238,16 +238,15 @@ namespace ExcelDna.Loader
 	}
 
 	// Boolean returns are returned as an XLOPER 
-	// - can't make it short due to marshaling limitations,
-	// so we force a boxing
-	public unsafe class XlBooleanReturnMarshaler : ICustomMarshaler
+	// input parameters as double* (only 0 is false)
+	public unsafe class XlBooleanMarshaler : ICustomMarshaler
 	{
 		static ICustomMarshaler instance;
 		IntPtr pNative; // this is really an XlOper, and is is allocated once, 
 						// when the marshaller is constructed, 
 						// and is never reclaimed
 
-		public XlBooleanReturnMarshaler()
+		public XlBooleanMarshaler()
 		{
 			int size = Marshal.SizeOf(typeof(XlOper));
 			pNative = Marshal.AllocCoTaskMem(size);
@@ -256,7 +255,7 @@ namespace ExcelDna.Loader
 		public static ICustomMarshaler GetInstance(string marshalCookie)
 		{
 			if (instance == null)
-				instance = new XlBooleanReturnMarshaler();
+                instance = new XlBooleanMarshaler();
 			return instance;
 
 		}
@@ -269,10 +268,32 @@ namespace ExcelDna.Loader
 			return pNative;
 		}
 
-		public object MarshalNativeToManaged(IntPtr pNativeData)
-		{
-			throw new NotImplementedException("This marshaler only used for managed to native return type marshaling.");
-		}
+        public object MarshalNativeToManaged(IntPtr pNativeData)
+        {
+            try
+            {
+                // We want to get the same semantics as conversion to bool, to emulate VBA
+                // This needs to be different to double, since we want to accept strings that say "TRUE" etc.
+                ICustomMarshaler objectMarshaler = XlObjectMarshaler.GetInstance(null);
+                object value = objectMarshaler.MarshalNativeToManaged(pNativeData);
+                object result;
+                int retVal = XlCallImpl.TryExcelImpl(XlCallImpl.xlCoerce, out result, value, (int)XlType.XlTypeBoolean);
+                if (retVal == 0)
+                    return (bool)result;
+
+                // failed - as a fallback, try to convert to a double
+                retVal = XlCallImpl.TryExcelImpl(XlCallImpl.xlCoerce, out result, value, (int)XlType.XlTypeNumber);
+                if (retVal == 0)
+                    return ((double)result != 0.0);
+
+                // We give up. This will throw a NullReferenceException in the unboxing, processed in the wrapper as #VALUE
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
 
 		public void CleanUpManagedData(object ManagedObj) { }
 		public void CleanUpNativeData(IntPtr pNativeData) { } // Can't do anything useful here, as the managed to native marshaling is for a return parameter.
@@ -1406,7 +1427,7 @@ namespace ExcelDna.Loader
 	}
 
     // We would prefer to get a double, but need to take 
-    // XlOper to ensure marshaling
+    // double* to ensure marshaling
     public unsafe class XlDecimalParameterMarshaler : ICustomMarshaler
     {
         static ICustomMarshaler instance;
@@ -1449,20 +1470,145 @@ namespace ExcelDna.Loader
         public int GetNativeDataSize() { return -1; }
     }
 
-    // We would prefer to get a double, but need to take 
-    // XlOper to ensure marshaling
-    public unsafe class XlLongParameterMarshaler : ICustomMarshaler
+
+    public unsafe class XlUInt16ParameterMarshaler : ICustomMarshaler
     {
         static ICustomMarshaler instance;
 
-        public XlLongParameterMarshaler()
+        public XlUInt16ParameterMarshaler()
         {
         }
 
         public static ICustomMarshaler GetInstance(string marshalCookie)
         {
             if (instance == null)
-                instance = new XlLongParameterMarshaler();
+                instance = new XlUInt16ParameterMarshaler();
+            return instance;
+        }
+
+        public IntPtr MarshalManagedToNative(object ManagedObj)
+        {
+            // Not working in this direction at the moment
+            throw new NotImplementedException("This marshaler only used for native to managed parameter marshaling.");
+        }
+
+        public object MarshalNativeToManaged(IntPtr pNativeData)
+        {
+            // NOTE: We are running not in an exception handler here...
+            try
+            {
+                return checked((ushort)(Math.Round(*(double*)pNativeData, MidpointRounding.ToEven)));
+            }
+            catch
+            {
+                // This case is where the range of the long is exceeded.
+                // By returning null, the unboxing code will fail,
+                // causing a runtime exception that is caught and returned as a #Value error.
+                return null;
+            }
+        }
+
+        public void CleanUpManagedData(object ManagedObj) { }
+        public void CleanUpNativeData(IntPtr pNativeData) { } // Can't do anything useful here, as the managed to native marshaling is for a return parameter.
+        public int GetNativeDataSize() { return -1; }
+    }
+
+    public unsafe class XlInt16ParameterMarshaler : ICustomMarshaler
+    {
+        static ICustomMarshaler instance;
+
+        public XlInt16ParameterMarshaler()
+        {
+        }
+
+        public static ICustomMarshaler GetInstance(string marshalCookie)
+        {
+            if (instance == null)
+                instance = new XlInt16ParameterMarshaler();
+            return instance;
+        }
+
+        public IntPtr MarshalManagedToNative(object ManagedObj)
+        {
+            // Not working in this direction at the moment
+            throw new NotImplementedException("This marshaler only used for native to managed parameter marshaling.");
+        }
+
+        public object MarshalNativeToManaged(IntPtr pNativeData)
+        {
+            try
+            {
+                return checked((short)(Math.Round(*(double*)pNativeData, MidpointRounding.ToEven)));
+            }
+            catch
+            {
+                // This case is where the range of the long is exceeded.
+                // By returning null, the unboxing code will fail,
+                // causing a runtime exception that is caught and returned as a #Value error.
+                return null;
+            }
+        }
+
+        public void CleanUpManagedData(object ManagedObj) { }
+        public void CleanUpNativeData(IntPtr pNativeData) { } // Can't do anything useful here, as the managed to native marshaling is for a return parameter.
+        public int GetNativeDataSize() { return -1; }
+    }
+
+    public unsafe class XlInt32ParameterMarshaler : ICustomMarshaler
+    {
+        static ICustomMarshaler instance;
+
+        public XlInt32ParameterMarshaler()
+        {
+        }
+
+        public static ICustomMarshaler GetInstance(string marshalCookie)
+        {
+            if (instance == null)
+                instance = new XlInt32ParameterMarshaler();
+            return instance;
+        }
+
+        public IntPtr MarshalManagedToNative(object ManagedObj)
+        {
+            // Not working in this direction at the moment
+            throw new NotImplementedException("This marshaler only used for native to managed parameter marshaling.");
+        }
+
+        public object MarshalNativeToManaged(IntPtr pNativeData)
+        {
+            try
+            {
+                return checked((int)(Math.Round(*(double*)pNativeData, MidpointRounding.ToEven)));
+            }
+            catch
+            {
+                // This case is where the range of the long is exceeded.
+                // By returning null, the unboxing code will fail,
+                // causing a runtime exception that is caught and returned as a #Value error.
+                return null;
+            }
+        }
+
+        public void CleanUpManagedData(object ManagedObj) { }
+        public void CleanUpNativeData(IntPtr pNativeData) { } // Can't do anything useful here, as the managed to native marshaling is for a return parameter.
+        public int GetNativeDataSize() { return -1; }
+    }
+
+    // We would prefer to get a double, but need to take 
+    // double* to ensure marshaling
+    public unsafe class XlInt64ParameterMarshaler : ICustomMarshaler
+    {
+        static ICustomMarshaler instance;
+
+        public XlInt64ParameterMarshaler()
+        {
+        }
+
+        public static ICustomMarshaler GetInstance(string marshalCookie)
+        {
+            if (instance == null)
+                instance = new XlInt64ParameterMarshaler();
             return instance;
         }
 
@@ -1477,7 +1623,7 @@ namespace ExcelDna.Loader
         {
             try
             {
-                return (long)*((double*)pNativeData);
+                return checked((long)(Math.Round(*(double*)pNativeData, MidpointRounding.ToEven)));
             }
             catch
             {

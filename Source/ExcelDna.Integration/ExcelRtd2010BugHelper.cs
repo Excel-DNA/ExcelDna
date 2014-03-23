@@ -58,11 +58,11 @@ namespace ExcelDna.Integration
                 ExcelVersionHasRtdBug = true;
                 return;
             }
-//#if DEBUG
-//            ExcelVersionHasRtdBug = true;   // To test a bit...
-//#else
+#if DEBUG
+            ExcelVersionHasRtdBug = true;   // To test a bit...
+#else
             ExcelVersionHasRtdBug = false;
-//#endif
+#endif
         }
 
         static Dictionary<string, ExcelRtd2010BugHelper> _wrappers;
@@ -77,6 +77,12 @@ namespace ExcelDna.Integration
 
             _wrappedServerRegisteredProgId = wrappedServerRegisteredProgId;
             _wrappedServerType = wrappedServerType;
+        }
+
+        #region ExcelRtdServer overrides
+        public int ServerStart(IRTDUpdateEvent CallbackObject)
+        {
+            Debug.Print("### ServerStart " + _wrappedServerRegisteredProgId);
 
             if (_wrappers == null)
             {
@@ -84,11 +90,7 @@ namespace ExcelDna.Integration
             }
             Debug.Assert(!_wrappers.ContainsKey(_wrappedServerRegisteredProgId));
             _wrappers[_wrappedServerRegisteredProgId] = this;
-        }
 
-        #region ExcelRtdServer overrides
-        public int ServerStart(IRTDUpdateEvent CallbackObject)
-        {
             // ServerStart should never be called when ServerTerminate has not been called.
             // So we should never have a wrapped server at this point.
             Debug.Assert(_wrappedServer == null);
@@ -100,6 +102,8 @@ namespace ExcelDna.Integration
 
         public void ServerTerminate()
         {
+            Debug.Print("### ServerTerminate " + _wrappedServerRegisteredProgId);
+
             // We might already have terminated the wrapped server ....
             if (_wrappedServer != null)
             {

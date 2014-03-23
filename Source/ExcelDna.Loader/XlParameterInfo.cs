@@ -112,6 +112,9 @@ namespace ExcelDna.Loader
 
         public void SetTypeInfo(Type type, bool isReturnType, bool isExceptionSafe)
         {
+#if DEBUG
+                SetTypeInfo4(type, isReturnType, isExceptionSafe);
+#else
             if (XlAddIn.XlCallVersion < 12)
             {
                 SetTypeInfo4(type, isReturnType, isExceptionSafe);
@@ -120,6 +123,7 @@ namespace ExcelDna.Loader
             {
                 SetTypeInfo12(type, isReturnType, isExceptionSafe);
             }
+#endif
         }
 
         private void SetTypeInfo4(Type type, bool isReturnType, bool isExceptionSafe)
@@ -291,14 +295,18 @@ namespace ExcelDna.Loader
 					else
 					{
 						XlType = "P"; // OPER
-						MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlBooleanReturnMarshaler));
+						MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlBooleanMarshaler));
 						DelegateParamType = typeof(object);
 						BoxedValueType = typeof(bool);
 					}
 				}
 				else
 				{
-					XlType = "J"; // int32
+					// XlType = "J"; // int32
+                    XlType = "P"; // OPER
+                    MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlBooleanMarshaler));
+                    DelegateParamType = typeof(object);
+                    BoxedValueType = typeof(bool);
 				}
 			}
 			else if (type == typeof(int))
@@ -312,7 +320,11 @@ namespace ExcelDna.Loader
 				}
 				else
 				{
-					XlType = "J";
+					// XlType = "J";
+                    XlType = "E"; // double*
+                    MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlInt32ParameterMarshaler));
+                    DelegateParamType = typeof(object);
+                    BoxedValueType = typeof(int);
 				}
 			}
 			else if (type == typeof(short))
@@ -326,7 +338,11 @@ namespace ExcelDna.Loader
 				}
 				else
 				{
-					XlType = "I";
+					// XlType = "I";
+                    XlType = "E"; // double*
+                    MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlInt16ParameterMarshaler));
+                    DelegateParamType = typeof(object);
+                    BoxedValueType = typeof(short);
 				}
 			}
 			else if (type == typeof(ushort))
@@ -340,7 +356,11 @@ namespace ExcelDna.Loader
 				}
 				else
 				{
-					XlType = "H";
+					// XlType = "H";
+                    XlType = "E"; // double*
+                    MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlUInt16ParameterMarshaler));
+                    DelegateParamType = typeof(object);
+                    BoxedValueType = typeof(ushort);
 				}
 			}
             else if (type == typeof(decimal))
@@ -373,7 +393,7 @@ namespace ExcelDna.Loader
                 else
                 {
                     XlType = "E"; // double*
-                    MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlLongParameterMarshaler));
+                    MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlInt64ParameterMarshaler));
                     DelegateParamType = typeof(object);
                     BoxedValueType = typeof(long);
                 }
@@ -554,14 +574,18 @@ namespace ExcelDna.Loader
                     else
                     {
                         XlType = "Q"; // OPER
-                        MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlBoolean12ReturnMarshaler));
+                        MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlBoolean12Marshaler));
                         DelegateParamType = typeof(object);
                         BoxedValueType = typeof(bool);
                     }
                 }
                 else
                 {
-                    XlType = "J"; // int32
+					// XlType = "J"; // int32
+                    XlType = "Q"; // OPER
+                    MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlBoolean12Marshaler));
+                    DelegateParamType = typeof(object);
+                    BoxedValueType = typeof(bool);
                 }
             }
             else if (type == typeof(int))
@@ -575,7 +599,11 @@ namespace ExcelDna.Loader
                 }
                 else
                 {
-                    XlType = "J";
+                    // XlType = "J";
+                    XlType = "E"; // double*
+                    MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlInt32Parameter12Marshaler));
+                    DelegateParamType = typeof(object);
+                    BoxedValueType = typeof(int);
                 }
             }
             else if (type == typeof(short))
@@ -589,7 +617,11 @@ namespace ExcelDna.Loader
                 }
                 else
                 {
-                    XlType = "I";
+                    // XlType = "I";
+                    XlType = "E"; // double*
+                    MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlInt16Parameter12Marshaler));
+                    DelegateParamType = typeof(object);
+                    BoxedValueType = typeof(short);
                 }
             }
             else if (type == typeof(ushort))
@@ -603,7 +635,11 @@ namespace ExcelDna.Loader
                 }
                 else
                 {
-                    XlType = "H";
+                    // XlType = "H";
+                    XlType = "E"; // double*
+                    MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlUInt16Parameter12Marshaler));
+                    DelegateParamType = typeof(object);
+                    BoxedValueType = typeof(ushort);
                 }
             }
             else if (type == typeof(decimal))
@@ -635,7 +671,7 @@ namespace ExcelDna.Loader
                 else
                 {
                     XlType = "E"; // double*
-                    MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlLongParameter12Marshaler));
+                    MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlInt64Parameter12Marshaler));
                     DelegateParamType = typeof(object);
                     BoxedValueType = typeof(long);
                 }

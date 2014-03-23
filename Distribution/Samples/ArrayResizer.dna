@@ -57,7 +57,7 @@ namespace AsyncFunctions
         }
 
         // Makes an array, but automatically resizes the result
-        public static object MakeArrayAndResize(int rows, int columns)
+        public static object MakeArrayAndResize(int rows, int columns, string unused, string unusedtoo)
         {
             object[,] result = MakeArray(rows, columns);            
             return ArrayResizer.Resize(result);
@@ -80,13 +80,15 @@ namespace AsyncFunctions
         // Needs extra protection to allow multithreaded use.
         public static object Resize(object[,] array)
         {
-            ExcelReference caller = Excel(xlfCaller) as ExcelReference;
-            if (caller == null) return array;
+            var caller = Excel(xlfCaller) as ExcelReference;
+            if (caller == null) 
+                return array;
 
             int rows = array.GetLength(0);
             int columns = array.GetLength(1);
             
-            if (rows == 0 || columns == 0) return array;
+            if (rows == 0 || columns == 0) 
+                return array;
 
             if ((caller.RowLast - caller.RowFirst + 1 == rows) &&
                 (caller.ColumnLast - caller.ColumnFirst + 1 == columns))
@@ -120,13 +122,15 @@ namespace AsyncFunctions
 
         public static double[,] ResizeDoubles(double[,] array)
         {
-            ExcelReference caller = Excel(xlfCaller) as ExcelReference;
-            if (caller == null) return array;
+            var caller = Excel(xlfCaller) as ExcelReference;
+            if (caller == null) 
+                return array;
 
             int rows = array.GetLength(0);
             int columns = array.GetLength(1);
 
-            if (rows == 0 || columns == 0) return array;
+            if (rows == 0 || columns == 0) 
+                return array;
             
             if ((caller.RowLast - caller.RowFirst + 1 == rows) &&
                 (caller.ColumnLast - caller.ColumnFirst + 1 == columns))
