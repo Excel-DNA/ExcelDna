@@ -15,17 +15,19 @@ namespace AsyncFunctions
             return Resize(array, caller);
         }
 
-        internal static object ResizeObservable(object[,] array, ExcelReference caller)
-        {
-            object callerAfter = XlCall.Excel(XlCall.xlfCaller);
-            if (callerAfter == null)
-            {
-                // This is the good RTD array call
-                return Resize(array, caller);
-            }
-            // Some spurious RTD call - just return.
-            return array;
-        }
+        // THIS MAKES NO SENSE...?
+
+        //internal static object ResizeObservable(object[,] array, ExcelReference caller)
+        //{
+        //    object callerAfter = XlCall.Excel(XlCall.xlfCaller);
+        //    if (callerAfter == null)
+        //    {
+        //        // This is the good RTD array call
+        //        return Resize(array, caller);
+        //    }
+        //    // Some spurious RTD call - just return.
+        //    return array;
+        //}
 
         public static object Resize(object[,] array, ExcelReference caller)
         {

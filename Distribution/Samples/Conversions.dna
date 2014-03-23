@@ -1,0 +1,229 @@
+<DnaLibrary Name="Conversion Tests" RuntimeVersion="v4.0" Language="C#">
+<![CDATA[
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using ExcelDna.Integration;
+
+namespace dnatest
+{
+    public static class MyFunctions
+    {
+        [ExcelFunction]
+        public static string dnaDescribe(object arg)
+        {
+            // This is the full gamut we need to support
+            if (arg is double)
+                return "Double: " + (double)arg;
+            else if (arg is string)
+                return "String: " + (string)arg;
+            else if (arg is bool)
+                return "Boolean: " + (bool)arg;
+            else if (arg is ExcelError)
+                return "ExcelError: " + arg.ToString();
+            else if (arg is object[,])
+                // The object array returned here may contain a mixture of different types,
+                // reflecting the different cell contents.
+                return string.Format("Array[{0},{1}]", ((object[,])arg).GetLength(0), ((object[,])arg).GetLength(1));
+            else if (arg is ExcelMissing)
+                return "<<Missing>>"; // Would have been System.Reflection.Missing in previous versions of ExcelDna
+            else if (arg is ExcelEmpty)
+                return "<<Empty>>"; // Would have been null
+            else
+                return "!? Unheard Of ?!";
+        }
+
+        [ExcelFunction]
+        public static object dnaDirectObject(object arg)
+        {
+            return arg;
+        }
+
+        [ExcelFunction]
+        public static string dnaDirectString(string arg)
+        {
+            return arg;
+        }
+
+        [ExcelFunction]
+        public static double dnaDirectDouble(double arg)
+        {
+            return arg;
+        }
+
+        [ExcelFunction]
+        public static int dnaDirectInt32(int arg)
+        {
+            return arg;
+        }
+
+        [ExcelFunction]
+        public static long dnaDirectInt64(long arg)
+        {
+            return arg;
+        }
+
+        [ExcelFunction]
+        public static DateTime dnaDirectDateTime(DateTime arg)
+        {
+            return arg;
+        }
+
+        [ExcelFunction]
+        public static bool dnaDirectBoolean(bool arg)
+        {
+            return arg;
+        }
+        
+        [ExcelFunction]
+        public static double dnaDirectInt16(short arg)
+        {
+            return arg;
+        }
+        
+        [ExcelFunction]
+        public static double dnaDirectUInt16(ushort arg)
+        {
+            return arg;
+        }
+
+        [ExcelFunction]
+        public static decimal dnaDirectDecimal(decimal arg)
+        {
+            return arg;
+        }
+        
+        [ExcelFunction]
+        public static double dnaDirectDouble1D(double[] arg)
+        {
+            return arg[0];
+        }
+        
+        [ExcelFunction]
+        public static double dnaDirectDouble2D(double[,] arg)
+        {
+            return arg[0, 0];
+        }
+        
+        [ExcelFunction]
+        public static object dnaDirectObject1D(object[] arg)
+        {
+            return arg[0];
+        }
+        
+        [ExcelFunction]
+        public static object dnaDirectObject2D(object[,] arg)
+        {
+            return arg[0, 0];
+        }
+        
+        // Standard Conversion Functions
+        [Flags]
+        internal enum XlType : int
+        {
+            XlTypeNumber = 0x0001,
+            XlTypeString = 0x0002,
+            XlTypeBoolean = 0x0004,
+            XlTypeReference = 0x0008,
+            XlTypeError = 0x0010,
+            XlTypeArray = 0x0040,
+            XlTypeMissing = 0x0080,
+            XlTypeEmpty = 0x0100,
+            XlTypeInt = 0x0800,     // int16 in XlOper, int32 in XlOper12, never passed into UDF
+        }
+        
+        [ExcelFunction]
+        public static double dnaConvertToDouble(object value)
+        {
+            object result;
+            var retVal = XlCall.TryExcel(XlCall.xlCoerce, out result, value, (int)XlType.XlTypeNumber);
+            if (retVal == XlCall.XlReturn.XlReturnSuccess)
+            {
+                return (double)result;
+            }
+
+            // We give up.
+            throw new InvalidCastException("Value " + value.ToString() + " could not be converted to Int32.");
+        }
+
+        [ExcelFunction]
+        public static string dnaConvertToString(object value)
+        {
+            object result;
+            var retVal = XlCall.TryExcel(XlCall.xlCoerce, out result, value, (int)XlType.XlTypeString);
+            if (retVal == XlCall.XlReturn.XlReturnSuccess)
+            {
+                return (string)result;
+            }
+
+            // Not sure how this can happen...
+            throw new InvalidCastException("Value " + value.ToString() + " could not be converted to String.");
+        }
+
+        [ExcelFunction]
+        public static DateTime dnaConvertToDateTime(object value)
+        {
+            try
+            {
+                return DateTime.FromOADate(dnaConvertToDouble(value));
+            }
+            catch
+            {
+                // Might exceed range of DateTime
+                throw new InvalidCastException("Value " + value.ToString() + " could not be converted to DateTime.");
+            }
+        }
+
+        [ExcelFunction]
+        public static bool dnaConvertToBoolean(object value)
+        {
+            object result;
+            var retVal = XlCall.TryExcel(XlCall.xlCoerce, out result, value, (int)XlType.XlTypeBoolean);
+            if (retVal == XlCall.XlReturn.XlReturnSuccess)
+                return (bool)result;
+
+            // failed - as a fallback, try to convert to a double
+            retVal = XlCall.TryExcel(XlCall.xlCoerce, out result, value, (int)XlType.XlTypeNumber);
+            if (retVal == XlCall.XlReturn.XlReturnSuccess)
+                return ((double)result != 0.0);
+
+            // We give up.
+            throw new InvalidCastException("Value " + value.ToString() + " could not be converted to Boolean.");
+        }
+
+        [ExcelFunction]
+        public static int dnaConvertToInt32(object value)
+        {
+            return checked((int)dnaConvertToInt64(value));
+        }
+
+        [ExcelFunction]
+        public static short dnaConvertToInt16(object value)
+        {
+            return checked((short)dnaConvertToInt64(value));
+        }
+
+        [ExcelFunction]
+        public static ushort dnaConvertToUInt16(object value)
+        {
+            return checked((ushort)dnaConvertToInt64(value));
+        }
+
+        [ExcelFunction]
+        public static decimal dnaConvertToDecimal(object value)
+        {
+            return checked((decimal)dnaConvertToDouble(value));
+        }
+
+        [ExcelFunction]
+        public static long dnaConvertToInt64(object value)
+        {
+            return checked((long)Math.Round(dnaConvertToDouble(value), MidpointRounding.ToEven));
+        }
+  }
+}
+]]>
+</DnaLibrary>

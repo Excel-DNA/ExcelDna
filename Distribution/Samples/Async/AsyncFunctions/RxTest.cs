@@ -113,22 +113,30 @@ namespace AsyncFunctions
                     i => TimeSpan.FromSeconds(5)));
         }
 
+
+        // Discussion about arrays and RTD: https://groups.google.com/forum/#!searchin/exceldna/async$20array$20marshaling/exceldna/L2zC5YZiix4/yoNblGOaFt4J
+        // CONSIDER: we can resize if we exclude single-cell callers....
+
         public static object rxCreateArrays()
         {
             ExcelReference caller = Excel(xlfCaller) as ExcelReference;
+            Debug.Print(caller.ToString());
 
             object result = RxExcel.Observe("rxCreateArrays", null,
             () => Observable.Generate(
-                    new List<object> {1,2,3},
+                    new List<object> { 1, 2, 3 },
                     lst => true,
-                    lst => { lst.Add((int)lst[lst.Count-1] + 1); return lst;},
+                    lst => { lst.Add((int)lst[lst.Count - 1] + 1); return lst; },
                     lst => Transpose(lst.ToArray()),
-                    lst => TimeSpan.FromSeconds(1)));
+                    lst => TimeSpan.FromSeconds(3))
+                );
             if (result.Equals(ExcelError.ExcelErrorNA))
             {
-                result = new object[,] {{result}};
+                result = new object[,] { { result } };
             }
-            return ArrayResizer.Resize((object[,])result, caller);
+            // I don't know how to resize this yet...
+            // return ArrayResizer.ResizeObservable((object[,])result, caller);
+            return result;
         }
 
         static object[,] Transpose(object[] array)

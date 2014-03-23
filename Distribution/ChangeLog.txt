@@ -34,6 +34,8 @@ Version 0.32 (???)
 * Add Synchronized attribute to AssemblyResolve event.
 * Fix handling of UnauthorizedAccessException in DllRegisterServer.
 * Fix ExcelCommand to always register as a macro
+* Fix ExcelRtd2010BugHelper to delay tracking server objects until ServerStart().
+* BREAKING CHANGE: Modify rounding conversions for the integral parameter types to match VBA convention. Affects UInt16, Int16, Int32, Int64 and Boolean.
 
 Version 0.30 (12 December 2012)
 -------------------------------
