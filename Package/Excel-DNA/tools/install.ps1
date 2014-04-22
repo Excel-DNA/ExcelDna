@@ -1,8 +1,6 @@
 param($installPath, $toolsPath, $package, $project)
 Write-Host "Starting Excel-DNA install script"
 
-Write-Host "`tSet reference to ExcelDna.Integration to be CopyLocal=false"
-$project.Object.References | Where-Object { $_.Name -eq 'ExcelDna.Integration' } | ForEach-Object { $_.CopyLocal = $false }
 $projName = $project.Name
 $isFSharp = ($project.Type -eq "F#")
 # Look for and rename old .dna file
