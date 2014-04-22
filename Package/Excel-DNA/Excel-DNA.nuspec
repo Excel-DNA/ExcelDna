@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>Excel-DNA</id>
-        <version>0.32.0-rc2-3</version>
+        <version>0.32.0-rc4</version>
         <title>Excel-DNA</title>
         <authors>Govert van Drimmelen</authors>
         <owners>Govert van Drimmelen</owners>
@@ -20,9 +20,11 @@
     The Excel-Dna Runtime is free for all use, and distributed under a permissive open-source license that also allows commercial use.</description>
         <summary>Excel-DNA is an independent project to integrate .NET into Excel.</summary>
         <tags>excel exceldna udf excel-dna</tags>
+            <dependencies>
+      <dependency id="Excel-DNA.Lib" version="[0.32.0-rc4]" />
+    </dependencies>
     </metadata>
     <files>
-        <file src="C:\Work\ExcelDna\Current\Distribution\ExcelDna.Integration.dll" target="lib\ExcelDna.Integration.dll" />
         <file src="C:\Work\ExcelDna\Current\Distribution\ExcelDna.Integration.dll" target="tools\ExcelDna.Integration.dll" />
         <file src="C:\Work\ExcelDna\Current\Distribution\ExcelDna.xll" target="tools\ExcelDna.xll" />
         <file src="C:\Work\ExcelDna\Current\Distribution\ExcelDna64.xll" target="tools\ExcelDna64.xll" />

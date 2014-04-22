@@ -249,7 +249,7 @@ namespace ExcelDna.Integration.Rtd
                 Topic topic;
                 using (XlCall.Suspend())
                 {
-                    // We create the topic, but what if it's value is set here...?
+                    // We create the topic, but what if its value is set here...?
                     topic = CreateTopic(topicId, topicInfo);
                 }
                 if (topic == null)

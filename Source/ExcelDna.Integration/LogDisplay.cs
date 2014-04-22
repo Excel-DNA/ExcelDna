@@ -146,7 +146,7 @@ namespace ExcelDna.Logging
         private void btnCopy_Click(object sender, EventArgs e)
         {
             string allText = LogDisplay.GetAllText();
-            if (allText != null)
+            if (!string.IsNullOrEmpty(allText))
             {
                 Clipboard.SetText(allText);
             }
