@@ -222,7 +222,8 @@ namespace ExcelDna.Integration
             }
             catch (Exception e)
             {
-                Logging.LogDisplay.WriteLine("Error while loading assemblies. Exception: " + e.Message);
+                Logging.LogDisplay.WriteLine("There was an error in loading the add-in " + DnaLibrary.CurrentLibraryName + " (" + DnaLibrary.XllPath + "):"); 
+                Logging.LogDisplay.WriteLine("Error in loading assemblies. Exception: " + e.ToString());
             }
             return assemblies;
         }
@@ -467,7 +468,7 @@ namespace ExcelDna.Integration
             }
             catch (Exception e)
             {
-                string errorMessage = string.Format("There was an error while loading the .dna file from a Uri:\r\n{0}\r\n{1}\r\nUri:{2}", e.Message, e.InnerException != null ? e.InnerException.Message : string.Empty, uri.ToString());
+                string errorMessage = string.Format("There was an error in loading the .dna file from a Uri:\r\n{0}\r\n{1}\r\nUri:{2}", e.Message, e.InnerException != null ? e.InnerException.Message : string.Empty, uri.ToString());
                 Debug.WriteLine(errorMessage);
                 ExcelDna.Logging.LogDisplay.WriteLine(errorMessage);
                 return null;
@@ -492,7 +493,7 @@ namespace ExcelDna.Integration
             }
             catch (Exception e)
             {
-                string errorMessage = string.Format("There was an error while processing DnaFile bytes:\r\n{0}\r\n{1}", e.Message, e.InnerException != null ? e.InnerException.Message : string.Empty);
+                string errorMessage = string.Format("There was an error in processing .dna file bytes:\r\n{0}\r\n{1}", e.Message, e.InnerException != null ? e.InnerException.Message : string.Empty);
                 Debug.WriteLine(errorMessage);
                 //ExcelDna.Logging.LogDisplay.SetText(errorMessage);
                 return null;

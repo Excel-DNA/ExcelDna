@@ -26,7 +26,8 @@
 
         Dim myOtherButton As CommandBarButton = parent.Controls.AddButton()
         myOtherButton.Caption = "Dont Press Me"
-        myOtherButton.Style = MsoButtonStyle.msoButtonCaption
+        myOtherButton.Style = MsoButtonStyle.msoButtonIconAndCaption
+        myOtherButton.FaceId = 1122
         myOtherButton.OnAction = "MySecondClickHandler"
         
         myMenuToDelete = parent
