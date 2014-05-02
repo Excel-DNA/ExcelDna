@@ -25,6 +25,7 @@
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -280,6 +281,7 @@ namespace ExcelDna.Integration
 				return list;
 
 			CompilerParameters cp = new CompilerParameters();
+            bool isFsharp = false;
 
 			// TODO: Debug build ?
 			// cp.IncludeDebugInformation = true;
@@ -321,6 +323,7 @@ namespace ExcelDna.Integration
             }
             else if (provider.GetType().FullName == "Microsoft.FSharp.Compiler.CodeDom.FSharpCodeProvider")
             {
+                isFsharp = true;
                 cp.CompilerOptions = " --nologo -I " + ProcessedExecutingDirectory; // In F# 2.0, the --nologo is redundant - I leave it because it does no harm.
 
                 // FSharp 2.0 compiler will target .NET 4 unless we do something to ensure .NET 2.0.
@@ -338,8 +341,41 @@ namespace ExcelDna.Integration
 			cp.ReferencedAssemblies.AddRange(refPaths.ToArray());
 
             List<string> sources = GetSources(pathResolveRoot);
+
+            CompilerResults cr;
+            try
+            {
+                cr = provider.CompileAssemblyFromSource(cp, sources.ToArray());
+            }
+            catch (Win32Exception wex)
+            {
+                if (isFsharp)
+                {
+                    Logging.LogDisplay.WriteLine("There was an error in loading the add-in " + DnaLibrary.CurrentLibraryName + " (" + DnaLibrary.XllPath + "):");
+                    string fsBinPath = Environment.GetEnvironmentVariable("FSHARP_BIN");
+                    string msg;
+                    if (fsBinPath == null)
+                    {
+                        msg = "    Calling the F# compiler failed (\"" + wex.Message + "\").\r\n" + 
+                              "    Please check that the F# compiler is correctly installed.\r\n" + 
+                              "    This error can sometimes be fixed by creating an FSHARP_BIN environment variable.\r\n" +
+                              "    Create an environment variable FSHARP_BIN with the full path to the directory containing \r\n" +
+                              "    the F# compiler fsc.exe - for example \r\n" +
+                              "        \"" + @"C:\Program Files (x86)\Microsoft SDKs\F#\3.0\Framework\v4.0\""";
+                    }
+                    else
+                    {
+                        msg = "    Calling the F# compiler failed (\"" + wex.Message + "\").\r\n" +
+                              "    Please check that the F# compiler is correctly installed, and that the FSHARP_BIN environment variable is correct\r\n" +
+                              "    (it currently points to " + fsBinPath + ").";
+
+                    }
+                    Logging.LogDisplay.WriteLine(msg);
+                    return list;
+                }
+                throw;
+            }
             
-			CompilerResults cr = provider.CompileAssemblyFromSource(cp, sources.ToArray());
 
 			foreach (string path in tempAssemblyPaths)
 			{
@@ -350,10 +386,11 @@ namespace ExcelDna.Integration
 
 			if (cr.Errors.HasErrors)
 			{
-                ExcelDna.Logging.LogDisplay.WriteLine("There were errors when compiling project: " + Name);
+                Logging.LogDisplay.WriteLine("There was an error in loading the add-in " + DnaLibrary.CurrentLibraryName + " (" + DnaLibrary.XllPath + "):");
+                Logging.LogDisplay.WriteLine("There were errors when compiling project: " + Name);
 				foreach (CompilerError err in cr.Errors)
 				{
-                    ExcelDna.Logging.LogDisplay.WriteLine(err.ToString());
+                    Logging.LogDisplay.WriteLine(err.ToString());
 				}
 				return list;
 			}
@@ -431,16 +468,18 @@ namespace ExcelDna.Integration
                     }
                     else
                     {
-                        Logging.LogDisplay.WriteLine("The F# code provider could not be loaded.");
-                        Logging.LogDisplay.WriteLine("Please ensure that both the F# Compiler and the F# PowerPack are installed.");
-                        Logging.LogDisplay.WriteLine("    The F# Compiler (August 2010 CTP) can be found at: http://go.microsoft.com/fwlink/?LinkId=151924.");
-                        Logging.LogDisplay.WriteLine("    The F# PowerPack can be found at: http://fsharppowerpack.codeplex.com/.");
+                        Logging.LogDisplay.WriteLine("There was an error in loading the add-in " + DnaLibrary.CurrentLibraryName + " (" + DnaLibrary.XllPath + "):"); 
+                        Logging.LogDisplay.WriteLine("    The F# CodeDom provider (FSharp.Compiler.CodeDom.dll) could not be loaded.");
+                        Logging.LogDisplay.WriteLine("        Please ensure that the F# Compiler is installed and that the");
+                        Logging.LogDisplay.WriteLine("        FSharp.Compiler.CodeDom.dll assembly (part of the F# PowerPack) can be loaded by the add-in.");
+                        Logging.LogDisplay.WriteLine("        (Placing a copy of FSharp.Compiler.CodeDom.dll in the same directory as the .xll file should work.)");
                         return null;
                     }
                 }
                 catch (Exception ex)
                 {
-                    Logging.LogDisplay.WriteLine("Error while loading F# code provider.");
+                    Logging.LogDisplay.WriteLine("There was an error in loading the add-in " + DnaLibrary.CurrentLibraryName + " (" + DnaLibrary.XllPath + "):"); 
+                    Logging.LogDisplay.WriteLine("Error in loading the F# CodeDom provider.");
                     Logging.LogDisplay.WriteLine(" Exception: " + ex.Message);
                     return null;
                 }

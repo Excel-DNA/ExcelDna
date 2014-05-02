@@ -189,18 +189,26 @@ namespace AsyncFunctions
                 string formulaR1C1 = formula;
                 if (!isR1C1Mode)
                 {
-                    // Set the formula into the whole target
-                    formulaR1C1 = (string)Excel(xlfFormulaConvert, formula, true, false, ExcelMissing.Value, firstCell);
+                    object formulaR1C1Obj;
+                    XlReturn formulaR1C1Return = TryExcel(xlfFormulaConvert, out formulaR1C1Obj, formula, true, false, ExcelMissing.Value, firstCell);
+                    if (formulaR1C1Return != XlReturn.XlReturnSuccess || formulaR1C1Obj is ExcelError)
+                    {
+                        string firstCellAddress = (string)Excel(xlfReftext, firstCell, true);
+                        Excel(xlcAlert, "Cannot resize array formula at " + firstCellAddress + " - formula might be too long when converted to R1C1 format.");
+                        firstCell.SetValue("'" + formula);
+                        return;
+                    }
+                    formulaR1C1 = (string)formulaR1C1Obj;
                 }
                 // Must be R1C1-style references
                 object ignoredResult;
                 //Debug.Print("Resizing START: " + target.RowLast);
-                XlReturn retval = TryExcel(xlcFormulaArray, out ignoredResult, formulaR1C1, target);
+                XlReturn formulaArrayReturn = TryExcel(xlcFormulaArray, out ignoredResult, formulaR1C1, target);
                 //Debug.Print("Resizing FINISH");
 
                 // TODO: Find some dummy macro to clear the undo stack
-                
-                if (retval != XlReturn.XlReturnSuccess)
+
+                if (formulaArrayReturn != XlReturn.XlReturnSuccess)
                 {
                     string firstCellAddress = (string)Excel(xlfReftext, firstCell, true);
                     Excel(xlcAlert, "Cannot resize array formula at " + firstCellAddress + " - result might overlap another array.");
@@ -210,7 +218,7 @@ namespace AsyncFunctions
             }
         }
     }
-    
+   
     // RIIA-style helpers to deal with Excel selections    
     // Don't use if you agree with Eric Lippert here: http://stackoverflow.com/a/1757344/44264
     public class ExcelEchoOffHelper : XlCall, IDisposable

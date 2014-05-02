@@ -180,7 +180,7 @@ BEGIN
                             "This Excel add-in requires an '<addin>.dna' configuration file which matches the '<addin>.xll' file (or an embedded resource with the '.dna' file contents).\r\n\r\nA problem occurred while reading the '.dna' file:"
     IDS_MSG_BODY_DNAOPENFAILED "\tThe file could not be opened."
     IDS_MSG_BODY_DNAPARSEFAILED 
-                            "\tThe xml content of the file was not valid. Error while parsing <DnaLibrary ...> tag."
+                            "\tThe xml content of the file was not valid. Error in parsing <DnaLibrary ...> tag."
     IDS_MSG_BODY_DNAREADFAILED "\tThe file could not be read."
     IDS_MSG_HEADER_64NET4   "To load under the 64-bit version of Excel, this add-in must specify that version 4 of the Microsoft .NET Framework should be used."
     IDS_MSG_BODY_64NET4     "Add a RuntimeVersion='v4.0' attribute to the DnaLibrary tag in the <addin>.dna file to indicate that .NET 4 must be loaded."
