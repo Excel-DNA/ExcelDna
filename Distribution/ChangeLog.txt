@@ -1,5 +1,5 @@
-Version 0.32 (???)
-------------------
+Version 0.32 (3 May 2014)
+-------------------------
 * BREAKING CHANGE: Modify rounding conversions for the integral parameter types to match VBA convention. Affects UInt16, Int16, Int32, Int64 and Boolean.
 * Fix method registration to avoid generic methods (for F# standalone).
 * Improve method deregistration to leave functions with #NAME? (thanks to kh).

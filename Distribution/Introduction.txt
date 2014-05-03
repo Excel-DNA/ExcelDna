@@ -1,42 +1,18 @@
 Introducing Excel-DNA - DotNet for Applications
-==============================================
+===============================================
 
 Excel-DNA brings .NET to Excel power users and developers. The primary target is the Excel user who currently writes VBA code for functions and macros, and would like to start using .NET. An additional audience is C/C++ -based .xll add-in developers who want to use the .NET framework to develop their add-ins.
 
 Excel-DNA is free for all use, and distributed under a permissive open-source license that also allows commercial use (the OSI approved zlib license).
 
 Excel-DNA is developed using .NET 2.0, and users have to install the freely available .NET Framework 2.0 runtime (.NET 4 is also supported). The integration is by an Excel Add-In (.xll) that exposes .NET code to Excel. The user code can be in text-based (.dna) script files (Visual Basic, C# or F#), or compiled .NET libraries from any language.
+See the GettingStarted.txt file for help in making your first Excel-DNA add-in.
 
-Current status
---------------
-Excel-DNA allows exporting functions and commands from .NET scripts or compiled libraries. Excel-DNA also supports automatic marshaling for calling the Excel C API from .NET, making it easy to port existing C/C++ code that uses the native Excel API. Access to the Excel automation interfaces is available from Excel-DNA, and can be used late-bound from Visual Basic, or via a reference to the primary interop assemblies. Excel-DNA supports the Excel 2007 large sheet and long Unicode strings, and multi-threaded recalculation.
-
-ExcelDnaPack will pack the various dependencies of an add-in into a single .xll file for redistribution.
-
-Excel-DNA is at an early stage of development and has not been tested extensively. This means it might not entirely work as advertised. Please be patient and careful.
-
-Future work
------------
-There are two themes for future work: 
-Firstly to improve the current integration .xll:
-* Testing on different OS and Excel versions, maybe unit tests.
-* Documentation.
-* Additional functionality like object handles and asyncronous calls.
-* Other .Net hosted languages (Java via IKVM, IronPython, Boo)
-
-Secondly, it would be really nice to have a user editor / IDE for working with .dna scripts. This would then work like the VBA IDE - maybe even with debugging some day! It should be as easy to create a user-defined function in .NET as it is in VBA.
-
-Related projects
-----------------
-* Visual Studio Tools for Office (VSTO) is Microsoft's preferred plan for integrating .NET with Office. It is mainly aimed at making it easy for Visual Studio developers to create solutions integrated with the Office applications. In constrast, Excel-DNA is (eventually) aimed at Excel end-users, as a compelling replacement for VBA, completely independent of Visual Studio.
-* Jens Thiel's ManagedXll is an established, commercial product to easily create .xll libraries in .NET. If ManagedXll were free, Excel-DNA would not exist. Currently Excel-DNA has the functionality of a basic version of ManagedXll.
-* There are a number of C/C++ libraries and tools for creating .xlls, apart from the Excel SDK and related examples. In particular I initially used the xlw library, there is also the C++ style xll, and the commercial Xll+ toolkit.
-
-You can help with:
-------------------
-* Feedback, ideas and suggestions.
-* Further testing and development. 
-* Using Excel-DNA :-)
+More details can be found at:
+* http://excel-dna.net
+* https://exceldna.codeplex.com
+* https://groups.google.com/forum/#!forum/exceldna
 
 Govert van Drimmelen
 govert@icon.co.za
+3 May 2014
