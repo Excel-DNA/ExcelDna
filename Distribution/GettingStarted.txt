@@ -16,7 +16,7 @@ http://www.microsoft.com/downloads/details.aspx?FamilyID=0856eacb-4362-4b0d-8edd
 * Make a copy of ExcelDna.xll in a convenient directory, calling the copy Test1.xll.
 * Create a new text file, called Test1.dna (the same prefix as the .xll file), with contents:
 
-	<DnaLibrary>
+	<DnaLibrary RuntimeVersion="v2.0" Language="VB">
 	<![CDATA[
 	
 		Public Module MyFunctions
@@ -29,7 +29,8 @@ http://www.microsoft.com/downloads/details.aspx?FamilyID=0856eacb-4362-4b0d-8edd
 		
 	]]>
 	</DnaLibrary>
-	
+
+* (To target .NET 4 or .NET 4.5, use RuntimeVersion="V4.0" instead.)	
 * Load Test1.xll in Excel (either File->Open or Tools->Add-Ins and Browse).
 * You should be prompted whether to Enable Macros, click Enable.
 * Enter =AddThem(4,2) into a cell - you should get 6.
@@ -42,13 +43,13 @@ Troubleshooting
 * If Excel crashes with an unhandled exception, an access violation or some other horrible error, either during loading or when running the function, please let me know. This shouldn't happen, and I would like to know if it does.
 * If a form appears with the title 'ExcelDna Compilation Errors' then there were some errors trying to compile the code in the .dna file. Check that you have put the right code into the .dna file.
 * If Excel prompts for Enabling Macros, and then the function does not work and does not appear in the function wizard, you might not have the right filename for the .dna file. The prefix should be the same as the .xll file and it should be in the same directory.
-* Otherwise, if something goes wrong, let me know.
+* Otherwise, if something goes wrong, let me know or post to the Google group noted below.
 
 2. Creating a user-defined function in C#
 -----------------------------------------
 * Change the contents of Test1.dna to:
 
-<DnaLibrary Language="CS">
+<DnaLibrary RuntimeVersion="v2.0" Language="CS">
 	<![CDATA[
 	
 	  using ExcelDna.Integration;
@@ -71,7 +72,7 @@ Troubleshooting
 
 3. Making the functions from a compiled library available
 ---------------------------------------------------------
-ExcelDna can also load any compiled .NET library. Public static functions with a compatible signature are exported to Excel.
+Excel-DNA can also load any compiled .NET library. Public static functions with a compatible signature are exported to Excel.
 
 * Create a file called TestLib.cs containing the following code:
 
@@ -104,7 +105,17 @@ c:\windows\microsoft.net\framework\v2.0.50727\csc.exe /target:library /reference
 		<ExternalLibrary Path="TestLib.dll" />
 	</DnaLibrary>
 
-
-4. Additional samples
+4. Create an add-in using Visual Studio and the Excel-DNA NuGet package
+-----------------------------------------------------------------------
+Excel-DNA is also available as a NuGet package. Create a new "Class Library" project (in C#, Visual Basic or F#) and install the "Excel-DNA" package.
+The project will be configured as an Excel add-in, with additional information and instructions in the Readme.txt file that is displayed.
+ 
+5. Additional samples
 ---------------------
 Included in the distribution are various samples in the Distribution\Samples directory. Each sample is a .dna file which can be loaded by putting a renamed copy of ExcelDna.xll in the same directory, where <TheName>.dna must be matched by <TheName>.xll.
+
+6. Getting Support
+------------------
+The Excel-DNA Google group at https://groups.google.com/forum/#!forum/exceldna is the primary support forum. All questions are welcome.
+Formal support agreements for corporate users are also available - see http://excel-dna.net/support/ for details.
+ 
