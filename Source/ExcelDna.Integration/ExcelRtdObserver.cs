@@ -52,13 +52,21 @@ namespace ExcelDna.Integration.Rtd
             AsyncCallInfo callInfo = new AsyncCallInfo(functionName, parameters);
 
             // Shortcut if already registered
-            object value;
-            if (GetValueIfRegistered(callInfo, out value))
+            Guid id;
+            if (_asyncCallIds.TryGetValue(callInfo, out id))
             {
+                // Already registered.
+                Debug.Print("AsyncObservableImpl GetValueIfRegistered - Found Id: {0}", id);
+                AsyncObservableState state = _observableStates[id];
+                object value;
+                // The TryGetValue call here is a big deal - it eventually calls Excel's RTD function 
+                // (or not, it the observable is complete).
+                // The return value of TryGetValue indicates the special array-call where RTD fails, which we ignore here.
+                bool unused = state.TryGetValue(out value);
                 return value;
             }
 
-            // Actually register as a new Observable
+            // Not registered before - actually register as a new Observable
             IExcelObservable observable = getObservable();
             return RegisterObservable(callInfo, observable);
         }
@@ -80,22 +88,8 @@ namespace ExcelDna.Integration.Rtd
                 });
         }
 
-        static bool GetValueIfRegistered(AsyncCallInfo callInfo, out object value)
-        {
-            Guid id;
-            if (_asyncCallIds.TryGetValue(callInfo, out id))
-            {
-                // Already registered.
-                Debug.Print("AsyncObservableImpl GetValueIfRegistered - Found Id: {0}", id);
-                AsyncObservableState state = _observableStates[id];
-                value = state.GetValue();
-                return true;
-            }
-            value = null;
-            return false;
-        }
-
         // Register a new observable
+        // Returns null if it failed (due to RTD array-caller first call)
         static object RegisterObservable(AsyncCallInfo callInfo, IExcelObservable observable)
         {
             // Check it's not registered already
@@ -111,7 +105,17 @@ namespace ExcelDna.Integration.Rtd
             _observableStates[id] = state;
 
             // Will spin up RTD server and topic if required, causing us to be called again...
-            return state.GetValue();
+            object value;
+            if (!state.TryGetValue(out value))
+            {
+                Debug.Print("AsyncObservableImpl.RegisterObservable (GetValue Error) - Remove Id: {0}", id);
+                // Problem case - array-caller with RTD call that failed.
+                // Clean up state and return null - we'll be called again later and everything will be better.
+                _observableStates.Remove(id);
+                _asyncCallIds.Remove(callInfo);
+                return null;
+            }
+            return value;
         }
 
         // Safe to call with an invalid Id, but that's not expected.
@@ -569,9 +573,16 @@ namespace ExcelDna.Integration.Rtd
             _callerState = AsyncCallerState.GetCallerState(caller); // caller might be null, _callerState should not be
         }
 
-        public object GetValue()
+        public bool TryGetValue(out object value)
         {
-            if (_currentObserver == null || !IsCompleted())
+            // We need to be careful when this is called from an array formula.
+            // In the 'completed' case we actually still have to call xlfRtd, then only skip if for the next (single-cell calller) call.
+            // That gives us a proper Disconnect...
+            ExcelReference caller = XlCall.Excel(XlCall.xlfCaller) as ExcelReference;
+            bool isCallerArray = caller != null &&
+                                 (caller.RowFirst != caller.RowLast ||
+                                  caller.ColumnFirst != caller.ColumnLast);
+            if (_currentObserver == null || isCallerArray || !IsCompleted())
             {
                 // NOTE: At this point the SynchronizationManager must be registered!
                 if (!SynchronizationManager.IsInstalled)
@@ -585,17 +596,30 @@ namespace ExcelDna.Integration.Rtd
 
                 // Refresh RTD call
                 // NOTE: First time this will result in a call to ConnectData, which will call Subscribe and set the _currentObserver
-                object unused = XlCall.RTD("ExcelDna.Integration.Rtd.ExcelObserverRtdServer", null, _id.ToString());
+                //       For the first array-group call, this returns null (due to xlUncalced error), 
+                //       but Excel will call us again... (I hope).
+                if (!RtdRegistration.TryRTD(out value, "ExcelDna.Integration.Rtd.ExcelObserverRtdServer", null, _id.ToString()))
+                {
+                    // This is the special case...
+                    // We return false - to the state creation function that indicates the state should not be saved.
+                    value = ExcelError.ExcelErrorNA;
+                    return false;
+                }
             }
 
             // No assumptions about previous state here - could have re-entered this class
 
             // We use #N/A as the 'busy' indicator, as RTD does normally.
             // Add-in creator can remap the 'busy' result in the UDF or another wrapper.
-            if (_currentObserver == null) return ExcelError.ExcelErrorNA;
+            if (_currentObserver == null) 
+            {
+                value = ExcelError.ExcelErrorNA;
+                return true;
+            }
 
             // Subsequent calls get value from Observer
-            return _currentObserver.Value;
+            value = _currentObserver.Value;
+            return true;
         }
 
         public void Subscribe(ExcelRtdObserver rtdObserver)
