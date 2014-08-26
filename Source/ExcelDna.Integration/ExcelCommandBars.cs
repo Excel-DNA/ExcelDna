@@ -122,15 +122,7 @@ namespace ExcelDna.Integration.CustomUI
                 if (childNode.Name == "commandBar")
                 {
                     string barName = childNode.Attributes["name"].Value;
-                    CommandBar bar = null;
-                    for (int i = 1; i <= excelApp.CommandBars.Count; i++)
-                    {
-                        if (excelApp.CommandBars[i].Name == barName)
-                        {
-                            bar = excelApp.CommandBars[i];
-                            break;
-                        }
-                    }
+                    CommandBar bar = GetCommandBarFromName(excelApp, barName);
                     if (bar != null)
                     {
                         AddControls(bar.Controls, childNode.ChildNodes, getImage);
@@ -165,15 +157,7 @@ namespace ExcelDna.Integration.CustomUI
                 if (childNode.Name == "commandBar")
                 {
                     string barName = childNode.Attributes["name"].Value;
-                    CommandBar bar = null;
-                    for (int i = 1; i <= excelApp.CommandBars.Count; i++)
-                    {
-                        if (excelApp.CommandBars[i].Name == barName)
-                        {
-                            bar = excelApp.CommandBars[i];
-                            break;
-                        }
-                    }
+                    CommandBar bar = GetCommandBarFromName(excelApp, barName);
                     if (bar != null)
                     {
                         RemoveControls(bar.Controls, childNode.ChildNodes);
@@ -185,6 +169,20 @@ namespace ExcelDna.Integration.CustomUI
                     }
                 }
             }
+        }
+
+        private static CommandBar GetCommandBarFromName(Application excelApp, string barName)
+        {
+            CommandBar bar = null;
+            for (int i = 1; i <= excelApp.CommandBars.Count; i++)
+            {
+                if (excelApp.CommandBars[i].Name == barName)
+                {
+                    bar = excelApp.CommandBars[i];
+                    break;
+                }
+            }
+            return bar;
         }
 
         private static void AddControls(CommandBarControls parentControls, XmlNodeList xmlNodes, GetImageDelegate getImage)
