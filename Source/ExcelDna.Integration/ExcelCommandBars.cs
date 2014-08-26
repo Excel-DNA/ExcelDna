@@ -38,29 +38,6 @@ namespace ExcelDna.Integration.CustomUI
 {
     public delegate Bitmap GetImageDelegate(string imageName);
 
-    //public class ExcelCommandBars
-    //{
-    //    public ExcelCommandBars()
-    //    {
-    //    }
-
-    //    public virtual string GetCustomUI()
-    //    {
-    //    }
-
-    //    public virtual object GetImage(string imageName)
-    //    {
-
-    //    }
-
-    //    public CommandBarControls Controls
-    //    {
-    //        get
-    //        {
-    //        }
-    //    }
-    //}
-
     public static class ExcelCommandBarUtil
     {
         // List of loaded CustomUI 
@@ -571,16 +548,6 @@ namespace ExcelDna.Integration.CustomUI
                 return Convert.ToInt32(i);
             }
         }
-
-        //public event EventHandler OnUpdate
-        //{
-        //    add
-        //    {
-        //    }
-        //    remove
-        //    {
-        //    }
-        //}
     }
 
     public class CommandBarControl
@@ -941,11 +908,6 @@ namespace ExcelDna.Integration.CustomUI
         }
     }
 
-    //public class CommandBarButtonClickEventArgs : EventArgs
-    //{
-    //    public bool CancelDefault;
-    //}
-
     public class CommandBarButton : CommandBarControl
     {
         internal CommandBarButton(object commandBarCom)
@@ -1003,16 +965,6 @@ namespace ExcelDna.Integration.CustomUI
                 ComObjectType.InvokeMember("ShortcutText", BindingFlags.SetProperty, null, ComObject, new object[] { value });
             }
         }
-
-        //public event EventHandler<CommandBarButtonClickEventArgs> Click
-        //{
-        //    add
-        //    {
-        //    }
-        //    remove
-        //    {
-        //    }
-        //}
     }
 
     public class CommandBarPopup : CommandBarControl
