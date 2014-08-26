@@ -121,8 +121,8 @@ namespace ExcelDna.Integration.CustomUI
             {
                 if (childNode.Name == "commandBar")
                 {
-                    string barName = childNode.Attributes["name"].Value;
-                    CommandBar bar = GetCommandBarFromName(excelApp, barName);
+                    string barName;
+                    CommandBar bar = GetCommandBarFromIdOrName(excelApp, childNode.Attributes, out barName);
                     if (bar != null)
                     {
                         AddControls(bar.Controls, childNode.ChildNodes, getImage);
@@ -156,8 +156,8 @@ namespace ExcelDna.Integration.CustomUI
             {
                 if (childNode.Name == "commandBar")
                 {
-                    string barName = childNode.Attributes["name"].Value;
-                    CommandBar bar = GetCommandBarFromName(excelApp, barName);
+                    string barName;
+                    CommandBar bar = GetCommandBarFromIdOrName(excelApp, childNode.Attributes, out barName);
                     if (bar != null)
                     {
                         RemoveControls(bar.Controls, childNode.ChildNodes);
@@ -171,18 +171,50 @@ namespace ExcelDna.Integration.CustomUI
             }
         }
 
-        private static CommandBar GetCommandBarFromName(Application excelApp, string barName)
+        //We cannot rely only on name to recover the proper CommandBar so we have the possibility to use the ID (which is used in priority).
+        //Indeed there are two CommandBar for "Cell" see  http://msdn.microsoft.com/en-us/library/office/gg469862(v=office.14).aspx
+        //However, at the time of the writing there is a mistake: "Application.CommandBars(Application.CommandBars("Cell").Index + 3)" is false in practice
+        // Note that the Id property is only available
+        private static CommandBar GetCommandBarFromIdOrName(Application excelApp, XmlAttributeCollection nodeAttributes, out string barName)
         {
-            CommandBar bar = null;
-            for (int i = 1; i <= excelApp.CommandBars.Count; i++)
+            var id =  nodeAttributes["id"];
+            var name = nodeAttributes["name"];
+            if(name ==null) throw new ArgumentException("commandBar attributes must contain name");
+
+            barName = name.Value;
+            if (id != null)
             {
-                if (excelApp.CommandBars[i].Name == barName)
+                string barId = id.Value;
+                CommandBar bar = null;
+                for (int i = 1; i <= excelApp.CommandBars.Count; i++)
                 {
-                    bar = excelApp.CommandBars[i];
-                    break;
+                    var currentBar = excelApp.CommandBars[i];
+                    if (currentBar.Type == MsoBarType.msoBarTypePopup)
+                    {
+                        var currentBarPopup = new CommandBarPopup(currentBar.GetComObject());
+                        if (currentBarPopup.Id == barId)
+                        {
+                            bar = currentBar;
+                            break;
+                        }
+                    }
                 }
+                return bar;
             }
-            return bar;
+            else
+            {
+                
+                CommandBar bar = null;
+                for (int i = 1; i <= excelApp.CommandBars.Count; i++)
+                {
+                    if (excelApp.CommandBars[i].Name == barName)
+                    {
+                        bar = excelApp.CommandBars[i];
+                        break;
+                    }
+                }
+                return bar;
+            }
         }
 
         private static void AddControls(CommandBarControls parentControls, XmlNodeList xmlNodes, GetImageDelegate getImage)
@@ -482,6 +514,14 @@ namespace ExcelDna.Integration.CustomUI
             }
         }
 
+        public MsoBarType Type
+        {
+            get
+            {
+                return (MsoBarType)ComObjectType.InvokeMember("Type", BindingFlags.GetProperty, null, ComObject, null);
+            }
+        }
+
         public CommandBarControl FindControl(object type, object id, object tag, object visible, object recursive)
         {
             object result = ComObjectType.InvokeMember("FindControl", BindingFlags.InvokeMethod, null, ComObject, new object[] { type, id, tag, visible, recursive });
@@ -742,7 +782,16 @@ namespace ExcelDna.Integration.CustomUI
                 return (int)ComObjectType.InvokeMember("Index", BindingFlags.GetProperty, null, ComObject, null);
             }
         }
-            
+
+        public string Id
+        {
+            get
+            {
+                object controls = ComObjectType.InvokeMember("Id", BindingFlags.GetProperty, null, ComObject, null);
+                return controls.ToString();
+            }
+        }
+
         public void Delete(object Temporary)
         {
             ComObjectType.InvokeMember("Delete", BindingFlags.InvokeMethod, null, ComObject, new object[] { Temporary });
@@ -1048,5 +1097,12 @@ namespace ExcelDna.Integration.CustomUI
         msoControlLabelEx = 24,
         msoControlWorkPane = 25,
         msoControlAutoCompleteCombo = 26,
+    }
+
+    public enum MsoBarType
+    {
+        msoBarTypeNormal = 0,
+        msoBarTypeMenuBar = 1,
+        msoBarTypePopup = 2,
     }
 }
