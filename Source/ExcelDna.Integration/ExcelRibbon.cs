@@ -15,6 +15,7 @@ namespace ExcelDna.Integration.CustomUI
     {
         public const string NamespaceCustomUI2010 = @"http://schemas.microsoft.com/office/2009/07/customui";
         public const string NamespaceCustomUI2007 = @"http://schemas.microsoft.com/office/2006/01/customui";
+        // Info about changes in Excel 2013: http://www.rondebruin.nl/win/s2/win005.htm
 
         public virtual string GetCustomUI(string RibbonID)
         {

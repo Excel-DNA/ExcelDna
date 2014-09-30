@@ -167,7 +167,7 @@ namespace ExcelDna.Integration
         static extern IntPtr SetTimer(HandleRef hWnd, int nIDEvent, int uElapse, IntPtr lpTimerFunc);
         [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
         static extern bool KillTimer(HandleRef hwnd, int idEvent);
-        int _timerId;
+        int _timerId;   // Only gets values 0 or 1. Used both as the uIDEvent parameter for the Windows Timer, and as a flag to indicate whether there is an active timer.
         const int RETRY_INTERVAL_MS = 250;
         #endregion
 
@@ -214,6 +214,8 @@ namespace ExcelDna.Integration
         // Tries to get into a macro context by calling Application.Run(_syncWindow) and if that fails, 
         // set a timer to retry again soon and back off for now. 
         // The timer is hooked on to the _syncWindow, and its WM_TIMER message received in the _syncWindow calls this function again.
+        // TODO: Consider this discussion (maybe allow user to register callback to check other conditions before running): 
+        //       https://exceldna.codeplex.com/discussions/565495
         public void ProcessRunSyncMacroMessage()
         {
             try
@@ -221,9 +223,10 @@ namespace ExcelDna.Integration
                 bool runOK = COMRunMacro(_syncMacroName);
                 if (!runOK && _timerId == 0)
                 {
-                    // Timer not yet set - start it
-                    // Timer will be stopped when SyncMacro actually runs.
-                    IntPtr result = SetTimer(new HandleRef(_syncWindow, _syncWindow.Handle), _timerId++, RETRY_INTERVAL_MS, IntPtr.Zero);
+                    // Timer is not yet set - so set a new timer
+                    // The Timer will be stopped when SyncMacro actually runs.
+                    _timerId = 1; // We're always on the main thread, so no race condition between checking and setting the id/flag
+                    IntPtr result = SetTimer(new HandleRef(_syncWindow, _syncWindow.Handle), _timerId, RETRY_INTERVAL_MS, IntPtr.Zero);
                     if (result == IntPtr.Zero)
                     {
                         // TODO: Handle unexpected error in setting timer
@@ -250,7 +253,7 @@ namespace ExcelDna.Integration
             if (_timerId != 0)
             {
                 KillTimer(new HandleRef(_syncWindow, _syncWindow.Handle), _timerId);
-                _timerId = 0;
+                _timerId = 0; // No race condition between the check and the reset here, since we're always on the main thread.
             }
             // Run everything currently in the queue
             _isRunningMacros = true;
@@ -400,8 +403,6 @@ namespace ExcelDna.Integration
         //   and if it is not an Excel window (GetFocus returns 0), 
         //   I fall back to the standard menu enabled check
         //   (which still works under Excel 2007+, presumably for backward compatibility)
-
-        // TODO: Use LPenHelper where available
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         static extern IntPtr GetFocus();

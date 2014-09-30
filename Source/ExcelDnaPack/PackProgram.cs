@@ -46,7 +46,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 //			return;
 
             // Set to an 'Error' exit unless we get to the end.
-            Environment.ExitCode = 0;
+            Environment.ExitCode = -1;
 
 			// Force jit-load of ExcelDna.Integration assembly
 			int unused = XlCall.xlAbort;
@@ -117,6 +117,20 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 					return;
 				}
 			}
+
+            string outputDirectory = Path.GetDirectoryName(xllOutputPath);
+            if (!Directory.Exists(outputDirectory))
+            {
+				try
+				{
+                    Directory.CreateDirectory(outputDirectory);
+                }
+                catch (Exception ex)
+                {
+                    Console.Write("Output directory " + outputDirectory + "could not be created. Error: " + ex.Message + "\r\n\r\nExiting ExcelDnaPack.");
+                    return;
+                }
+            }
 
 			// Find ExcelDna.xll to use.
             // First try <MyAddin>.xll

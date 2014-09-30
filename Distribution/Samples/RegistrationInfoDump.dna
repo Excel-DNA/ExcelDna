@@ -50,7 +50,7 @@ Public Module TestRegistrationInfo
                     shInfo.Name = System.IO.Path.GetFileName(path)
 
                     ' C API via ExcelReference would work well here
-                    Dim refInfo = New ExcelReference(0, UBound(result) - 1, 0, 254, shInfo.Name)
+                    Dim refInfo = New ExcelReference(0, UBound(result), 0, 254, shInfo.Name)
                     refInfo.SetValue(result)
 
                 End If
