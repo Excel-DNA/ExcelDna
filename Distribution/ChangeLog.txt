@@ -2,6 +2,7 @@ Version 0.33 (???)
 ------------------
 * Improve RtdObserver/Async array function handling to ensure RTD DisconnectData when complete.
 * Suppress CustomUI loading when running embedded with /K switch.
+* Fix timer leak in ExcelDnaUtil.QueueAsMacro (incorrect timer id tracking).
 
 Version 0.32 (3 May 2014)
 -------------------------
