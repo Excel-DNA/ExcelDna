@@ -138,7 +138,14 @@ namespace ExcelDna.Integration
             }
             catch (Exception ex)
             {
-                Logging.LogDisplay.WriteLine("The Ribbon/COM Add-in helper required by add-in {0} could not be registered.\r\nThis is an unexpected error.\r\nError message: {1}", DnaLibrary.CurrentLibrary.Name, ex.Message);
+                // If Excel is running with the /K switch it seems to indicate we're running 
+                // in a COM-unfriendly mode where (sometimes) the COM add-in for the ribbon won't load. 
+                // We skip the log display in this case.
+                // CONSIDER: How would an add-in know that its COM AddIn load failed in this case?
+                if (!Environment.CommandLine.Contains(" /K"))
+                {
+                    Logging.LogDisplay.WriteLine("The Ribbon/COM Add-in helper required by add-in {0} could not be registered.\r\nThis is an unexpected error.\r\nError message: {1}", DnaLibrary.CurrentLibrary.Name, ex.Message);
+                }
                 Debug.Print("LoadComAddIn exception: " + ex.ToString());
             }
         }

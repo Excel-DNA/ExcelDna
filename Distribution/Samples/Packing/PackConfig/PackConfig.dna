@@ -12,6 +12,11 @@
 			Trace.TraceInformation("Inside the PackConfig function.");
 			return "Hello from PackConfig!";
 		}
+        
+        public static string ConfigInfo()
+        {
+            return System.AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
+        }
 	}
 ]]>
 </DnaLibrary>

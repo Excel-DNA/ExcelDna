@@ -76,7 +76,11 @@ namespace ExcelDna.Integration.Rtd
 
         // Forwarded from XlCall
         // Loads the RTD server with temporary ProgId.
-        public static object RTD(string progId, string server, params string[] topics)
+        // CAUTION: Might fail when called from array formula (the first call in every array-group fails).
+        //          When it fails, the xlfRtd call returns xlReturnUncalced.
+        //          In that case, this function returns null, and does not keep a reference to the created server object.
+        //          The next call should then succeed (though a new server object will be created).
+        public static bool TryRTD(out object result, string progId, string server, params string[] topics)
         {
             Debug.Print("### RtdRegistration.RTD " + progId);
             // Check if this is any of our business.
@@ -84,7 +88,7 @@ namespace ExcelDna.Integration.Rtd
             if (!string.IsNullOrEmpty(server) || !registeredRtdServerTypes.TryGetValue(progId, out rtdServerType))
             {
                 // Just pass on to Excel.
-                return CallRTD(progId, null, topics);
+                return TryCallRTD(out result, progId, null, topics);
             }
 
             // TODO: Check that ExcelRtdServer with stable ProgId case also works right here - 
@@ -99,7 +103,7 @@ namespace ExcelDna.Integration.Rtd
                     ExcelRtd2010BugHelper.RecordRtdCall(progId, topics);
                 }
                 // Call Excel using the synthetic RtdSrv.xxx (or actual from attribute) ProgId
-                return CallRTD(loadedProgId, null, topics);
+                return TryCallRTD(out result, loadedProgId, null, topics);
             }
 
             // Not loaded already - need to get the Rtd server loaded
@@ -149,27 +153,31 @@ namespace ExcelDna.Integration.Rtd
                 using (new ProgIdRegistration(progIdRegistered, clsId))
                 using (new ClsIdRegistration(clsId, progIdRegistered))
                 {
-                    object result;
                     Debug.Print("### About to call TryCallRTD " + progId);
                     if (TryCallRTD(out result, progIdRegistered, null, topics))
                     {
                         // Mark as loaded - ServerTerminate in the wrapper will remove.
                         loadedRtdServers[progId] = progIdRegistered;
                         Debug.Print("### Added to loadedRtdServers " + progId);
+                        return true;
                     }
-                    return result;
+                    return false;
                 }
             }
             catch (UnauthorizedAccessException secex)
             {
                 Logging.LogDisplay.WriteLine("The RTD server of type {0} required by add-in {1} could not be registered.\r\nThis may be due to restricted permissions on the user's HKCU\\Software\\Classes key.\r\nError message: {2}", rtdServerType.FullName, DnaLibrary.CurrentLibrary.Name, secex.Message );
-                return ExcelErrorUtil.ToComError(ExcelError.ExcelErrorValue);
+                result = ExcelErrorUtil.ToComError(ExcelError.ExcelErrorValue);
+                // Return true to have the #VALUE stick, just as it was before the array-call refactoring
+                return true;
             }
             catch (Exception ex)
             {
                 Logging.LogDisplay.WriteLine("The RTD server of type {0} required by add-in {1} could not be registered.\r\nThis is an unexpected error.\r\nError message: {2}", rtdServerType.FullName, DnaLibrary.CurrentLibrary.Name, ex.Message);
                 Debug.Print("RtdRegistration.RTD exception: " + ex.ToString());
-                return ExcelErrorUtil.ToComError(ExcelError.ExcelErrorValue);
+                result = ExcelErrorUtil.ToComError(ExcelError.ExcelErrorValue);
+                // Return true to have the #VALUE stick, just as it was before the array-call refactoring
+                return true;
             }
         }
 
@@ -183,18 +191,19 @@ namespace ExcelDna.Integration.Rtd
             XlCall.XlReturn retval = XlCall.TryExcel(XlCall.xlfRtd, out result, args);
             if (retval == XlCall.XlReturn.XlReturnSuccess)
             {
+                // All is good
                 return true;
             }
-            Debug.Print("RTD Call failed. Excel returned {0}", retval);
-            result = null;
-            return false;
-        }
-
-        private static object CallRTD(string progId, string server, params string[] topics)
-        {
-            object result;
-            bool ignored = TryCallRTD(out result, progId, server, topics);
-            return result;
+            if (retval == XlCall.XlReturn.XlReturnUncalced)
+            {
+                // An expected error - the first call in an array-group seems to always return this,
+                // to be followed by one call for each element in the array (where xlfRtd succceeds).
+                Debug.Print("### RTD Call failed. Excel returned {0}", retval);
+                result = null;
+                return false;
+            }
+            // Unexpected error - throw for the user to deal with
+            throw new XlCallException(retval);
         }
 
         public static void UnregisterRTDServer(string progId)

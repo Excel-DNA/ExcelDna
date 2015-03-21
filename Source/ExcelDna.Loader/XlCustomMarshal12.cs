@@ -35,6 +35,12 @@ using System.Runtime.InteropServices;
 // NOTE: Check http://blogs.msdn.com/b/oldnewthing/archive/2009/08/13/9867383.aspx for 64-bit packing.
 //       and http://msdn.microsoft.com/en-us/library/ms973190.aspx for general guidance.
 
+// Regarding unmanaged memory:
+// We're currently using the COM Task Memory Allocator. I hoped this would be amenable to cleaning up from the native side too, 
+// should we want to. Maybe there are other good options:
+// http://www.codeproject.com/Articles/32912/Handling-of-Large-Byte-Arrays
+// SafeBuffer class?
+// We get error when size is 320000032
 
 // WARNING: The marshalers here are rather particular to the way they are used --
 //			mainly to marshal in the _reverse_ direction to what is expected.

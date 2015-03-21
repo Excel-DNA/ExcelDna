@@ -1160,7 +1160,10 @@ namespace ExcelDna.Integration
         /// <returns></returns>
         public static object RTD(string progId, string server, params string[] topics)
         {
-            return Rtd.RtdRegistration.RTD(progId, server, topics);
+            object value;
+            bool unused = Rtd.RtdRegistration.TryRTD(out value, progId, server, topics);
+            // Return value is not used for now...?
+            return value;
         }
 
         // Support for suspending calls to the C API

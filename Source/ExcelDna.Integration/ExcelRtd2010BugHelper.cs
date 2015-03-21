@@ -107,6 +107,11 @@ namespace ExcelDna.Integration
             // We might already have terminated the wrapped server ....
             if (_wrappedServer != null)
             {
+                // TODO: This assertion is not quite right
+                //       If Excel is shutting down, the RTD server will receive a ServerTerminate, 
+                //       even though there weren't DisconnectData calls for each Topic.
+                //       (Is there a way to know that we're shutting down, so that we can 
+                //        make the check only when required?)
                 Debug.Assert(_activeTopics.Count == 0);
                 _wrappedServer.ServerTerminate();
                 _wrappedServer = null;

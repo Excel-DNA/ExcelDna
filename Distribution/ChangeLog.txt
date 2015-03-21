@@ -1,3 +1,8 @@
+Version 0.33 (???)
+------------------
+* Improve RtdObserver/Async array function handling to ensure RTD DisconnectData when complete.
+* Suppress CustomUI loading when running embedded with /K switch.
+
 Version 0.32 (3 May 2014)
 -------------------------
 * BREAKING CHANGE: Modify rounding conversions for the integral parameter types to match VBA convention. Affects UInt16, Int16, Int32, Int64 and Boolean.

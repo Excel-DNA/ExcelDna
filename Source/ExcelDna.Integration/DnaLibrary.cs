@@ -300,7 +300,6 @@ namespace ExcelDna.Integration
                 }
             }
 
-            // Load my UI
             LoadCustomUI();
         }
 
