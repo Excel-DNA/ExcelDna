@@ -352,7 +352,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                             break;
                         }
                         string name = Path.GetFileNameWithoutExtension(path).ToUpperInvariant() + "_" + lastPackIndex++ + Path.GetExtension(path).ToUpperInvariant();
-                        byte[] sourceBytes = Encoding.UTF8.GetBytes(File.ReadAllText(path));
+                        byte[] sourceBytes = File.ReadAllBytes(path);
                         ru.AddSource(sourceBytes, name);
                         source.Path = "packed:" + name;
                     }
