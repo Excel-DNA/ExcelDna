@@ -27,7 +27,7 @@ using System.Runtime.InteropServices;
 
 namespace ExcelDna.Integration
 {
-	public class XlCall
+	public static class XlCall
 	{
 		/*
 		** Return codes

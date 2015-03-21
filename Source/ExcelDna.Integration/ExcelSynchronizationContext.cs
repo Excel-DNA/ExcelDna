@@ -142,6 +142,9 @@ namespace ExcelDna.Integration
         }
 
         // Runs on the main thread.
+        // TODO: Do we need to clear these...?
+        // TODO: Check again whether the UpdateNotify might fail. See: https://social.msdn.microsoft.com/Forums/office/en-US/0e3dfd86-62e1-4557-80a3-2b864c31cc52/excel-rtd-updatenotify-throws-exception-the-application-is-busy?forum=exceldev
+        //       However, the problem reported there was surely when called from another thread. Does suspension of the object model affect us here?
         public void ProcessUpdateNotifications()
         {
             // CONSIDER: Do temp swap trick to reduce locking?

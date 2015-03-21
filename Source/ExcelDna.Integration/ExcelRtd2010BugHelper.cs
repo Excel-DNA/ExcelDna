@@ -124,7 +124,7 @@ namespace ExcelDna.Integration
         public object ConnectData(int topicId, ref Array strings, ref bool newValues)
         {
             Debug.Print("ConnectData " + _wrappedServerRegisteredProgId + ":" + topicId);
-            if (_wrappedServer == null) 
+            if (_wrappedServer == null)
             {
                 // We have to create and start a new server instance
                 CreateWrappedServer();
@@ -147,6 +147,7 @@ namespace ExcelDna.Integration
 
         public void DisconnectData(int topicId)
         {
+            // CONSIDER: But what if we previously ServerTerminated, and only now Excel is figuring out it must DisconnectData?
             Debug.Assert(_wrappedServer != null);
 
             // This is called both by the DisconnectOrphans handler and Excel regularly
@@ -175,10 +176,11 @@ namespace ExcelDna.Integration
             }
 
             // We might have to let the server instance go.
-            // (Even though Excel thinkgs there are some active topics, there aren't really.)
+            // (Even though Excel thinks there are some active topics, there aren't really.)
             if (_activeTopics.Count == 0)
             {
                 _wrappedServer.ServerTerminate();
+                // CONSIDER: Is this safe ...? What if Excel tried to Connect again later...?
                 _wrappedServer = null;
             }
         }
@@ -208,7 +210,8 @@ namespace ExcelDna.Integration
 
         // Per-server state and processing of RTD calls
 
-        readonly List<RtdCall> _rtdCalls = new List<RtdCall>();
+        readonly List<RtdCall> _rtdCalls = new List<RtdCall>(); // Stores every good call to xlfRtd
+        readonly List<RtdCall> _rtdCompletes = new List<RtdCall>(); // Stores the special completion non-calls
         // All the topics that we believe are active for this server (map from topic key to topic id)
         readonly Dictionary<string, int> _activeTopics = new Dictionary<string, int>();
         // All the RTD calls (relevant to us) since the last AfterCalculate event
@@ -230,10 +233,23 @@ namespace ExcelDna.Integration
                 wrapper._rtdCalls.Add(new RtdCall(caller, topicInfo));
             }
         }
-        
+
+        // New part added for Excel 2010 not disconnecting after completion
+        // (when xlfRtd is _not_ called from the cell, and normally Excel would take that as the queue to disconnect)
+        static public void RecordRtdComplete(string progId, params string[] topicInfo)
+        {
+            ExcelRtd2010BugHelper wrapper;
+            if (_wrappers.TryGetValue(progId, out wrapper))
+            {
+                ExcelReference caller = XlCall.Excel(XlCall.xlfCaller) as ExcelReference;
+                if (caller == null) return; // Can't do much in this case
+                wrapper._rtdCompletes.Add(new RtdCall(caller, topicInfo));
+            }
+        }
+
         void ProcessRtdCalls()
         {
-            if (_rtdCalls.Count == 0) return;
+            if (_rtdCalls.Count == 0 && _rtdCompletes.Count == 0) return;
             // First, build a dictionary of what we saw,
             // and add any new active callers.
             Dictionary<ExcelReference, TopicIdList> callerTopicMap = new Dictionary<ExcelReference, TopicIdList>();
@@ -286,6 +302,37 @@ namespace ExcelDna.Integration
                 callerTopics.Add(topic);
             }
 
+            // Process calls that are 'complete' - we can record that we didn't see (i.e. call xlfRtd for) the topic in this call
+            foreach (var call in _rtdCompletes)
+            {
+                // These callers were called, but not with the topics we expected (since there was no real RTD call)
+                // find the corresponding RtdTopicInfo
+                int topic;
+                if (!_activeTopics.TryGetValue(call.TopicKey, out topic))
+                {
+                    Debug.Fail("!!! Unknown Rtd Call: " + call.TopicKey);
+                    continue;
+                }
+
+                // This is a call to a topic we know
+                // Check if we already have an entry for this caller in the callerTopicMap....
+                TopicIdList callerTopics;
+                if (!callerTopicMap.TryGetValue(call.Caller, out callerTopics))
+                {
+                    // This caller has no topics (in this calculation)
+                    // Note that it was called (but we'll add no topics...)
+                    // Otherwise it's fine - we've listed this as a caller to examine, but we won't put this topic in
+                    callerTopics = new TopicIdList();
+                    callerTopicMap[call.Caller] = callerTopics;
+                }
+
+                if (callerTopics.Contains(topic))
+                {
+                    Debug.Fail("!!! Inconsistent Rtd Call (RtdCalls contains the RtdComplete call): " + call.TopicKey);
+                }
+            }
+
+
             // Now figure out what to clean up
 
             // For each caller and its topics that we saw in this calc ...
@@ -329,7 +376,9 @@ namespace ExcelDna.Integration
                         activeTopics.Remove(topicToRemove);
                         if (activeTopics.Count == 0)
                         {
-                            // Unlikely...?  (due to how the bug works - the caller should have a new topic)
+                            // This happens if we have completed the topic, and Excel might not disconnect
+                            // but the topic is no longer active.
+                            // I think Excel will try to Disconnect later, e.g. if we delete the formula or something.
                             _activeCallerTopics.Remove(thisCalcCaller);
                         }
                     }

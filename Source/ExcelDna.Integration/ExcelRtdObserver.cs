@@ -81,7 +81,8 @@ namespace ExcelDna.Integration.Rtd
         public static object ProcessFuncAsyncHandle(string functionName, object parameters, ExcelFuncAsyncHandle func)
         {
             return ProcessObservable(functionName, parameters,
-                delegate {
+                delegate
+                {
                     ExcelAsyncHandleObservable asyncHandleObservable = new ExcelAsyncHandleObservable();
                     func(asyncHandleObservable);
                     return asyncHandleObservable;
@@ -167,7 +168,7 @@ namespace ExcelDna.Integration.Rtd
         public bool IsCompleted { get; private set; }
         // Keeping our own value, since the RTD Topic.Value is insufficient (e.g. string length limitation)
         // This may be an issue if we want to support startup OldValues (currently we don't)
-        public object Value { get; private set; } 
+        public object Value { get; private set; }
 
         internal ExcelRtdObserver(ExcelRtdServer.Topic topic)
         {
@@ -220,7 +221,7 @@ namespace ExcelDna.Integration.Rtd
             Guid id = new Guid(topicInfo[0]);
             return new ObserverRtdTopic(this, topicId, id);
         }
-        
+
         protected override object ConnectData(Topic topic, IList<string> topicInfo, ref bool newValues)
         {
             Debug.Print("ExcelObserverRtdServer.ConnectData: ProgId: {0}, TopicId: {1}, TopicInfo: {2}, NewValues: {3}", RegisteredProgId, topic.TopicId, topicInfo[0], newValues);
@@ -304,7 +305,7 @@ namespace ExcelDna.Integration.Rtd
     {
         readonly string _functionName;
         readonly object _parameters;
-        readonly int    _hashCode;
+        readonly int _hashCode;
 
         public AsyncCallInfo(string functionName, object parameters)
         {
@@ -359,27 +360,27 @@ namespace ExcelDna.Integration.Rtd
             {
                 return obj.GetHashCode();
             }
-            
+
             unchecked
             {
                 int hash = 17;
 
                 double[] doubles = obj as double[];
-                if (doubles != null) 
+                if (doubles != null)
                 {
                     foreach (double item in doubles)
                     {
-                        hash = hash * 23 +  item.GetHashCode(); 
+                        hash = hash * 23 + item.GetHashCode();
                     }
                     return hash;
                 }
 
                 double[,] doubles2 = obj as double[,];
-                if (doubles2 != null) 
+                if (doubles2 != null)
                 {
                     foreach (double item in doubles2)
                     {
-                        hash = hash * 23 +  item.GetHashCode(); 
+                        hash = hash * 23 + item.GetHashCode();
                     }
                     return hash;
                 }
@@ -395,7 +396,7 @@ namespace ExcelDna.Integration.Rtd
                 }
 
                 object[,] objects2 = obj as object[,];
-                if (objects2 != null) 
+                if (objects2 != null)
                 {
                     foreach (object item in objects2)
                     {
@@ -557,7 +558,8 @@ namespace ExcelDna.Integration.Rtd
     // This manages the information for a single Observable (one UDF+callinfo).
     internal class AsyncObservableState
     {
-        readonly Guid _id;
+        const string _observerRtdServerProgId = "ExcelDna.Integration.Rtd.ExcelObserverRtdServer";
+        readonly string _id;
         readonly AsyncCallerState _callerState;
         readonly AsyncCallInfo _callInfo; // Bit ugly having this here - need a bi-directional dictionary...
         readonly IExcelObservable _observable;
@@ -567,7 +569,7 @@ namespace ExcelDna.Integration.Rtd
         // caller may be null when not called as a worksheet function.
         public AsyncObservableState(Guid id, AsyncCallInfo callInfo, ExcelReference caller, IExcelObservable observable)
         {
-            _id = id;
+            _id = id.ToString();
             _callInfo = callInfo;
             _observable = observable;
             _callerState = AsyncCallerState.GetCallerState(caller); // caller might be null, _callerState should not be
@@ -590,7 +592,7 @@ namespace ExcelDna.Integration.Rtd
                     Debug.Print("SynchronizationManager not registered!");
                     throw new InvalidOperationException("SynchronizationManager must be registered for async and observable support. Call ExcelAsyncUtil.Initialize() in an IExcelAddIn.AutoOpen() handler.");
                 }
-                
+
                 // Ensure that Excel-DNA knows about the RTD Server, since it would not have been registered when loading
                 ExcelObserverRtdServer.EnsureRtdServerRegistered();
 
@@ -598,7 +600,7 @@ namespace ExcelDna.Integration.Rtd
                 // NOTE: First time this will result in a call to ConnectData, which will call Subscribe and set the _currentObserver
                 //       For the first array-group call, this returns null (due to xlUncalced error), 
                 //       but Excel will call us again... (I hope).
-                if (!RtdRegistration.TryRTD(out value, "ExcelDna.Integration.Rtd.ExcelObserverRtdServer", null, _id.ToString()))
+                if (!RtdRegistration.TryRTD(out value, _observerRtdServerProgId, null, _id))
                 {
                     // This is the special case...
                     // We return false - to the state creation function that indicates the state should not be saved.
@@ -606,12 +608,20 @@ namespace ExcelDna.Integration.Rtd
                     return false;
                 }
             }
+            else if (_currentObserver != null && IsCompleted())
+            {
+                // Special call for the Excel 2010 bug helper to indicate we are not refreshing (due to completion)
+                if (ExcelRtd2010BugHelper.ExcelVersionHasRtdBug)
+                {
+                    ExcelRtd2010BugHelper.RecordRtdComplete(_observerRtdServerProgId, _id);
+                }
+            }
 
             // No assumptions about previous state here - could have re-entered this class
 
             // We use #N/A as the 'busy' indicator, as RTD does normally.
             // Add-in creator can remap the 'busy' result in the UDF or another wrapper.
-            if (_currentObserver == null) 
+            if (_currentObserver == null)
             {
                 value = ExcelError.ExcelErrorNA;
                 return true;
@@ -629,8 +639,7 @@ namespace ExcelDna.Integration.Rtd
             _currentSubscription = _observable.Subscribe(rtdObserver);
         }
 
-        // Under unpatched Excel 2010, this is sometimes not called....?
-        // CONSIDER: Some caller-based memory management / check for problem?
+        // Under unpatched Excel 2010, we rely on the ExcelRtd2010BugHelper to ensure we get a good Unsubscribe...
         public void Unsubscribe()
         {
             Debug.Assert(_currentSubscription != null);
