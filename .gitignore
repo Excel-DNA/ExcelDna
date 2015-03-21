@@ -10,6 +10,8 @@
 
 [Dd]ebug/
 [Rr]elease/
+[Dd]ebug64/
+[Rr]elease64/
 x64/
 build/
 [Bb]in/
