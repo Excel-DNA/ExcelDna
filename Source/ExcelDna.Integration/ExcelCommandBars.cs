@@ -144,16 +144,8 @@ namespace ExcelDna.Integration.CustomUI
             {
                 if (childNode.Name == "commandBar")
                 {
-                    string barName = childNode.Attributes["name"].Value;
-                    CommandBar bar = null;
-                    for (int i = 1; i <= excelApp.CommandBars.Count; i++)
-                    {
-                        if (excelApp.CommandBars[i].Name == barName)
-                        {
-                            bar = excelApp.CommandBars[i];
-                            break;
-                        }
-                    }
+                    string barName;
+                    CommandBar bar = GetCommandBarFromIdOrName(excelApp, childNode.Attributes, out barName);
                     if (bar != null)
                     {
                         AddControls(bar.Controls, childNode.ChildNodes, getImage);
@@ -167,7 +159,7 @@ namespace ExcelDna.Integration.CustomUI
                             // Compatible with original patch
                             posAttribute = childNode.Attributes["MsoBarPosition"];
                         }
-                        if ( posAttribute != null)
+                        if (posAttribute != null)
                         {
                             if (Enum.IsDefined(typeof(MsoBarPosition), posAttribute.Value))
                                 barPosition = (MsoBarPosition)Enum.Parse(typeof(MsoBarPosition), posAttribute.Value, false);
@@ -187,16 +179,8 @@ namespace ExcelDna.Integration.CustomUI
             {
                 if (childNode.Name == "commandBar")
                 {
-                    string barName = childNode.Attributes["name"].Value;
-                    CommandBar bar = null;
-                    for (int i = 1; i <= excelApp.CommandBars.Count; i++)
-                    {
-                        if (excelApp.CommandBars[i].Name == barName)
-                        {
-                            bar = excelApp.CommandBars[i];
-                            break;
-                        }
-                    }
+                    string barName;
+                    CommandBar bar = GetCommandBarFromIdOrName(excelApp, childNode.Attributes, out barName);
                     if (bar != null)
                     {
                         RemoveControls(bar.Controls, childNode.ChildNodes);
@@ -209,6 +193,68 @@ namespace ExcelDna.Integration.CustomUI
                 }
             }
         }
+
+        // This method contributed by Benoit Patra (see GitHub pull request: https://github.com/Excel-DNA/Excel-DNA/pull/1)
+        // TODO: Still need to sort out the Id property
+        //       This version is temporary, should behave the same as v.0.32
+        private static CommandBar GetCommandBarFromIdOrName(Application excelApp, XmlAttributeCollection nodeAttributes, out string barName)
+        {
+            XmlAttribute name = nodeAttributes["name"];
+            if (name == null) throw new ArgumentException("CommandBar attributes must contain name");
+            barName = name.Value;
+
+            CommandBar bar = null;
+            for (int i = 1; i <= excelApp.CommandBars.Count; i++)
+            {
+                if (excelApp.CommandBars[i].Name == barName)
+                {
+                    bar = excelApp.CommandBars[i];
+                    break;
+                }
+            }
+            return bar;
+        }
+
+        //// We cannot rely only on name to recover the proper CommandBar so we have the possibility to use the ID (which is used in priority).
+        //// Indeed there are two CommandBar for "Cell" see  http://msdn.microsoft.com/en-us/library/office/gg469862(v=office.14).aspx
+        //// However, at the time of the writing there is a mistake: "Application.CommandBars(Application.CommandBars("Cell").Index + 3)" is false in practice
+        //private static CommandBar GetCommandBarFromIdOrName(Application excelApp,XmlAttributeCollection nodeAttributes, out string barName)
+        //{
+        //    var id =  nodeAttributes["id"];
+        //    var name = nodeAttributes["name"];
+        //    if(name ==null) throw new ArgumentException("commandBar attributes must contain name");
+
+        //    barName = name.Value;
+        //    if (id != null)
+        //    {
+        //        string barId = id.Value;
+        //        CommandBar bar = null;
+        //        for (int i = 1; i <= excelApp.CommandBars.Count; i++)
+        //        {
+        //            if (excelApp.CommandBars[i].Id == barId)
+        //            {
+        //                bar = excelApp.CommandBars[i];
+        //                break;
+        //            }
+        //        }
+        //        return bar;
+        //    }
+        //    else
+        //    {
+
+        //        CommandBar bar = null;
+        //        for (int i = 1; i <= excelApp.CommandBars.Count; i++)
+        //        {
+        //            if (excelApp.CommandBars[i].Name == barName)
+        //            {
+        //                bar = excelApp.CommandBars[i];
+        //                break;
+        //            }
+        //        }
+        //        return bar;
+        //    }
+        //}
+
 
         private static void AddControls(CommandBarControls parentControls, XmlNodeList xmlNodes, GetImageDelegate getImage)
         {
@@ -430,7 +476,7 @@ namespace ExcelDna.Integration.CustomUI
         {
             object _object;
             Type _type;
-            
+
             public Application(object application)
             {
                 _object = application;
@@ -465,7 +511,7 @@ namespace ExcelDna.Integration.CustomUI
     {
         object ComObject;
         Type ComObjectType;
-        
+
         internal CommandBar(object commandBar)
         {
             ComObject = commandBar;
@@ -591,7 +637,7 @@ namespace ExcelDna.Integration.CustomUI
 
         internal protected object ComObject;
         internal protected Type ComObjectType;
-        
+
         internal CommandBarControl(object commandBarControl)
         {
             ComObject = commandBarControl;
@@ -619,7 +665,7 @@ namespace ExcelDna.Integration.CustomUI
         internal static CommandBarControl CreateCommandBarControl(object commandBarControl)
         {
             IntPtr pUnk = Marshal.GetIUnknownForObject(commandBarControl);
-            
+
             IntPtr pButton;
             Marshal.QueryInterface(pUnk, ref guidCommandBarButton, out pButton);
             if (pButton != IntPtr.Zero)
@@ -777,7 +823,7 @@ namespace ExcelDna.Integration.CustomUI
                 return (int)ComObjectType.InvokeMember("Index", BindingFlags.GetProperty, null, ComObject, null);
             }
         }
-            
+
         public void Delete(object Temporary)
         {
             ComObjectType.InvokeMember("Delete", BindingFlags.InvokeMethod, null, ComObject, new object[] { Temporary });
@@ -912,7 +958,7 @@ namespace ExcelDna.Integration.CustomUI
         {
             return AddComboBox(Type.Missing);
         }
-        
+
         // before should be int or Missing or string referring to control in this collection
         public CommandBarComboBox AddComboBox(object before)
         {
@@ -940,11 +986,6 @@ namespace ExcelDna.Integration.CustomUI
             Remove(MsoControlType.msoControlPopup, name);
         }
     }
-
-    //public class CommandBarButtonClickEventArgs : EventArgs
-    //{
-    //    public bool CancelDefault;
-    //}
 
     public class CommandBarButton : CommandBarControl
     {
@@ -1003,6 +1044,14 @@ namespace ExcelDna.Integration.CustomUI
                 ComObjectType.InvokeMember("ShortcutText", BindingFlags.SetProperty, null, ComObject, new object[] { value });
             }
         }
+
+        // TODO: Decide whether to implement late-bound event handlers.
+        //       Under .NET 4 with the Embed Interop Types option, it might not make sense to expand the late-bound wrappers any further.
+
+        //public class CommandBarButtonClickEventArgs : EventArgs
+        //{
+        //    public bool CancelDefault;
+        //}
 
         //public event EventHandler<CommandBarButtonClickEventArgs> Click
         //{
