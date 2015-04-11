@@ -113,6 +113,7 @@ namespace ExcelDna.Integration
             {
                 using (new SingletonClassFactoryRegistration(addIn, clsId))
                 using (new ProgIdRegistration(progId, clsId))
+                using (new ClsIdRegistration(clsId, progId))
                 using (new ComAddInRegistration(progId, friendlyName, description))
                 {
                     excelComAddIns = appType.InvokeMember("COMAddIns", BindingFlags.GetProperty, null, app, null, ci);
