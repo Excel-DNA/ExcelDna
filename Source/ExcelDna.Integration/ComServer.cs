@@ -27,7 +27,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
-using System.Security;
 using Microsoft.Win32;
 using ExcelDna.Integration;
 using ExcelDna.ComInterop.ComRegistration;
@@ -171,7 +170,7 @@ namespace ExcelDna.ComInterop
             // http://blogs.msdn.com/b/cjacks/archive/2008/06/06/per-user-com-registrations-and-elevated-processes-with-uac-on-windows-vista-sp1.aspx
             // http://blogs.msdn.com/b/cjacks/archive/2008/07/22/per-user-com-registrations-and-elevated-processes-with-uac-on-windows-vista-sp1-part-2-ole-automation.aspx
 
-            string rootKeyName = CanWriteMachineHive() ? "HKEY_CLASSES_ROOT" : @"HKEY_CURRENT_USER\Software\Classes";
+            string rootKeyName = RegistrationUtil.ClassesRootKey.Name;
 
             // Register the ProgId for CLSIDFromProgID.
             string clsIdString = ClsId.ToString("B").ToUpperInvariant();
@@ -194,8 +193,7 @@ namespace ExcelDna.ComInterop
         // Can throw UnauthorizedAccessException if nothing is writeable
         public void UnregisterServer()
         {
-            RegistryKey rootKey = CanWriteMachineHive() ? Registry.ClassesRoot : 
-                Registry.CurrentUser.CreateSubKey(@"Software\Classes", RegistryKeyPermissionCheck.ReadWriteSubTree);
+            RegistryKey rootKey = RegistrationUtil.ClassesRootKey;
 
             if (!string.IsNullOrEmpty(TypeLibPath))
             {
@@ -306,47 +304,5 @@ namespace ExcelDna.ComInterop
             }
         }
 
-        private static bool CanWriteMachineHive()
-        {
-            // This is not an easy question to answer, due to Registry Virtualization: http://msdn.microsoft.com/en-us/library/aa965884(v=vs.85).aspx
-            // So if registry virtualization is active, the machine writes will redirect to a special user key.
-            // I don't know how to detect that case, so we'll just write to the virtualized location.
-
-            if (_canWriteMachineHive.HasValue)
-                return _canWriteMachineHive.Value;
-
-            const string testKeyName = "_ExcelDna.PermissionsTest";
-            try
-            {
-                RegistryKey testKey = Registry.ClassesRoot.CreateSubKey(testKeyName, RegistryKeyPermissionCheck.ReadWriteSubTree);
-                if (testKey == null)
-                {
-                    Debug.Print("Unexpected failure in CanWriteMachineHive check");
-                    _canWriteMachineHive = false;
-                }
-                else
-                {
-                    Registry.ClassesRoot.DeleteSubKeyTree(testKeyName);
-
-                    // Looks fine, even though it might well be virtualized to some part of the user hive.
-                    // I'd have preferred to return false in the virtualized case, but don't know how to detect it.
-                    _canWriteMachineHive = true;
-                }
-            }
-            catch (UnauthorizedAccessException)
-            {
-                _canWriteMachineHive = false;
-            }
-            catch (SecurityException)
-            {
-                _canWriteMachineHive = false;
-            }
-            catch (Exception e)
-            {
-                Debug.Print("Unexpected exception in CanWriteMachineHive check: " + e);
-                _canWriteMachineHive = false;
-            }
-            return _canWriteMachineHive.Value;
-        }
     }
 }

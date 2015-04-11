@@ -25,6 +25,7 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Security;
 using Microsoft.Win32;
 using ExcelDna.Integration;
 using ExcelDna.Integration.Extensibility;
@@ -158,6 +159,68 @@ namespace ExcelDna.ComInterop.ComRegistration
 
     #region Registration Helpers
 
+    // We check whether the machine-hive HKCR is writeable (by attempting a write)
+    // If it is writeable, we register to the machine hive. Otherwise we fall back to the user hive.
+    // Some care is needed here. See notes at ComServer.RegisterServer().
+
+    internal static class RegistrationUtil
+    {
+        static RegistryKey _rootKey;
+
+        public static RegistryKey ClassesRootKey
+        {
+            get
+            {
+                if (_rootKey == null)
+                {
+                    _rootKey = CanWriteMachineHive() ? 
+                                Registry.ClassesRoot : 
+                                Registry.CurrentUser.CreateSubKey(@"Software\Classes", RegistryKeyPermissionCheck.ReadWriteSubTree);
+                }
+                return _rootKey;
+            }
+        }
+
+        static bool CanWriteMachineHive()
+        {
+            // This is not an easy question to answer, due to Registry Virtualization: http://msdn.microsoft.com/en-us/library/aa965884(v=vs.85).aspx
+            // So if registry virtualization is active, the machine writes will redirect to a special user key.
+            // I don't know how to detect that case, so we'll just write to the virtualized location.
+
+            const string testKeyName = "_ExcelDna.PermissionsTest";
+            try
+            {
+                RegistryKey testKey = Registry.ClassesRoot.CreateSubKey(testKeyName, RegistryKeyPermissionCheck.ReadWriteSubTree);
+                if (testKey == null)
+                {
+                    Debug.Print("Unexpected failure in CanWriteMachineHive check");
+                    return false;
+                }
+                else
+                {
+                    Registry.ClassesRoot.DeleteSubKeyTree(testKeyName);
+
+                    // Looks fine, even though it might well be virtualized to some part of the user hive.
+                    // I'd have preferred to return false in the virtualized case, but don't know how to detect it.
+                    return true;
+                }
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return false;
+            }
+            catch (SecurityException)
+            {
+                return false;
+            }
+            catch (Exception e)
+            {
+                Debug.Print("Unexpected exception in CanWriteMachineHive check: " + e);
+                return false;
+            }
+        }
+    }
+
     // Disposable base class
     internal abstract class Registration : IDisposable
     {
@@ -209,9 +272,7 @@ namespace ExcelDna.ComInterop.ComRegistration
 
     internal class ComAddInRegistration : Registration
     {
-        // Some care is needed here. See notes at ComServer.RegisterServer().
-        // This user-hive registration only always works because we are hosting the ClassFactory explicitly.
-
+        
         readonly string _progId;
 
         public ComAddInRegistration(string progId, string friendlyName, string description)
@@ -237,55 +298,16 @@ namespace ExcelDna.ComInterop.ComRegistration
         public ProgIdRegistration(string progId, CLSID clsId)
         {
             _progId = progId;
+            string rootKeyName = RegistrationUtil.ClassesRootKey.Name;
+
             // Register the ProgId for CLSIDFromProgID.
-            Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\" + _progId + @"\CLSID", null, clsId.ToString("B").ToUpperInvariant(), RegistryValueKind.String);
+            Registry.SetValue(rootKeyName + @"\" + _progId + @"\CLSID", null, clsId.ToString("B").ToUpperInvariant(), RegistryValueKind.String);
         }
 
         protected override void Deregister()
         {
             // Deregister the ProgId for CLSIDFromProgID.
-            Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\" + _progId);
-        }
-    }
-
-
-    // I'm implementating a minimal fix for the CTP loading issue when running under UAC elevation.
-    // Not sure yet why the RTD servers and ribbons work fine, but not the ActiveX loading.
-    // So for now I'm just changing the ActiveX control registration to first attempt a machine registration, 
-    // and if that fails to try a user registration.
-    // CONSIDER: Follow this strategy for all registrations, ro revisit why we have an issue only for this case under UAC elevation.
-    internal class ProgIdUacRegistration : Registration
-    {
-        readonly string _progId;
-        readonly bool _machineRegistration;
-
-        public ProgIdUacRegistration(string progId, CLSID clsId)
-        {
-            _progId = progId;
-
-            try
-            {
-                Registry.SetValue(@"HKEY_CLASSES_ROOT\" + _progId + @"\CLSID", null, clsId.ToString("B").ToUpperInvariant(), RegistryValueKind.String);
-                _machineRegistration = true;
-            }
-            catch
-            {
-                Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\" + _progId + @"\CLSID", null, clsId.ToString("B").ToUpperInvariant(), RegistryValueKind.String);
-                _machineRegistration = false;
-            }
-        }
-
-        protected override void Deregister()
-        {
-            if (_machineRegistration)
-            {
-                Registry.ClassesRoot.DeleteSubKeyTree(_progId);
-            }
-            else
-            {
-                // Deregister the ProgId for CLSIDFromProgID.
-                Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\" + _progId);
-            }
+            RegistrationUtil.ClassesRootKey.DeleteSubKeyTree(@"\" + _progId);
         }
     }
 
@@ -296,71 +318,21 @@ namespace ExcelDna.ComInterop.ComRegistration
         {
             _clsId = clsId;
             string clsIdString = clsId.ToString("B").ToUpperInvariant();
+            string rootKeyName = RegistrationUtil.ClassesRootKey.Name;
+
             // Register the CLSID
-            //Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\CLSID\" + clsId.ToString("B"), null, "Excel RTD Helper Class", RegistryValueKind.String);
-            Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\CLSID\" + clsIdString + @"\InProcServer32", null, DnaLibrary.XllPath, RegistryValueKind.String);
-            Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\CLSID\" + clsIdString + @"\InProcServer32", "ThreadingModel", "Both", RegistryValueKind.String);
+            Registry.SetValue(rootKeyName + @"\CLSID\" + clsIdString + @"\InProcServer32", null, DnaLibrary.XllPath, RegistryValueKind.String);
+            Registry.SetValue(rootKeyName + @"\CLSID\" + clsIdString + @"\InProcServer32", "ThreadingModel", "Both", RegistryValueKind.String);
             if (!string.IsNullOrEmpty(progId))
             {
-                Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\CLSID\" + clsIdString + @"\ProgID", null, progId, RegistryValueKind.String);
+                Registry.SetValue(rootKeyName + @"\CLSID\" + clsIdString + @"\ProgID", null, progId, RegistryValueKind.String);
             }
         }
 
         protected override void Deregister()
         {
             // Deregister the ProgId for CLSIDFromProgID.
-            Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\CLSID\" + _clsId.ToString("B").ToUpperInvariant());
-        }
-    }
-
-    // Same story as the ProgIdUacRegistration - for CTP ActiveX control.
-    internal class ClsIdUacRegistration : Registration
-    {
-        readonly Guid _clsId;
-        readonly bool machineRegistration = false;
-
-        public ClsIdUacRegistration(CLSID clsId, string progId)
-        {
-            _clsId = clsId;
-            string clsIdString = clsId.ToString("B").ToUpperInvariant();
-            // Register the CLSID
-            // Attempt machine key
-
-            try
-            {
-                Registry.SetValue(@"HKEY_CLASSES_ROOT\CLSID\" + clsIdString + @"\InProcServer32", null, DnaLibrary.XllPath, RegistryValueKind.String);
-                Registry.SetValue(@"HKEY_CLASSES_ROOT\CLSID\" + clsIdString + @"\InProcServer32", "ThreadingModel", "Both", RegistryValueKind.String);
-                if (!string.IsNullOrEmpty(progId))
-                {
-                    Registry.SetValue(@"HKEY_CLASSES_ROOT\CLSID\" + clsIdString + @"\ProgID", null, progId, RegistryValueKind.String);
-                }
-                machineRegistration = true;
-            }
-            catch
-            {
-                machineRegistration = false;
-                //Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\CLSID\" + clsId.ToString("B"), null, "Excel RTD Helper Class", RegistryValueKind.String);
-                Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\CLSID\" + clsIdString + @"\InProcServer32", null, DnaLibrary.XllPath, RegistryValueKind.String);
-                Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\CLSID\" + clsIdString + @"\InProcServer32", "ThreadingModel", "Both", RegistryValueKind.String);
-
-                if (!string.IsNullOrEmpty(progId))
-                {
-                    Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\CLSID\" + clsIdString + @"\ProgID", null, progId, RegistryValueKind.String);
-                }
-            }
-        }
-
-        protected override void Deregister()
-        {
-            // Deregister the ProgId for CLSIDFromProgID.
-            if (machineRegistration)
-            {
-                Registry.ClassesRoot.DeleteSubKeyTree(@"CLSID\" + _clsId.ToString("B").ToUpperInvariant());
-            }
-            else
-            {
-                Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\CLSID\" + _clsId.ToString("B").ToUpperInvariant());
-            }
+            RegistrationUtil.ClassesRootKey.DeleteSubKeyTree(@"\CLSID\" + _clsId.ToString("B").ToUpperInvariant());
         }
     }
 

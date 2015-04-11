@@ -63,16 +63,12 @@ namespace ExcelDna.Integration.CustomUI
             string progId = "CtpSrv." + clsId.ToString("N");
 
             // Instantiate and then register UserControl
-            // For some reason, there is a problem loading the user control when running under an elevated UAC token.
-            // So we use the form of the registration which tries to first register for the machine, 
-            // then fall back to the user hive if that fails.
-
             try
             {
                 object userControl = Activator.CreateInstance(userControlType);
                 using (new SingletonClassFactoryRegistration(userControl, clsId))
-                using (new ProgIdUacRegistration(progId, clsId))
-                using (new ClsIdUacRegistration(clsId, progId))
+                using (new ProgIdRegistration(progId, clsId))
+                using (new ClsIdRegistration(clsId, progId))
                 {
                     return CreateCustomTaskPane(progId, title, parent);
                 }
