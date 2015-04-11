@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 using System.Security;
 using Microsoft.Win32;
 using ExcelDna.Integration;
@@ -37,17 +38,19 @@ namespace ExcelDna.ComInterop
     using HRESULT = System.Int32;
     using IID = System.Guid;
     using CLSID = System.Guid;
-    using System.Runtime.InteropServices.ComTypes;
 
     // The Excel-DNA .xll can also act as an in-process COM server.
     // This is implemented to support direct use of the RTD servers from the worksheet
     // using the =RTD(...) function.
     // TODO: Add explicit registration of types?
-    // TODO: Add on-demand registration.
     public static class ComServer
     {
-        // Internal COM Server support.
+        // COM Server support for persistently registered types.
         static readonly List<ExcelComClassType> registeredComClassTypes = new List<ExcelComClassType>();
+        
+        // Used for on-demand COM add-in (and RTD Server and CTP control) registration.
+        // Added and removed from the Dictionary as we go along.
+        static readonly Dictionary<CLSID, ComAPI.IClassFactory> registeredClassFactories = new Dictionary<CLSID, ComAPI.IClassFactory>();
 
         internal static void RegisterComClassTypes(List<ExcelComClassType> comClassTypes)
         {
@@ -61,8 +64,19 @@ namespace ExcelDna.ComInterop
             registeredComClassTypes.Add(comClassType);
         }
 
-        // This may also be called by an add-in wanting to register
-        // CONSIDER: Should this rather use RegistrationServices class?
+        internal static void RegisterClassFactory(CLSID clsId, ComAPI.IClassFactory classFactory)
+        {
+            // CONSIDER: Do we need to deal with the case where it is already in the list?
+            //           For now we expect it to throw...
+            registeredClassFactories.Add(clsId, classFactory);
+        }
+
+        internal static void UnregisterClassFactory(CLSID clsId)
+        {
+            registeredClassFactories.Remove(clsId);
+        }
+
+        // This may also be called by an add-in wanting to register programmatically (e.g. in AutoOpen)
         public static HRESULT DllRegisterServer()
         {
             foreach (ExcelComClassType comClass in registeredComClassTypes)
@@ -73,7 +87,7 @@ namespace ExcelDna.ComInterop
             return ComAPI.S_OK;
         }
 
-        // This may also be called by an add-in wanting to unregister
+        // This may also be called by an add-in wanting to unregister programmatically
         public static HRESULT DllUnregisterServer()
         {
             foreach (ExcelComClassType comClass in registeredComClassTypes)
@@ -90,26 +104,42 @@ namespace ExcelDna.ComInterop
                 ppunk = IntPtr.Zero;
                 return ComAPI.E_INVALIDARG;
             }
-            foreach (ExcelComClassType comClass in registeredComClassTypes)
+
+            ComAPI.IClassFactory factory;
+            if (registeredClassFactories.TryGetValue(clsid, out factory) ||
+                TryGetComClassType(clsid, out factory))
             {
-               if (comClass.ClsId == clsid)
-               {
-                   ClassFactory factory = new ClassFactory(comClass);
-                   IntPtr punkFactory = Marshal.GetIUnknownForObject(factory);
-                   HRESULT hrQI = Marshal.QueryInterface(punkFactory, ref iid, out ppunk);
-                   Marshal.Release(punkFactory);
-                   if (hrQI == ComAPI.S_OK)
-                   {
-                       return ComAPI.S_OK;
-                   }
-                   else
-                   {
-                       return ComAPI.E_UNEXPECTED;
-                   }
-               }
+                IntPtr punkFactory = Marshal.GetIUnknownForObject(factory);
+                HRESULT hrQI = Marshal.QueryInterface(punkFactory, ref iid, out ppunk);
+                Marshal.Release(punkFactory);
+                if (hrQI == ComAPI.S_OK)
+                {
+                    return ComAPI.S_OK;
+                }
+                else
+                {
+                    return ComAPI.E_UNEXPECTED;
+                }
             }
+
+            // Otherwise it was not found
             ppunk = IntPtr.Zero;
             return ComAPI.CLASS_E_CLASSNOTAVAILABLE;
+        }
+
+        static bool TryGetComClassType(CLSID clsId, out ComAPI.IClassFactory factory)
+        {
+            // Check among the persistently registered classes
+            foreach (ExcelComClassType comClass in registeredComClassTypes)
+            {
+                if (comClass.ClsId == clsId)
+                {
+                    factory = new ClassFactory(comClass);
+                    return true;
+                }
+            }
+            factory = null;
+            return false;
         }
 
         internal static HRESULT DllCanUnloadNow()
@@ -117,7 +147,6 @@ namespace ExcelDna.ComInterop
             // CONSIDER: Allow unloading - but how to keep track of this.....?
             return ComAPI.S_FALSE;
         }
-
     }
 
     internal class ExcelComClassType

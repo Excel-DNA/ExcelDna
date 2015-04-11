@@ -364,78 +364,24 @@ namespace ExcelDna.ComInterop.ComRegistration
         }
     }
 
-    internal class ClassFactoryRegistration : Registration
-    {
-        private const DWORD CLSCTX_INPROC_SERVER = 0x1;
-        private const DWORD REGCLS_SINGLEUSE = 0;
-        private const DWORD REGCLS_MULTIPLEUSE = 1;
-
-        private DWORD _classRegister;
-
-        public ClassFactoryRegistration(Type type, CLSID clsId)
-        {
-            ClassFactory factory = new ClassFactory(type);
-            IntPtr pFactory = Marshal.GetIUnknownForObject(factory);
-            HRESULT result = ComAPI.CoRegisterClassObject(ref clsId, pFactory,
-                                CLSCTX_INPROC_SERVER, REGCLS_MULTIPLEUSE, out _classRegister);
-
-            if (result != ComAPI.S_OK)
-            {
-                throw new InvalidOperationException("CoRegisterClassObject failed.");
-            }
-        }
-
-        protected override void Deregister()
-        {
-            if (_classRegister != 0)
-            {
-                HRESULT result = ComAPI.CoRevokeClassObject(_classRegister);
-                if (result != ComAPI.S_OK)
-                {
-                    Debug.Print("ClassFactory deregistration failed. Result: {0}", result);
-                }
-                _classRegister = 0;
-            }
-        }
-    }
-
+    // Implements the IClassFactory factory registration by (temporarily) adding it to the list of classes implemented through the ComServer.
+    // We then write the registry keys that will point Excel to the .xll as the provider of this class, 
+    // and the ComServer will handle the DllGetClassObject call, returning the IClassFactory.
     internal class SingletonClassFactoryRegistration : Registration
     {
-        private const DWORD CLSCTX_INPROC_SERVER = 0x1;
-        private const DWORD REGCLS_SINGLEUSE = 0;
-        private const DWORD REGCLS_MULTIPLEUSE = 1;
-
-        private object _instance;
-        private DWORD _classRegister;
-
+        CLSID _clsId;
         public SingletonClassFactoryRegistration(object instance, CLSID clsId)
         {
-            _instance = instance;
+            _clsId = clsId;
             SingletonClassFactory factory = new SingletonClassFactory(instance);
-            IntPtr pFactory = Marshal.GetIUnknownForObject(factory);
-            // In versions < 0.29 we registered as REGCLS_SINGLEUSE even though it is not supposed to work for inproc servers.
-            // It seems to do no harm to keep the ClassObject around.
-            HRESULT result = ComAPI.CoRegisterClassObject(ref clsId, pFactory,
-                                CLSCTX_INPROC_SERVER, REGCLS_MULTIPLEUSE, out _classRegister);
-
-            if (result != ComAPI.S_OK)
-            {
-                throw new InvalidOperationException("CoRegisterClassObject failed.");
-            }
+            ComServer.RegisterClassFactory(_clsId, factory);
         }
 
         protected override void Deregister()
         {
-            if (_classRegister != 0)
-            {
-                HRESULT result = ComAPI.CoRevokeClassObject(_classRegister);
-                if (result != ComAPI.S_OK)
-                {
-                    Debug.Print("ClassFactory deregistration failed. Result: {0}", result);
-                }
-                _classRegister = 0;
-            }
+            ComServer.UnregisterClassFactory(_clsId);
         }
     }
+
     #endregion
 }

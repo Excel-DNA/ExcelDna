@@ -366,6 +366,4 @@ namespace ExcelDna.Integration.Rtd
             }
         }
     }
-
-
 }
