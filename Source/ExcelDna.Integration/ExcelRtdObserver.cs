@@ -337,7 +337,11 @@ namespace ExcelDna.Integration.Rtd
             // CONSIDER: All of this could be replaced by a check for (obj is ValueType || obj is ExcelReference)
             //           which would allow a more flexible set of parameters, at the risk of comparisons going wrong.
             //           We can reconsider if this arises, or when we implement async automatically or custom marshaling 
-            //           to other data types. For now this allow everything that can be passed as parameters from Excel-DNA.
+            //           to other data types. For now this allows everything that can be passed as parameters from Excel-DNA.
+
+            // We also support using an opaque byte[] hash as the parameters 'key'.
+            // In cases with huge amounts of active topics, especially using string parameters, this can improve the memory usage significantly.
+
             if (obj is double ||
                 obj is float ||
                 obj is string ||
@@ -404,6 +408,16 @@ namespace ExcelDna.Integration.Rtd
                     }
                     return hash;
                 }
+
+                byte[] bytes = obj as byte[];
+                if (bytes != null)
+                {
+                    foreach (byte b in bytes)
+                    {
+                        hash = hash * 23 + b;
+                    }
+                    return hash;
+                }
             }
             throw new ArgumentException("Invalid type used for async parameter(s)", "parameters");
         }
@@ -431,6 +445,7 @@ namespace ExcelDna.Integration.Rtd
             if (a is double[,] && b is double[,]) return ArrayEquals((double[,])a, (double[,])b);
             if (a is object[] && b is object[]) return ArrayEquals((object[])a, (object[])b);
             if (a is object[,] && b is object[,]) return ArrayEquals((object[,])a, (object[,])b);
+            if (a is byte[] && b is byte[]) return ArrayEquals((byte[])a, (byte[])b);
             return false;
         }
 
@@ -495,6 +510,18 @@ namespace ExcelDna.Integration.Rtd
             }
             return true;
         }
+
+        static bool ArrayEquals(byte[] a, byte[] b)
+        {
+            if (a.Length != b.Length)
+                return false;
+            for (int i = 0; i < a.Length; i++)
+            {
+                if (a[i] != b[i]) return false;
+            }
+            return true;
+        }
+
         #endregion
 
         public override int GetHashCode()
