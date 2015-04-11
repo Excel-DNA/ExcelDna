@@ -27,7 +27,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
 using System.Security;
 using Microsoft.Win32;
 using ExcelDna.Integration;
@@ -38,6 +37,7 @@ namespace ExcelDna.ComInterop
     using HRESULT = System.Int32;
     using IID = System.Guid;
     using CLSID = System.Guid;
+    using System.Runtime.InteropServices.ComTypes;
 
     // The Excel-DNA .xll can also act as an in-process COM server.
     // This is implemented to support direct use of the RTD servers from the worksheet
