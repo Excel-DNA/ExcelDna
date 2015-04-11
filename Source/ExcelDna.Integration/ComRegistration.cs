@@ -106,7 +106,7 @@ namespace ExcelDna.ComInterop.ComRegistration
         }
     }
 
-    // This is a class factory that serve as a singleton 'factory' for a given object
+    // This is a class factory that serves as a singleton 'factory' for a given object
     // - it will return exactly that object when CreateInstance is called 
     // (checking interface support).
     // Used for the RTD classes.
