@@ -5,6 +5,10 @@ Version 0.33 (???)
 * Fix timer leak in ExcelDnaUtil.QueueAsMacro (incorrect timer id tracking).
 * Allow CommandBars find by Id.
 * Save source files as binary when packing.
+* Add further workaround for RTD bugs in Excel 2010 RTM.
+* Fix memory leak where on-demand registered RTD servers were not garbage collected after ServerTerminate().
+* Change COM registrations (for RTD< ribbon and CTP) to always try machine hive first, before falling back to user hive.
+* Allow byte[] as parameters key in ExcelRtdObservable, to support storing only an opaque hash instead of the full parameter set.
 
 Version 0.32 (3 May 2014)
 -------------------------
