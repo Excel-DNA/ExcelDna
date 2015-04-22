@@ -199,7 +199,10 @@ namespace ExcelDna.Integration.Rtd
             Value = value;
             // Not actually setting the topic value, just poking it
             // TODO: Using the 'fake' RTD value should be optional - to give us a way to deal with 'newValues' one day.
-            _topic.UpdateValue(DateTime.UtcNow.ToOADate());
+            // BUGBUG: The ToOADate truncates, things might happy in the same millisecond etc.
+            //         See https://exceldna.codeplex.com/workitem/9472
+            //_topic.UpdateValue(DateTime.UtcNow.ToOADate());
+            _topic.UpdateNotify();
         }
     }
 
@@ -254,7 +257,7 @@ namespace ExcelDna.Integration.Rtd
             // in a special way (<tp t="e"><v>#N/A</v> in volatileDependencies.xml) - while other values seem to trigger a recalculate on file open, 
             // when Excel attempts to restart the RTD server and fails (due to transient ProgId).
             // So we already return the same kind of value we'd return for updates, putting Excel into the 'value has been updated' state
-            // even if the sheet is saved. That will trigger a proper formula recals on file open.
+            // even if the sheet is saved. That will trigger a proper formula recalcs on file open.
             return DateTime.UtcNow.ToOADate();
         }
 

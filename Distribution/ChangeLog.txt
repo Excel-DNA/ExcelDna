@@ -9,6 +9,7 @@ Version 0.33 (???)
 * Fix memory leak where on-demand registered RTD servers were not garbage collected after ServerTerminate().
 * Change COM registrations (for RTD< ribbon and CTP) to always try machine hive first, before falling back to user hive.
 * Allow byte[] as parameters key in ExcelRtdObservable, to support storing only an opaque hash instead of the full parameter set.
+* Fix race condition between ExcelRtdObserver.OnNext(), DateTime.ToOADateTime() and Excel calling RefreshData().
 
 Version 0.32 (3 May 2014)
 -------------------------
