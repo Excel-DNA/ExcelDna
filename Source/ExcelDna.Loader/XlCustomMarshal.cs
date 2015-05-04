@@ -260,13 +260,11 @@ namespace ExcelDna.Loader
 
 		}
 
-		public IntPtr MarshalManagedToNative(object ManagedObj)
-		{
-			XlOper* xlOper = (XlOper*)pNative;
-			xlOper->boolValue = (bool)ManagedObj ? (ushort)1 : (ushort)0;
-			xlOper->xlType = XlType.XlTypeBoolean;
-			return pNative;
-		}
+        public IntPtr MarshalManagedToNative(object ManagedObj)
+        {
+            // Not working in this direction at the moment
+            throw new NotImplementedException("This marshaler only used for native to managed parameter marshaling.");
+        }
 
         public object MarshalNativeToManaged(IntPtr pNativeData)
         {

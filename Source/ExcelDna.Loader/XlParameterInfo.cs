@@ -285,20 +285,11 @@ namespace ExcelDna.Loader
 			{
 				if (isReturnType)
 				{
-					if (!isExceptionSafe)
-					{
-						XlType = "P"; // OPER
-						MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObjectMarshaler));
-						DelegateParamType = typeof(object);
-						BoxedValueType = typeof(bool);
-					}
-					else
-					{
-						XlType = "P"; // OPER
-						MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlBooleanMarshaler));
-						DelegateParamType = typeof(object);
-						BoxedValueType = typeof(bool);
-					}
+					XlType = "P"; // OPER
+					MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObjectMarshaler));
+					DelegateParamType = typeof(object);
+					BoxedValueType = typeof(bool);
+
 				}
 				else
 				{
@@ -311,7 +302,7 @@ namespace ExcelDna.Loader
 			}
 			else if (type == typeof(int))
 			{
-				if (isReturnType && !isExceptionSafe)
+				if (isReturnType)
 				{
 					XlType = "P"; // OPER
 					MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObjectMarshaler));
@@ -329,7 +320,7 @@ namespace ExcelDna.Loader
 			}
 			else if (type == typeof(short))
 			{
-				if (isReturnType && !isExceptionSafe)
+				if (isReturnType)
 				{
 					XlType = "P"; // OPER
 					MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObjectMarshaler));
@@ -347,7 +338,7 @@ namespace ExcelDna.Loader
 			}
 			else if (type == typeof(ushort))
 			{
-				if (isReturnType && !isExceptionSafe)
+				if (isReturnType)
 				{
 					XlType = "P"; // OPER
 					MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObjectMarshaler));
@@ -564,20 +555,10 @@ namespace ExcelDna.Loader
             {
                 if (isReturnType)
                 {
-                    if (!isExceptionSafe)
-                    {
-                        XlType = "Q"; // OPER
-                        MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObject12Marshaler));
-                        DelegateParamType = typeof(object);
-                        BoxedValueType = typeof(bool);
-                    }
-                    else
-                    {
-                        XlType = "Q"; // OPER
-                        MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlBoolean12Marshaler));
-                        DelegateParamType = typeof(object);
-                        BoxedValueType = typeof(bool);
-                    }
+                    XlType = "Q"; // OPER
+                    MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObject12Marshaler));
+                    DelegateParamType = typeof(object);
+                    BoxedValueType = typeof(bool);
                 }
                 else
                 {
@@ -590,7 +571,7 @@ namespace ExcelDna.Loader
             }
             else if (type == typeof(int))
             {
-                if (isReturnType && !isExceptionSafe)
+                if (isReturnType)
                 {
                     XlType = "Q"; // OPER
                     MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObject12Marshaler));
@@ -608,7 +589,7 @@ namespace ExcelDna.Loader
             }
             else if (type == typeof(short))
             {
-                if (isReturnType && !isExceptionSafe)
+                if (isReturnType)
                 {
                     XlType = "Q"; // OPER
                     MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObject12Marshaler));
@@ -626,7 +607,7 @@ namespace ExcelDna.Loader
             }
             else if (type == typeof(ushort))
             {
-                if (isReturnType && !isExceptionSafe)
+                if (isReturnType)
                 {
                     XlType = "Q"; // OPER
                     MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObject12Marshaler));

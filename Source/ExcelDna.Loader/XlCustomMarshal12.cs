@@ -281,11 +281,11 @@ namespace ExcelDna.Loader
 			return instance;
 		}
 
-		public IntPtr MarshalManagedToNative(object ManagedObj)
-		{
-			// Forward to the correct instance for this thread.
-			return XlBoolean12MarshalerImpl.GetInstance().MarshalManagedToNative(ManagedObj);
-		}
+        public IntPtr MarshalManagedToNative(object ManagedObj)
+        {
+            // Not working in this direction at the moment
+            throw new NotImplementedException("This marshaler only used for native to managed parameter marshaling.");
+        }
 
         public object MarshalNativeToManaged(IntPtr pNativeData)
         {
@@ -319,39 +319,6 @@ namespace ExcelDna.Loader
 		public void CleanUpNativeData(IntPtr pNativeData) { } // Can't do anything useful here, as the managed to native marshaling is for a return parameter.
 		public int GetNativeDataSize() { return -1; }
 
-
-		// Boolean returns are returned as an XLOPER 
-		// - can't make it short due to marshaling limitations,
-		// so we force a boxing
-		private unsafe class XlBoolean12MarshalerImpl
-		{
-			[ThreadStatic]
-			static XlBoolean12MarshalerImpl instance;
-			IntPtr pNative; // this is really an XlOper, and is is allocated once, 
-			// when the marshaller is constructed, 
-			// and is never reclaimed
-
-			public XlBoolean12MarshalerImpl()
-			{
-				int size = Marshal.SizeOf(typeof(XlOper12));
-				pNative = Marshal.AllocCoTaskMem(size);
-			}
-
-			public static XlBoolean12MarshalerImpl GetInstance()
-			{
-				if (instance == null)
-					instance = new XlBoolean12MarshalerImpl();
-				return instance;
-			}
-
-			public IntPtr MarshalManagedToNative(object ManagedObj)
-			{
-				XlOper12* xlOper = (XlOper12*)pNative;
-				xlOper->boolValue = (bool)ManagedObj ? 1 : 0;
-				xlOper->xlType = XlType12.XlTypeBoolean;
-				return pNative;
-			}
-		}
 	}
 
 	public class XlDateTime12Marshaler : ICustomMarshaler
@@ -402,13 +369,13 @@ namespace ExcelDna.Loader
 		{
 			[ThreadStatic]
 			static XlDateTime12MarshalerImpl instance;
-			IntPtr pNative; // this is really an XlOper, and is is allocated once, 
-			// when the marshaller is constructed, 
-			// and is never reclaimed
+			IntPtr pNative; // this is really a double, and is is allocated once, 
+			                // when the marshaller is constructed, 
+			                // and is never reclaimed
 
 			public XlDateTime12MarshalerImpl()
 			{
-				int size = Marshal.SizeOf(typeof(XlOper12));
+				int size = Marshal.SizeOf(typeof(double));
 				pNative = Marshal.AllocCoTaskMem(size);
 			}
 
