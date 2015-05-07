@@ -57,6 +57,8 @@ namespace ExcelDna.Integration
                 Type[] types;
                 try
                 {
+                    // NOTE: The fact that NonPublic types are returned here, and processed as-if they were public
+                    //       was a mistake. But it would be a serious breaking change to go back, so we'll leave it as is.
                     types = assembly.Assembly.GetTypes();
                 }
                 catch (ReflectionTypeLoadException e)
@@ -200,6 +202,8 @@ namespace ExcelDna.Integration
 
 		static public void GetExcelAddIns(ExportedAssembly assembly, Type t, bool loadRibbons, List<ExcelAddInInfo> addIns)
 		{
+            // NOTE: We probably should have restricted this to public types, but didn't. Now it's too late.
+            //       So internal classes that implement IExcelAddIn are also loaded.
             try
             {
                 Type addInType = t.GetInterface("ExcelDna.Integration.IExcelAddIn");
