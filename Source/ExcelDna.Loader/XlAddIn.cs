@@ -70,7 +70,7 @@ namespace ExcelDna.Loader
     public unsafe static class XlAddIn
     {
         // This version must match the version declared in ExcelDna.Integration.ExcelIntegration
-        const int ExcelIntegrationVersion = 6;
+        const int ExcelIntegrationVersion = 7;
 
         static int thunkTableLength;
         static IntPtr thunkTable;

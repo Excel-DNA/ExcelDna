@@ -11,6 +11,7 @@ Version 0.33 (???)
 * Allow byte[] as parameters key in ExcelRtdObservable, to support storing only an opaque hash instead of the full parameter set.
 * Fix race condition between ExcelRtdObserver.OnNext(), DateTime.ToOADateTime() and Excel calling RefreshData().
 * Fix integer return type with IsExceptionSafe=true crashes in marshaling.
+* Update ExcelReference to allow immutable use, mark AddRectangle mutator Obsolete. Add operator== to AsyncCallInfo.
 
 Version 0.32 (3 May 2014)
 -------------------------

@@ -733,14 +733,24 @@ namespace ExcelDna.Loader
                         ushort numAreas = *(ushort*)pOper->refValue.pMultiRef;
                         // XlOper12.XlRectangle12* pAreas = (XlOper12.XlRectangle12*)((uint)pOper->refValue.pMultiRef + 4 /* FieldOffset for XlRectangles */);
                         XlOper12.XlRectangle12* pAreas = (XlOper12.XlRectangle12*)((byte*)(pOper->refValue.pMultiRef) + 4 /* FieldOffset for XlRectangles */);
-                        r = IntegrationMarshalHelpers.CreateExcelReference(
-                            pAreas[0].RowFirst, pAreas[0].RowLast,
-                            pAreas[0].ColumnFirst, pAreas[0].ColumnLast, pOper->refValue.SheetId);
-                        for (int i = 1; i < numAreas; i++)
+                        if (numAreas == 1)
                         {
-                            IntegrationMarshalHelpers.ExcelReferenceAddReference(r,
-                                           pAreas[i].RowFirst, pAreas[i].RowLast,
-                                           pAreas[i].ColumnFirst, pAreas[i].ColumnLast);
+
+                            r = IntegrationMarshalHelpers.CreateExcelReference(
+                                pAreas[0].RowFirst, pAreas[0].RowLast,
+                                pAreas[0].ColumnFirst, pAreas[0].ColumnLast, pOper->refValue.SheetId);
+                        }
+                        else
+                        {
+                            int[][] areas = new int[numAreas][];
+                            for (int i = 0; i < numAreas; i++)
+                            {
+                                XlOper12.XlRectangle12 rect = pAreas[i];
+                                int[] area = new int[4] { rect.RowFirst, rect.RowLast,
+                                                          rect.ColumnFirst, rect.ColumnLast };
+                                areas[i] = area;
+                            }
+                            r = IntegrationMarshalHelpers.CreateExcelReference(areas, pOper->refValue.SheetId);
                         }
                     }
                     managed = r;

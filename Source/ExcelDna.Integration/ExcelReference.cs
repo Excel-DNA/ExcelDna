@@ -29,9 +29,9 @@ using System.Diagnostics;
 namespace ExcelDna.Integration
 {
     // CAUTION: The ExcelReference class is also called via reflection by the ExcelDna.Loader marshaler.
-	public class ExcelReference
+	public class ExcelReference : IEquatable<ExcelReference>
 	{
-	    class ExcelRectangle
+	    class ExcelRectangle : IEquatable<ExcelRectangle>
         {
             public readonly int RowFirst;
             public readonly int RowLast;
@@ -67,7 +67,7 @@ namespace ExcelDna.Integration
                 return Equals((ExcelRectangle) obj);
             }
 
-            bool Equals(ExcelRectangle other)
+            public bool Equals(ExcelRectangle other)
             {
                 if (ReferenceEquals(null, other)) return false;
                 if (ReferenceEquals(this, other)) return true;
@@ -129,8 +129,23 @@ namespace ExcelDna.Integration
             rectangles.Add(rect);
         }
 
+        public ExcelReference(int[][] rectangles, IntPtr sheetId)
+        {
+            this.sheetId = sheetId;
+            int rectCount = rectangles.Length;
+            for (int i = 0; i < rectCount; i++)
+            {
+                int[] rect = rectangles[i];
+                Debug.Assert(rect.Length == 4);
+                this.rectangles.Add(new ExcelRectangle(rect[0], rect[1], rect[2], rect[3]));
+            }
+        }
+
 		// THROWS: OverFlowException if the arguments exceed the allowed size
 		// or if the number of Inner References exceeds 65000
+        // NOTE: Currently used (via reflection) from ExcelDna.Loader to populate the rectangles. 
+        // TODO: Change to use a safer mechanism
+        [Obsolete("An ExcelReference should never be modified.")]
 		public void AddReference(int rowFirst, int rowLast, int columnFirst, int columnLast)
 		{
 			if (rectangles.Count < ushort.MaxValue)
@@ -164,6 +179,7 @@ namespace ExcelDna.Integration
 			get { return sheetId; }
 		}
 
+        // TODO: Document the fact that the returned list is a copy, and does not modify the list of Rectangles in the ExcelReference.
 		public List<ExcelReference> InnerReferences
 		{
 			get 
@@ -217,7 +233,7 @@ namespace ExcelDna.Integration
             return Equals((ExcelReference) obj);
         }
 
-	    bool Equals(ExcelReference other)
+	    public bool Equals(ExcelReference other)
 	    {
 	        if (ReferenceEquals(null, other)) return false;
 	        if (ReferenceEquals(this, other)) return true;

@@ -531,6 +531,16 @@ namespace ExcelDna.Integration.Rtd
         {
             return _hashCode;
         }
+
+        public static bool operator ==(AsyncCallInfo asyncCallInfo1, AsyncCallInfo asyncCallInfo2)
+        {
+            return asyncCallInfo1.Equals(asyncCallInfo2);
+        }
+
+        public static bool operator !=(AsyncCallInfo asyncCallInfo1, AsyncCallInfo asyncCallInfo2)
+        {
+            return !(asyncCallInfo1.Equals(asyncCallInfo2));
+        }
     }
 
     // This manages the information for a single Caller (maybe multiple UDF+callinfos)

@@ -11,7 +11,7 @@ namespace ExcelDna.Loader
     {
         static Type excelReferenceType;
         static ConstructorInfo excelReferenceConstructor;
-        static MethodInfo excelReferenceAddReference;
+        static ConstructorInfo excelReferenceConstructorRects;
         static PropertyInfo excelReferenceGetSheetId;
         static MethodInfo excelReferenceGetRectangleCount;
         static MethodInfo excelReferenceGetRectangles;
@@ -33,7 +33,7 @@ namespace ExcelDna.Loader
         {
             excelReferenceType = integrationAssembly.GetType("ExcelDna.Integration.ExcelReference");
             excelReferenceConstructor = excelReferenceType.GetConstructor(new Type[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(IntPtr) });
-            excelReferenceAddReference = excelReferenceType.GetMethod("AddReference");
+            excelReferenceConstructorRects = excelReferenceType.GetConstructor(new Type[] { typeof(int[][]), typeof(IntPtr) });
             excelReferenceGetSheetId = excelReferenceType.GetProperty("SheetId");
             excelReferenceGetRectangleCount = excelReferenceType.GetMethod("GetRectangleCount", BindingFlags.NonPublic | BindingFlags.Instance);
             excelReferenceGetRectangles = excelReferenceType.GetMethod("GetRectangles", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -55,7 +55,7 @@ namespace ExcelDna.Loader
 
             Debug.Assert( excelReferenceType != null &&
                           excelReferenceConstructor != null &&
-                          excelReferenceAddReference != null &&
+                          excelReferenceConstructorRects != null &&
                           excelReferenceGetSheetId != null &&
                           excelReferenceGetRectangleCount != null &&
                           excelReferenceGetRectangles != null &&
@@ -82,6 +82,11 @@ namespace ExcelDna.Loader
         internal static object CreateExcelReference(int rowFirst, int rowLast, int columnFirst, int columnLast, IntPtr sheetId)
         {
             return excelReferenceConstructor.Invoke(new object[] { rowFirst, rowLast, columnFirst, columnLast, sheetId });
+        }
+
+        internal static object CreateExcelReference(int[][] areas, IntPtr sheetId)
+        {
+            return excelReferenceConstructorRects.Invoke(new object[] { areas, sheetId });
         }
 
         internal unsafe static void SetExcelReference(XlOper* pOper, XlOper.XlMultiRef* pMultiRef, object /*ExcelReference*/ r)
@@ -128,11 +133,6 @@ namespace ExcelDna.Loader
                 pRectangles[i].ColumnFirst = rects[i][2];
                 pRectangles[i].ColumnLast = rects[i][3];
             }
-        }
-
-        internal static void ExcelReferenceAddReference(object r, int rowFirst, int rowLast, int columnFirst, int columnLast)
-        {
-            excelReferenceAddReference.Invoke(r, new object[] { rowFirst, rowLast, columnFirst, columnLast });
         }
 
         internal static IntPtr ExcelReferenceGetSheetId(object r)
