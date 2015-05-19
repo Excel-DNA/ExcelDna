@@ -26,7 +26,7 @@
 
 // EXPORT_COUNT defines the size of the thunk table. 
 // Must match the number of functions exported in ExcelDna.cpp and JmpExports64.asm
-#define EXPORT_COUNT 5000
+#define EXPORT_COUNT 10000
 
 // The function pointers will be exported from managed code in the StdCall convention.
 typedef void    (__stdcall *PFN)();

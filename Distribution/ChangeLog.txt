@@ -12,6 +12,7 @@ Version 0.33 (???)
 * Fix race condition between ExcelRtdObserver.OnNext(), DateTime.ToOADateTime() and Excel calling RefreshData().
 * Fix integer return type with IsExceptionSafe=true crashes in marshaling.
 * Update ExcelReference to allow immutable use, mark AddRectangle mutator Obsolete. Add operator== to AsyncCallInfo.
+* Increase number of exports to 10,000.
 
 Version 0.32 (3 May 2014)
 -------------------------
