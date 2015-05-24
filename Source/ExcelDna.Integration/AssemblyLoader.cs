@@ -111,7 +111,7 @@ namespace ExcelDna.Integration
                 t.Namespace == "My")
             {
                 // Bad cases
-                Debug.Print("ExcelDNA -> Inappropriate Type: " + t.FullName);
+                Debug.Print("Excel-DNA -> Unsupported Type: " + t.FullName);
                 return;
             }
 
@@ -126,25 +126,39 @@ namespace ExcelDna.Integration
 
         static bool IsMethodSupported(MethodInfo mi, bool explicitExports)
         {
+            var isSupported = true;
+
             // Skip generic methods - these may appear even though we have skipped generic types, 
             // e.g. in F# --standalone assemblies
             if (mi.IsAbstract || mi.IsGenericMethod)
-                return false;
-
-            // if explicitexports - check that this method is marked
-            if (explicitExports && !IsMethodMarkedForExport(mi))
-                return false;
-
-            if (!IsParameterTypeSupported(mi.ReturnType))
-                return false;
-
-            foreach (ParameterInfo pi in mi.GetParameters())
             {
-                if (!IsParameterTypeSupported(pi.ParameterType))
-                    return false;
+                isSupported = false;
+            }
+            // if explicitexports - check that this method is marked
+            else if (explicitExports && !IsMethodMarkedForExport(mi))
+            {
+                isSupported = false;
+            }
+            else if (!IsParameterTypeSupported(mi.ReturnType))
+            {
+                isSupported = false;
+            }
+            else
+            {
+                foreach (ParameterInfo pi in mi.GetParameters())
+                {
+                    if (!IsParameterTypeSupported(pi.ParameterType))
+                        isSupported = false;
+                }
             }
 
-            return true;
+            // We want to log methods that are marked for export, but have unsupported types.
+            if (!isSupported && IsMethodMarkedForExport(mi))
+            {
+                Debug.Print("Excel-DNA -> Unsupported Method: " + mi.Name);
+            }
+
+            return isSupported;
         }
 
 		// CAUTION: This check needs to match the usage in ExcelDna.Loader.XlMethodInfo.SetAttributeInfo()
