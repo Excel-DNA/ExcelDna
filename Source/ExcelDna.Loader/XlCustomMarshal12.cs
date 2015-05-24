@@ -54,6 +54,7 @@ using System.Runtime.InteropServices;
 
 // TODO: Marshalers should implement disposable pattern.
 
+// Revisit marshaling, taking in consideration stackalloc and/or using a static ThreadLocal with a fixed size.
 namespace ExcelDna.Loader
 {
 	// Internal Implementations of the Excel Types
