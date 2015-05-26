@@ -150,8 +150,6 @@ namespace ExcelDna.ComInterop
 
     internal class ExcelComClassType
     {
-        static bool? _canWriteMachineHive = null;
-
         public Guid ClsId;
         public string ProgId;
         public Type Type;

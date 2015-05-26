@@ -87,6 +87,7 @@ namespace ExcelDna.Integration
         // These are the public 'externally' exposed members.
 
         // Get the assemblies that were considered for registration - both ExternalLibraries and Projects or code from the .dna file.
+        // This is not used internally, but available for custom registration.
         public static IEnumerable<Assembly> GetExportedAssemblies()
         {
             return DnaLibrary.CurrentLibrary.GetExportedAssemblies();

@@ -27,6 +27,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
+using ExcelDna.Loader.Logging;
 
 namespace ExcelDna.Loader
 {
@@ -204,6 +205,7 @@ namespace ExcelDna.Loader
             XlAddIn.pathXll = pathXll;
 
             AssemblyManager.Initialize(hModuleXll, pathXll);
+            LogManager.Initialize(pathXll);
 
             try
             {

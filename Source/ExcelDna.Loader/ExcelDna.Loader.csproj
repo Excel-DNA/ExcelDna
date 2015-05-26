@@ -76,6 +76,7 @@
     <Compile Include="AssemblyManager.cs" />
     <Compile Include="IntegrationMarshalHelpers.cs" />
     <Compile Include="LoaderHelpers.cs" />
+    <Compile Include="Logging.cs" />
     <Compile Include="XlCustomMarshal12.cs" />
     <Compile Include="IntegrationHelpers.cs" />
     <Compile Include="XlCallImpl.cs" />
