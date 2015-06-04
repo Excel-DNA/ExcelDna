@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
+using ExcelDna.Loader.Logging;
 
 namespace ExcelDna.Loader
 {
@@ -118,7 +119,7 @@ namespace ExcelDna.Loader
             registrationInfoVersion += 1.0;
         }
 
-        private static void RegisterXlMethod(XlMethodInfo mi)
+        static void RegisterXlMethod(XlMethodInfo mi)
         {
             int index = registeredMethods.Count;
             XlAddIn.SetJump(index, mi.FunctionPointer);
@@ -146,8 +147,7 @@ namespace ExcelDna.Loader
                 }
                 else
                 {
-                    // TODO: What to do here? LogDisplay??
-                    Debug.Print("Registration Error! - Register call failed for method {0}", mi.Name);
+                    RegistrationLogger.Error("xlfRegister call failed for method {0}", mi.Name);
                 }
                 // Now clear out the xll path and store the parameters to support RegistrationInfo access.
                 registerParameters[0] = null;
@@ -155,8 +155,7 @@ namespace ExcelDna.Loader
             }
             catch (Exception e)
             {
-                // TODO: What to do here? LogDisplay??
-                Debug.WriteLine("Registration Error! - " + e.Message);
+                RegistrationLogger.ErrorException(string.Format("Registration failed for method {0}", mi.Name), e);
             }
         }
 
@@ -199,7 +198,7 @@ namespace ExcelDna.Loader
             registrationInfo.Clear();
         }
 
-        private static void RegisterMenu(XlMethodInfo mi)
+        static void RegisterMenu(XlMethodInfo mi)
         {
             if (!string.IsNullOrEmpty(mi.MenuName) &&
                 !string.IsNullOrEmpty(mi.MenuText))
@@ -208,7 +207,7 @@ namespace ExcelDna.Loader
             }
         }
 
-        private static void RegisterShortCut(XlMethodInfo mi)
+        static void RegisterShortCut(XlMethodInfo mi)
         {
             if (!string.IsNullOrEmpty(mi.ShortCut))
             {
@@ -278,8 +277,7 @@ namespace ExcelDna.Loader
                         argumentDescriptions[j].Length > 255)
                     {
                         argumentDescriptions[j] = argumentDescriptions[j].Substring(0, 255);
-                        Debug.Print("Truncated argument description of {0} in method {1} as Excel limit was exceeded",
-                                    pi.Name, mi.Name);
+                        RegistrationLogger.Warn("Truncated argument description of {0} in method {1} as Excel limit was exceeded", pi.Name, mi.Name);
                     }
                 }
                 else
@@ -290,8 +288,7 @@ namespace ExcelDna.Loader
                         if (argumentDescriptions[j].Length > 253)
                         {
                             argumentDescriptions[j] = argumentDescriptions[j].Substring(0, 253);
-                            Debug.Print("Truncated field description of {0} in method {1} as Excel limit was exceeded",
-                                        pi.Name, mi.Name);
+                            RegistrationLogger.Warn("Truncated field description of {0} in method {1} as Excel limit was exceeded", pi.Name, mi.Name);
                         }
 
                         // DOCUMENT: Here is the patch for the Excel Function Description bug.
@@ -320,9 +317,8 @@ namespace ExcelDna.Loader
             // DOCUMENT: If # is set and there is an R argument, Excel considers the function volatile anyway.
             // You can call xlfVolatile, false in beginning of function to clear.
 
-            string functionDescription = mi.Description;
             // DOCUMENT: Truncate Description to 253 characters (for all versions)
-            functionDescription = Truncate(functionDescription, 253);
+            string functionDescription = Truncate(mi.Description, 253, "function description", mi);
 
             // DOCUMENT: Here is the patch for the Excel Function Description bug.
             // DOCUMENT: I add ". " if the function takes no parameters and has a description.
@@ -351,11 +347,24 @@ namespace ExcelDna.Loader
             }
 
             // DOCUMENT: Additional truncations of registration info - registration fails with strings longer than 255 chars.
-            argumentNames = Truncate(argumentNames, 255);
+            argumentNames = Truncate(argumentNames, 255, "argument names", mi);
             argumentNames = argumentNames.TrimEnd(','); // Also trim trailing commas (for params case)
-            string category = Truncate(mi.Category, 255);
-            string name = Truncate(mi.Name, 255);
-            string helpTopic = (mi.HelpTopic == null || mi.HelpTopic.Length <= 255) ? mi.HelpTopic : "";
+            string category = Truncate(mi.Category, 255, "Category name", mi);
+            string name = Truncate(mi.Name, 255, "Name", mi);
+            string helpTopic = string.Empty;
+            if (mi.HelpTopic != null)
+            {
+                if (mi.HelpTopic.Length > 255)
+                {
+                    // Can't safely truncate the help link
+                    RegistrationLogger.Warn("Ignoring HelpTopic of method {0} - too long", mi.Name);
+                }
+                else
+                {
+                    // It's OK
+                    helpTopic = mi.HelpTopic;
+                }
+            }
 
             object[] registerParameters = new object[numRegisterParameters];
             registerParameters[0] = XlAddIn.PathXll;
@@ -382,9 +391,10 @@ namespace ExcelDna.Loader
             return registerParameters;
         }
 
-        static string Truncate(string s, int length)
+        static string Truncate(string s, int length, string logDetail, XlMethodInfo mi)
         {
             if (s == null || s.Length <= length) return s;
+            RegistrationLogger.Warn("Truncated " + logDetail + " of method {0} - too long", mi.Name);
             return s.Substring(0, length);
         }
     }
