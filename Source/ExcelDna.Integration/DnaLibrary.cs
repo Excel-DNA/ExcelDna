@@ -222,7 +222,7 @@ namespace ExcelDna.Integration
             }
             catch (Exception e)
             {
-                Logging.LogDisplay.WriteLine("There was an error in loading the add-in " + DnaLibrary.CurrentLibraryName + " (" + DnaLibrary.XllPath + "):"); 
+                Logging.LogDisplay.WriteLine("There was an error in loading the add-in " + DnaLibrary.CurrentLibraryName + " (" + DnaLibrary.XllPath + "):");
                 Logging.LogDisplay.WriteLine("Error in loading assemblies. Exception: " + e.ToString());
             }
             return assemblies;

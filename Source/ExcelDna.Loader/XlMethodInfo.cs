@@ -569,7 +569,7 @@ namespace ExcelDna.Loader
                     // Skip if suppressed
                     if (xlmi.ExplicitRegistration)
                     {
-                        RegistrationLogger.Info("Suppressing due to ExplictRegistration attribute: " + mi.Name);
+                        RegistrationLogging.Info("Suppressing due to ExplictRegistration attribute: " + mi.Name);
                         continue;
                     }
                     // otherwise add
@@ -577,7 +577,7 @@ namespace ExcelDna.Loader
                 }
                 catch (DnaMarshalException e)
                 {
-                    RegistrationLogger.ErrorException("Method not registered due to unsupported signature: " + mi.Name, e);
+                    RegistrationLogging.ErrorException("Method not registered due to unsupported signature: " + mi.Name, e);
                 }
             }
 

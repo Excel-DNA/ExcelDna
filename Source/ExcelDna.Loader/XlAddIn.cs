@@ -71,7 +71,7 @@ namespace ExcelDna.Loader
     public unsafe static class XlAddIn
     {
         // This version must match the version declared in ExcelDna.Integration.ExcelIntegration
-        const int ExcelIntegrationVersion = 7;
+        const int ExcelIntegrationVersion = 8;
 
         static int thunkTableLength;
         static IntPtr thunkTable;
@@ -205,7 +205,6 @@ namespace ExcelDna.Loader
             XlAddIn.pathXll = pathXll;
 
             AssemblyManager.Initialize(hModuleXll, pathXll);
-            LogManager.Initialize(pathXll);
 
             try
             {
@@ -286,6 +285,7 @@ namespace ExcelDna.Loader
             if (!_initialized)
             {
                 IntegrationHelpers.InitializeIntegration(pathXll);
+                RegistrationLogging.IntegrationTraceSource = IntegrationHelpers.GetIntegrationTraceSource();
                 _initialized = true;
             }
         }
@@ -299,6 +299,7 @@ namespace ExcelDna.Loader
                     IntegrationHelpers.DnaLibraryAutoClose();
                     XlRegistration.UnregisterMethods();
                 }
+                RegistrationLogging.IntegrationTraceSource = null;
                 IntegrationHelpers.DeInitializeIntegration();
                 _initialized = false;
                 _opened = false;

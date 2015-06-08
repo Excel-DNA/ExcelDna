@@ -147,7 +147,7 @@ namespace ExcelDna.Loader
                 }
                 else
                 {
-                    RegistrationLogger.Error("xlfRegister call failed for method {0}", mi.Name);
+                    RegistrationLogging.Error("xlfRegister call failed for method {0}", mi.Name);
                 }
                 // Now clear out the xll path and store the parameters to support RegistrationInfo access.
                 registerParameters[0] = null;
@@ -155,7 +155,7 @@ namespace ExcelDna.Loader
             }
             catch (Exception e)
             {
-                RegistrationLogger.ErrorException(string.Format("Registration failed for method {0}", mi.Name), e);
+                RegistrationLogging.ErrorException(string.Format("Registration failed for method {0}", mi.Name), e);
             }
         }
 
@@ -277,7 +277,7 @@ namespace ExcelDna.Loader
                         argumentDescriptions[j].Length > 255)
                     {
                         argumentDescriptions[j] = argumentDescriptions[j].Substring(0, 255);
-                        RegistrationLogger.Warn("Truncated argument description of {0} in method {1} as Excel limit was exceeded", pi.Name, mi.Name);
+                        RegistrationLogging.Warn("Truncated argument description of {0} in method {1} as Excel limit was exceeded", pi.Name, mi.Name);
                     }
                 }
                 else
@@ -288,7 +288,7 @@ namespace ExcelDna.Loader
                         if (argumentDescriptions[j].Length > 253)
                         {
                             argumentDescriptions[j] = argumentDescriptions[j].Substring(0, 253);
-                            RegistrationLogger.Warn("Truncated field description of {0} in method {1} as Excel limit was exceeded", pi.Name, mi.Name);
+                            RegistrationLogging.Warn("Truncated field description of {0} in method {1} as Excel limit was exceeded", pi.Name, mi.Name);
                         }
 
                         // DOCUMENT: Here is the patch for the Excel Function Description bug.
@@ -357,7 +357,7 @@ namespace ExcelDna.Loader
                 if (mi.HelpTopic.Length > 255)
                 {
                     // Can't safely truncate the help link
-                    RegistrationLogger.Warn("Ignoring HelpTopic of method {0} - too long", mi.Name);
+                    RegistrationLogging.Warn("Ignoring HelpTopic of method {0} - too long", mi.Name);
                 }
                 else
                 {
@@ -394,7 +394,7 @@ namespace ExcelDna.Loader
         static string Truncate(string s, int length, string logDetail, XlMethodInfo mi)
         {
             if (s == null || s.Length <= length) return s;
-            RegistrationLogger.Warn("Truncated " + logDetail + " of method {0} - too long", mi.Name);
+            RegistrationLogging.Warn("Truncated " + logDetail + " of method {0} - too long", mi.Name);
             return s.Substring(0, length);
         }
     }

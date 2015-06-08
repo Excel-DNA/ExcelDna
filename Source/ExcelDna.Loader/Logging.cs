@@ -6,119 +6,45 @@ using System.Text;
 
 namespace ExcelDna.Loader.Logging
 {
-    // The NLog levels
-    internal enum LogLevel
+    // This enum appears here and in TraceLogging in ExcelDna.Integration
+    internal enum IntegrationTraceEventId
     {
-        Trace = 0,
-        Debug = 1,
-        Info = 2,
-        Warn = 3,
-        Error = 4,
-        Fatal = 5,
-        Off = 6
+        RegistrationInitialize = 1025,
+        RegistrationEvent = 1026    // Everything is miscellaneous
     }
 
-    // A log target that writes to a file
-    internal class FileLogTarget
+    // RegistrationLogging is a thin helper for the ExcelDna.Integration TraceSource that we get from ExcelDna.Integration.
+    // If we log more types of information in ExcelDna.Loader, we should add TraceSources, write more detailed messages, or at least sort out the internal abstraction a bit better.
+    internal static class RegistrationLogging
     {
-        string _logPath;
-        public FileLogTarget(string pathXll)
+        internal static TraceSource IntegrationTraceSource; // Set after Integration is initialized
+
+        public static void Log(TraceEventType eventType, string message, params object[] args)
         {
-            // TODO: Do we just append? Forever?
-            _logPath = pathXll + ".log";
-        }
+            Debug.Write(string.Format("RegistrationLogging: {0:yyyy-MM-dd HH:mm:ss} {1} {2}\r\n", DateTime.Now, eventType, string.Format(message, args)));
 
-        public void Write(string message)
-        {
-            File.AppendAllText(_logPath, message);
-        }
-    }
-
-    // For now a static class is simple and convenient - we only do Registration Logging
-    // in future we might split this into an ILogger, formatting etc....
-    // Or we implement a simple interface like CM, and allow user plug-ins
-    // Or just implement it via the System.Diagnostics.Trace...
-    internal static class RegistrationLogger
-    {
-        // Name of the logger
-        // const string _name = "Registration";
-        static LogLevel _level = LogLevel.Off;
-        static FileLogTarget _target = null;
-        static string _indentPrefix = "";
-
-        // public static TraceSource TraceSource = new TraceSource("Registration");
-
-        public static void Initialize(string pathXll)
-        {
-            try
-            {
-                string logConfig = System.Configuration.ConfigurationManager.AppSettings["RegistrationLogLevel"];
-                if (logConfig != null)
-                {
-                    _level = (LogLevel)Enum.Parse(typeof(LogLevel), logConfig);
-                    // set _logLevel, _target etc.
-                    _target = new FileLogTarget(pathXll);
-                    Log(LogLevel.Trace, "RegistrationLogger.Initialize");
-                }
-            }
-            catch (Exception)
-            {
-                // Suppress any trouble here.
-                _level = LogLevel.Off;
-                _target = null;
-            }
-        }
-
-        public static void Log(LogLevel level, string message, params object[] args)
-        {
-            Debug.Write(string.Format("{0:yyyy-MM-dd HH:mm:ss} {1} {2}\r\n", DateTime.Now, level, string.Format(message, args)));
-
-            if (level >= _level)
-            {
-                _target.Write(string.Format("{0:yyyy-MM-dd HH:mm:ss} {1} {2}\r\n", DateTime.Now, level, string.Format(message, args)));
-            }
+            IntegrationTraceSource.TraceEvent(eventType, (int)IntegrationTraceEventId.RegistrationEvent, message, args);
         }
 
         public static void Info(string message, params object[] args)
         {
-            Log(LogLevel.Info, message, args);
+            Log(TraceEventType.Information, message, args);
         }
 
         public static void Warn(string message, params object[] args)
         {
-            Log(LogLevel.Warn, message, args);
+            Log(TraceEventType.Warning, message, args);
         }
 
         public static void Error(string message, params object[] args)
         {
-            Log(LogLevel.Error, message, args);
+            Log(TraceEventType.Error, message, args);
         }
 
         public static void ErrorException(string message, Exception ex)
         {
-            Log(LogLevel.Error, "{0} : {1} - {2}", message, ex.GetType().Name.ToString(), ex.Message);
+            Log(TraceEventType.Error, "{0} : {1} - {2}", message, ex.GetType().Name.ToString(), ex.Message);
         }
 
-        public static void Indent()
-        {
-            _indentPrefix += "\t";
-        }
-
-        public static void Unindent()
-        {
-            if (_indentPrefix.Length > 0)
-            {
-                _indentPrefix = _indentPrefix.Substring(0, _indentPrefix.Length - 1);
-            }
-        }
-    }
-
-    static class LogManager
-    {
-        public static void Initialize(string xllPath)
-        {
-            RegistrationLogger.Initialize(xllPath);
-            RegistrationLogger.Log(LogLevel.Trace, "Hello {0}", "World!");
-        }
     }
 }

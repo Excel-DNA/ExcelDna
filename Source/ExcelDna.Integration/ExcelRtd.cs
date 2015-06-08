@@ -166,7 +166,7 @@ namespace ExcelDna.Integration.Rtd
             }
             catch (UnauthorizedAccessException secex)
             {
-                Logging.LogDisplay.WriteLine("The RTD server of type {0} required by add-in {1} could not be registered.\r\nThis may be due to restricted permissions on the user's HKCU\\Software\\Classes key.\r\nError message: {2}", rtdServerType.FullName, DnaLibrary.CurrentLibrary.Name, secex.Message );
+                Logging.LogDisplay.WriteLine("The RTD server of type {0} required by add-in {1} could not be registered.\r\nThis may be due to restricted permissions on the user's HKCU\\Software\\Classes key.\r\nError message: {2}", rtdServerType.FullName, DnaLibrary.CurrentLibrary.Name, secex.Message);
                 result = ExcelErrorUtil.ToComError(ExcelError.ExcelErrorValue);
                 // Return true to have the #VALUE stick, just as it was before the array-call refactoring
                 return true;
