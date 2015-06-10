@@ -127,5 +127,10 @@ namespace ExcelDna.Loader
         {
             integrationType.InvokeMember("CalculationEnded", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, null);
         }
+
+        internal static System.Diagnostics.TraceSource GetIntegrationTraceSource()
+        {
+            return (System.Diagnostics.TraceSource)integrationType.InvokeMember("GetIntegrationTraceSource", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, null);
+        }
     }
 }

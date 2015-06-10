@@ -48,7 +48,7 @@ namespace ExcelDna.Integration
     public static class ExcelIntegration
     {
         // This version must match the version declared in ExcelDna.Loader.XlAddIn.
-        const int ExcelIntegrationVersion = 7;
+        const int ExcelIntegrationVersion = 8;
 
         private static TryExcelImplDelegate tryExcelImpl;
         internal static void SetTryExcelImpl(TryExcelImplDelegate d)
@@ -217,12 +217,15 @@ namespace ExcelDna.Integration
             return getResourceBytesDelegate(sourceName, 3);
         }
 
+        // Called via Reflection from Loader
         internal static void Initialize(string xllPath)
         {
 			ExcelDnaUtil.Initialize();  // Set up window handle
+            TraceLogging.Initialize();
             DnaLibrary.InitializeRootLibrary(xllPath);
         }
 
+        // Called via Reflection from Loader
         internal static void DeInitialize()
         {
             DnaLibrary.DeInitialize();
@@ -317,6 +320,12 @@ namespace ExcelDna.Integration
         internal static void CalculationEnded()
         {
             ExcelAsyncUtil.OnCalculationEnded();    
+        }
+
+        // Called via Reflection from Loader after Initialization
+        internal static TraceSource GetIntegrationTraceSource()
+        {
+            return TraceLogging.IntegrationTraceSource;
         }
 
         // This version check is made by the ExceDna.Loader to make sure we have matching versions.

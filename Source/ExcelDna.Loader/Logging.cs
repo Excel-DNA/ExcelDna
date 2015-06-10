@@ -1,78 +1,50 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 
 namespace ExcelDna.Loader.Logging
 {
-    // Matches NLog
-    internal enum LogLevel
+    // This enum appears here and in TraceLogging in ExcelDna.Integration
+    internal enum IntegrationTraceEventId
     {
-        Trace = 0,
-        Debug = 1,
-        Info = 2,
-        Warn = 3,
-        Error = 4,
-        Fatal = 5,
-        Off = 6
+        RegistrationInitialize = 1025,
+        RegistrationEvent = 1026    // Everything is miscellaneous
     }
 
-    // A log target that writes to a file
-    internal class FileLogTarget
+    // RegistrationLogging is a thin helper for the ExcelDna.Integration TraceSource that we get from ExcelDna.Integration.
+    // If we log more types of information in ExcelDna.Loader, we should add TraceSources, write more detailed messages, or at least sort out the internal abstraction a bit better.
+    internal static class RegistrationLogging
     {
-        string _fileName;
-        public FileLogTarget(string pathXll)
+        internal static TraceSource IntegrationTraceSource; // Set after Integration is initialized
+
+        public static void Log(TraceEventType eventType, string message, params object[] args)
         {
-            // TODO: Do we just append? Forever?
-            _fileName = pathXll + ".log";
+            Debug.Write(string.Format("RegistrationLogging: {0:yyyy-MM-dd HH:mm:ss} {1} {2}\r\n", DateTime.Now, eventType, string.Format(message, args)));
+
+            IntegrationTraceSource.TraceEvent(eventType, (int)IntegrationTraceEventId.RegistrationEvent, message, args);
         }
 
-        public void Write(string message)
+        public static void Info(string message, params object[] args)
         {
-            File.AppendText(message);
-        }
-    }
-
-    // For now a static class is simple and convenient - we only do Registration Logging
-    // in future we might split this into an ILogger, formatting etc....
-    // Or we implement a simple interface like CM, and allow user plug-ins
-    internal static class RegistrationLogger
-    {
-        // Name of the logger
-        const string _name = "Registration";
-        static LogLevel _level = LogLevel.Off;
-        static FileLogTarget _target;
-
-        public static void Initialize(string pathXll)
-        {
-            try
-            {
-                // TODO: Load configuration from .config file
-                // set _logLevel, _target etc.
-                _target = new FileLogTarget(pathXll);
-            }
-            catch (Exception)
-            {
-                // Suppress any trouble here.
-                _target = null;
-                _level = LogLevel.Off;
-            }
+            Log(TraceEventType.Information, message, args);
         }
 
-        public static void Log(LogLevel level, string message, params object[] args)
+        public static void Warn(string message, params object[] args)
         {
-            if (level >= _level)
-            {
-                _target.Write(string.Format("{0:yyyy-MM-dd HH:mm:ss} {1} {2}\r\n", DateTime.Now, level, string.Format(message, args)));
-            }
+            Log(TraceEventType.Warning, message, args);
         }
-    }
 
-    static class LogManager
-    {
-        public static void Initialize(string xllPath)
+        public static void Error(string message, params object[] args)
         {
-            RegistrationLogger.Initialize(xllPath);
+            Log(TraceEventType.Error, message, args);
         }
+
+        public static void ErrorException(string message, Exception ex)
+        {
+            Log(TraceEventType.Error, "{0} : {1} - {2}", message, ex.GetType().Name.ToString(), ex.Message);
+        }
+
     }
 }

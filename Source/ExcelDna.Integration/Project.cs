@@ -468,7 +468,7 @@ namespace ExcelDna.Integration
                     }
                     else
                     {
-                        Logging.LogDisplay.WriteLine("There was an error in loading the add-in " + DnaLibrary.CurrentLibraryName + " (" + DnaLibrary.XllPath + "):"); 
+                        Logging.LogDisplay.WriteLine("There was an error in loading the add-in " + DnaLibrary.CurrentLibraryName + " (" + DnaLibrary.XllPath + "):");
                         Logging.LogDisplay.WriteLine("    The F# CodeDom provider (FSharp.Compiler.CodeDom.dll) could not be loaded.");
                         Logging.LogDisplay.WriteLine("        Please ensure that the F# Compiler is installed and that the");
                         Logging.LogDisplay.WriteLine("        FSharp.Compiler.CodeDom.dll assembly (part of the F# PowerPack) can be loaded by the add-in.");
@@ -478,7 +478,7 @@ namespace ExcelDna.Integration
                 }
                 catch (Exception ex)
                 {
-                    Logging.LogDisplay.WriteLine("There was an error in loading the add-in " + DnaLibrary.CurrentLibraryName + " (" + DnaLibrary.XllPath + "):"); 
+                    Logging.LogDisplay.WriteLine("There was an error in loading the add-in " + DnaLibrary.CurrentLibraryName + " (" + DnaLibrary.XllPath + "):");
                     Logging.LogDisplay.WriteLine("Error in loading the F# CodeDom provider.");
                     Logging.LogDisplay.WriteLine(" Exception: " + ex.Message);
                     return null;
@@ -502,7 +502,7 @@ namespace ExcelDna.Integration
 			catch (Exception e)
 			{
 				Debug.Fail("Unknown Project Language: " + Language);
-				Logging.LogDisplay.WriteLine("Unknown Project Language: " + Language);
+                Logging.LogDisplay.WriteLine("Unknown Project Language: " + Language);
                 Logging.LogDisplay.WriteLine(" Exception: " + e.Message);
 			}
 			return null;

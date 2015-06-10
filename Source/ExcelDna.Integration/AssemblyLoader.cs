@@ -37,6 +37,11 @@ namespace ExcelDna.Integration
     // DOCUMENT: There is a lot of magic here, and many arbitrary decisions about what to register, and how.
 	internal class AssemblyLoader
 	{
+        // We consolidate the TraceSources for both ExcelDna.Integration and ExcelDna.Loader under the Excel.Integration name 
+        // (since it is the public contract for ExcelDna).
+        // For the first version we don't make separate TraceSources for each class, though in future we might specialize under 
+        // the ExcelDna.Integration namespace, so listening to ExcelDna.Integration* will be the forward-compatible pattern. 
+
         // Consolidated processing so we only have a single pass through the types.
         // CONSIDER: This is pretty ugly right now (both the flow and the names.)
         //           Try some fancy visitor pattern?
@@ -155,7 +160,7 @@ namespace ExcelDna.Integration
             // We want to log methods that are marked for export, but have unsupported types.
             if (!isSupported && IsMethodMarkedForExport(mi))
             {
-                Debug.Print("Excel-DNA -> Unsupported Method: " + mi.Name);
+                RegistrationLogging.Error("Method not registered due to unsupported signature: " + mi.Name);
             }
 
             return isSupported;

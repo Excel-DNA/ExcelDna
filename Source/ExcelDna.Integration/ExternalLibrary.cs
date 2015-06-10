@@ -170,8 +170,8 @@ namespace ExcelDna.Integration
                                 DnaLibrary lib = DnaLibrary.LoadFrom(uri);
                                 if (lib == null)
                                 {
-                                    LogDisplay.WriteLine("External library could not be registered - Path: " + Path);
-                                    LogDisplay.WriteLine("    Error: DnaLibrary could not be loaded.");
+                                    Logging.LogDisplay.WriteLine("External library could not be registered - Path: " + Path);
+                                    Logging.LogDisplay.WriteLine("    Error: DnaLibrary could not be loaded.");
                                     return list;
                                 }
                                 // CONSIDER: Should we add a resolve story for .dna files at Uris?
