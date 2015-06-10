@@ -119,6 +119,11 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 			}
 
             string outputDirectory = Path.GetDirectoryName(xllOutputPath);
+            if (outputDirectory == String.Empty)
+            {
+                outputDirectory = ".";  // https://github.com/Excel-DNA/ExcelDna/issues/7
+            }
+
             if (!Directory.Exists(outputDirectory))
             {
 				try
