@@ -26,7 +26,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
-using ExcelDna.Loader.Logging;
 
 namespace ExcelDna.Loader
 {
@@ -126,13 +125,20 @@ namespace ExcelDna.Loader
             String exportedProcName = String.Format("f{0}", index);
 
             object[] registerParameters = GetRegisterParameters(mi, exportedProcName);
+
+            if (registrationInfo.Exists(ri => ((string)ri[3]).Equals((string)registerParameters[3], StringComparison.OrdinalIgnoreCase)))
+            {
+                // This function will be registered with a name that has already been used (by this add-in)
+                // This logged as an error, but the registration continues - the last function with the name wins, for backward compatibility.
+                RegistrationLogger.Error("Repeated function name: '{0}' - previous registration will be overwritten. ", registerParameters[3]);
+            }
             
             // Basically suppress problems here !?
             try
             {
                 object xlCallResult;
                 XlCallImpl.TryExcelImpl(XlCallImpl.xlfRegister, out xlCallResult, registerParameters);
-                Debug.Print("Register - XllPath={0}, ProcName={1}, FunctionType={2}, MethodName={3} - Result={4}",
+                RegistrationLogger.Info("Register - XllPath={0}, ProcName={1}, FunctionType={2}, Name={3} - Result={4}",
                             registerParameters[0], registerParameters[1], registerParameters[2], registerParameters[3],
                             xlCallResult);
                 if (xlCallResult is double)
@@ -147,7 +153,7 @@ namespace ExcelDna.Loader
                 }
                 else
                 {
-                    RegistrationLogging.Error("xlfRegister call failed for method {0}", mi.Name);
+                    RegistrationLogger.Error("xlfRegister call failed for function or command: '{0}'", mi.Name);
                 }
                 // Now clear out the xll path and store the parameters to support RegistrationInfo access.
                 registerParameters[0] = null;
@@ -155,7 +161,7 @@ namespace ExcelDna.Loader
             }
             catch (Exception e)
             {
-                RegistrationLogging.ErrorException(string.Format("Registration failed for method {0}", mi.Name), e);
+                RegistrationLogger.Error(e, "Registration failed for function or command: '{0}'", mi.Name);
             }
         }
 
@@ -277,7 +283,7 @@ namespace ExcelDna.Loader
                         argumentDescriptions[j].Length > 255)
                     {
                         argumentDescriptions[j] = argumentDescriptions[j].Substring(0, 255);
-                        RegistrationLogging.Warn("Truncated argument description of {0} in method {1} as Excel limit was exceeded", pi.Name, mi.Name);
+                        RegistrationLogger.Warn("Truncated argument description of '{0}' in function '{1}'", pi.Name, mi.Name);
                     }
                 }
                 else
@@ -288,7 +294,7 @@ namespace ExcelDna.Loader
                         if (argumentDescriptions[j].Length > 253)
                         {
                             argumentDescriptions[j] = argumentDescriptions[j].Substring(0, 253);
-                            RegistrationLogging.Warn("Truncated field description of {0} in method {1} as Excel limit was exceeded", pi.Name, mi.Name);
+                            RegistrationLogger.Warn("Truncated final argument description of function '{0}'", mi.Name);
                         }
 
                         // DOCUMENT: Here is the patch for the Excel Function Description bug.
@@ -357,7 +363,7 @@ namespace ExcelDna.Loader
                 if (mi.HelpTopic.Length > 255)
                 {
                     // Can't safely truncate the help link
-                    RegistrationLogging.Warn("Ignoring HelpTopic of method {0} - too long", mi.Name);
+                    RegistrationLogger.Warn("Ignoring HelpTopic of function '{0}' - too long", mi.Name);
                 }
                 else
                 {
@@ -394,7 +400,7 @@ namespace ExcelDna.Loader
         static string Truncate(string s, int length, string logDetail, XlMethodInfo mi)
         {
             if (s == null || s.Length <= length) return s;
-            RegistrationLogging.Warn("Truncated " + logDetail + " of method {0} - too long", mi.Name);
+            RegistrationLogger.Warn("Truncated " + logDetail + " of function '{0}'", mi.Name);
             return s.Substring(0, length);
         }
     }

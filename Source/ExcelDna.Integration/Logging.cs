@@ -4,10 +4,9 @@ using System.Diagnostics;
 using System.Security;
 using System.Text;
 
-namespace ExcelDna.Integration
+namespace ExcelDna.Logging
 {
-    // This class supports intenal logging.
-    // Internal logging is implemented with the System.Diagnostics tracing implementation.
+    // This class supports internal logging, implemented with the System.Diagnostics tracing implementation.
 
     // Add a trace listener for the ExcelDna.Integration source which logs warnings and errors to the LogDisplay 
     // (only popping up the window for errors).
@@ -16,6 +15,9 @@ namespace ExcelDna.Integration
     // We define a TraceSource called ExcelDna.Integration (that is also exported to ExcelDna.Loader and called from there)
     // We consolidate the two assemblies against a single TraceSource, since ExcelDna.Integration is the only public contract,
     // and we expect to move more of the registration into the ExcelDna.Integration assembly in future.
+
+    // DOCUMENT: Info on custom TraceSources etc: https://msdn.microsoft.com/en-us/magazine/cc300790.aspx
+    //           and http://blogs.msdn.com/b/kcwalina/archive/2005/09/20/tracingapis.aspx
 
     #region Microsoft License
     // The logging helper implementation here is adapted from the Logging.cs file for System.Net
@@ -45,27 +47,43 @@ namespace ExcelDna.Integration
     // SOFTWARE.
     #endregion
 
+    // NOTE: There's a copy of this enum in ExcelDna.Loader too.
+    [Flags]
     enum IntegrationTraceEventId
     {
-        RegistrationInitialize = 1025,
-        RegistrationEvent = 1026    // Everything is miscellaneous
+        Registration = 1 << 5,
+        RegistrationInitialize = Registration + 1,
+        RegistrationEvent = Registration + 2    // Everything is miscellaneous
     }
 
-    class TraceLogging
+    // TraceLogger manages the IntegrationTraceSource that we use for logging.
+    // It deals with lifetime (particularly closing the TraceSource if the add-in is unloaded).
+    // The default configuration of the TraceSource is set here, and can be overridden in the .xll.config file.
+    class TraceLogger
     {
         static volatile bool s_LoggingEnabled = true;
         static volatile bool s_LoggingInitialized;
         static volatile bool s_AppDomainShutdown;
         const string TraceSourceName = "ExcelDna.Integration";
-        internal static TraceSource IntegrationTraceSource; // Retrieved from ExcelDna.Loader through ExcelIntegration
+        internal static TraceSource IntegrationTraceSource; // Also retrieved by ExcelDna.Loader through ExcelIntegration.GetIntegrationTraceSource()
 
         public static void Initialize()
         {
             if (!s_LoggingInitialized)
             {
                 bool loggingEnabled = false;
-                IntegrationTraceSource = new TraceSource(TraceSourceName, SourceLevels.All);
-                //GlobalLog.Print("Initalizating tracing");
+                // DOCUMENT: By default the TraceSource is configured to source only Warning, Error and Fatal.
+                //           the configuration can override this.
+                IntegrationTraceSource = new TraceSource(TraceSourceName, SourceLevels.Warning);
+
+                bool logDisplayTraceListenerIsConfigured = false;
+                Debug.Print("{0} TraceSource created. Listeners:", TraceSourceName);
+                foreach (TraceListener tl in IntegrationTraceSource.Listeners)
+                {
+                    Debug.Print("    {0} - {1}", tl.Name, tl.TraceOutputOptions);
+                    if (tl.Name == "LogDisplay")
+                        logDisplayTraceListenerIsConfigured = true;
+                }
 
                 try
                 {
@@ -80,6 +98,12 @@ namespace ExcelDna.Integration
                 }
                 if (loggingEnabled)
                 {
+                    if (!logDisplayTraceListenerIsConfigured)
+                    {
+                        // No explicit configuration for this default listener, so we add it
+                        IntegrationTraceSource.Listeners.Add(new LogDisplayTraceListener("LogDisplay"));
+                    }
+
                     AppDomain currentDomain = AppDomain.CurrentDomain;
                     //currentDomain.UnhandledException += UnhandledExceptionHandler;
                     currentDomain.DomainUnload += AppDomainUnloadEvent;
@@ -131,13 +155,19 @@ namespace ExcelDna.Integration
 
     }
 
-    class RegistrationLogging
+    // NOTE: There is a similar RegistrationLogger class in ExcelDna.Loader.
+    // It's easier to maintain two copies for now.
+    // RegistrationLogger wraps the IntegrationTraceSource and ensures that the event id is set.
+    class RegistrationLogger
     {
         public static void Log(TraceEventType eventType, string message, params object[] args)
         {
-            Debug.Write(string.Format("RegistrationLogging: {0:yyyy-MM-dd HH:mm:ss} {1} {2}\r\n", DateTime.Now, eventType, string.Format(message, args)));
+            TraceLogger.IntegrationTraceSource.TraceEvent(eventType, (int)IntegrationTraceEventId.RegistrationEvent, message, args);
+        }
 
-            TraceLogging.IntegrationTraceSource.TraceEvent(eventType, (int)IntegrationTraceEventId.RegistrationEvent, message, args);
+        public static void Verbose(string message, params object[] args)
+        {
+            Log(TraceEventType.Verbose, message, args);
         }
 
         public static void Info(string message, params object[] args)
@@ -155,7 +185,7 @@ namespace ExcelDna.Integration
             Log(TraceEventType.Error, message, args);
         }
 
-        public static void ErrorException(string message, Exception ex)
+        public static void Error(Exception ex, string message)
         {
             Log(TraceEventType.Error, "{0} : {1} - {2}", message, ex.GetType().Name.ToString(), ex.Message);
         }

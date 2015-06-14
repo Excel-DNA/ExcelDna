@@ -32,6 +32,7 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using ExcelDna.Integration.Rtd;
+using ExcelDna.Logging;
 
 namespace ExcelDna.Integration
 {
@@ -310,7 +311,7 @@ namespace ExcelDna.Integration
 
             object xlCallResult;
             XlCall.TryExcel(XlCall.xlfRegister, out xlCallResult, registerParameters);
-            Debug.Print("Register SyncMacro - XllPath={0}, ProcName={1}, FunctionType={2}, MethodName={3} - Result={4}", 
+            RegistrationLogger.Verbose("Register SyncMacro - XllPath={0}, ProcName={1}, FunctionType={2}, MethodName={3} - Result={4}", 
                 registerParameters[0], registerParameters[1], registerParameters[2], registerParameters[3], xlCallResult);
             if (xlCallResult is double)
             {

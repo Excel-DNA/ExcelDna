@@ -82,7 +82,7 @@
     <Compile Include="LogDisplay.designer.cs">
       <DependentUpon>LogDisplay.cs</DependentUpon>
     </Compile>
-    <Compile Include="TraceLogging.cs" />
+    <Compile Include="Logging.cs" />
     <Compile Include="MenuManager.cs" />
     <Compile Include="Project.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

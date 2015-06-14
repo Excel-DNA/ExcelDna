@@ -27,7 +27,6 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
-using ExcelDna.Loader.Logging;
 
 namespace ExcelDna.Loader
 {
@@ -285,7 +284,7 @@ namespace ExcelDna.Loader
             if (!_initialized)
             {
                 IntegrationHelpers.InitializeIntegration(pathXll);
-                RegistrationLogging.IntegrationTraceSource = IntegrationHelpers.GetIntegrationTraceSource();
+                RegistrationLogger.IntegrationTraceSource = IntegrationHelpers.GetIntegrationTraceSource();
                 _initialized = true;
             }
         }
@@ -299,7 +298,7 @@ namespace ExcelDna.Loader
                     IntegrationHelpers.DnaLibraryAutoClose();
                     XlRegistration.UnregisterMethods();
                 }
-                RegistrationLogging.IntegrationTraceSource = null;
+                RegistrationLogger.IntegrationTraceSource = null;
                 IntegrationHelpers.DeInitializeIntegration();
                 _initialized = false;
                 _opened = false;

@@ -221,7 +221,7 @@ namespace ExcelDna.Integration
         internal static void Initialize(string xllPath)
         {
 			ExcelDnaUtil.Initialize();  // Set up window handle
-            TraceLogging.Initialize();
+            Logging.TraceLogger.Initialize();
             DnaLibrary.InitializeRootLibrary(xllPath);
         }
 
@@ -325,7 +325,7 @@ namespace ExcelDna.Integration
         // Called via Reflection from Loader after Initialization
         internal static TraceSource GetIntegrationTraceSource()
         {
-            return TraceLogging.IntegrationTraceSource;
+            return Logging.TraceLogger.IntegrationTraceSource;
         }
 
         // This version check is made by the ExceDna.Loader to make sure we have matching versions.

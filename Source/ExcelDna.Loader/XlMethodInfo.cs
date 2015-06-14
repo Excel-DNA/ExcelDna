@@ -29,7 +29,6 @@ using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.InteropServices;
-using ExcelDna.Loader.Logging;
 
 namespace ExcelDna.Loader
 {
@@ -569,7 +568,7 @@ namespace ExcelDna.Loader
                     // Skip if suppressed
                     if (xlmi.ExplicitRegistration)
                     {
-                        RegistrationLogging.Info("Suppressing due to ExplictRegistration attribute: " + mi.Name);
+                        RegistrationLogger.Info("Suppressing due to ExplictRegistration attribute: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
                         continue;
                     }
                     // otherwise add
@@ -577,7 +576,7 @@ namespace ExcelDna.Loader
                 }
                 catch (DnaMarshalException e)
                 {
-                    RegistrationLogging.ErrorException("Method not registered due to unsupported signature: " + mi.Name, e);
+                    RegistrationLogger.Error(e, "Method not registered due to unsupported signature: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
                 }
             }
 

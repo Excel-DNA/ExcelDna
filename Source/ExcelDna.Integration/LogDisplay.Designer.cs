@@ -125,7 +125,7 @@ namespace ExcelDna.Logging
             this.Name = "LogDisplayForm";
             this.Padding = new System.Windows.Forms.Padding(5);
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Excel-Dna Error Display";
+            this.Text = "Excel-DNA Error Display";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.LogDisplayForm_FormClosing);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.LogDisplayForm_KeyDown);
             this.tableLayoutPanel1.ResumeLayout(false);

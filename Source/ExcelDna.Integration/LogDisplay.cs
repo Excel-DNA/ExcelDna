@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
-
 using ExcelDna.Integration;
 
 namespace ExcelDna.Logging
@@ -216,10 +216,17 @@ namespace ExcelDna.Logging
 
         public static void Show()
         {
-           _syncContext.Post(delegate(object state)
+            lock (SyncRoot)
+            {
+                if (!IsFormVisible)
                 {
-                    LogDisplayForm.ShowForm();
-                }, null);
+                    _syncContext.Post(delegate(object state)
+                    {
+                        LogDisplayForm.ShowForm();
+                    }, null);
+                    IsFormVisible = true;
+                }
+            }
         }
 
         public static void Hide()
@@ -242,16 +249,13 @@ namespace ExcelDna.Logging
             //Debug.WriteLine("LogDisplay.WriteLine start on thread " + System.Threading.Thread.CurrentThread.ManagedThreadId);
             lock (SyncRoot)
             {
-                if (!IsFormVisible)
-                {
-                    Show();
-                    IsFormVisible = true;
-                }
+                Show();
                 RecordLine(format, args);
             }
             //Debug.WriteLine("LogDisplay.WriteLine completed in thread " + System.Threading.Thread.CurrentThread.ManagedThreadId);
         }
 
+        static readonly char[] LineEndChars = new char[] { '\r', '\n' };
         // This might be called from any calculation thread
         // Does not force a Show
         public static void RecordLine(string format, params object[] args)
@@ -259,7 +263,7 @@ namespace ExcelDna.Logging
             lock (SyncRoot)
             {
                 string message = string.Format(format, args);
-                string[] messageLines = message.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                string[] messageLines = message.Split(LineEndChars, StringSplitOptions.RemoveEmptyEntries);
                 if (DisplayOrder == DisplayOrder.NewestLast)
                 {
                     // Insert at the end
@@ -273,6 +277,49 @@ namespace ExcelDna.Logging
                 TruncateLog();
                 LogStringsUpdated = true;
             }
+        }
+
+        // TODO: Add a flag to indicate that the last line added is not complete.
+        //       That should cause the next text added to be appended to the last line, not just added as a new line.
+        internal static void Write(string text)
+        {
+            WriteLine(text);
+
+            //lock (SyncRoot)
+            //{
+            //    // remainder is the part of the string after all the full lines
+            //    string remainder;
+            //    int remainderStart = text.LastIndexOfAny(LineEndChars) + 1;
+            //    if (remainderStart > 0)
+            //    {
+            //        string lines = text.Substring(0, remainderStart);
+            //        RecordLine(lines);
+            //        remainder = text.Substring(remainderStart);
+            //    }
+            //    else
+            //    {
+            //        remainder = text;
+            //    }
+            //    if (LogStrings.Count == 0)
+            //    {
+            //        // For now, can't just add the partial line...
+            //        // CONSIDER: We need to keep some flag to indicate that the last line added is not complete...
+            //        LogStrings.Add(text);
+            //    }
+            //    else
+            //    {
+            //        if (DisplayOrder == DisplayOrder.NewestLast)
+            //        {
+            //            // Insert at the end
+            //            LogStrings.AddRange(messageLines);
+            //        }
+            //        else
+            //        {
+            //            // Insert at the beginning.
+            //            LogStrings.InsertRange(0, messageLines);
+            //        }
+            //    }
+            //}
         }
 
         static void TruncateLog()
@@ -325,6 +372,48 @@ namespace ExcelDna.Logging
                 }
             }
         }
+    }
 
+    // CONSIDER: This TraceListener might co-operate with a more structured LogDisplay in future. 
+    //           This might allow the source and EventType (and maybe a sequence) to be separate columns.
+    public class LogDisplayTraceListener : TraceListener
+    {
+        public LogDisplayTraceListener()
+        {
+        }
+
+        public LogDisplayTraceListener(string name)
+            : base(name)
+        {
+        }
+
+        public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string message)
+        {
+            TraceEvent(eventCache, source, eventType, id, message, null); 
+        }
+
+        public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string format, params object[] args)
+        {
+            if (Filter != null && !Filter.ShouldTrace(eventCache, source, eventType, id, format, args, null, null))
+                return;
+
+            string header =  string.Format(CultureInfo.InvariantCulture, "{0} {1}: {2} : ", source, eventType.ToString(), id.ToString(CultureInfo.InvariantCulture));
+            base.TraceEvent(eventCache, source, eventType, id, header + format, args);
+
+            if (eventType == TraceEventType.Error || eventType == TraceEventType.Critical)
+                LogDisplay.Show();
+        }
+
+        // Receives the header information
+        // We might0 write to a buffer or special structure before displaying.
+        public override void Write(string message)
+        {
+        //    LogDisplay.Write(message);
+        }
+
+        public override void WriteLine(string message)
+        {
+            LogDisplay.WriteLine(message);
+        }
     }
 }

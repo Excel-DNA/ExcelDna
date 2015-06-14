@@ -28,6 +28,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using ExcelDna.ComInterop;
+using ExcelDna.Logging;
 
 namespace ExcelDna.Integration
 {
@@ -115,8 +116,8 @@ namespace ExcelDna.Integration
                 (t.IsGenericType && t.ContainsGenericParameters) ||
                 t.Namespace == "My")
             {
-                // Bad cases
-                Debug.Print("Excel-DNA -> Unsupported Type: " + t.FullName);
+                // Ignored cases
+                RegistrationLogger.Info("Type ignored: {0}", t.FullName);
                 return;
             }
 
@@ -160,7 +161,12 @@ namespace ExcelDna.Integration
             // We want to log methods that are marked for export, but have unsupported types.
             if (!isSupported && IsMethodMarkedForExport(mi))
             {
-                RegistrationLogging.Error("Method not registered due to unsupported signature: " + mi.Name);
+                RegistrationLogger.Error("Method not registered - unsupported types: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
+            }
+            else if (!isSupported)
+            {
+                // CONSIDER: More detailed logging
+                RegistrationLogger.Info("Method not registered - unsupported types: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
             }
 
             return isSupported;

@@ -4,25 +4,27 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 
-namespace ExcelDna.Loader.Logging
+namespace ExcelDna.Loader
 {
-    // This enum appears here and in TraceLogging in ExcelDna.Integration
-    internal enum IntegrationTraceEventId
+    // NOTE: This enum appears here and in TraceLogging in ExcelDna.Integration
+    [Flags]
+    enum IntegrationTraceEventId
     {
-        RegistrationInitialize = 1025,
-        RegistrationEvent = 1026    // Everything is miscellaneous
+        Registration = 1 << 5,
+        RegistrationInitialize = Registration + 1,
+        RegistrationEvent = Registration + 2    // Everything is miscellaneous
     }
 
-    // RegistrationLogging is a thin helper for the ExcelDna.Integration TraceSource that we get from ExcelDna.Integration.
+
+    // NOTE: There's a similar class in ExcelDna.Integration
+    // RegistrationLogger is a thin helper for the ExcelDna.Integration TraceSource that we get from ExcelDna.Integration.
     // If we log more types of information in ExcelDna.Loader, we should add TraceSources, write more detailed messages, or at least sort out the internal abstraction a bit better.
-    internal static class RegistrationLogging
+    static class RegistrationLogger
     {
         internal static TraceSource IntegrationTraceSource; // Set after Integration is initialized
 
         public static void Log(TraceEventType eventType, string message, params object[] args)
         {
-            Debug.Write(string.Format("RegistrationLogging: {0:yyyy-MM-dd HH:mm:ss} {1} {2}\r\n", DateTime.Now, eventType, string.Format(message, args)));
-
             IntegrationTraceSource.TraceEvent(eventType, (int)IntegrationTraceEventId.RegistrationEvent, message, args);
         }
 
@@ -41,7 +43,7 @@ namespace ExcelDna.Loader.Logging
             Log(TraceEventType.Error, message, args);
         }
 
-        public static void ErrorException(string message, Exception ex)
+        public static void Error(Exception ex, string message, params object[] args)
         {
             Log(TraceEventType.Error, "{0} : {1} - {2}", message, ex.GetType().Name.ToString(), ex.Message);
         }
