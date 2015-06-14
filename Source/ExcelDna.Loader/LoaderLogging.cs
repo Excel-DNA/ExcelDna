@@ -1,52 +1,94 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Text;
 
-namespace ExcelDna.Loader
+namespace ExcelDna.Loader.Logging
 {
     // NOTE: This enum appears here and in TraceLogging in ExcelDna.Integration
-    [Flags]
     enum IntegrationTraceEventId
     {
-        Registration = 1 << 5,
-        RegistrationInitialize = Registration + 1,
-        RegistrationEvent = Registration + 2    // Everything is miscellaneous
+        Initialization = 1,
+        DnaCompilation = 2,
+        Registration = 3,
+        ComAddIn = 4,
     }
 
-
-    // NOTE: There's a similar class in ExcelDna.Integration
-    // RegistrationLogger is a thin helper for the ExcelDna.Integration TraceSource that we get from ExcelDna.Integration.
-    // If we log more types of information in ExcelDna.Loader, we should add TraceSources, write more detailed messages, or at least sort out the internal abstraction a bit better.
-    static class RegistrationLogger
+    class TraceLogger
     {
-        internal static TraceSource IntegrationTraceSource; // Set after Integration is initialized
+        static internal TraceSource IntegrationTraceSource; // Set after Integration is initialized
+    }
 
-        public static void Log(TraceEventType eventType, string message, params object[] args)
+    // NOTE: There is a similar RegistrationLogger class in ExcelDna.Integration.
+    // It's easier to maintain two copies for now.
+    class Logger
+    {
+        int _eventId;
+
+        Logger(IntegrationTraceEventId traceEventId)
         {
-            IntegrationTraceSource.TraceEvent(eventType, (int)IntegrationTraceEventId.RegistrationEvent, message, args);
+            _eventId = (int)traceEventId;
         }
 
-        public static void Info(string message, params object[] args)
+        void Log(TraceEventType eventType, string message, params object[] args)
+        {
+            try
+            {
+                TraceLogger.IntegrationTraceSource.TraceEvent(eventType, _eventId, message, args);
+            }
+            catch (Exception e)
+            {
+                // We certainly want to suppress errors here, though they indicate Excel-DNA bugs.
+                Debug.Print("ExcelDna.Loader - Logger.Log error: " + e.Message);
+            }
+        }
+
+        public void Verbose(string message, params object[] args)
+        {
+            Log(TraceEventType.Verbose, message, args);
+        }
+
+        public void Info(string message, params object[] args)
         {
             Log(TraceEventType.Information, message, args);
         }
 
-        public static void Warn(string message, params object[] args)
+        public void Warn(string message, params object[] args)
         {
             Log(TraceEventType.Warning, message, args);
         }
 
-        public static void Error(string message, params object[] args)
+        public void Error(string message, params object[] args)
         {
             Log(TraceEventType.Error, message, args);
         }
 
-        public static void Error(Exception ex, string message, params object[] args)
+        public void Error(Exception ex, string message, params object[] args)
         {
-            Log(TraceEventType.Error, "{0} : {1} - {2}", message, ex.GetType().Name.ToString(), ex.Message);
+            if (args != null)
+            {
+                try
+                {
+                    message = string.Format(CultureInfo.InvariantCulture, message, args);
+                }
+                catch (Exception fex)
+                {
+                    Debug.Print("Logger.Error formatting exception " + fex.Message);
+                }
+            }
+            Log(TraceEventType.Error, "{0} : {1} - {2}", message, ex.GetType().Name, ex.Message);
         }
+
+        static Logger _initializationLogger = new Logger(IntegrationTraceEventId.Initialization);
+        static internal Logger Initialization { get { return _initializationLogger; } }
+        static Logger _registrationLogger = new Logger(IntegrationTraceEventId.Registration);
+        static internal Logger Registration { get { return _registrationLogger; } }
+        static Logger _dnaCompilationLogger = new Logger(IntegrationTraceEventId.DnaCompilation);
+        static internal Logger DnaCompilation { get { return _dnaCompilationLogger; } }
+        static Logger _comAddInLogger = new Logger(IntegrationTraceEventId.ComAddIn);
+        static internal Logger ComAddIn { get { return _comAddInLogger; } }
 
     }
 }

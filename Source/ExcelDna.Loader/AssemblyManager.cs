@@ -30,6 +30,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using ExcelDna.Loader.Logging;
 using SevenZip.Compression.LZMA;
 
 namespace ExcelDna.Loader
@@ -83,33 +84,32 @@ namespace ExcelDna.Loader
             loadedAssembly = GetAssemblyIfLoaded(name);
             if (loadedAssembly != null)
             {
-                Debug.Print("Assembly {0} was found to already be loaded into the AppDomain.", name);
+                Logger.Initialization.Info("Assembly {0} was found to already be loaded into the AppDomain.", name);
                 loadedAssemblies.Add(name, loadedAssembly);
                 return loadedAssembly;
             }
 
             // Now check in resources ...
-			Debug.Print("Attempting to load {0} from resources.", name);
+            Logger.Initialization.Info("Attempting to load {0} from resources.", name);
 			assemblyBytes = GetResourceBytes(name, 0);
 			if (assemblyBytes == null)
 			{
-				Debug.Print("Assembly {0} could not be loaded from resources.", name);
+                Logger.Initialization.Warn("Assembly {0} could not be loaded from resources.", name);
 				return null;
 			}
 
-			Debug.Print("Trying Assembly.Load for {0} (from {1} bytes).", name, assemblyBytes.Length);
+            Logger.Initialization.Info("Trying Assembly.Load for {0} (from {1} bytes).", name, assemblyBytes.Length);
 			//File.WriteAllBytes(@"c:\Temp\" + name + ".dll", assemblyBytes);
 			try
 			{
 				loadedAssembly = Assembly.Load(assemblyBytes);
-				Debug.Print("Assembly Loaded from bytes. FullName: {0}", loadedAssembly.FullName);
+                Logger.Initialization.Info("Assembly Loaded from bytes. FullName: {0}", loadedAssembly.FullName);
 				loadedAssemblies.Add(name, loadedAssembly);
 				return loadedAssembly;
 			}
 			catch (Exception e)
 			{
-				Debug.Print("Exception during Assembly Load from bytes. Exception: {0}", e);
-				// TODO: Trace / Log.
+                Logger.Initialization.Error(e, "Error during Assembly Load from bytes");
 			}
 			return null;
         }
@@ -117,7 +117,8 @@ namespace ExcelDna.Loader
         // TODO: This method probably should not be here.
 		internal static byte[] GetResourceBytes(string resourceName, int type) // types: 0 - Assembly, 1 - Dna file, 2 - Image
 		{
-			Debug.Print("GetResourceBytes for resource {0} of type {1}", resourceName, type);
+            // CAREFUL: Can't log here yet as this method is called during Integration.Initialize()
+            // Logger.Initialization.Info("GetResourceBytes for resource {0} of type {1}", resourceName, type);
 			string typeName;
 			if (type == 0)
 			{
@@ -182,7 +183,8 @@ namespace ExcelDna.Loader
 		// If the resource type ends with "_LZMA", we decompress from the LZMA format.
 		internal static byte[] LoadResourceBytes(IntPtr hModule, string typeName, string resourceName)
 		{
-			Debug.Print("LoadResourceBytes for resource {0} of type {1}", resourceName, typeName);
+            // CAREFUL: Can't log here yet as this method is called during Integration.Initialize()
+            // Logger.Initialization.Info("LoadResourceBytes for resource {0} of type {1}", resourceName, typeName);
 			IntPtr hResInfo	= FindResource(hModule, resourceName, typeName);
 			if (hResInfo == IntPtr.Zero)
 			{
@@ -196,7 +198,9 @@ namespace ExcelDna.Loader
 				}
 				if (hResInfo == IntPtr.Zero)
 				{
-					Debug.Print("Resource not found - resource {0} of type {1}", resourceName, typeName);
+                    // CAREFUL: Can't log here yet as this method is called during Integration.Initialize()
+                    // Logger.Initialization.Info("Resource not found - resource {0} of type {1}", resourceName, typeName);
+                    Debug.Print("ResourceHelper.LoadResourceBytes - Resource not found - resource {0} of type {1}", resourceName, typeName);
 					// Return null to indicate that the resource was not found.
 					return null;
 				}
@@ -205,7 +209,9 @@ namespace ExcelDna.Loader
 			if (hResData == IntPtr.Zero)
 			{
 				// Unexpected error - this should not happen
-				Debug.Print("Unexpected errror loading resource {0} of type {1}", resourceName, typeName);
+                // CAREFUL: Can't log here yet as this method is called during Integration.Initialize()
+                //Logger.Initialization.Error("Unexpected errror loading resource {0} of type {1}", resourceName, typeName);
+                Debug.Print("ResourceHelper.LoadResourceBytes - Unexpected errror loading resource {0} of type {1}", resourceName, typeName);
 				throw new Win32Exception();
 			}
             uint   size	= SizeofResource(hModule, hResInfo);

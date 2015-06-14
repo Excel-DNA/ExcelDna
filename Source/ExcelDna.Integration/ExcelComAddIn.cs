@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using ExcelDna.ComInterop.ComRegistration;
 using ExcelDna.Integration.CustomUI;
 using ExcelDna.Integration.Extensibility;
+using ExcelDna.Logging;
 
 namespace ExcelDna.Integration
 {
@@ -29,27 +29,27 @@ namespace ExcelDna.Integration
         #region IDTExtensibility2 interface
         public virtual void OnConnection(object Application, ext_ConnectMode ConnectMode, object AddInInst, ref Array custom)
         {
-            Debug.Print("ExcelComAddIn.OnConnection");
+            Logger.ComAddIn.Verbose("ExcelComAddIn.OnConnection");
         }
 
         public virtual void OnDisconnection(ext_DisconnectMode RemoveMode, ref Array custom)
         {
-            Debug.Print("ExcelComAddIn.OnDisconnection");
+            Logger.ComAddIn.Verbose("ExcelComAddIn.OnDisconnection");
         }
 
         public virtual void OnAddInsUpdate(ref Array custom)
         {
-            Debug.Print("ExcelComAddIn.OnAddInsUpdate");
+            Logger.ComAddIn.Verbose("ExcelComAddIn.OnAddInsUpdate");
         }
 
         public virtual void OnStartupComplete(ref Array custom)
         {
-            Debug.Print("ExcelComAddIn.OnStartupComplete");
+            Logger.ComAddIn.Verbose("ExcelComAddIn.OnStartupComplete");
         }
 
         public virtual void OnBeginShutdown(ref Array custom)
         {
-            Debug.Print("ExcelComAddIn.OnBeginShutdown");
+            Logger.ComAddIn.Verbose("ExcelComAddIn.OnBeginShutdown");
         }
         #endregion
     }
@@ -100,10 +100,10 @@ namespace ExcelDna.Integration
             string description = string.Format("Dynamically created COM Add-in to load custom UI for the Excel Add-in {0}, located at {1}.", addIn.DnaLibrary.Name, DnaLibrary.XllPath);
 
 
-            Debug.Print("Getting Application object");
+            Logger.ComAddIn.Verbose("Getting Application object");
             object app = ExcelDnaUtil.Application;
             Type appType = app.GetType();
-            Debug.Print("Got Application object: " + app.GetType().ToString());
+            Logger.ComAddIn.Verbose("Got Application object: " + app.GetType().ToString());
 
             CultureInfo ci = new CultureInfo(1033);
             object excelComAddIns;
@@ -134,8 +134,7 @@ namespace ExcelDna.Integration
             }
             catch (UnauthorizedAccessException secex)
             {
-                Logging.LogDisplay.WriteLine("The Ribbon/COM Add-in helper required by add-in {0} could not be registered.\r\nThis may be due to restricted permissions on the user's HKCU\\Software\\Classes key.\r\nError message: {1}", DnaLibrary.CurrentLibrary.Name, secex.Message);
-                Debug.Print("LoadComAddIn exception: " + secex.ToString());
+                Logger.ComAddIn.Error(secex, "The Ribbon/COM add-in helper required by add-in {0} could not be registered.\r\nThis may be due to restricted permissions on the user's HKCU\\Software\\Classes key.", DnaLibrary.CurrentLibrary.Name);
             }
             catch (Exception ex)
             {
@@ -145,9 +144,9 @@ namespace ExcelDna.Integration
                 // CONSIDER: How would an add-in know that its COM AddIn load failed in this case?
                 if (!Environment.CommandLine.Contains(" /K"))
                 {
-                    Logging.LogDisplay.WriteLine("The Ribbon/COM Add-in helper required by add-in {0} could not be registered.\r\nThis is an unexpected error.\r\nError message: {1}", DnaLibrary.CurrentLibrary.Name, ex.Message);
+                    Logger.ComAddIn.Error("The Ribbon/COM add-in helper required by add-in {0} could not be registered.\r\nThis is an unexpected error.", DnaLibrary.CurrentLibrary.Name);
                 }
-                Debug.Print("LoadComAddIn exception: " + ex.ToString());
+                Logger.ComAddIn.Info("LoadComAddIn exception: {0} with /K in CommandLine", ex.ToString());
             }
         }
 
@@ -157,7 +156,7 @@ namespace ExcelDna.Integration
             foreach (object comAddIn in loadedComAddIns)
             {
                 comAddIn.GetType().InvokeMember("Connect", System.Reflection.BindingFlags.SetProperty, null, comAddIn, new object[] { false }, ci);
-                Debug.Print("COMAddin is unloaded.");
+                Logger.ComAddIn.Info("COMAddin is unloaded.");
             }
         }
     }

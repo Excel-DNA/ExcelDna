@@ -30,6 +30,7 @@ using System.Reflection;
 namespace ExcelDna.Integration
 {
     using ExcelDna.ComInterop;
+    using ExcelDna.Logging;
     using HRESULT = Int32;
 
     // CAUTION: These functions are called _via reflection_ by
@@ -233,16 +234,16 @@ namespace ExcelDna.Integration
 
         internal static void DnaLibraryAutoOpen()
         {
-			Debug.WriteLine("Enter Integration.DnaLibraryAutoOpen");
+			Logger.Initialization.Verbose("Enter Integration.DnaLibraryAutoOpen");
 			try
 			{
 				DnaLibrary.CurrentLibrary.AutoOpen();
             }
 			catch (Exception e)
 			{
-				Debug.WriteLine("Integration.DnaLibraryAutoOpen Exception: " + e);
+                Logger.Initialization.Error(e, "Integration.DnaLibraryAutoOpen Error");
 			}
-			Debug.WriteLine("Exit Integration.DnaLibraryAutoOpen");
+            Logger.Initialization.Verbose("Exit Integration.DnaLibraryAutoOpen");
 		}
 
         internal static void DnaLibraryAutoClose()

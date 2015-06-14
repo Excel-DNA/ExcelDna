@@ -26,11 +26,11 @@ using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Xml.Serialization;
+using ExcelDna.Logging;
 
 namespace ExcelDna.Integration
 {
@@ -222,7 +222,7 @@ namespace ExcelDna.Integration
                     if (!isResolved)
                     {
                         // Must have been loaded by us from the packing....?
-                        Debug.Print("Assembly resolve failure - Reference Name: {0}, Path: {1}", rf.Name, rf.Path);
+                        Logger.DnaCompilation.Error("Assembly resolve failure - Reference Name: {0}, Path: {1}", rf.Name, rf.Path);
                     }
 
 				}
@@ -260,10 +260,10 @@ namespace ExcelDna.Integration
                 refPaths.Add(assPath);
             }
 
-			Debug.WriteLine("Compiler References: ");
+            Logger.DnaCompilation.Verbose("Compiler References: ");
 			foreach (string rfPath in refPaths)
 			{
-				Debug.WriteLine("\t" + rfPath);
+                Logger.DnaCompilation.Verbose("    " + rfPath);
 			}
 
             return refPaths;
@@ -351,7 +351,7 @@ namespace ExcelDna.Integration
             {
                 if (isFsharp)
                 {
-                    Logging.LogDisplay.WriteLine("There was an error in loading the add-in " + DnaLibrary.CurrentLibraryName + " (" + DnaLibrary.XllPath + "):");
+                    Logger.DnaCompilation.Error("There was an error in loading the add-in " + DnaLibrary.CurrentLibraryName + " (" + DnaLibrary.XllPath + "):");
                     string fsBinPath = Environment.GetEnvironmentVariable("FSHARP_BIN");
                     string msg;
                     if (fsBinPath == null)
@@ -370,7 +370,7 @@ namespace ExcelDna.Integration
                               "    (it currently points to " + fsBinPath + ").";
 
                     }
-                    Logging.LogDisplay.WriteLine(msg);
+                    Logger.DnaCompilation.Error(msg);
                     return list;
                 }
                 throw;
@@ -386,11 +386,11 @@ namespace ExcelDna.Integration
 
 			if (cr.Errors.HasErrors)
 			{
-                Logging.LogDisplay.WriteLine("There was an error in loading the add-in " + DnaLibrary.CurrentLibraryName + " (" + DnaLibrary.XllPath + "):");
-                Logging.LogDisplay.WriteLine("There were errors when compiling project: " + Name);
+                Logger.DnaCompilation.Error("There was an error in loading the add-in " + DnaLibrary.CurrentLibraryName + " (" + DnaLibrary.XllPath + "):");
+                Logger.DnaCompilation.Error("There were errors when compiling project: " + Name);
 				foreach (CompilerError err in cr.Errors)
 				{
-                    Logging.LogDisplay.WriteLine(err.ToString());
+                    Logger.DnaCompilation.Error("    " + err.ToString());
 				}
 				return list;
 			}
@@ -468,19 +468,19 @@ namespace ExcelDna.Integration
                     }
                     else
                     {
-                        Logging.LogDisplay.WriteLine("There was an error in loading the add-in " + DnaLibrary.CurrentLibraryName + " (" + DnaLibrary.XllPath + "):");
-                        Logging.LogDisplay.WriteLine("    The F# CodeDom provider (FSharp.Compiler.CodeDom.dll) could not be loaded.");
-                        Logging.LogDisplay.WriteLine("        Please ensure that the F# Compiler is installed and that the");
-                        Logging.LogDisplay.WriteLine("        FSharp.Compiler.CodeDom.dll assembly (part of the F# PowerPack) can be loaded by the add-in.");
-                        Logging.LogDisplay.WriteLine("        (Placing a copy of FSharp.Compiler.CodeDom.dll in the same directory as the .xll file should work.)");
+                        Logger.DnaCompilation.Error("There was an error in loading the add-in " + DnaLibrary.CurrentLibraryName + " (" + DnaLibrary.XllPath + "):");
+                        Logger.DnaCompilation.Error("    The F# CodeDom provider (FSharp.Compiler.CodeDom.dll) could not be loaded.");
+                        Logger.DnaCompilation.Error("        Please ensure that the F# Compiler is installed and that the");
+                        Logger.DnaCompilation.Error("        FSharp.Compiler.CodeDom.dll assembly (part of the F# PowerPack) can be loaded by the add-in.");
+                        Logger.DnaCompilation.Error("        (Placing a copy of FSharp.Compiler.CodeDom.dll in the same directory as the .xll file should work.)");
                         return null;
                     }
                 }
                 catch (Exception ex)
                 {
-                    Logging.LogDisplay.WriteLine("There was an error in loading the add-in " + DnaLibrary.CurrentLibraryName + " (" + DnaLibrary.XllPath + "):");
-                    Logging.LogDisplay.WriteLine("Error in loading the F# CodeDom provider.");
-                    Logging.LogDisplay.WriteLine(" Exception: " + ex.Message);
+                    Logger.DnaCompilation.Error("There was an error in loading the add-in " + DnaLibrary.CurrentLibraryName + " (" + DnaLibrary.XllPath + "):");
+                    Logger.DnaCompilation.Error("Error in loading the F# CodeDom provider.");
+                    Logger.DnaCompilation.Error("    Exception: " + ex.Message);
                     return null;
                 }
             }
@@ -501,9 +501,8 @@ namespace ExcelDna.Integration
 			}
 			catch (Exception e)
 			{
-				Debug.Fail("Unknown Project Language: " + Language);
-                Logging.LogDisplay.WriteLine("Unknown Project Language: " + Language);
-                Logging.LogDisplay.WriteLine(" Exception: " + e.Message);
+				Logger.DnaCompilation.Error("Unknown Project Language: {0}", Language);
+                Logger.DnaCompilation.Error(e, "   CodeDomProvider load error");
 			}
 			return null;
 		}

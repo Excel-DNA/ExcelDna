@@ -117,7 +117,7 @@ namespace ExcelDna.Integration
                 t.Namespace == "My")
             {
                 // Ignored cases
-                RegistrationLogger.Info("Type ignored: {0}", t.FullName);
+                Logger.Registration.Info("Type ignored: {0}", t.FullName);
                 return;
             }
 
@@ -161,12 +161,12 @@ namespace ExcelDna.Integration
             // We want to log methods that are marked for export, but have unsupported types.
             if (!isSupported && IsMethodMarkedForExport(mi))
             {
-                RegistrationLogger.Error("Method not registered - unsupported types: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
+                Logger.Registration.Error("Method not registered - unsupported types: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
             }
             else if (!isSupported)
             {
                 // CONSIDER: More detailed logging
-                RegistrationLogger.Info("Method not registered - unsupported types: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
+                Logger.Registration.Info("Method not registered - unsupported types: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
             }
 
             return isSupported;

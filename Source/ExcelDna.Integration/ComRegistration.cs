@@ -23,7 +23,6 @@
 */
 
 using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security;
 using Microsoft.Win32;
@@ -35,6 +34,7 @@ using CLSID     = System.Guid;
 using DWORD     = System.Int32;
 using HRESULT   = System.Int32;
 using IID       = System.Guid;
+using ExcelDna.Logging;
 
 namespace ExcelDna.ComInterop.ComRegistration
 {
@@ -193,7 +193,7 @@ namespace ExcelDna.ComInterop.ComRegistration
                 RegistryKey testKey = Registry.ClassesRoot.CreateSubKey(testKeyName, RegistryKeyPermissionCheck.ReadWriteSubTree);
                 if (testKey == null)
                 {
-                    Debug.Print("Unexpected failure in CanWriteMachineHive check");
+                    Logger.ComAddIn.Error("Unexpected failure in CanWriteMachineHive check");
                     return false;
                 }
                 else
@@ -215,7 +215,7 @@ namespace ExcelDna.ComInterop.ComRegistration
             }
             catch (Exception e)
             {
-                Debug.Print("Unexpected exception in CanWriteMachineHive check: " + e);
+                Logger.ComAddIn.Error(e, "Unexpected exception in CanWriteMachineHive check");
                 return false;
             }
         }

@@ -115,8 +115,7 @@ namespace ExcelDna.Integration
 						DnaLibrary lib = DnaLibrary.LoadFrom(dnaContent, pathResolveRoot);
 						if (lib == null)
 						{
-                            LogDisplay.WriteLine("External library could not be registered - Path: " + Path);
-                            LogDisplay.WriteLine("    Error: Packed DnaLibrary could not be loaded.");
+                            Logger.Initialization.Error("External library could not be registered - Path: {0}\r\n - Packed DnaLibrary could not be loaded", Path);
 							return list;
 						}
 
@@ -160,7 +159,7 @@ namespace ExcelDna.Integration
                         string scheme = uri.Scheme.ToLowerInvariant();
                         if (scheme != "http" && scheme != "file" && scheme != "https")
                         {
-                            Logging.LogDisplay.WriteLine("The ExternalLibrary path {0} is not a valid Uri scheme.", Path);
+                            Logger.Initialization.Error("The ExternalLibrary path {0} is not a valid Uri scheme.", Path);
                             return list;
                         }
                         else
@@ -170,8 +169,7 @@ namespace ExcelDna.Integration
                                 DnaLibrary lib = DnaLibrary.LoadFrom(uri);
                                 if (lib == null)
                                 {
-                                    Logging.LogDisplay.WriteLine("External library could not be registered - Path: " + Path);
-                                    Logging.LogDisplay.WriteLine("    Error: DnaLibrary could not be loaded.");
+                                    Logger.Initialization.Error("External library could not be registered - Path: {0} - DnaLibrary could not be loaded" + Path);
                                     return list;
                                 }
                                 // CONSIDER: Should we add a resolve story for .dna files at Uris?
@@ -191,8 +189,7 @@ namespace ExcelDna.Integration
                 string resolvedPath = DnaLibrary.ResolvePath(realPath, pathResolveRoot);
                 if (resolvedPath == null)
                 {
-                    LogDisplay.WriteLine("External library could not be registered - Path: " + Path);
-                    LogDisplay.WriteLine("    Error: The library could not be found at this location.");
+                    Logger.Initialization.Error("External library could not be registered - Path: {0} - The library could not be found at this location" + Path);
                     return list;
 				}
                 if (System.IO.Path.GetExtension(resolvedPath).Equals(".DNA", StringComparison.OrdinalIgnoreCase))
@@ -201,8 +198,7 @@ namespace ExcelDna.Integration
                     DnaLibrary lib = DnaLibrary.LoadFrom(resolvedPath);
 					if (lib == null)
 					{
-                        LogDisplay.WriteLine("External library could not be registered - Path: " + Path);
-                        LogDisplay.WriteLine("    Error: DnaLibrary could not be loaded.");
+                        Logger.Initialization.Error("External library could not be registered - Path: {0} - DnaLibrary could not be loaded" + Path);
                         return list;
 					}
 
@@ -271,8 +267,7 @@ namespace ExcelDna.Integration
 			catch (Exception e)
 			{
 				// Assembly could not be loaded.
-				LogDisplay.WriteLine("External library could not be registered - Path: " + Path);
-                LogDisplay.WriteLine("    Error: " + e.Message);
+				Logger.Initialization.Error(e, "External library could not be registered - Path: {0}", Path);
                 return list;
 			}
 		}

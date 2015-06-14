@@ -46,7 +46,7 @@ namespace ExcelDna.Logging
         internal LogDisplayForm()
         {
             InitializeComponent();
-            Text = DnaLibrary.CurrentLibraryName + " - Log Display";
+            Text = DnaLibrary.CurrentLibraryName + " - Diagnostic Display";
             CenterToParent();
             logMessages.VirtualListSize = LogDisplay.LogStrings.Count;
             updateTimer = new System.Windows.Forms.Timer();
@@ -397,7 +397,18 @@ namespace ExcelDna.Logging
             if (Filter != null && !Filter.ShouldTrace(eventCache, source, eventType, id, format, args, null, null))
                 return;
 
-            string header =  string.Format(CultureInfo.InvariantCulture, "{0} {1}: {2} : ", source, eventType.ToString(), id.ToString(CultureInfo.InvariantCulture));
+            string idDescription;
+            if (source == "ExcelDna.Integration")
+            {
+                // For this source, we intepreted the event id as a grouping
+                IntegrationTraceEventId traceEventId = (IntegrationTraceEventId)id;
+                idDescription = traceEventId.ToString();
+            }
+            else
+            {
+                idDescription = id.ToString(CultureInfo.InvariantCulture);
+            }
+            string header =  string.Format(CultureInfo.InvariantCulture, "{0} [{1}] ", idDescription, eventType.ToString());
             base.TraceEvent(eventCache, source, eventType, id, header + format, args);
 
             if (eventType == TraceEventType.Error || eventType == TraceEventType.Critical)
@@ -413,7 +424,14 @@ namespace ExcelDna.Logging
 
         public override void WriteLine(string message)
         {
-            LogDisplay.WriteLine(message);
+            try
+            {
+                LogDisplay.WriteLine(message);
+            }
+            catch (Exception e)
+            {
+                Debug.Print("LogDisplayTraceListener error: " + e.Message);
+            }
         }
     }
 }

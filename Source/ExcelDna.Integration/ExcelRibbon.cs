@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Xml;
+using ExcelDna.Logging;
 using CLSID = System.Guid;
 
 namespace ExcelDna.Integration.CustomUI
@@ -21,7 +21,7 @@ namespace ExcelDna.Integration.CustomUI
         {
             if (RibbonID != "Microsoft.Excel.Workbook")
             {
-                Debug.Print("ExcelRibbon.GetCustomUI - Invalid RibbonID for Excel. RibbonID: {0}", RibbonID);
+                Logger.ComAddIn.Error("ExcelRibbon.GetCustomUI - Invalid RibbonID for Excel. RibbonID: {0}", RibbonID);
                 return null;
             }
 

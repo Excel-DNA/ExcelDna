@@ -27,6 +27,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
+using ExcelDna.Loader.Logging;
 
 namespace ExcelDna.Loader
 {
@@ -101,15 +102,16 @@ namespace ExcelDna.Loader
 
 		private static unsafe bool Initialize(IntPtr xlAddInExportInfoAddress, IntPtr hModuleXll, string pathXll)
         {
-         
-            Debug.Print("Initialize - in sandbox AppDomain with Id: {0}, running on thread: {1}", AppDomain.CurrentDomain.Id, Thread.CurrentThread.ManagedThreadId);
-            Debug.Assert(xlAddInExportInfoAddress != IntPtr.Zero);
-            Debug.Print("InitializationInfo Address: 0x{0:x8}", xlAddInExportInfoAddress);
+            // NOTE: Too early for logging - the TraceSource in ExcelDna.Integration has not been initialized yet.
+            Debug.Print("In sandbox AppDomain with Id: {0}, running on thread: {1}", AppDomain.CurrentDomain.Id, Thread.CurrentThread.ManagedThreadId);
+            Debug.Assert(xlAddInExportInfoAddress != IntPtr.Zero, "InitializationInfo address is null");
+            Debug.Print("InitializationInfo address: 0x{0:x8}", xlAddInExportInfoAddress);
 			
 			XlAddInExportInfo* pXlAddInExportInfo = (XlAddInExportInfo*)xlAddInExportInfoAddress;
-            if (pXlAddInExportInfo->ExportInfoVersion != 8)
+            int exportInfoVersion = pXlAddInExportInfo->ExportInfoVersion;
+            if (exportInfoVersion != 8)
             {
-                Debug.Print("ExportInfoVersion not supported.");
+                Debug.Print("ExportInfoVersion '{0}' not supported", exportInfoVersion);
                 return false;
             }
 
@@ -184,7 +186,7 @@ namespace ExcelDna.Loader
             catch (DllNotFoundException)
             {
                 // This is expected if we are running under HPC or Regsvr32.
-                Debug.WriteLine("XlCall library not found - probably running in HPC host or Regsvr32.exe");
+                Debug.Print("XlCall library not found - probably running in HPC host or Regsvr32.exe");
                 
                 // For the HPC support, I ignore error here and just assume we are under new Excel.
                 // This will cause the common error here to get pushed to later ...
@@ -193,7 +195,7 @@ namespace ExcelDna.Loader
             }
             catch (Exception e)
             {
-                Debug.WriteLine("XlAddIn: XLCallVer Exception: " + e);
+                Debug.Print("XlAddIn: XLCallVer Error: {0}", e);
 
                 // CONSIDER: Is this right / needed - I'm not actually sure what happens under HPC host, 
                 // so I'll leave this case in here too.?
@@ -211,12 +213,12 @@ namespace ExcelDna.Loader
             }
             catch (InvalidOperationException ioe)
             {
-                Debug.WriteLine("XlAddIn: Initialize Exception - Invalid ExcelIntegration version detected: " + ioe);
+                Debug.Print("XlAddIn: Initialize Error - Invalid ExcelIntegration version detected: {0}", ioe);
                 return false;
             }
             catch (Exception e)
             {
-                Debug.WriteLine("XlAddIn: Initialize Exception: " + e);
+                Debug.Print("XlAddIn: Initialize Error:", e);
                 return false;
             }
 
@@ -284,7 +286,7 @@ namespace ExcelDna.Loader
             if (!_initialized)
             {
                 IntegrationHelpers.InitializeIntegration(pathXll);
-                RegistrationLogger.IntegrationTraceSource = IntegrationHelpers.GetIntegrationTraceSource();
+                TraceLogger.IntegrationTraceSource = IntegrationHelpers.GetIntegrationTraceSource();
                 _initialized = true;
             }
         }
@@ -298,7 +300,7 @@ namespace ExcelDna.Loader
                     IntegrationHelpers.DnaLibraryAutoClose();
                     XlRegistration.UnregisterMethods();
                 }
-                RegistrationLogger.IntegrationTraceSource = null;
+                TraceLogger.IntegrationTraceSource = null;
                 IntegrationHelpers.DeInitializeIntegration();
                 _initialized = false;
                 _opened = false;
@@ -309,11 +311,10 @@ namespace ExcelDna.Loader
         #region Managed Xlxxxx functions
         internal static short XlAutoOpen()
         {
-            Debug.Print("AppDomain Id: " + AppDomain.CurrentDomain.Id + " (Default: " + AppDomain.CurrentDomain.IsDefaultAppDomain() + ")");
+            Debug.Print("XlAddIn.XlAutoOpen - AppDomain Id: " + AppDomain.CurrentDomain.Id + " (Default: " + AppDomain.CurrentDomain.IsDefaultAppDomain() + ")");
 			short result = 0;
             try
             {
-                Debug.WriteLine("In XlAddIn.XlAutoOpen");
                 if (_opened)
                 {
                     DeInitializeIntegration();
@@ -321,6 +322,7 @@ namespace ExcelDna.Loader
                 object xlCallResult;
                 XlCallImpl.TryExcelImpl(XlCallImpl.xlcMessage, out xlCallResult /*Ignore*/ , true, "Registering library " + pathXll);
 				InitializeIntegration();
+                Logger.Initialization.Verbose("In XlAddIn.XlAutoOpen");
                 
                 // v. 30 - moved the setting of _opened before calling AutoOpen, 
                 // so that checking in DeInitializeIntegration does not prevent AutoOpen - unloading via xlAutoRemove from working.
@@ -333,10 +335,8 @@ namespace ExcelDna.Loader
             }
             catch (Exception e)
             {
-                // TODO: What to do here - maybe prefer Trace...?
-
-                Debug.WriteLine("ExcelDna.Loader.XlAddin.XlAutoOpen. Exception during Integration load: " + e.ToString());
-				string alertMessage = string.Format("A problem occurred while an add-in was being initialized (InitializeIntegration failed - {1}).\r\nThe add-in is built with ExcelDna and is being loaded from {0}", pathXll, e.Message);
+                // Can't use logging here
+                string alertMessage = string.Format("A problem occurred while an add-in was being initialized (InitializeIntegration failed - {1}).\r\nThe add-in is built with ExcelDna and is being loaded from {0}", pathXll, e.Message);
 				object xlCallResult;
 				XlCallImpl.TryExcelImpl(XlCallImpl.xlcAlert, out xlCallResult /*Ignored*/, alertMessage , 3 /* Only OK Button, Warning Icon*/);
                 result = 0;
@@ -346,7 +346,7 @@ namespace ExcelDna.Loader
                 // Clear the status bar message
                 object xlCallResult;
                 XlCallImpl.TryExcelImpl(XlCallImpl.xlcMessage, out xlCallResult /*Ignored*/ , false);
-                Debug.Print("Clear status bar message result: " + xlCallResult);
+                // Debug.Print("Clear status bar message result: " + xlCallResult);
             }
             return result;
         }
@@ -356,13 +356,13 @@ namespace ExcelDna.Loader
             short result = 0;
             try
             {
-                Debug.WriteLine("In XlAddIn.XlAutoClose");
+                Logger.Initialization.Verbose("In XlAddIn.XlAutoClose");
                 // This also gets called when workbook starts closing - and can still be cancelled
                 result = 1; // 0 if problems ?
             }
             catch (Exception e)
             {
-                Debug.WriteLine(e);
+                Logger.Initialization.Error(e, "XlAddIn.XlAutoClose error");
             }
 
             return result;
@@ -375,12 +375,12 @@ namespace ExcelDna.Loader
             short result = 0;
             try
             {
-                Debug.WriteLine("In XlAddIn.XlAutoAdd");
+                Logger.Initialization.Verbose("In XlAddIn.XlAutoAdd");
                 result = 1;
             }
             catch (Exception e)
             {
-                Debug.WriteLine(e);
+                Logger.Initialization.Error(e, "XlAddIn.XlAutoAdd error");
             }
 
             return result;
@@ -391,7 +391,7 @@ namespace ExcelDna.Loader
             short result = 0;
             try
             {
-                Debug.WriteLine("In XlAddIn.XlAutoRemove");
+                Logger.Initialization.Verbose("In XlAddIn.XlAutoRemove");
                 // Apparently better if called here, 
                 // so I try to, but make it safe to call again.
                 DeInitializeIntegration();
@@ -399,7 +399,7 @@ namespace ExcelDna.Loader
             }
             catch (Exception e)
             {
-                Debug.WriteLine(e);
+                Logger.Initialization.Error(e, "XlAddIn.XlAutoRemove error");
             }
 
             return result;
@@ -477,10 +477,10 @@ namespace ExcelDna.Loader
 
         internal static HRESULT DllGetClassObject(CLSID clsid, IID iid, out IntPtr ppunk)
         {
-            Debug.Print("DllGetClassObject reached!!");
-           // IntPtr pout;
+            Debug.Print("DllGetClassObject entered - calling InitializeIntegration.");
             HRESULT result;
             InitializeIntegration();
+            Logger.Initialization.Verbose("In DllGetClassObject");
             result = IntegrationHelpers.DllGetClassObject(clsid, iid, out ppunk);
             return result;
         }

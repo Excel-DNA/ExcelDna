@@ -24,7 +24,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -37,6 +36,7 @@ using ExcelDna.Serialization;
 using ExcelDna.Integration.CustomUI;
 using ExcelDna.Integration.Rtd;
 using ExcelDna.ComInterop;
+using ExcelDna.Logging;
 
 namespace ExcelDna.Integration
 {
@@ -222,8 +222,8 @@ namespace ExcelDna.Integration
             }
             catch (Exception e)
             {
-                Logging.LogDisplay.WriteLine("There was an error in loading the add-in " + DnaLibrary.CurrentLibraryName + " (" + DnaLibrary.XllPath + "):");
-                Logging.LogDisplay.WriteLine("Error in loading assemblies. Exception: " + e.ToString());
+                Logger.Initialization.Error("There was an error in loading the add-in " + DnaLibrary.CurrentLibraryName + " (" + DnaLibrary.XllPath + "):");
+                Logger.Initialization.Error(e, "Error in loading assemblies");
             }
             return assemblies;
         }
@@ -296,7 +296,7 @@ namespace ExcelDna.Integration
                 catch (Exception e)
                 {
                     // TODO: What to do here?
-                    Debug.Print(e.Message);
+                    Logger.Initialization.Error(e, "DnaLibrary AutoOpen Error");
                 }
             }
 
@@ -318,8 +318,7 @@ namespace ExcelDna.Integration
                 }
                 catch (Exception e)
                 {
-                    // TODO: What to do here?
-                    Debug.WriteLine(e.Message);
+                    Logger.Initialization.Warn("DnaLibrary AutoClose Error: {0}", e.Message);
                 }
             }
             // This is safe, even if never registered
@@ -414,20 +413,21 @@ namespace ExcelDna.Integration
             // 1. Look for a packed .dna file named "__MAIN__" in the .xll.
             // 2. Look for the .dna file in the same directory as the .xll file, with the same name and extension .dna.
 
-            Debug.WriteLine("Enter DnaLibrary.InitializeRootLibrary");
+            // CAREFUL: Sequence here is fragile - this is the first place where we start logging
             _XllPath = xllPath;
             Logging.LogDisplay.CreateInstance();
+            Logger.Initialization.Verbose("Enter DnaLibrary.InitializeRootLibrary");
             byte[] dnaBytes = ExcelIntegration.GetDnaFileBytes("__MAIN__");
             if (dnaBytes != null)
             {
-                Debug.WriteLine("Got Dna file from resources.");
+                Logger.Initialization.Verbose("Got Dna file from resources.");
                 string pathResolveRoot = Path.GetDirectoryName(DnaLibrary.XllPath);
                 rootLibrary = LoadFrom(dnaBytes, pathResolveRoot);
                 // ... would have displayed error and returned null if there was an error.
             }
             else
             {
-                Debug.WriteLine("No Dna file in resources - looking for file.");
+                Logger.Initialization.Verbose("No Dna file in resources - looking for file.");
                 // No packed .dna file found - load from a .dna file.
                 string dnaFileName = Path.ChangeExtension(XllPath, ".dna");
                 rootLibrary = LoadFrom(dnaFileName);
@@ -437,12 +437,12 @@ namespace ExcelDna.Integration
             // If there have been problems, ensure that there is at lease some current library.
             if (rootLibrary == null)
             {
-                Debug.WriteLine("No Dna Library found.");
+                Logger.Initialization.Error("No Dna Library found.");
                 rootLibrary = new DnaLibrary();
             }
 
             rootLibrary.Initialize();
-            Debug.WriteLine("Exit DnaLibrary.Initialize");
+            Logger.Initialization.Verbose("Exit DnaLibrary.Initialize");
         }
 
         internal static void DeInitialize()
@@ -467,9 +467,7 @@ namespace ExcelDna.Integration
             }
             catch (Exception e)
             {
-                string errorMessage = string.Format("There was an error in loading the .dna file from a Uri:\r\n{0}\r\n{1}\r\nUri:{2}", e.Message, e.InnerException != null ? e.InnerException.Message : string.Empty, uri.ToString());
-                Debug.WriteLine(errorMessage);
-                ExcelDna.Logging.LogDisplay.WriteLine(errorMessage);
+                Logger.Initialization.Error("There was an error in loading the .dna file from a Uri:\r\n{0}\r\n{1}\r\nUri:{2}", e.Message, e.InnerException != null ? e.InnerException.Message : string.Empty, uri.ToString());
                 return null;
             }
 
@@ -492,9 +490,7 @@ namespace ExcelDna.Integration
             }
             catch (Exception e)
             {
-                string errorMessage = string.Format("There was an error in processing .dna file bytes:\r\n{0}\r\n{1}", e.Message, e.InnerException != null ? e.InnerException.Message : string.Empty);
-                Debug.WriteLine(errorMessage);
-                //ExcelDna.Logging.LogDisplay.SetText(errorMessage);
+                Logger.Initialization.Error("There was an error in processing .dna file bytes:\r\n{0}\r\n{1}", e.Message, e.InnerException != null ? e.InnerException.Message : string.Empty);
                 return null;
             }
             dnaLibrary.dnaResolveRoot = pathResolveRoot;
@@ -507,7 +503,7 @@ namespace ExcelDna.Integration
 
             if (!File.Exists(fileName))
             {
-                ExcelDna.Logging.LogDisplay.WriteLine("The required .dna script file {0} does not exist.", fileName);
+                Logger.Initialization.Error("The required .dna script file {0} does not exist.", fileName);
                 return null;
             }
 
@@ -521,7 +517,7 @@ namespace ExcelDna.Integration
             }
             catch (Exception e)
             {
-                ExcelDna.Logging.LogDisplay.WriteLine("There was an error during processing of {0}:\r\n{1}\r\n{2}", fileName, e.Message, e.InnerException != null ? e.InnerException.Message : string.Empty);
+                Logger.Initialization.Error("There was an error during processing of {0}:\r\n{1}\r\n{2}", fileName, e.Message, e.InnerException != null ? e.InnerException.Message : string.Empty);
                 return null;
             }
             dnaLibrary.dnaResolveRoot = Path.GetDirectoryName(fileName);
@@ -602,11 +598,11 @@ namespace ExcelDna.Integration
         public static string ResolvePath(string path, string dnaDirectory)
         {
 
-            Debug.Print("ResolvePath: Resolving {0} from DnaDirectory: {1}", path, dnaDirectory);
+            Logger.Initialization.Info("ResolvePath: Resolving {0} from DnaDirectory: {1}", path, dnaDirectory);
             if (File.Exists(path))
             {
                 string fullPath = Path.GetFullPath(path);
-                Debug.Print("ResolvePath: Found at {0}", fullPath);
+                Logger.Initialization.Info("ResolvePath: Found at {0}", fullPath);
                 return fullPath;
             }
 
@@ -625,10 +621,10 @@ namespace ExcelDna.Integration
                     // Not rooted - try a path relative to local directory
                     dnaPath = System.IO.Path.Combine(dnaDirectory, path);
                 }
-                Debug.Print("ResolvePath: Checking at {0}", dnaPath);
+                Logger.Initialization.Verbose("ResolvePath: Checking at {0}", dnaPath);
                 if (File.Exists(dnaPath))
                 {
-                    Debug.Print("ResolvePath: Found at {0}", dnaPath);
+                    Logger.Initialization.Info("ResolvePath: Found at {0}", dnaPath);
                     return dnaPath;
                 }
             }
@@ -646,10 +642,10 @@ namespace ExcelDna.Integration
                     basePath = System.IO.Path.Combine(baseDirectory, path);
                 }
                 // ... and check again
-                Debug.Print("ResolvePath: Checking at {0}", basePath);
+                Logger.Initialization.Verbose("ResolvePath: Checking at {0}", basePath);
                 if (File.Exists(basePath))
                 {
-                    Debug.Print("ResolvePath: Found at {0}", basePath);
+                    Logger.Initialization.Info("ResolvePath: Found at {0}", basePath);
                     return basePath;
                 }
             }
@@ -662,12 +658,12 @@ namespace ExcelDna.Integration
             string frameworkPath = Path.Combine(frameworkBase, fileName);
             if (File.Exists(frameworkPath))
             {
-                Debug.Print("ResolvePath: Found at {0}", frameworkPath);
+                Logger.Initialization.Info("ResolvePath: Found at {0}", frameworkPath);
                 return frameworkPath;
             }
 
             // Else give up (maybe try load from GAC for assemblies?)
-            Debug.Print("ResolvePath: Could not find {0} from DnaDirectory {1}", path, dnaDirectory);
+            Logger.Initialization.Error("ResolvePath: Could not find {0} from DnaDirectory {1}", path, dnaDirectory);
             return null;
         }
 
@@ -694,7 +690,7 @@ namespace ExcelDna.Integration
                         if (imagePath == null)
                         {
                             // This is the image but we could not find it !?
-                            Debug.Print("DnaLibrary.LoadImage - For image {0} the path resolution failed: {1}", image.Name, image.Path);
+                            Logger.Initialization.Warn("DnaLibrary.GetImage - For image {0} the path resolution failed: {1}", image.Name, image.Path);
                             return null;
                         }
                         imageBytes = File.ReadAllBytes(imagePath);
@@ -706,7 +702,7 @@ namespace ExcelDna.Integration
                         {
                             return (Bitmap)imageLoaded;
                         }
-                        Debug.Print("Image {0} read from {1} was not a bitmap!?", image.Name, image.Path);
+                        Logger.Initialization.Warn("DnaLibrary.GetImage - Image {0} read from {1} was not a bitmap!?", image.Name, image.Path);
                     }
                 }
             }

@@ -24,8 +24,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using ExcelDna.Integration.CustomUI;
+using ExcelDna.Logging;
 
 namespace ExcelDna.Integration
 {
@@ -137,7 +137,7 @@ namespace ExcelDna.Integration
             }
             catch (Exception e)
             {
-                Debug.WriteLine(e.Message);
+                Logger.Initialization.Error(e, "MenuManager.AddCommandMenu Error");
             }
         }
 
@@ -155,7 +155,7 @@ namespace ExcelDna.Integration
                 }
                 catch (Exception e)
                 {
-                    Debug.WriteLine(e.Message);
+                    Logger.Initialization.Error(e, "MenuManager.RemoveCommandMenus Error");
                 }
             }
             _addedMenuEntries.Clear();
@@ -170,7 +170,7 @@ namespace ExcelDna.Integration
                 }
                 catch (Exception e)
                 {
-                    Debug.WriteLine(e.Message);
+                    Logger.Initialization.Error(e, "MenuManager.RemoveCommandMenus Error");
                 }
             }
             _addedMenus.Clear();
@@ -239,7 +239,7 @@ namespace ExcelDna.Integration
             }
             catch (Exception e)
             {
-                Debug.WriteLine(e.Message);
+                Logger.Initialization.Error(e, "MenuManager.AddCommandMenu Error");
             }
         }
 
