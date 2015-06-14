@@ -307,7 +307,7 @@ namespace ExcelDna.ComInterop.ComRegistration
         protected override void Deregister()
         {
             // Deregister the ProgId for CLSIDFromProgID.
-            RegistrationUtil.ClassesRootKey.DeleteSubKeyTree(@"\" + _progId);
+            RegistrationUtil.ClassesRootKey.DeleteSubKeyTree(_progId);
         }
     }
 
@@ -321,6 +321,9 @@ namespace ExcelDna.ComInterop.ComRegistration
             string rootKeyName = RegistrationUtil.ClassesRootKey.Name;
 
             // Register the CLSID
+
+            // NOTE: Remember that all the CLSID keys are redirected under WOW64.
+
             Registry.SetValue(rootKeyName + @"\CLSID\" + clsIdString + @"\InProcServer32", null, DnaLibrary.XllPath, RegistryValueKind.String);
             Registry.SetValue(rootKeyName + @"\CLSID\" + clsIdString + @"\InProcServer32", "ThreadingModel", "Both", RegistryValueKind.String);
             if (!string.IsNullOrEmpty(progId))
@@ -332,7 +335,7 @@ namespace ExcelDna.ComInterop.ComRegistration
         protected override void Deregister()
         {
             // Deregister the ProgId for CLSIDFromProgID.
-            RegistrationUtil.ClassesRootKey.DeleteSubKeyTree(@"\CLSID\" + _clsId.ToString("B").ToUpperInvariant());
+            RegistrationUtil.ClassesRootKey.DeleteSubKeyTree(@"CLSID\" + _clsId.ToString("B").ToUpperInvariant());
         }
     }
 
