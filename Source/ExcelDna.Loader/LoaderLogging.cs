@@ -37,6 +37,11 @@ namespace ExcelDna.Loader.Logging
             if (TraceLogger.IntegrationTraceSource == null)
             {
                 // We are in the pre-initialization stage. Just log to Debug.
+                // NOTE: Without the explcit check and short-circuit here the loading would (sometimes!) fail.
+                //       This is despite the catch-all exception handler that should be suppressing all errors.
+                //       Somehow the null-reference exception being thrown and caught interferes with the AppDomain_AssemblyResolve!?
+                //       The problem only happened when ExcelDna.Integration had to be resolved from resources (in which case the calls here would come from AssemblyResolve.
+                //       Under the debugger, the problem was inconsistent (sometimes the load worked fine), but outside the debugger it always failed.
                 Debug.Print(eventType.ToString() + " : " + string.Format(message, args));
                 return;
             }
