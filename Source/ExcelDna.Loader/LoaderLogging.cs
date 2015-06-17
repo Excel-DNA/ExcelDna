@@ -34,6 +34,12 @@ namespace ExcelDna.Loader.Logging
 
         void Log(TraceEventType eventType, string message, params object[] args)
         {
+            if (TraceLogger.IntegrationTraceSource == null)
+            {
+                // We are in the pre-initialization stage. Just log to Debug.
+                Debug.Print(eventType.ToString() + " : " + string.Format(message, args));
+                return;
+            }
             try
             {
                 TraceLogger.IntegrationTraceSource.TraceEvent(eventType, _eventId, message, args);
