@@ -45,11 +45,17 @@ namespace ExcelDna.Integration.CustomUI
         
         public static CustomTaskPane CreateCustomTaskPane(Type userControlType, string title, object parent)
         {
-            //if (!typeof(System.Windows.Forms.UserControl).IsAssignableFrom(userControlType))
-            //{
-            //    throw new ArgumentException("userControlType for Custom Task Pane must be derive from type System.Windows.Forms.UserControl");
-            //}
+            object userControl = Activator.CreateInstance(userControlType);
+            return CreateCustomTaskPane(userControl, title, parent);
+        }
 
+        public static CustomTaskPane CreateCustomTaskPane(object userControl, string title)
+        {
+            return CreateCustomTaskPane(userControl, title, Type.Missing);
+        }
+
+        public static CustomTaskPane CreateCustomTaskPane(object userControl, string title, object parent)
+        {
             // I could use the ProgId and ClsId of the UserControl type here.
             // But then the registration has to be persistent or coordinated, which I dislike.
             // It's already a problem for the RTD servers.
@@ -65,7 +71,6 @@ namespace ExcelDna.Integration.CustomUI
             // Instantiate and then register UserControl
             try
             {
-                object userControl = Activator.CreateInstance(userControlType);
                 using (new SingletonClassFactoryRegistration(userControl, clsId))
                 using (new ProgIdRegistration(progId, clsId))
                 using (new ClsIdRegistration(clsId, progId))
@@ -75,7 +80,7 @@ namespace ExcelDna.Integration.CustomUI
             }
             catch (UnauthorizedAccessException secex)
             {
-                Logging.LogDisplay.WriteLine("The CTP Helper required by add-in {0} could not be registered.\r\nThis may be due to restricted permissions on the user's HKCU\\Software\\Classes key.\r\nError message: {1}", 
+                Logging.LogDisplay.WriteLine("The CTP Helper required by add-in {0} could not be registered.\r\nThis may be due to restricted permissions on the user's HKCU\\Software\\Classes key.\r\nError message: {1}",
                     DnaLibrary.CurrentLibrary.Name, secex.Message);
                 return null;
             }
