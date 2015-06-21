@@ -313,5 +313,8 @@ namespace ExcelDna.Integration
         {
             return string.Format("({0},{1} : {2},{3}) - {4}", RowFirst, ColumnFirst, RowLast, ColumnLast, SheetId);
         }
+
+        public static bool operator ==(ExcelReference left, ExcelReference right) { return left.Equals(right); }
+        public static bool operator !=(ExcelReference left, ExcelReference right) { return !left.Equals(right); }
 	}
 }
