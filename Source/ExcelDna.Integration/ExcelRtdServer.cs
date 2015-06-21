@@ -24,6 +24,7 @@
 
 using System;
 using System.Collections.Generic;
+using ExcelDna.Logging;
 
 namespace ExcelDna.Integration.Rtd
 {
@@ -214,7 +215,7 @@ namespace ExcelDna.Integration.Rtd
             }
             catch (Exception e)
             {
-                Logging.LogDisplay.WriteLine("Error in RTD server {0} ServerStart: {1}", GetType().Name, e.ToString());
+                Logger.RtdServer.Error("Error in RTD server {0} ServerStart: {1}", GetType().Name, e.ToString());
                 return 0;
             }
         }
@@ -254,7 +255,7 @@ namespace ExcelDna.Integration.Rtd
                 }
                 if (topic == null)
                 {
-                    Logging.LogDisplay.WriteLine("Error in RTD server {0} CreateTopic returned null.", GetType().Name);
+                    Logger.RtdServer.Error("Error in RTD server {0} CreateTopic returned null.", GetType().Name);
                     // Not sure what to return here for error. We try the COM error version of #VALUE !?
                     return ExcelErrorUtil.ToComError(ExcelError.ExcelErrorValue);
                 }
@@ -267,7 +268,7 @@ namespace ExcelDna.Integration.Rtd
             }
             catch (Exception e)
             {
-                Logging.LogDisplay.WriteLine("Error in RTD server {0} ConnectData: {1}", GetType().Name, e.ToString());
+                Logger.RtdServer.Error("Error in RTD server {0} ConnectData: {1}", GetType().Name, e.ToString());
                 // Not sure what to return here for error. We try the COM error version of #VALUE !?
                 return ExcelErrorUtil.ToComError(ExcelError.ExcelErrorValue);
             }
@@ -321,7 +322,7 @@ namespace ExcelDna.Integration.Rtd
             }
             catch (Exception e)
             {
-                Logging.LogDisplay.WriteLine("Error in RTD server {0} DisconnectData: {1}", GetType().Name, e.ToString());
+                Logger.RtdServer.Error("Error in RTD server {0} DisconnectData: {1}", GetType().Name, e.ToString());
             }
         }
 
@@ -336,7 +337,7 @@ namespace ExcelDna.Integration.Rtd
             }
             catch (Exception e)
             {
-                Logging.LogDisplay.WriteLine("Error in RTD server {0} Heartbeat: {1}", GetType().Name, e.ToString());
+                Logger.RtdServer.Error("Error in RTD server {0} Heartbeat: {1}", GetType().Name, e.ToString());
                 return 0;
             }
         }
@@ -362,7 +363,7 @@ namespace ExcelDna.Integration.Rtd
             }
             catch (Exception e)
             {
-                Logging.LogDisplay.WriteLine("Error in RTD server {0} ServerTerminate: {1}", GetType().Name, e.ToString());
+                Logger.RtdServer.Error("Error in RTD server {0} ServerTerminate: {1}", GetType().Name, e.ToString());
             }
         }
     }

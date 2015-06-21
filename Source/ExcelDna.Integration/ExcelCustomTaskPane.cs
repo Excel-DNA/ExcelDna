@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using ExcelDna.ComInterop.ComRegistration;
+using ExcelDna.Logging;
 
 namespace ExcelDna.Integration.CustomUI
 {
@@ -80,8 +81,8 @@ namespace ExcelDna.Integration.CustomUI
             }
             catch (UnauthorizedAccessException secex)
             {
-                Logging.LogDisplay.WriteLine("The CTP Helper required by add-in {0} could not be registered.\r\nThis may be due to restricted permissions on the user's HKCU\\Software\\Classes key.\r\nError message: {1}",
-                    DnaLibrary.CurrentLibrary.Name, secex.Message);
+                Logger.Initialization.Error(secex, 
+                    "The CTP Helper could not be registered.\r\nThis may be due to restricted permissions on the user's HKCU\\Software\\Classes key.");
                 return null;
             }
         }

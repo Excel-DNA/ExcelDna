@@ -57,6 +57,7 @@ namespace ExcelDna.Logging
         DnaCompilation = 2, 
         Registration = 3,
         ComAddIn = 4,
+        RtdServer = 5,
     }
 
     // TraceLogger manages the IntegrationTraceSource that we use for logging.
@@ -225,5 +226,7 @@ namespace ExcelDna.Logging
         static internal Logger DnaCompilation { get { return _dnaCompilationLogger; } }
         static Logger _comAddInLogger = new Logger(IntegrationTraceEventId.ComAddIn);
         static internal Logger ComAddIn { get { return _comAddInLogger; } }
+        static Logger _rtdServerLogger = new Logger(IntegrationTraceEventId.RtdServer);
+        static internal Logger RtdServer { get { return _rtdServerLogger; } }
     }
 }

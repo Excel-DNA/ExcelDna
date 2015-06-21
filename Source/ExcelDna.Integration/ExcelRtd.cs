@@ -34,6 +34,7 @@ using HRESULT = System.Int32;
 using IID = System.Guid;
 using CLSID = System.Guid;
 using DWORD = System.UInt32;
+using ExcelDna.Logging;
 
 namespace ExcelDna.Integration.Rtd
 {
@@ -166,14 +167,14 @@ namespace ExcelDna.Integration.Rtd
             }
             catch (UnauthorizedAccessException secex)
             {
-                Logging.LogDisplay.WriteLine("The RTD server of type {0} required by add-in {1} could not be registered.\r\nThis may be due to restricted permissions on the user's HKCU\\Software\\Classes key.\r\nError message: {2}", rtdServerType.FullName, DnaLibrary.CurrentLibrary.Name, secex.Message);
+                Logger.RtdServer.Error("The RTD server of type {0} required by add-in {1} could not be registered.\r\nThis may be due to restricted permissions on the user's HKCU\\Software\\Classes key.\r\nError message: {2}", rtdServerType.FullName, DnaLibrary.CurrentLibrary.Name, secex.Message);
                 result = ExcelErrorUtil.ToComError(ExcelError.ExcelErrorValue);
                 // Return true to have the #VALUE stick, just as it was before the array-call refactoring
                 return true;
             }
             catch (Exception ex)
             {
-                Logging.LogDisplay.WriteLine("The RTD server of type {0} required by add-in {1} could not be registered.\r\nThis is an unexpected error.\r\nError message: {2}", rtdServerType.FullName, DnaLibrary.CurrentLibrary.Name, ex.Message);
+                Logger.RtdServer.Error("The RTD server of type {0} required by add-in {1} could not be registered.\r\nThis is an unexpected error.\r\nError message: {2}", rtdServerType.FullName, DnaLibrary.CurrentLibrary.Name, ex.Message);
                 Debug.Print("RtdRegistration.RTD exception: " + ex.ToString());
                 result = ExcelErrorUtil.ToComError(ExcelError.ExcelErrorValue);
                 // Return true to have the #VALUE stick, just as it was before the array-call refactoring
@@ -309,7 +310,7 @@ namespace ExcelDna.Integration.Rtd
             }
             catch (Exception e)
             {
-                Logging.LogDisplay.WriteLine("Error in RTD server {0} ConnectData: {1}", _progId, e.ToString());
+                Logger.RtdServer.Error("Error in RTD server {0} ConnectData: {1}", _progId, e.ToString());
                 return null;
             }
         }
@@ -330,7 +331,7 @@ namespace ExcelDna.Integration.Rtd
             }
             catch (Exception e)
             {
-                Logging.LogDisplay.WriteLine("Error in RTD server {0} DisconnectData: {1}", _progId, e.ToString());
+                Logger.RtdServer.Error("Error in RTD server {0} DisconnectData: {1}", _progId, e.ToString());
             }
         }
 
@@ -349,7 +350,7 @@ namespace ExcelDna.Integration.Rtd
             }
             catch (Exception e)
             {
-                Logging.LogDisplay.WriteLine("Error in RTD server {0} Heartbeat: {1}", _progId, e.ToString());
+                Logger.RtdServer.Error("Error in RTD server {0} Heartbeat: {1}", _progId, e.ToString());
                 return 0;
             }
         }
@@ -369,7 +370,7 @@ namespace ExcelDna.Integration.Rtd
             }
             catch (Exception e)
             {
-                Logging.LogDisplay.WriteLine("Error in RTD server {0} RefreshData: {1}", _progId, e.ToString());
+                Logger.RtdServer.Error("Error in RTD server {0} RefreshData: {1}", _progId, e.ToString());
                 return null;
             }
         }
@@ -390,7 +391,7 @@ namespace ExcelDna.Integration.Rtd
             }
             catch (Exception e)
             {
-                Logging.LogDisplay.WriteLine("Error in RTD server {0} ServerStart: {1}", _progId, e.ToString());
+                Logger.RtdServer.Error("Error in RTD server {0} ServerStart: {1}", _progId, e.ToString());
                 return 0;
             }
         }
@@ -412,7 +413,7 @@ namespace ExcelDna.Integration.Rtd
             }
             catch (Exception e)
             {
-                Logging.LogDisplay.WriteLine("Error in RTD server {0} ServerTerminate: {1}", _progId, e.ToString());
+                Logger.RtdServer.Error("Error in RTD server {0} ServerTerminate: {1}", _progId, e.ToString());
             }
         }
     }
