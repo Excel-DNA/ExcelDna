@@ -48,11 +48,11 @@ namespace ExcelDna.Logging
         }
 
         // Normally receives the header information
+        // We just suppress for now.
         public override void Write(string message)
         {
-            // If this is called, we just call WriteLine for now.
             // CONSIDER: We might write to a buffer or special structure before displaying.
-            WriteLine(message);
+            //WriteLine(message);
         }
 
         public override void WriteLine(string message)
