@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -89,12 +90,27 @@ namespace ExcelDna.Loader
                 return loadedAssembly;
             }
 
+            // We expect failures for Resource assemblies
+            // From: http://blogs.msdn.com/b/suzcook/archive/2003/05/29/57120.aspx
+            // "Note: Unless you are explicitly debugging the failure of a resource to load, 
+            //        you will likely want to ignore failures to find assemblies with the ".resources" extension 
+            //        with the culture set to something other than "neutral". Those are expected failures when the 
+            //        ResourceManager is probing for satellite assemblies."
+            bool isResourceAssembly = name.EndsWith(".RESOURCES", StringComparison.InvariantCultureIgnoreCase) /*&& assName.CultureInfo.Name != "neutral"*/;
+
             // Now check in resources ...
-            Logger.Initialization.Info("Attempting to load {0} from resources.", name);
+            if (isResourceAssembly)
+                Logger.Initialization.Verbose("Attempting to load {0} from resources.", name);
+            else
+                Logger.Initialization.Info("Attempting to load {0} from resources.", name);
+
 			assemblyBytes = GetResourceBytes(name, 0);
 			if (assemblyBytes == null)
 			{
-                Logger.Initialization.Warn("Assembly {0} could not be loaded from resources.", name);
+                if (isResourceAssembly)
+                    Logger.Initialization.Verbose("Assembly {0} could not be loaded from resources (ResourceManager probing for satellite assemblies).", name);
+                else
+                    Logger.Initialization.Warn("Assembly {0} could not be loaded from resources.", name);
 				return null;
 			}
 
