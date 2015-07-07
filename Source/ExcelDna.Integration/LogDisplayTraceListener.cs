@@ -59,7 +59,7 @@ namespace ExcelDna.Logging
         {
             try
             {
-                LogDisplay.WriteLine(message);
+                LogDisplay.RecordLine(message);
             }
             catch (Exception e)
             {
