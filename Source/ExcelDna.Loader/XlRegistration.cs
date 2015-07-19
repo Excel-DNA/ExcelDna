@@ -112,7 +112,7 @@ namespace ExcelDna.Loader
         static void Register(List<MethodInfo> methods, List<object> targets, List<object> methodAttributes, List<List<object>> argumentAttributes)
         {
             Debug.Assert(targets == null || targets.Count == methods.Count);
-
+            Logger.Registration.Verbose("Registering {0} methods", methods.Count);
             List<XlMethodInfo> xlMethods = XlMethodInfo.ConvertToXlMethodInfos(methods, targets, methodAttributes, argumentAttributes);
             xlMethods.ForEach(RegisterXlMethod);
             // Increment the registration version (safe to call a few times)

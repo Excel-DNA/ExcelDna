@@ -60,18 +60,27 @@ namespace ExcelDna.Integration
         // Called from the Initialize (loading COM /RTD server) and/or from AutoOpen
         internal static void Install()
         {
-            Debug.Assert(ExcelDnaUtil.IsMainThread, "SynchronizationManager must be Installed from the main Excel thread.");
+            if (!ExcelDnaUtil.IsMainThread)
+            {
+                Logger.Initialization.Error("SynchronizationManager must be Installed from the main Excel thread.");
+                return;
+            }
             if (_syncWindow == null)
             {
+                Logger.Initialization.Info("SynchronizationManager - Install");
                 _syncWindow = new SynchronizationWindow();
             }
         }
 
         internal static void Uninstall()
         {
-            Debug.Assert(ExcelDnaUtil.IsMainThread, "SynchronizationManager must be Uninstalled from the main Excel thread.");
-            _syncWindow.Dispose();
-            _syncWindow = null;
+            if (_syncWindow != null)
+            {
+                Logger.Initialization.Info("SynchronizationManager - Uninstall");
+                Debug.Assert(ExcelDnaUtil.IsMainThread, "SynchronizationManager must be Uninstalled from the main Excel thread.");
+                _syncWindow.Dispose();
+                _syncWindow = null;
+            }
         }
 
         internal static bool IsInstalled

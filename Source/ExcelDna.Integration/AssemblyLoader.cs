@@ -58,6 +58,8 @@ namespace ExcelDna.Integration
 
             foreach (ExportedAssembly assembly in assemblies)
             {
+                Logger.Initialization.Verbose("Processing assembly {0}. ExplicitExports {1}, ExplicitRegistration {2}, ComServer {3}, IsDynamic {4}", 
+                    assembly.Assembly.FullName, assembly.ExplicitExports, assembly.ExplicitRegistration, assembly.ComServer, assembly.IsDynamic);
                 // Patch contributed by y_i on CodePlex:
                 // http://stackoverflow.com/questions/11915389/assembly-gettypes-throwing-an-exception
                 Type[] types;
@@ -80,6 +82,8 @@ namespace ExcelDna.Integration
                 foreach (Type type in types)
                 {
                     if (type == null) continue; // We might get nulls from ReflectionTypeLoadException above
+
+                    Logger.Initialization.Verbose("Processing type {0}", type.FullName);
                     try
                     {
                         object[] attribs = type.GetCustomAttributes(false);
@@ -96,12 +100,11 @@ namespace ExcelDna.Integration
                     }
                     catch (Exception e)
                     {
-                        // TODO: This is unexpected - raise to LogDisplay?
-                        Debug.Print("Type {0} could not be analysed. Error: {1}", type.FullName, e.ToString()); 
+                        Logger.Initialization.Warn("Type {0} could not be processed. Error: {1}", type.FullName, e.ToString()); 
                     }
                 }
             }
-            // Sigh. Excel server (service?) stuff is till ugly - but no reeal reason to remove it yet.
+            // Sigh. Excel server (service?) stuff is still ugly - but no real reason to remove it yet.
             AssemblyLoaderExcelServer.GetExcelServerMethods(excelServerInfos, methods);
         }
 
@@ -117,7 +120,7 @@ namespace ExcelDna.Integration
                 t.Namespace == "My")
             {
                 // Ignored cases
-                Logger.Registration.Info("Type ignored: {0}", t.FullName);
+                Logger.Initialization.Info("Type ignored: {0}", t.FullName);
                 return;
             }
 
@@ -161,12 +164,12 @@ namespace ExcelDna.Integration
             // We want to log methods that are marked for export, but have unsupported types.
             if (!isSupported && IsMethodMarkedForExport(mi))
             {
-                Logger.Registration.Error("Method not registered - unsupported types: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
+                Logger.Initialization.Error("Method not registered - unsupported signature, abstract or generic: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
             }
             else if (!isSupported)
             {
                 // CONSIDER: More detailed logging
-                Logger.Registration.Info("Method not registered - unsupported types: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
+                Logger.Initialization.Info("Method not registered - unsupported signature, abstract or generic: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
             }
 
             return isSupported;
@@ -246,11 +249,12 @@ namespace ExcelDna.Integration
                     info.Instance = Activator.CreateInstance(t);
                     info.ParentDnaLibrary = assembly.ParentDnaLibrary;
                     addIns.Add(info);
+                    Logger.Registration.Verbose("GetExcelAddIns - Created add-in object of type: {0}", t.FullName);
                 }
             }
             catch (Exception e) // I think only CreateInstance can throw an exception here...
             {
-                Debug.Print("GetExcelAddIns CreateInstance problem for type: {0} - exception: {1}", t.FullName, e);
+                Logger.Initialization.Warn("GetExcelAddIns CreateInstance problem for type: {0} - exception: {1}", t.FullName, e);
             }
 
 		}
@@ -277,6 +281,7 @@ namespace ExcelDna.Integration
                     //rtdServerTypes[t.FullName] = t;
                     rtdServerTypes.Add(t);
                     isRtdServer = true;
+                    Logger.Initialization.Verbose("GetRtdServerTypes - Found RTD server type: {0}", t.FullName);
                 }
             }
         }
@@ -333,6 +338,7 @@ namespace ExcelDna.Integration
                     TypeLibPath = assembly.TypeLibPath
                 };
                 comClassTypes.Add(comClassType);
+                Logger.Initialization.Verbose("GetComClassTypes - Found type {0}, with ProgId {1}", type.FullName, progId);
             }
         }
 

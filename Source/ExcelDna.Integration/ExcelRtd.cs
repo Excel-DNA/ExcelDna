@@ -70,8 +70,13 @@ namespace ExcelDna.Integration.Rtd
                 {
                     ProgIdAttribute progIdAtt = (ProgIdAttribute)attrs[0];
                     registeredRtdServerTypes[progIdAtt.Value] = rtdType;
+                    Logger.Initialization.Verbose("RTD Server found - Type {0}, ProgId {1}", rtdType.FullName, progIdAtt.Value);
                 }
-                registeredRtdServerTypes[rtdType.FullName] = rtdType;
+                else
+                {
+                    registeredRtdServerTypes[rtdType.FullName] = rtdType;
+                    Logger.Initialization.Verbose("RTD Server found - Type {0} (No ProgId)", rtdType.FullName);
+                }
             }
         }
 

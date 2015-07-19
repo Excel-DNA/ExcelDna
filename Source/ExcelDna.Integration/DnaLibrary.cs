@@ -245,6 +245,7 @@ namespace ExcelDna.Integration
         // TODO: Check that the registration calls we make in SyncContext.Install are safe in the COM Server context!?
         internal void Initialize()
         {
+            Logger.Initialization.Verbose("{0} - Begin Initialize", Name);
             // Get MethodsInfos and AddIn classes from assemblies
             List<Type> rtdServerTypes = new List<Type>();
             List<ExcelComClassType> comClassTypes = new List<ExcelComClassType>();
@@ -253,7 +254,7 @@ namespace ExcelDna.Integration
             _exportedAssemblies = GetAssemblies(dnaResolveRoot);
             AssemblyLoader.ProcessAssemblies(_exportedAssemblies, _methods, _addIns, rtdServerTypes, comClassTypes);
 
-            // Register RTD Server Types immediately
+            // Register RTD Server Types (i.e. remember that these types are available as RTD servers, with relevant ProgId etc.)
             RtdRegistration.RegisterRtdServerTypes(rtdServerTypes);
 
             // CAREFUL: This interacts with the implementation of ExcelRtdServer to implement the thread-safe synchronization.
@@ -268,10 +269,14 @@ namespace ExcelDna.Integration
                     break;
                 }
             }
-            if (registerSyncManager) SynchronizationManager.Install();  // TODO: Careful here!?
+            if (registerSyncManager)
+            {
+                SynchronizationManager.Install();  // TODO: Careful here!?
+            }
 
             // Register COM Server Types immediately
             ComServer.RegisterComClassTypes(comClassTypes);
+            Logger.Initialization.Verbose("{0} - End Initialize", Name);
         }
 
         // Only called for the Root DnaLibrary.
@@ -305,6 +310,7 @@ namespace ExcelDna.Integration
 
         internal void AutoClose()
         {
+            Logger.Initialization.Verbose("DnaLibrary AutoClose");
             UnloadCustomUI();
 
             foreach (AssemblyLoader.ExcelAddInInfo addIn in _addIns)
