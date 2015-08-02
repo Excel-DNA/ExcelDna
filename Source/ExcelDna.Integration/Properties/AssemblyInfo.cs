@@ -5,8 +5,8 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("ExcelDna Integration Library")]
-[assembly: AssemblyDescription("Integration library for ExcelDna")]
+[assembly: AssemblyTitle("Excel-DNA Integration Library")]
+[assembly: AssemblyDescription("Integration library for Excel-DNA")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Excel-DNA Add-In Framework for Microsoft Excel")]
@@ -35,4 +35,4 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("0.33.*")]
-[assembly: AssemblyFileVersion("0.33.6.1")]
+[assembly: AssemblyFileVersion("0.33.7.1")]

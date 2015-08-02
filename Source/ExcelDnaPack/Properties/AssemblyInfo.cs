@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("ExcelDnaPack")]
-[assembly: AssemblyDescription("ExcelDna Packing Tool")]
+[assembly: AssemblyDescription("Excel-DNA Packing Tool")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Govert van Drimmelen")]
 [assembly: AssemblyProduct("Excel-DNA Add-In Framework for Microsoft Excel")]
@@ -33,4 +33,4 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 
 [assembly: AssemblyVersion("0.33.*")]
-[assembly: AssemblyFileVersion("0.33.6.1")]
+[assembly: AssemblyFileVersion("0.33.7.1")]
