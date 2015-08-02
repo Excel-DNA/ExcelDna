@@ -107,7 +107,7 @@ c:\windows\microsoft.net\framework\v2.0.50727\csc.exe /target:library /reference
 
 4. Create an add-in using Visual Studio and the Excel-DNA NuGet package
 -----------------------------------------------------------------------
-Excel-DNA is also available as a NuGet package. Create a new "Class Library" project (in C#, Visual Basic or F#) and install the "Excel-DNA" package.
+Excel-DNA is also available as a NuGet package. Create a new "Class Library" project (in C#, Visual Basic or F#) and install the "ExcelDna.AddIn" package.
 The project will be configured as an Excel add-in, with additional information and instructions in the Readme.txt file that is displayed.
  
 5. Additional samples

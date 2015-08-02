@@ -2,19 +2,18 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>Excel-DNA.Lib</id>
-        <version>0.32.0</version>
+        <version>0.33.7-rc1</version>
         <title>Excel-DNA Reference Library</title>
         <authors>Govert van Drimmelen</authors>
         <owners>Govert van Drimmelen</owners>
         <projectUrl>http://excel-dna.net</projectUrl>
         <iconUrl>http://docs.excel-dna.net/NuGetIcon.png</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>Reference library package for Excel-DNA. Use the main Excel-DNA package to create a new add-in.</description>
+        <description>Deprecated reference library package for Excel-DNA. Use the package ExcelDna.AddIn to create a new add-in.</description>
         <summary>Reference library package for Excel-DNA.</summary>
         <tags>excel exceldna udf excel-dna</tags>
+      <dependencies>
+        <dependency id="ExcelDna.Integration" version="0.33.7-rc1" />
+      </dependencies>
     </metadata>
-    <files>
-        <file src="C:\Work\ExcelDna\Current\Distribution\ExcelDna.Integration.dll" target="lib\ExcelDna.Integration.dll" />
-        <file src="tools\install.ps1" target="tools\install.ps1" />
-    </files>
 </package>

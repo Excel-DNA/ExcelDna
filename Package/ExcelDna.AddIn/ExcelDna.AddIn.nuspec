@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>ExcelDna.AddIn</id>
+        <version>0.33.7-rc1</version>
+        <title>Excel-DNA</title>
+        <authors>Govert van Drimmelen</authors>
+        <owners>Govert van Drimmelen</owners>
+        <projectUrl>http://excel-dna.net</projectUrl>
+        <iconUrl>http://docs.excel-dna.net/NuGetIcon.png</iconUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>Excel-DNA eases the development of Excel add-ins using .NET. 
+    Add-ins created with Excel-DNA can export high-performance user-defined functions and macros, and can be packed into a single file for easy distribution and installation.
+ 
+    Excel versions 97 through 2013 can be targeted with a single add-in.
+    Advanced Excel features are supported, including multi-threaded recalculation (Excel 2007 and later), registration-free RTD servers (Excel 2002 and later) and customized Ribbon and Task Pane interfaces (Excel 2007 and later) and asynchronous functions (Excel 2002 and later).
+
+    Excel-DNA supports the .NET runtime version 2.0 (which is used by .NET versions 2.0, 3.0 and 3.5) and version 4.0 (the version number used by .NET 4 and 4.5). 
+
+    The Excel-Dna Runtime is free for all use, and distributed under a permissive open-source license that also allows commercial use.</description>
+        <summary>Excel-DNA is an independent project to integrate .NET into Excel.</summary>
+        <tags>excel exceldna udf excel-dna</tags>
+            <dependencies>
+      <dependency id="ExcelDna.Integration" version="[0.33.0,0.34)" />
+    </dependencies>
+    </metadata>
+    <files>
+        <file src="C:\Work\Excel-DNA\ExcelDna\Distribution\ExcelDna.Integration.dll" target="tools\ExcelDna.Integration.dll" />
+        <file src="C:\Work\Excel-DNA\ExcelDna\Distribution\ExcelDna.xll" target="tools\ExcelDna.xll" />
+        <file src="C:\Work\Excel-DNA\ExcelDna\Distribution\ExcelDna64.xll" target="tools\ExcelDna64.xll" />
+        <file src="C:\Work\Excel-DNA\ExcelDna\Distribution\ExcelDnaPack.exe" target="tools\ExcelDnaPack.exe" />
+        <file src="content\ExcelDna-Template.dna" target="content\ExcelDna-Template.dna" />
+        <file src="tools\install.ps1" target="tools\install.ps1" />
+        <file src="tools\uninstall.ps1" target="tools\uninstall.ps1" />
+        <file src="readme.txt" target="readme.txt" />
+    </files>
+</package>

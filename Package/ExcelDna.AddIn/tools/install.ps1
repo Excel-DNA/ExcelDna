@@ -1,5 +1,5 @@
 param($installPath, $toolsPath, $package, $project)
-Write-Host "Starting Excel-DNA install script"
+Write-Host "Starting ExcelDna.AddIn install script"
 
 $projName = $project.Name
 $isFSharp = ($project.Type -eq "F#")
@@ -124,4 +124,4 @@ if (!$isFSharp)
     }
 }
 
-Write-Host "Completed Excel-DNA install script"
+Write-Host "Completed ExcelDna.AddIn install script"

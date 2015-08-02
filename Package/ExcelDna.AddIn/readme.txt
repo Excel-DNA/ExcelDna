@@ -1,8 +1,8 @@
-Excel-DNA - NuGet package
-=========================
-Find more information about Excel-DNA at http://excel-dna.net and on the CodePlex site at http://exceldna.codeplex.com
+ExcelDna.AddIn - NuGet package for creating an Excel-DNA add-in
+===============================================================
+Find more information about Excel-DNA at http://excel-dna.net.
 
-Installing the Excel-DNA NuGet package into your project has made the following changes:
+Installing the ExcelDna.AddIn NuGet package into your project has made the following changes:
 1. Added a reference to <package>\lib\ExcelDna.Integration.dll.
 2. Added a post-build event command-line to copy <package>\tools\ExcelDna\ExcelDna.xll to your output directory as 
    <ProjectName>-AddIn.xll. This is the add-in loader for your Excel add-in. 
@@ -35,11 +35,11 @@ Press F5 (Start Debugging) to compile the project, open the .xll add-in in Excel
 * If Excel starts but you get a message saying "The file you are trying to open, [...], is in a different format than 
   specified by the file extension.", then you have the 64-bit version of Excel installed. Change the Debug command-line 
   parameters to start the "-AddIn64.xll" instead of "-AddIn.xll".
-* For any other problems, please post to the Excel-DNA group at http://groups.google.com/group/exceldna.
+* For any other problems, please post to the Excel-DNA group at https://groups.google.com/forum/#!forum/exceldna.
 
 Uninstalling
 ------------
-* If the Excel-DNA NuGet package is uninstalled, the <ProjectName>-AddIn.dna file will be renamed to 
+* If the ExcelDna.AddIn NuGet package is uninstalled, the <ProjectName>-AddIn.dna file will be renamed to 
   "_UNINSTALLED_<ProjectName>-AddIn.dna" (to preserve any changes you've made) and may be deleted. 
 
 ===============

@@ -1,5 +1,5 @@
 param($installPath, $toolsPath, $package, $project)
-write-host "Starting Excel-DNA uninstall script"
+write-host "Starting ExcelDna.AddIn uninstall script"
 
 $projName = $project.Name
 $isFSharp = ($project.Type -eq "F#")
@@ -89,4 +89,4 @@ if (!$isFSharp)
     }
 }
 
-Write-Host "Completed Excel-DNA uninstall script"
+Write-Host "Completed ExcelDna.AddIn uninstall script"
