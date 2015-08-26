@@ -16,9 +16,12 @@ namespace ExcelDna.Integration.Rtd
     {
         public class Topic
         {
-            internal readonly int TopicId;
             readonly ExcelRtdServer _server;
+            readonly int _topicId;
             object _value;
+
+            public ExcelRtdServer Server { get { return _server; } }
+            public int TopicId { get { return _topicId; } }
 
             // Setting the Value must be thread-safe!
             // [Obsolete("Rather call ExcelRtdServer.Topic.UpdateValue(value) explicitly.")]
@@ -32,8 +35,6 @@ namespace ExcelDna.Integration.Rtd
                 //}
             }
 
-            public ExcelRtdServer Server { get { return _server; } }
-
             /// <summary>
             /// Sets the topic value and calls UpdateNotify on the RTD Server to refresh.
             /// </summary>
@@ -41,7 +42,7 @@ namespace ExcelDna.Integration.Rtd
             public void UpdateValue(object value)
             {
                 object fixedValue = FixValue(value);
-                lock (_server._updateLock)
+                lock (Server._updateLock)
                 {
                     if (!object.Equals(_value, fixedValue))
                     {
@@ -64,7 +65,7 @@ namespace ExcelDna.Integration.Rtd
             protected internal Topic(ExcelRtdServer server, int topicId)
             {
                 _server = server;
-                TopicId = topicId;
+                _topicId = topicId;
                 _value = ExcelErrorUtil.ToComError(ExcelError.ExcelErrorNA);
             }
 
