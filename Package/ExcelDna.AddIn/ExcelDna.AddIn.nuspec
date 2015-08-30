@@ -25,10 +25,10 @@
     </dependencies>
     </metadata>
     <files>
-        <file src="..\..\Source\ExcelDna.Integration\bin\Release\ExcelDna.Integration.dll" target="tools\ExcelDna.Integration.dll" />
-        <file src="..\..\Source\ExcelDna\Release\ExcelDna.xll" target="tools\ExcelDna.xll" />
-        <file src="..\..\Source\ExcelDna\Release64\ExcelDna64.xll" target="tools\ExcelDna64.xll" />
-        <file src="..\..\Source\ExcelDnaPack\bin\Release\ExcelDnaPack.exe" target="tools\ExcelDnaPack.exe" />
+        <file src="..\..\Distribution\ExcelDna.Integration.dll" target="tools\ExcelDna.Integration.dll" />
+        <file src="..\..\Distribution\ExcelDna.xll" target="tools\ExcelDna.xll" />
+        <file src="..\..\Distribution\ExcelDna64.xll" target="tools\ExcelDna64.xll" />
+        <file src="..\..\Distribution\ExcelDnaPack.exe" target="tools\ExcelDnaPack.exe" />
         <file src="content\ExcelDna-Template.dna" target="content\ExcelDna-Template.dna" />
         <file src="tools\install.ps1" target="tools\install.ps1" />
         <file src="tools\uninstall.ps1" target="tools\uninstall.ps1" />
