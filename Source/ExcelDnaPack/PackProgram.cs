@@ -38,8 +38,22 @@ ExcelDnaPack will also pack the configuration file FirstAddin.xll.config if it i
 found next to FirstAddin.dna.
 Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 ";
-		
-		static void Main(string[] args)
+
+        static int Main(string[] args)
+        {
+            try
+            {
+                Pack(args);
+                return Environment.ExitCode;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return 1;
+            }
+        }
+
+        static void Pack(string[] args)
 		{
 //			string testLib = @"C:\Work\ExcelDna\Version\ExcelDna-0.23\Source\ExcelDnaPack\bin\Debug\exceldna.xll";
 //			ResourceHelper.ResourceLister rl = new ResourceHelper.ResourceLister(testLib);
