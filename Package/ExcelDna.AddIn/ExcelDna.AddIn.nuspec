@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>ExcelDna.AddIn</id>
-        <version>0.33.7-rc1</version>
+        <version>0.33.7-rc2</version>
         <title>Excel-DNA</title>
         <authors>Govert van Drimmelen</authors>
         <owners>Govert van Drimmelen</owners>
@@ -25,10 +25,10 @@
     </dependencies>
     </metadata>
     <files>
-        <file src="C:\Work\Excel-DNA\ExcelDna\Distribution\ExcelDna.Integration.dll" target="tools\ExcelDna.Integration.dll" />
-        <file src="C:\Work\Excel-DNA\ExcelDna\Distribution\ExcelDna.xll" target="tools\ExcelDna.xll" />
-        <file src="C:\Work\Excel-DNA\ExcelDna\Distribution\ExcelDna64.xll" target="tools\ExcelDna64.xll" />
-        <file src="C:\Work\Excel-DNA\ExcelDna\Distribution\ExcelDnaPack.exe" target="tools\ExcelDnaPack.exe" />
+        <file src="..\..\Source\ExcelDna.Integration\bin\Release\ExcelDna.Integration.dll" target="tools\ExcelDna.Integration.dll" />
+        <file src="..\..\Source\ExcelDna\Release\ExcelDna.xll" target="tools\ExcelDna.xll" />
+        <file src="..\..\Source\ExcelDna\Release64\ExcelDna64.xll" target="tools\ExcelDna64.xll" />
+        <file src="..\..\Source\ExcelDnaPack\bin\Release\ExcelDnaPack.exe" target="tools\ExcelDnaPack.exe" />
         <file src="content\ExcelDna-Template.dna" target="content\ExcelDna-Template.dna" />
         <file src="tools\install.ps1" target="tools\install.ps1" />
         <file src="tools\uninstall.ps1" target="tools\uninstall.ps1" />
