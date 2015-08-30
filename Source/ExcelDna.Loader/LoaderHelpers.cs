@@ -1,5 +1,5 @@
 ﻿//  Copyright (c) Govert van Drimmelen. All rights reserved.
-//  Licensed under the MIT license. See LICENSE file in the project root for full license information.
+//  Excel-DNA is licensed under the zlib license. See LICENSE.txt for details.
 
 // TODO: Investigate again VSTO / .NET 2.0 security loading problem, 
 //       and look at ExecutionContext.SuppressFlow 
