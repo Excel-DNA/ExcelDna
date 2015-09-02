@@ -68,11 +68,8 @@ if (!$isFSharp)
 {
     # Clean Debug settings
     $exeValue = Get-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\Excel.XLL\shell\Open\command -name "(default)"
-    if ($exeValue -match "`".*`"")
+    if ($exeValue -match "EXCEL\.EXE")
     {
-        $exePath = $matches[0] -replace "`"", ""
-        # Write-Host "Excel path found: " $exePath
-        
         # Find Debug configuration and set debugger settings.
         $debugProject = $project.ConfigurationManager | Where-Object {$_.ConfigurationName -eq "Debug"}
         if ($null -ne $debugProject)
