@@ -1,6 +1,8 @@
 param($installPath, $toolsPath, $package, $project)
 write-host "Starting ExcelDna.AddIn uninstall script"
 
+$dteVersion = $project.DTE.Version
+$isBeforeVS2015 = ($dteVersion -lt 14.0)
 $projName = $project.Name
 $isFSharp = ($project.Type -eq "F#")
 
@@ -24,7 +26,7 @@ if ($null -ne $dnaFileItem)
         }
         $dnaFileItem.Name = "_UNINSTALLED_${suffix}_${dnaFileName}"
     }
-    if ($isFSharp)
+    if ($isFSharp -and $isBeforeVS2015)
     {
         $dnaFileItem.Properties.Item("BuildAction").Value = ([Microsoft.VisualStudio.FSharp.ProjectSystem.BuildAction]::None)
     }
@@ -64,7 +66,11 @@ else
 #	write-host 'Removed .xll copy post-build event'
 }
 
-if (!$isFSharp)
+if ($isFSharp -and $isBeforeVS2015)
+{
+    # No Debug information was set.
+}
+else
 {
     # Clean Debug settings
     $exeValue = Get-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\Excel.XLL\shell\Open\command -name "(default)"

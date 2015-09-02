@@ -14,7 +14,7 @@ Installing the ExcelDna.AddIn NuGet package into your project has made the follo
    into the redistributable.
 6. Configured debugging to start Excel and load the <ProjectName>-AddIn.xll. 
    NOTE: Debugging will fail to load the add-in for 64-bit Excel installations. See below under Troubleshooting.
-   NOTE: Debugging will not be configured for F# projects. See instructions at the bottom of this file.
+   NOTE: Debugging will not be configured for F# projects when installing in Visual Studio 2013 or older. See instructions at the bottom of this file.
 
 Next steps
 ----------
@@ -35,7 +35,7 @@ Press F5 (Start Debugging) to compile the project, open the .xll add-in in Excel
 * If Excel starts but you get a message saying "The file you are trying to open, [...], is in a different format than 
   specified by the file extension.", then you have the 64-bit version of Excel installed. Change the Debug command-line 
   parameters to start the "-AddIn64.xll" instead of "-AddIn.xll".
-* For any other problems, please post to the Excel-DNA group at https://groups.google.com/forum/#!forum/exceldna.
+* For any other problems, please post to the Excel-DNA group at https://groups.google.com/group/exceldna.
 
 Uninstalling
 ------------
@@ -47,9 +47,9 @@ Sample snippets
 ===============
 Add one of the following snippets to your code to make your first Excel-DNA function.
 Then press F5 to run Excel and load the add-in, and enter your function into a cell: =HelloDna("your name")
-------------
-Visual Basic
-------------
+--------------
+ Visual Basic
+--------------
 
 Imports ExcelDna.Integration
 
@@ -62,9 +62,9 @@ Public Module MyFunctions
     
 End Module
 
---
-C#
---
+----
+ C#
+----
 
 using ExcelDna.Integration;
 
@@ -77,9 +77,9 @@ public static class MyFunctions
     }
 }
 
---
-F#
---
+----
+ F#
+----
 
 module MyFunctions
 
@@ -89,12 +89,13 @@ open ExcelDna.Integration
 let HelloDna name = 
     "Hello " + name
 
-------------------------------------    
-Configuring debugging in F# Projects
-------------------------------------
-Debugging cannot be automatically configured for F# projects. In the project properties, select the Debug tab, then 
-1. select "Start External Program" and browse to find Excel.EXE, e.g. for Excel 2010 the path might 
+---------------------------------------------------------------------
+Configuring debugging in F# Projects with Visual Studio 2013 or older
+---------------------------------------------------------------------
+Debugging cannot be automatically configured for F# projects in older version of Visual Studio.
+In the project properties, select the Debug tab, then 
+1. Select "Start External Program" and browse to find EXCEL.EXE, e.g. for Excel 2010 the path might 
    be: C:\Program Files (x86)\Microsoft Office\Office14\EXCEL.EXE.
-2. Enter the full path to the .xll file in the output as the Command line arguments, 
-   e.g. C:\MyProjects\TestDnaFs\bin\Debug\TestDnaFs-addin.xll
+2. Enter the name to the .xll file in the output as the Command line arguments, 
+   e.g. "TestDnaFs-addin.xll"
         and for 64-bit Excel -addin64.xll.

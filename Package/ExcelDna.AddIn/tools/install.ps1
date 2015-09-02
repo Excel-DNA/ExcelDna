@@ -21,6 +21,8 @@ else
     $oldUninstalledDnaFile = $project.ProjectItems | Where-Object { $_.Name -eq "_UNINSTALLED_${newDnaFileName}" }
     if ($null -ne $oldUninstalledDnaFile)
     {
+        Write-Host "`tRenaming uninstalled -AddIn.dna file"
+
         # Write-Host "Found file" + "_UNINSTALLED_${dnaFileName}"
         $suffix = 1
         while ($null -ne ($project.ProjectItems | Where-Object { $_.Name -eq "_UNINSTALLED_${suffix}_${newDnaFileName}" }))
@@ -93,12 +95,19 @@ else
     $prop.Value += "`r`n$postBuild"
 }
 
+# Write-Host "`tDone adding post-build commands"
 
-# I don't know how to do this for F# projects.
-if (!$isFSharp)
+if ($isFSharp -and $isBeforeVS2015)
 {
+    # I don't know how to do this for F# projects on old VS
+    Write-Host "`t*** Unable to configure Debug startup setting.`r`n`t  Please configure manually to start Excel when debugging.\r\n\t  See readme.txt for details."
+}
+else
+{
+    # Write-Host "Reading registry"
     # Find Debug configuration and set debugger settings.
     $exeValue = Get-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\Excel.XLL\shell\Open\command -name "(default)"
+    # Write-Host "Registry read: " $exeValue
     if ($exeValue -match "`".*`"")
     {
         $exePath = $matches[0] -replace "`"", ""
