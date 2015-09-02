@@ -100,7 +100,7 @@ else
 if ($isFSharp -and $isBeforeVS2015)
 {
     # I don't know how to do this for F# projects on old VS
-    Write-Host "`t*** Unable to configure Debug startup setting.`r`n`t  Please configure manually to start Excel when debugging.\r\n\t  See readme.txt for details."
+    Write-Host "`t*** Unable to configure Debug startup setting.`r`n`t    Please configure manually to start Excel when debugging.`r`n`t    See readme.txt for details."
 }
 else
 {
