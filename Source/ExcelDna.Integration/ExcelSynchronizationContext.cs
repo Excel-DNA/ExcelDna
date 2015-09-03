@@ -139,13 +139,30 @@ namespace ExcelDna.Integration
             // CONSIDER: Do temp swap trick to reduce locking?
             lock (_lockObject)
             {
-                // Only update servers that are still registered.
-                foreach (IRTDUpdateEvent pendingRtdUpdate in _pendingRtdUpdates.Keys)
+                try
                 {
-                    if (_registeredRtdUpdates.ContainsKey(pendingRtdUpdate))
+                    // Only update servers that are still registered.
+                    foreach (IRTDUpdateEvent pendingRtdUpdate in _pendingRtdUpdates.Keys)
                     {
-                        pendingRtdUpdate.UpdateNotify();
+                        if (_registeredRtdUpdates.ContainsKey(pendingRtdUpdate))
+                        {
+                            pendingRtdUpdate.UpdateNotify();
+                        }
                     }
+                }
+                catch (InvalidCastException ice)
+                {
+                    // UpdateNotify has been reported to fail after the Thomson Reuters Client is installed, 
+                    // with an InvalidCastException:
+                    //     at System.StubHelpers.StubHelpers.GetCOMIPFromRCW(System.Object, IntPtr, IntPtr ByRef, Boolean ByRef) 
+                    //     at ExcelDna.Integration.Rtd.IRTDUpdateEvent.UpdateNotify()
+                    //     ....
+                    Logger.RtdServer.Error(ice, "There was an error when calling the Excel RTD UpdateNotify callback.\r\nThis has been reported after installing a conflicting real-time add-in, and might require a repair or re-install of Excel.\r\nReal-time updates and/or async functions could not be processed.");
+                }
+                catch (Exception ex)
+                {
+                    // An unhandled exception here will terminate the process.
+                    Logger.RtdServer.Error(ex, "There was an error when calling the Excel RTD UpdateNotify callback.\r\nReal-time updates and/or async functions could not be processed.");
                 }
             }
         }
@@ -226,15 +243,14 @@ namespace ExcelDna.Integration
                     }
                 }
             }
-            catch (InvalidOperationException)
+            catch (InvalidOperationException ioe)
             {
                 // Expected when Excel is shutting down - abandon
-                Debug.Print("Error trying to run SyncMacro - Excel is shutting down. Async macro queue abandoned.");
+                Logger.Runtime.Error(ioe, "Error trying to run SyncMacro - Excel is shutting down. Queued macro execution abandoned.");
             }
             catch (Exception ex)
             {
-                // TODO: Handle unexpected error
-                Debug.Print("Unexpected error trying to run SyncMacro: " + ex);
+                Logger.Runtime.Error(ex, "Unexpected error trying to run SyncMacro for queued macro execution.");
             }
         }
 
@@ -275,8 +291,7 @@ namespace ExcelDna.Integration
                 }
                 catch (Exception ex)
                 {
-                    // CONSIDER: Integrate with Logging here...
-                    Debug.Print("Async delegate exception: " + ex);
+                    Logger.Runtime.Error(ex, "Unhandled exception in async delegate call.");
                 }
             }
         }
