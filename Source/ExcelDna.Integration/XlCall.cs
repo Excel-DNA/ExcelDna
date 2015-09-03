@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace ExcelDna.Integration
 {
-	public static class XlCall
+	public class XlCall
 	{
 		/*
 		** Return codes
