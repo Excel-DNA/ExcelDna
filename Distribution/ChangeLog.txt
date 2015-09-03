@@ -7,7 +7,7 @@ Version 0.33 (???)
 * Save source files as binary when packing.
 * Add further workaround for RTD bugs in Excel 2010 RTM.
 * Fix memory leak where on-demand registered RTD servers were not garbage collected after ServerTerminate().
-* Change COM registrations (for RTD< ribbon and CTP) to always try machine hive first, before falling back to user hive.
+* Change COM registrations (for RTD, ribbon and CTP) to always try machine hive first, before falling back to user hive.
 * Allow byte[] as parameters key in ExcelRtdObservable, to support storing only an opaque hash instead of the full parameter set.
 * Fix race condition between ExcelRtdObserver.OnNext(), DateTime.ToOADateTime() and Excel calling RefreshData().
 * Fix integer return type with IsExceptionSafe=true crashes in marshaling.
@@ -16,6 +16,9 @@ Version 0.33 (???)
 * Implement logging mechanism based on System.Diagnostics.Trace.
 * Add CreateCustomTask overloads that take the control explicitly.
 * Clean up ExcelReference internals to only keep extra array of rectangles if needed.
+* Improve RTD and async exception handling for damaged Excel installs.
+* Fix NuGet package paths to use macros when packages are under solution folder.
+* Fix NuGet package install for F# on VS 2015.
 
 Version 0.32 (3 May 2014)
 -------------------------
