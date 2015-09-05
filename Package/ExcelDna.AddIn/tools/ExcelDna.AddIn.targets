@@ -1,0 +1,291 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--
+    Extend the Clean target to call our ExcelDnaClean target
+  -->
+  <PropertyGroup>
+    <CleanDependsOn>
+        $(CleanDependsOn);
+        ExcelDnaClean;
+    </CleanDependsOn>
+  </PropertyGroup>
+
+  <!--
+    Extend the AfterBuild target to call our ExcelDnaBuild target
+  -->
+  <PropertyGroup>
+    <BuildDependsOn>
+      $(BuildDependsOn);
+      ExcelDnaBuild;
+    </BuildDependsOn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ExcelDnaTargetsImported>true</ExcelDnaTargetsImported>
+    <ExcelDnaProjectPath Condition="'$(ExcelDnaProjectPath)' == ''">$(MSBuildProjectDirectory)\</ExcelDnaProjectPath>
+    <ExcelDnaPropsFilePath Condition="'$(ExcelDnaPropsFilePath)' == ''">$(ExcelDnaProjectPath)\ExcelDna.Build.props</ExcelDnaPropsFilePath>
+  </PropertyGroup>
+
+  <!--
+    Load configuration properties file for the project, if exist
+  -->
+  <Import Project="$(ExcelDnaPropsFilePath)"
+          Condition="Exists('$(ExcelDnaPropsFilePath)')" />
+
+  <!--
+    Set default values for configuration properties that have not been set
+  -->
+  <PropertyGroup>
+    <RunExcelDnaBuild Condition="'$(RunExcelDnaBuild)' == ''">true</RunExcelDnaBuild>
+    <RunExcelDnaPack Condition="'$(RunExcelDnaPack)' == ''">true</RunExcelDnaPack>
+
+    <ExcelDnaToolsPath Condition="'$(ExcelDnaToolsPath)' == ''">$(MSBuildThisFileDirectory)</ExcelDnaToolsPath>
+    <ExcelDnaPackExePath Condition="'$(ExcelDnaPackExePath)' == ''">$(ExcelDnaToolsPath)ExcelDnaPack.exe</ExcelDnaPackExePath>
+
+    <ExcelDnaBuild32Dna Condition="'$(ExcelDnaBuild32Dna)' == ''">true</ExcelDnaBuild32Dna>
+    <ExcelDnaBuild64Dna Condition="'$(ExcelDnaBuild64Dna)' == ''">true</ExcelDnaBuild64Dna>
+
+    <ExcelDnaCreate64BitAddIn Condition="'$(ExcelDnaCreate64BitAddIn)' == ''">true</ExcelDnaCreate64BitAddIn>
+    <ExcelDnaCreate32BitAddIn Condition="'$(ExcelDnaCreate32BitAddIn)' == ''">true</ExcelDnaCreate32BitAddIn>
+
+    <ExcelDna32PlatformId Condition="'$(ExcelDna32PlatformId)' == ''">x86</ExcelDna32PlatformId>
+    <ExcelDna64PlatformId Condition="'$(ExcelDna64PlatformId)' == ''">x64</ExcelDna64PlatformId>
+
+    <ExcelDna32FileSuffix Condition="'$(ExcelDna32FileSuffix)' == ''"></ExcelDna32FileSuffix>
+    <ExcelDna64FileSuffix Condition="'$(ExcelDna64FileSuffix)' == ''">64</ExcelDna64FileSuffix>
+
+    <ExcelDnaPackFileSuffix Condition="'$(ExcelDnaPackFileSuffix)' == ''">-packed</ExcelDnaPackFileSuffix>
+
+    <ExcelDnaXll32File Condition="'$(ExcelDnaXll32File)' == ''">ExcelDna.xll</ExcelDnaXll32File>
+    <ExcelDnaXll32Path Condition="'$(ExcelDnaXll32Path)' == ''">$(ExcelDnaToolsPath)$(ExcelDnaXll32File)</ExcelDnaXll32Path>
+
+    <ExcelDnaXll64File Condition="'$(ExcelDnaXll64File)' == ''">ExcelDna64.xll</ExcelDnaXll64File>
+    <ExcelDnaXll64Path Condition="'$(ExcelDnaXll64Path)' == ''">$(ExcelDnaToolsPath)$(ExcelDnaXll64File)</ExcelDnaXll64Path>
+  </PropertyGroup>
+
+  <!--
+    Target that removes all .dna, .xll, and .xll.config from the build output folder
+  -->
+  <Target Name="ExcelDnaClean">
+    <ItemGroup>
+      <ExcelDnaFilesToDelete Include="$(TargetDir)**\*.dna" />
+      <ExcelDnaFilesToDelete Include="$(TargetDir)**\*.xll" />
+      <ExcelDnaFilesToDelete Include="$(TargetDir)**\*.xll.config" />
+    </ItemGroup>
+
+    <Delete Files="@(ExcelDnaFilesToDelete)"/>
+  </Target>
+
+  <!--
+    Target that gets builds a list of .dna files to be processed by platform
+  -->
+  <Target Name="ExcelDnaPrepare"
+          Condition="$(RunExcelDnaBuild)">
+    <!--
+      Make sure the ExcelDnaPack utility exists
+    -->
+    <Error Text="ExcelDnaPack.exe not found: $(ExcelDnaPackExePath)"
+           Condition="!Exists('$(ExcelDnaPackExePath)')" />
+
+    <!--
+      Make sure the suffix for 32 and 64-bit add-ins are different, so we don't get clashes
+    -->
+    <Error Text="ExcelDna32FileSuffix and ExcelDna64FileSuffix cannot be identical. Fix your ExcelDna.props file"
+           Condition="'$(ExcelDna32FileSuffix)' == '$(ExcelDna64FileSuffix)'" />
+
+    <!--
+      Warn the user if no work can be done due to both build flags being disabled
+    -->
+    <Warning Text="ExcelDnaBuild32Dna and ExcelDnaBuild64Dna are both 'false'. Nothing to do"
+             Condition="(!$(ExcelDnaBuild32Dna)) AND (!$(ExcelDnaBuild64Dna))" />
+
+    <ItemGroup>
+      <ExcelDnaFilesInProject Include="@(None);@(Content)"
+                              Condition="'%(Extension)' == '.dna'">
+        <SrcDnaIdentity>%(Identity)</SrcDnaIdentity>
+        <SrcDnaRelativeDir>%(RelativeDir)</SrcDnaRelativeDir>
+        <SrcDnaAbsoluteDir>%(RootDir)%(Directory)</SrcDnaAbsoluteDir>
+        <SrcDnaFullPath>%(FullPath)</SrcDnaFullPath>
+        <SrcDnaFilename>%(Filename)</SrcDnaFilename>
+        <SrcDnaExtension>%(Extension)</SrcDnaExtension>
+      </ExcelDnaFilesInProject>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ExcelDnaTargetPlatforms Include="32-bit ($(ExcelDna32PlatformId))">
+        <PlatformId>$(ExcelDna32PlatformId)</PlatformId>
+        <PlatformXllFilePath>$(ExcelDnaXll32Path)</PlatformXllFilePath>
+        <PlatformFilenameSuffix>$(ExcelDna32FileSuffix)</PlatformFilenameSuffix>
+      </ExcelDnaTargetPlatforms>
+      <ExcelDnaTargetPlatforms Include="64-bit ($(ExcelDna64PlatformId))">
+        <PlatformId>$(ExcelDna64PlatformId)</PlatformId>
+        <PlatformXllFilePath>$(ExcelDnaXll64Path)</PlatformXllFilePath>
+        <PlatformFilenameSuffix>$(ExcelDna64FileSuffix)</PlatformFilenameSuffix>
+      </ExcelDnaTargetPlatforms>
+    </ItemGroup>
+
+    <ItemGroup>
+       <ExcelDnaTargetPlatformsToBuild Include="@(ExcelDnaTargetPlatforms)">
+         <PlatformIdentity>%(ExcelDnaTargetPlatforms.Identity)</PlatformIdentity>
+       </ExcelDnaTargetPlatformsToBuild>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ExcelDnaFilesToBuild Include="@(ExcelDnaTargetPlatformsToBuild)">
+        <FileIdentity>%(ExcelDnaFilesInProject.SrcDnaIdentity)</FileIdentity>
+        <SrcDnaRelativeDir>%(ExcelDnaFilesInProject.SrcDnaRelativeDir)</SrcDnaRelativeDir>
+        <SrcDnaAbsoluteDir>%(ExcelDnaFilesInProject.SrcDnaAbsoluteDir)</SrcDnaAbsoluteDir>
+        <SrcDnaFullPath>%(ExcelDnaFilesInProject.SrcDnaFullPath)</SrcDnaFullPath>
+        <SrcDnaFilename>%(ExcelDnaFilesInProject.SrcDnaFilename)</SrcDnaFilename>
+        <SrcDnaExtension>%(ExcelDnaFilesInProject.SrcDnaExtension)</SrcDnaExtension>
+      </ExcelDnaFilesToBuild>
+    </ItemGroup>
+  </Target>
+
+
+  <!--
+    Target that copies .dna, .xll, and .config files to the build output folder, and runs ExcelDnaPack
+  -->
+  <Target Name="ExcelDnaBuild"
+          Condition="$(RunExcelDnaBuild)"
+          Outputs="%(ExcelDnaFilesToBuild.FileIdentity)%(ExcelDnaFilesToBuild.PlatformIdentity)"
+          DependsOnTargets="ExcelDnaPrepare">
+    <PropertyGroup>
+      <!--
+        Preserve folder structure in the solution when copying to target
+      -->
+      <OutDirFullPath>$(TargetDir)%(ExcelDnaFilesToBuild.SrcDnaRelativeDir)</OutDirFullPath>
+
+      <!--
+        Get the information about the current platform being processed
+      -->
+      <PlatformId>%(ExcelDnaFilesToBuild.PlatformId)</PlatformId>
+      <PlatformXllFilePath>%(ExcelDnaFilesToBuild.PlatformXllFilePath)</PlatformXllFilePath>
+      <PlatformFilenameSuffix>%(ExcelDnaFilesToBuild.PlatformFilenameSuffix)</PlatformFilenameSuffix>
+
+      <!--
+        Get the properties for the current .dna file being processed
+      -->
+      <SrcDnaRelativeDir>%(ExcelDnaFilesToBuild.SrcDnaRelativeDir)</SrcDnaRelativeDir>
+      <SrcDnaAbsoluteDir>%(ExcelDnaFilesToBuild.SrcDnaAbsoluteDir)</SrcDnaAbsoluteDir>
+      <SrcDnaFullPath>%(ExcelDnaFilesToBuild.SrcDnaFullPath)</SrcDnaFullPath>
+      <SrcDnaFilename>%(ExcelDnaFilesToBuild.SrcDnaFilename)</SrcDnaFilename>
+      <SrcDnaExtension>%(ExcelDnaFilesToBuild.SrcDnaExtension)</SrcDnaExtension>
+      <SrcDnaPlatform>$(ExcelDna32PlatformId)</SrcDnaPlatform>
+      <SrcDnaPlatform Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(SrcDnaFilename)', '.+$(ExcelDna64FileSuffix)$'))">$(ExcelDna64PlatformId)</SrcDnaPlatform>
+
+      <!--
+        Assemble the platform-agnostic file name for the source file
+      -->
+      <SrcDnaPlatAgnosticFilename>$(SrcDnaFilename)</SrcDnaPlatAgnosticFilename>
+      <SrcDnaPlatAgnosticFilename Condition="'$(ExcelDna32FileSuffix)' != ''">$([System.Text.RegularExpressions.Regex]::Replace('$(SrcDnaPlatAgnosticFilename)', '(.+)$(ExcelDna32FileSuffix)$', '$1'))</SrcDnaPlatAgnosticFilename>
+      <SrcDnaPlatAgnosticFilename Condition="'$(ExcelDna64FileSuffix)' != ''">$([System.Text.RegularExpressions.Regex]::Replace('$(SrcDnaPlatAgnosticFilename)', '(.+)$(ExcelDna64FileSuffix)$', '$1'))</SrcDnaPlatAgnosticFilename>
+
+      <!--
+        Assemble the destination file name based on the source name + target platform
+      -->
+      <DestDnaFilename>$(SrcDnaPlatAgnosticFilename)</DestDnaFilename>
+      <DestDnaFilename>$(DestDnaFilename)$(PlatformFilenameSuffix)</DestDnaFilename>
+      <DestDnaFullPath>$(OutDirFullPath)$(DestDnaFilename)$(SrcDnaExtension)</DestDnaFullPath>
+      <DestDnaPlatform>$(PlatformId)</DestDnaPlatform>
+
+      <!--
+        Determine if we should process this .dna file depending on the ExcelDnaBuildXXDna property
+      -->
+      <PlatformBuildEnabled>false</PlatformBuildEnabled>
+      <PlatformBuildEnabled Condition="$(ExcelDnaBuild32Dna) AND ('$(SrcDnaPlatform)' == '$(ExcelDna32PlatformId)')">true</PlatformBuildEnabled>
+      <PlatformBuildEnabled Condition="$(ExcelDnaBuild64Dna) AND ('$(SrcDnaPlatform)' == '$(ExcelDna64PlatformId)')">true</PlatformBuildEnabled>
+
+      <!--
+        Determine if we should generate a corresponding .dna file for the platform (e.g. xpto.dna -> xpto64.dna)
+        If there's already a file xpto64.dna in the project, we use that instead of copying from xpto.dna
+      -->
+      <CreateDnaFromDna>false</CreateDnaFromDna>
+      <CreateDnaFromDna Condition="$(ExcelDnaCreate64BitAddIn) AND ('$(SrcDnaPlatform)' == '$(ExcelDna32PlatformId)') AND ('$(DestDnaPlatform)' == '$(ExcelDna64PlatformId)') AND (!Exists('$(SrcDnaAbsoluteDir)$(DestDnaFilename)$(SrcDnaExtension)'))">true</CreateDnaFromDna>
+      <CreateDnaFromDna Condition="$(ExcelDnaCreate32BitAddIn) AND ('$(SrcDnaPlatform)' == '$(ExcelDna64PlatformId)') AND ('$(DestDnaPlatform)' == '$(ExcelDna32PlatformId)') AND (!Exists('$(SrcDnaAbsoluteDir)$(DestDnaFilename)$(SrcDnaExtension)'))">true</CreateDnaFromDna>
+
+      <!--
+        Determine if we should skip the current .dna file depending on build being enabled and generation of new .dna files
+      -->
+      <DestDnaCopyToOutput>false</DestDnaCopyToOutput>
+      <DestDnaCopyToOutput Condition="$(PlatformBuildEnabled) AND ($(CreateDnaFromDna) OR ('$(SrcDnaPlatform)' == '$(DestDnaPlatform)'))">true</DestDnaCopyToOutput>
+
+      <!--
+        Assemble the destination .xll file to be copied
+      -->
+      <DestXllFilename>$(DestDnaFilename)</DestXllFilename>
+      <DestXllFullPath>$(OutDirFullPath)$(DestXllFilename).xll</DestXllFullPath>
+      <DestXllPackedFullPath>$(OutDirFullPath)$(DestXllFilename)$(ExcelDnaPackFileSuffix).xll</DestXllPackedFullPath>
+
+      <!--
+        Determine the best config file to copy for the .dna being processed
+      -->
+      <SrcConfigFullPath>$(SrcDnaAbsoluteDir)$(DestDnaFilename).config</SrcConfigFullPath>
+      <SrcConfigFullPath Condition="!Exists('$(SrcConfigFullPath)')">$(SrcDnaAbsoluteDir)$(SrcDnaFilename).config</SrcConfigFullPath>
+      <SrcConfigFullPath Condition="!Exists('$(SrcConfigFullPath)')">$(SrcDnaAbsoluteDir)$(SrcDnaPlatAgnosticFilename)$(PlatformFilenameSuffix).config</SrcConfigFullPath>
+      <SrcConfigFullPath Condition="!Exists('$(SrcConfigFullPath)')">$(SrcDnaAbsoluteDir)$(SrcDnaPlatAgnosticFilename).config</SrcConfigFullPath>
+      <SrcConfigFullPath Condition="!Exists('$(SrcConfigFullPath)')">$(SrcDnaAbsoluteDir)App$(PlatformFilenameSuffix).config</SrcConfigFullPath>
+      <SrcConfigFullPath Condition="!Exists('$(SrcConfigFullPath)')">$(SrcDnaAbsoluteDir)App.config</SrcConfigFullPath>
+      <SrcConfigFullPath Condition="!Exists('$(SrcConfigFullPath)')">$(ExcelDnaProjectPath)App$(PlatformFilenameSuffix).config</SrcConfigFullPath>
+      <SrcConfigFullPath Condition="!Exists('$(SrcConfigFullPath)')">$(ExcelDnaProjectPath)App.config</SrcConfigFullPath>
+
+      <!--
+        Configuration file is always the destination .xll file name + .config
+      -->
+      <DestConfigFullPath>$(DestXllFullPath).config</DestConfigFullPath>
+    </PropertyGroup>
+
+    <!--
+      Copy the .dna file to the build output folder
+    -->
+    <Message Text="$(SrcDnaFullPath) -> $(DestDnaFullPath)"
+             Condition="$(DestDnaCopyToOutput)"
+             Importance="High" />
+
+    <Copy SourceFiles="$(SrcDnaFullPath)"
+          DestinationFiles="$(DestDnaFullPath)"
+          Condition="$(DestDnaCopyToOutput)"
+          ContinueOnError="false"
+          OverwriteReadOnlyFiles="true"
+          SkipUnchangedFiles="true" />
+
+    <!--
+      Copy the .xll file to the build output folder
+    -->
+    <Message Text="$(PlatformXllFilePath) -> $(DestXllFullPath)"
+             Condition="$(DestDnaCopyToOutput)"
+             Importance="High" />
+
+    <Copy SourceFiles="$(PlatformXllFilePath)"
+          DestinationFiles="$(DestXllFullPath)"
+          Condition="$(DestDnaCopyToOutput)"
+          ContinueOnError="false"
+          OverwriteReadOnlyFiles="true"
+          SkipUnchangedFiles="true" />
+
+    <!--
+      Copy the .config file to the build output folder, if exists
+    -->
+    <Message Text="$(SrcConfigFullPath) -> $(DestConfigFullPath)"
+             Condition="($(DestDnaCopyToOutput)) AND (Exists('$(SrcConfigFullPath)'))"
+             Importance="High" />
+
+    <Copy SourceFiles="$(SrcConfigFullPath)"
+          DestinationFiles="$(DestConfigFullPath)"
+          Condition="($(DestDnaCopyToOutput)) AND (Exists('$(SrcConfigFullPath)'))"
+          ContinueOnError="false"
+          OverwriteReadOnlyFiles="true"
+          SkipUnchangedFiles="true" />
+
+    <!--
+      Pack the .dna file in the build output folder, if packing is enabled
+    -->
+    <Message Text="Packing $(DestDnaFullPath) -> $(DestXllPackedFullPath)"
+             Condition="($(DestDnaCopyToOutput)) AND ($(RunExcelDnaPack))"
+             Importance="High" />
+
+    <Exec Command="&quot;$(ExcelDnaPackExePath)&quot; &quot;$(DestDnaFullPath)&quot; /Y /O &quot;$(DestXllPackedFullPath)&quot;"
+          Condition="($(DestDnaCopyToOutput)) AND ($(RunExcelDnaPack))"
+          IgnoreExitCode="false"
+          ContinueOnError="false" />
+  </Target>
+</Project>

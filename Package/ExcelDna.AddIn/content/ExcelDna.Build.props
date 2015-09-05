@@ -1,0 +1,46 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="ExcelDnaProps">
+<!--
+  If you change properties in this file, they may not come into effect until you:
+     * Rebuild the solution/project
+
+     or
+
+     * Close Visual Studio
+     * Delete ProjectName.csproj.user (or equivalent for VB, F#, etc.), if exists
+     * Delete SolutionName.suo, if exists
+     * Open your solution/project again in Visual Studio
+  -->
+
+  <!--
+    Configuration properties for building .dna files
+  -->
+  <PropertyGroup>
+    <!--
+      Enable/Disable automatic generation of platform-specific versions of .dna files
+    -->
+    <ExcelDnaCreate64BitAddIn Condition="'$(ExcelDnaCreate64BitAddIn)' == ''">true</ExcelDnaCreate64BitAddIn>
+    <ExcelDnaCreate32BitAddIn Condition="'$(ExcelDnaCreate32BitAddIn)' == ''">true</ExcelDnaCreate32BitAddIn>
+
+    <!--
+      Define the suffix used for each platform-specific file e.g. MyAddIn64.dna
+    -->
+    <ExcelDna32FileSuffix Condition="'$(ExcelDna32FileSuffix)' == ''"></ExcelDna32FileSuffix>
+    <ExcelDna64FileSuffix Condition="'$(ExcelDna64FileSuffix)' == ''">64</ExcelDna64FileSuffix>
+  </PropertyGroup>
+
+  <!--
+    Configuration properties for packing .dna files
+  -->
+  <PropertyGroup>
+    <!--
+      Enable/Disable packing of .dna files
+    -->
+    <RunExcelDnaPack Condition="'$(RunExcelDnaPack)' == ''">true</RunExcelDnaPack>
+
+    <!--
+      Suffix used for packed .xll files e.g. MyAddIn-packed.xll
+    -->
+    <ExcelDnaPackFileSuffix Condition="'$(ExcelDnaPackFileSuffix)' == ''">-packed</ExcelDnaPackFileSuffix>
+  </PropertyGroup>
+</Project>
+
