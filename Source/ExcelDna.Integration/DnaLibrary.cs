@@ -648,7 +648,7 @@ namespace ExcelDna.Integration
             }
 
             // Else give up (maybe try load from GAC for assemblies?)
-            Logger.Initialization.Error("ResolvePath: Could not find {0} from DnaDirectory {1}", path, dnaDirectory);
+            Logger.Initialization.Warn("ResolvePath: Could not find {0} from DnaDirectory {1}", path, dnaDirectory);
             return null;
         }
 
