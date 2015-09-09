@@ -3,7 +3,7 @@ ExcelDna Reference
 
 RuntimeVersion
 ==============
-Add RuntimeVersion="v4.0" to the DnaLibrary tag for .NET 4 or 4.5.
+Add RuntimeVersion="v4.0" to the DnaLibrary tag for .NET 4, 4.5 or 4.6.
 
 Shadow Copy Files
 =================
