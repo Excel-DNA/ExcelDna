@@ -21,7 +21,7 @@
         <summary>Excel-DNA is an independent project to integrate .NET into Excel.</summary>
         <tags>excel exceldna udf excel-dna</tags>
             <dependencies>
-      <dependency id="ExcelDna.Integration" version="[0.33.0,0.34)" />
+      <dependency id="ExcelDna.Integration" version="[0.33.9,0.34)" />
     </dependencies>
     </metadata>
     <files>
