@@ -9,6 +9,7 @@ using System.Reflection;
 using System.IO;
 using System.Collections.Generic;
 using SevenZip.Compression.LZMA;
+using System.Threading;
 
 internal unsafe static class ResourceHelper
 {
@@ -64,7 +65,11 @@ internal unsafe static class ResourceHelper
 		IntPtr _hUpdate;
 		List<object> updateData = new List<object>();
 
-		public ResourceUpdater(string fileName)
+        object lockResource = new object();
+
+        List<ManualResetEvent> finishedTask = new List<ManualResetEvent>();
+
+        public ResourceUpdater(string fileName)
 		{
 			_hUpdate = BeginUpdateResource(fileName, false);
 			if (_hUpdate == IntPtr.Zero)
@@ -76,9 +81,18 @@ internal unsafe static class ResourceHelper
         public string AddFile(byte[] content, string name, TypeName typeName, bool compress)
         {
             Debug.Assert(name == name.ToUpperInvariant());
-            if (compress)
-                content = SevenZipHelper.Compress(content);
-            DoUpdateResource(typeName.ToString() + (compress ? "_LZMA" : ""), name, content);
+
+            var mre = new ManualResetEvent(false);
+            finishedTask.Add(mre);
+            ThreadPool.QueueUserWorkItem(delegate
+            {
+                if (compress)
+                    content = SevenZipHelper.Compress(content);
+                DoUpdateResource(typeName.ToString() + (compress ? "_LZMA" : ""), name, content);
+
+                mre.Set();
+            }
+            );
 
             return name;
         }
@@ -105,43 +119,53 @@ internal unsafe static class ResourceHelper
 
         public int AddTypeLib(byte[] data)
         {
-            string typeName = "TYPELIB";
-            typelibIndex++;
-
-            Console.WriteLine(string.Format("  ->  Updating typelib: Type: {0}, Index: {1}, Length: {2}", typeName, typelibIndex, data.Length));
-            GCHandle pinHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
-            updateData.Add(pinHandle);
-
-            bool result = ResourceHelper.UpdateResource(_hUpdate, typeName, (IntPtr)typelibIndex, localeNeutral, pinHandle.AddrOfPinnedObject(), (uint)data.Length);
-            if (!result)
+            lock (lockResource)
             {
-                throw new Win32Exception();
-            }
+                string typeName = "TYPELIB";
+                typelibIndex++;
 
+                Console.WriteLine(string.Format("  ->  Updating typelib: Type: {0}, Index: {1}, Length: {2}", typeName, typelibIndex, data.Length));
+                GCHandle pinHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
+                updateData.Add(pinHandle);
+
+                bool result = ResourceHelper.UpdateResource(_hUpdate, typeName, (IntPtr)typelibIndex, localeNeutral, pinHandle.AddrOfPinnedObject(), (uint)data.Length);
+                if (!result)
+                {
+                    throw new Win32Exception();
+                }
+
+            }
             return typelibIndex;
         }
 
 		public void DoUpdateResource(string typeName, string name, byte[] data)
 		{
-			Console.WriteLine(string.Format("  ->  Updating resource: Type: {0}, Name: {1}, Length: {2}", typeName, name, data.Length));
-			GCHandle pinHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
-			updateData.Add(pinHandle);
+            lock (lockResource)
+            {
 
-			bool result = ResourceHelper.UpdateResource(_hUpdate, typeName, name, localeNeutral, pinHandle.AddrOfPinnedObject(), (uint)data.Length);
-			if (!result)
-			{
-				throw new Win32Exception();
-			}
-		}
+                Console.WriteLine(string.Format("  ->  Updating resource: Type: {0}, Name: {1}, Length: {2}", typeName, name, data.Length));
+                GCHandle pinHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
+                updateData.Add(pinHandle);
 
-		public void RemoveResource(string typeName, string name)
-		{
-			bool result = ResourceHelper.UpdateResource(_hUpdate, typeName, name, localeEnglishUS, IntPtr.Zero, 0);
-			if (!result)
-			{
-				throw new Win32Exception();
-			}
-		}
+                bool result = ResourceHelper.UpdateResource(_hUpdate, typeName, name, localeNeutral, pinHandle.AddrOfPinnedObject(), (uint)data.Length);
+                if (!result)
+                {
+                    throw new Win32Exception();
+                }
+            }
+        }
+
+        public void RemoveResource(string typeName, string name)
+        {
+            lock (lockResource)
+            {
+                bool result = ResourceHelper.UpdateResource(_hUpdate, typeName, name, localeEnglishUS, IntPtr.Zero, 0);
+                if (!result)
+                {
+                    throw new Win32Exception();
+                }
+            }
+        }
 
 		public void EndUpdate()
 		{
@@ -150,7 +174,16 @@ internal unsafe static class ResourceHelper
 
 		public void EndUpdate(bool discard)
 		{
-			bool result = EndUpdateResource(_hUpdate, discard);
+            if (finishedTask.Count > 0)
+            {
+                ManualResetEvent[] mre = new ManualResetEvent[finishedTask.Count];
+                for (int i = 0; i < finishedTask.Count; i++)
+                    mre[i] = finishedTask[i];
+
+                WaitHandle.WaitAll(mre);
+            }
+
+            bool result = EndUpdateResource(_hUpdate, discard);
 			if (!result)
 			{
 				throw new Win32Exception();
