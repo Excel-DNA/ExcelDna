@@ -12,8 +12,17 @@ using SevenZip.Compression.LZMA;
 
 internal unsafe static class ResourceHelper
 {
-	// TODO: Learn about locales
-	private const ushort localeNeutral		= 0;
+    internal enum TypeName
+    {
+        CONFIG = -1,
+        ASSEMBLY = 0,
+        DNA = 1,
+        IMAGE = 2,
+        SOURCE = 3,
+    }
+
+    // TODO: Learn about locales
+    private const ushort localeNeutral		= 0;
 	private const ushort localeEnglishUS	= 1033;
 	private const ushort localeEnglishSA	= 7177;
 
@@ -48,8 +57,9 @@ internal unsafe static class ResourceHelper
 
 	[DllImport("kernel32.dll")]
 	private static extern uint GetLastError();
+
 	internal unsafe class ResourceUpdater
-	{
+	{        
         int typelibIndex = 0;
 		IntPtr _hUpdate;
 		List<object> updateData = new List<object>();
@@ -63,7 +73,17 @@ internal unsafe static class ResourceHelper
 			}
 		}
 
-		public string AddAssembly(string path)
+        public string AddFile(byte[] content, string name, TypeName typeName, bool compress)
+        {
+            Debug.Assert(name == name.ToUpperInvariant());
+            if (compress)
+                content = SevenZipHelper.Compress(content);
+            DoUpdateResource(typeName.ToString() + (compress ? "_LZMA" : ""), name, content);
+
+            return name;
+        }
+
+        public string AddAssembly(string path, bool compress)
 		{
 			try
 			{
@@ -72,8 +92,8 @@ internal unsafe static class ResourceHelper
 				// check that the assembly can Load from bytes (mixed assemblies can't).
 				Assembly ass = Assembly.Load(assBytes);
 				string name = ass.GetName().Name.ToUpperInvariant(); // .ToUpperInvariant().Replace(".", "_");
-				byte[] data = SevenZipHelper.Compress(assBytes);
-				DoUpdateResource("ASSEMBLY_LZMA", name, data);
+
+                AddFile(assBytes, name, TypeName.ASSEMBLY, compress);				
 				return name;
 			}
 			catch (Exception e)
@@ -81,38 +101,6 @@ internal unsafe static class ResourceHelper
 				Console.WriteLine("Assembly at " + path + " could not be packed. Possibly a mixed assembly? (These are not supported yet.)\r\nException: " + e);
 				return null;
 			}
-		}
-
-        public void AddDnaFileUncompressed(byte[] dnaContent, string name)
-        {
-            Debug.Assert(name == name.ToUpperInvariant());
-            DoUpdateResource("DNA", name, dnaContent);
-        }
-
-		public void AddDnaFile(byte[] dnaContent, string name)
-		{
-			Debug.Assert(name == name.ToUpperInvariant());
-			byte[] data = SevenZipHelper.Compress(dnaContent);
-			DoUpdateResource("DNA_LZMA", name, data);
-		}
-
-        public void AddImage(byte[] imageBytes, string name)
-        {
-            Debug.Assert(name == name.ToUpperInvariant());
-            byte[] data = SevenZipHelper.Compress(imageBytes);
-            DoUpdateResource("IMAGE_LZMA", name, data);
-        }
-
-        public void AddSource(byte[] sourceBytes, string name)
-        {
-            Debug.Assert(name == name.ToUpperInvariant());
-            byte[] data = SevenZipHelper.Compress(sourceBytes);
-            DoUpdateResource("SOURCE_LZMA", name, data);
-        }
-
-		public void AddConfigFile(byte[] configContent, string name)
-		{
-			DoUpdateResource("CONFIG", name, configContent);
 		}
 
         public int AddTypeLib(byte[] data)
