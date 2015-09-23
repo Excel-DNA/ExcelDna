@@ -78,7 +78,7 @@ internal unsafe static class ResourceHelper
 			}
 		}
 
-        public string AddFile(byte[] content, string name, TypeName typeName, bool compress)
+        public string AddFile(byte[] content, string name, TypeName typeName, bool compress, ushort lcid)
         {
             Debug.Assert(name == name.ToUpperInvariant());
 
@@ -88,7 +88,7 @@ internal unsafe static class ResourceHelper
             {
                 if (compress)
                     content = SevenZipHelper.Compress(content);
-                DoUpdateResource(typeName.ToString() + (compress ? "_LZMA" : ""), name, content);
+                DoUpdateResource(typeName.ToString() + (compress ? "_LZMA" : ""), name, content, lcid);
 
                 mre.Set();
             }
@@ -98,24 +98,45 @@ internal unsafe static class ResourceHelper
         }
 
         public string AddAssembly(string path, bool compress)
-		{
-			try
-			{
-				byte[] assBytes = File.ReadAllBytes(path);
-				// Not just into the Reflection context, because this Load is used to get the name and also to 
-				// check that the assembly can Load from bytes (mixed assemblies can't).
-				Assembly ass = Assembly.Load(assBytes);
-				string name = ass.GetName().Name.ToUpperInvariant(); // .ToUpperInvariant().Replace(".", "_");
+        {
+            try
+            {
+                byte[] assBytes = File.ReadAllBytes(path);
+                // Not just into the Reflection context, because this Load is used to get the name and also to 
+                // check that the assembly can Load from bytes (mixed assemblies can't).                
+                Assembly ass = Assembly.Load(assBytes);
+                string name = ass.GetName().Name.ToUpperInvariant(); // .ToUpperInvariant().Replace(".", "_");
+                ushort lcid = localeNeutral;
 
-                AddFile(assBytes, name, TypeName.ASSEMBLY, compress);				
-				return name;
-			}
-			catch (Exception e)
-			{
-				Console.WriteLine("Assembly at " + path + " could not be packed. Possibly a mixed assembly? (These are not supported yet.)\r\nException: " + e);
-				return null;
-			}
-		}
+                try
+                {
+                    var assName = new AssemblyName(ass.FullName);
+
+                    if (!String.IsNullOrEmpty(assName.CultureInfo.Name))
+                        lcid = (ushort)assName.CultureInfo.TextInfo.LCID;
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("Error Fetching LCID for Assembly");
+                }
+
+                //if (path.ToUpper().EndsWith(".RESOURCES.DLL"))
+                //{
+                //    var pp = Path.GetDirectoryName(path);
+
+                //    name += "." + pp.Substring(pp.LastIndexOf(@"\") + 1).ToUpper();
+                //}
+
+                AddFile(assBytes, name, TypeName.ASSEMBLY, compress, lcid);               
+
+                return name;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Assembly at " + path + " could not be packed. Possibly a mixed assembly? (These are not supported yet.)\r\nException: " + e);
+                return null;
+            }
+        }
 
         public int AddTypeLib(byte[] data)
         {
@@ -138,11 +159,10 @@ internal unsafe static class ResourceHelper
             return typelibIndex;
         }
 
-		public void DoUpdateResource(string typeName, string name, byte[] data)
+		public void DoUpdateResource(string typeName, string name, byte[] data, ushort lcid)
 		{
             lock (lockResource)
             {
-
                 Console.WriteLine(string.Format("  ->  Updating resource: Type: {0}, Name: {1}, Length: {2}", typeName, name, data.Length));
                 GCHandle pinHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
                 updateData.Add(pinHandle);

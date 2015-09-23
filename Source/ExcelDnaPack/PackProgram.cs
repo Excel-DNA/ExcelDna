@@ -20,10 +20,10 @@ ExcelDnaPack is a command-line utility to pack ExcelDna add-ins into a single .x
 
 Usage: ExcelDnaPack.exe dnaPath [/O outputPath] [/Y] 
 
-  dnaPath      The path to the primary .dna file for the ExcelDna add-in.
-  /Y           If the output .xll exists, overwrite without prompting.
-  /NC          no compress (LZMA) of resources
-  /O outPath   Output path - default is <dnaPath>-packed.xll.
+  dnaPath        The path to the primary .dna file for the ExcelDna add-in.
+  /Y             If the output .xll exists, overwrite without prompting.
+  /NoCompression no compress (LZMA) of resources
+  /O outPath     Output path - default is <dnaPath>-packed.xll.
 
 Example: ExcelDnaPack.exe MyAddins\FirstAddin.dna
 		 The packed add-in file will be created as MyAddins\FirstAddin-packed.xll.
@@ -110,7 +110,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                     {
                         overwrite = true;
                     } else
-                    if (args[i].Equals("/NC", StringComparison.CurrentCultureIgnoreCase))
+                    if (args[i].Equals("/NoCompression", StringComparison.CurrentCultureIgnoreCase))
                     {
                         compress = false;
                     }
@@ -200,11 +200,11 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 			}
 			if (File.Exists(configPath))
 			{
-				ru.AddFile(File.ReadAllBytes(configPath), "__MAIN__",ResourceHelper.TypeName.CONFIG, false);  // Name here must exactly match name in ExcelDnaLoad.cpp.
+				ru.AddFile(File.ReadAllBytes(configPath), "__MAIN__",ResourceHelper.TypeName.CONFIG, false, 0);  // Name here must exactly match name in ExcelDnaLoad.cpp.
 			}
 			byte[] dnaBytes = File.ReadAllBytes(dnaPath);
 			byte[] dnaContentForPacking = PackDnaLibrary(dnaBytes, dnaDirectory, ru, compress);
-			ru.AddFile(dnaContentForPacking, "__MAIN__",ResourceHelper.TypeName.DNA, false); // Name here must exactly match name in DnaLibrary.Initialize.
+			ru.AddFile(dnaContentForPacking, "__MAIN__",ResourceHelper.TypeName.DNA, false,0); // Name here must exactly match name in DnaLibrary.Initialize.
 			ru.EndUpdate();
 			Console.WriteLine("Completed Packing {0}.", xllOutputPath);
 #if DEBUG
@@ -238,7 +238,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 						{
 							string name = Path.GetFileNameWithoutExtension(path).ToUpperInvariant() + "_" + lastPackIndex++ + ".DNA";
 							byte[] dnaContentForPacking = PackDnaLibrary(File.ReadAllBytes(path), Path.GetDirectoryName(path), ru, compress);
-							ru.AddFile(dnaContentForPacking, name, ResourceHelper.TypeName.DNA, compress);
+							ru.AddFile(dnaContentForPacking, name, ResourceHelper.TypeName.DNA, compress,0);
 							ext.Path = "packed:" + name;
 						}
 						else
@@ -351,7 +351,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 					}
 				}
 			}
-            foreach (Image image in dna.Images)
+            foreach (  Image image in dna.Images)
             {
                 if (image.Pack)
                 {
@@ -363,7 +363,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                     }
                     string name = Path.GetFileNameWithoutExtension(path).ToUpperInvariant() + "_" + lastPackIndex++ + Path.GetExtension(path).ToUpperInvariant();
                     byte[] imageBytes = File.ReadAllBytes(path);
-                    ru.AddFile(imageBytes, name, ResourceHelper.TypeName.IMAGE, compress);
+                    ru.AddFile(imageBytes, name, ResourceHelper.TypeName.IMAGE, compress,0);
                     image.Path = "packed:" + name;
                 }
             }
@@ -381,7 +381,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                         }
                         string name = Path.GetFileNameWithoutExtension(path).ToUpperInvariant() + "_" + lastPackIndex++ + Path.GetExtension(path).ToUpperInvariant();
                         byte[] sourceBytes = File.ReadAllBytes(path);
-                        ru.AddFile(sourceBytes, name, ResourceHelper.TypeName.SOURCE, compress);
+                        ru.AddFile(sourceBytes, name, ResourceHelper.TypeName.SOURCE, compress,0);
                         source.Path = "packed:" + name;
                     }
                 }
