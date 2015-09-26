@@ -178,7 +178,9 @@ namespace ExcelDna.Logging
         {
             try
             {
-                TraceLogger.IntegrationTraceSource.TraceEvent(eventType, _eventId, message, args);
+                // ToDo: in ExcelDnaPack this is always NULL
+                if (TraceLogger.IntegrationTraceSource != null)
+                    TraceLogger.IntegrationTraceSource.TraceEvent(eventType, _eventId, message, args);
             }
             catch (Exception e)
             {

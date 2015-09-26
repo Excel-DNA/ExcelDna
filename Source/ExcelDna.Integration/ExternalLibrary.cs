@@ -250,8 +250,7 @@ namespace ExcelDna.Integration
                 return list;
 			}
 		}
-        
-        // A copy of this method lives in ExcelDna.Loader - AssemblyManager.cs
+               
         private static Assembly GetAssemblyIfLoaded(string assemblyName)
         {
             Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();

@@ -54,49 +54,34 @@ namespace ExcelDna.Loader
                 // But I have seen the Loader, and it is us.
                 return Assembly.GetExecutingAssembly();
             }
-
+         
             // Check our AssemblyResolve cache
             if (loadedAssemblies.ContainsKey(args.Name))
                 return loadedAssemblies[args.Name];
 
-            // Check if it is loaded in the AppDomain already, 
-            // e.g. from resources as an ExternalLibrary
-
-            // !!!!!!!!!! TODO CHEKC if possible with FULLNAME
-
-            //loadedAssembly = GetAssemblyIfLoaded(name);
-            //if (loadedAssembly != null)
-            //{
-            //    Logger.Initialization.Info("Assembly {0} was found to already be loaded into the AppDomain.", name);
-            //    loadedAssemblies.Add(name, loadedAssembly);
-            //    return loadedAssembly;
-            //}
-
-            // We expect failures for Resource assemblies
-            // From: http://blogs.msdn.com/b/suzcook/archive/2003/05/29/57120.aspx
-            // "Note: Unless you are explicitly debugging the failure of a resource to load, 
-            //        you will likely want to ignore failures to find assemblies with the ".resources" extension 
-            //        with the culture set to something other than "neutral". Those are expected failures when the 
-            //        ResourceManager is probing for satellite assemblies."
-            //bool isResourceAssembly = name.EndsWith(".RESOURCES", StringComparison.InvariantCultureIgnoreCase) /*&& assName.CultureInfo.Name != "neutral"*/;
-
-            //// Now check in resources ...
-            //if (isResourceAssembly)
-            //    Logger.Initialization.Verbose("Attempting to load {0} from resources.", name);
-            //else
+            // update AssemblyResolve Cache
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (Assembly loadedAssemblyItem in assemblies)
+            {
+                if (!loadedAssemblies.ContainsKey(loadedAssemblyItem.FullName))
+                {
+                    loadedAssemblies.Add(loadedAssemblyItem.FullName, loadedAssemblyItem);
+                    // if new Item found, check if we search this assembly
+                    if (loadedAssemblyItem.FullName == args.Name)
+                        return loadedAssemblyItem;
+                }
+            }
+         
             Logger.Initialization.Info("Attempting to load {0} from resources.", name);
 
             ushort lcid = 0;
+            // if we don't have a culture info or of it is the Neutral culture take 0, otherwise take LCID
             if (assName.CultureInfo != null &&  !string.IsNullOrEmpty(assName.CultureInfo.Name))
                 lcid = (ushort)assName.CultureInfo.TextInfo.LCID;
             assemblyBytes = ResourceHelper.LoadResourceBytes(hModule, "ASSEMBLY", name, lcid);
-
-            //assemblyBytes = GetResourceBytes(name, 0);
+          
             if (assemblyBytes == null)
-            {
-                //if (isResourceAssembly)
-                //    Logger.Initialization.Verbose("Assembly {0} could not be loaded from resources (ResourceManager probing for satellite assemblies).", name);
-                //else
+            {               
                 Logger.Initialization.Warn("Assembly {0} could not be loaded from resources.", name);
                 return null;
             }
@@ -104,10 +89,10 @@ namespace ExcelDna.Loader
             Logger.Initialization.Info("Trying Assembly.Load for {0} (from {1} bytes).", name, assemblyBytes.Length);
             //File.WriteAllBytes(@"c:\Temp\" + name + ".dll", assemblyBytes);
             try
-            {
+            {              
                 loadedAssembly = Assembly.Load(assemblyBytes);
                 Logger.Initialization.Info("Assembly Loaded from bytes. FullName: {0}", loadedAssembly.FullName);
-                loadedAssemblies.Add(args.Name, loadedAssembly);
+                loadedAssemblies.Add(args.Name, loadedAssembly);                                   
                 return loadedAssembly;
             }
             catch (Exception e)
@@ -144,20 +129,7 @@ namespace ExcelDna.Loader
                 throw new ArgumentOutOfRangeException("type", "Unknown resource type. Only types 0 (Assembly), 1 (Dna file), 2 (Image) or 3 (Source) are valid.");
             }
 			return ResourceHelper.LoadResourceBytes(hModule, typeName, resourceName,0);
-		}
-
-        // A copy of this method lives in ExcelDna.Integration - ExternalLibrary.cs
-        private static Assembly GetAssemblyIfLoaded(string assemblyName)
-        {
-            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            foreach (Assembly loadedAssembly in assemblies)
-            {
-                string loadedAssemblyName = loadedAssembly.FullName.Split(',')[0];
-                if (string.Equals(loadedAssemblyName, assemblyName, StringComparison.OrdinalIgnoreCase))
-                    return loadedAssembly;
-            }
-            return null;
-        }
+		}     
     }
 
     internal unsafe static class ResourceHelper
