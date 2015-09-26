@@ -78,26 +78,35 @@ internal unsafe static class ResourceHelper
 			}
 		}
 
-        public string AddFile(byte[] content, string name, TypeName typeName, bool compress)
+        private void CompressDoUpdateHelper(byte[] content, string name, TypeName typeName, bool compress)
+        {
+            if (compress)
+                content = SevenZipHelper.Compress(content);
+            DoUpdateResource(typeName.ToString() + (compress ? "_LZMA" : ""), name, content);
+        }
+
+        public string AddFile(byte[] content, string name, TypeName typeName, bool compress, bool multithreading)
         {
             Debug.Assert(name == name.ToUpperInvariant());
 
-            var mre = new ManualResetEvent(false);
-            finishedTask.Add(mre);
-            ThreadPool.QueueUserWorkItem(delegate
+            if (multithreading)
             {
-                if (compress)
-                    content = SevenZipHelper.Compress(content);
-                DoUpdateResource(typeName.ToString() + (compress ? "_LZMA" : ""), name, content);
-
-                mre.Set();
+                var mre = new ManualResetEvent(false);
+                finishedTask.Add(mre);
+                ThreadPool.QueueUserWorkItem(delegate
+                    {
+                        CompressDoUpdateHelper(content, name, typeName, compress);
+                        mre.Set();
+                    }
+                );
             }
-            );
+            else
+                CompressDoUpdateHelper(content, name, typeName, compress);
 
             return name;
         }
 
-        public string AddAssembly(string path, bool compress)
+        public string AddAssembly(string path, bool compress, bool multithreading)
 		{
 			try
 			{
@@ -107,7 +116,7 @@ internal unsafe static class ResourceHelper
 				Assembly ass = Assembly.Load(assBytes);
 				string name = ass.GetName().Name.ToUpperInvariant(); // .ToUpperInvariant().Replace(".", "_");
 
-                AddFile(assBytes, name, TypeName.ASSEMBLY, compress);				
+                AddFile(assBytes, name, TypeName.ASSEMBLY, compress, multithreading);				
 				return name;
 			}
 			catch (Exception e)
@@ -142,7 +151,6 @@ internal unsafe static class ResourceHelper
 		{
             lock (lockResource)
             {
-
                 Console.WriteLine(string.Format("  ->  Updating resource: Type: {0}, Name: {1}, Length: {2}", typeName, name, data.Length));
                 GCHandle pinHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
                 updateData.Add(pinHandle);
