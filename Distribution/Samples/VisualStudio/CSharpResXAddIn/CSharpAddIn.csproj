@@ -75,7 +75,7 @@
   <PropertyGroup>
     <PostBuildEvent>rem echo F | xcopy $(ProjectDir)..\..\..\ExcelDna.xll $(TargetDir)SampleCS.xll /C /Y
 
-xcopy "C:\work\Programming\dotNet\ExcelDna\Source\ExcelDna\Release64\ExcelDna64.xll" "$(TargetDir)"  /Y
+xcopy "..\..\..\..\..\..\Source\ExcelDna\Release64\ExcelDna64.xll" "$(TargetDir)"  /Y
 
 move /Y "$(TargetDir)SampleCS.dna" "$(TargetDir)ExcelDna64.dna" 
 

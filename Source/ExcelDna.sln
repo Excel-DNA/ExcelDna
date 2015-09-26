@@ -14,7 +14,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDnaPack", "ExcelDnaPac
 		{59AE5BC6-F37E-4CE3-BAE3-796F807A9882} = {59AE5BC6-F37E-4CE3-BAE3-796F807A9882}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpAddIn", "..\Distribution\Samples\VisualStudio\CSharpAddIn\CSharpAddIn.csproj", "{F23B5FC7-B72A-4A83-ACA5-9FC082BE3215}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpResxAddIn", "..\Distribution\Samples\VisualStudio\CSharpResxAddIn\CSharpAddIn.csproj", "{F23B5FC7-B72A-4A83-ACA5-9FC082BE3215}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
