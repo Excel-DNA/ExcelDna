@@ -20,10 +20,10 @@ ExcelDnaPack is a command-line utility to pack ExcelDna add-ins into a single .x
 
 Usage: ExcelDnaPack.exe dnaPath [/O outputPath] [/Y] 
 
-  dnaPath        The path to the primary .dna file for the ExcelDna add-in.
-  /Y             If the output .xll exists, overwrite without prompting.
-  /NoCompression no compress (LZMA) of resources
-  /O outPath     Output path - default is <dnaPath>-packed.xll.
+  dnaPath         The path to the primary .dna file for the ExcelDna add-in.
+  /Y              If the output .xll exists, overwrite without prompting.
+  /NoCompression  no compress (LZMA) of resources
+  /O outPath      Output path - default is <dnaPath>-packed.xll.
 
 Example: ExcelDnaPack.exe MyAddins\FirstAddin.dna
 		 The packed add-in file will be created as MyAddins\FirstAddin-packed.xll.

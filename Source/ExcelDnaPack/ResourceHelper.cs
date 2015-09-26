@@ -163,11 +163,11 @@ internal unsafe static class ResourceHelper
 		{
             lock (lockResource)
             {
-                Console.WriteLine(string.Format("  ->  Updating resource: Type: {0}, Name: {1}, Length: {2}", typeName, name, data.Length));
+                Console.WriteLine(string.Format("  ->  Updating resource: Type: {0}, Name: {1}, Length: {2}, LCID: {3}", typeName, name, data.Length, lcid));
                 GCHandle pinHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
                 updateData.Add(pinHandle);
 
-                bool result = ResourceHelper.UpdateResource(_hUpdate, typeName, name, localeNeutral, pinHandle.AddrOfPinnedObject(), (uint)data.Length);
+                bool result = ResourceHelper.UpdateResource(_hUpdate, typeName, name, lcid, pinHandle.AddrOfPinnedObject(), (uint)data.Length);
                 if (!result)
                 {
                     throw new Win32Exception();
@@ -179,6 +179,7 @@ internal unsafe static class ResourceHelper
         {
             lock (lockResource)
             {
+                // TODO search for all languages and removes them
                 bool result = ResourceHelper.UpdateResource(_hUpdate, typeName, name, localeEnglishUS, IntPtr.Zero, 0);
                 if (!result)
                 {
