@@ -20,9 +20,11 @@ ExcelDnaPack is a command-line utility to pack ExcelDna add-ins into a single .x
 
 Usage: ExcelDnaPack.exe dnaPath [/O outputPath] [/Y] 
 
-  dnaPath      The path to the primary .dna file for the ExcelDna add-in.
-  /Y           If the output .xll exists, overwrite without prompting.
-  /O outPath   Output path - default is <dnaPath>-packed.xll.
+  dnaPath           The path to the primary .dna file for the ExcelDna add-in.
+  /Y                If the output .xll exists, overwrite without prompting.
+  /NoCompression    no compress (LZMA) of resources
+  /NoMultiThreading no multi threading to ensure deterministic packing order
+  /O outPath        Output path - default is <dnaPath>-packed.xll.
 
 Example: ExcelDnaPack.exe MyAddins\FirstAddin.dna
 		 The packed add-in file will be created as MyAddins\FirstAddin-packed.xll.
@@ -82,6 +84,8 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
             string xllInputPath = Path.Combine(dnaDirectory, dnaFilePrefix + ".xll");
 			string xllOutputPath = Path.Combine(dnaDirectory, dnaFilePrefix + "-packed.xll");
             bool overwrite = false;
+            bool compress = true;
+            bool multithreading = true;
 
 			if (!File.Exists(dnaPath))
 			{
@@ -107,7 +111,17 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                     else if (args[i].Equals("/Y", StringComparison.CurrentCultureIgnoreCase))
                     {
                         overwrite = true;
+                    } else
+                    if (args[i].Equals("/NoCompression", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        compress = false;
                     }
+                    else
+                    if (args[i].Equals("/NoMultiThreading", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        multithreading = false;
+                    }
+                    
                 }
             }
 
@@ -183,7 +197,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 			string packedName = null;
 			if (integrationPath != null)
 			{
-				packedName = ru.AddAssembly(integrationPath);
+				packedName = ru.AddAssembly(integrationPath, compress, multithreading);
 			}
 			if (packedName == null)
 			{
@@ -194,11 +208,11 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 			}
 			if (File.Exists(configPath))
 			{
-				ru.AddConfigFile(File.ReadAllBytes(configPath), "__MAIN__");  // Name here must exactly match name in ExcelDnaLoad.cpp.
+				ru.AddFile(File.ReadAllBytes(configPath), "__MAIN__",ResourceHelper.TypeName.CONFIG, false, multithreading);  // Name here must exactly match name in ExcelDnaLoad.cpp.
 			}
 			byte[] dnaBytes = File.ReadAllBytes(dnaPath);
-			byte[] dnaContentForPacking = PackDnaLibrary(dnaBytes, dnaDirectory, ru);
-			ru.AddDnaFileUncompressed(dnaContentForPacking, "__MAIN__"); // Name here must exactly match name in DnaLibrary.Initialize.
+			byte[] dnaContentForPacking = PackDnaLibrary(dnaBytes, dnaDirectory, ru, compress, multithreading);
+			ru.AddFile(dnaContentForPacking, "__MAIN__",ResourceHelper.TypeName.DNA, false, multithreading); // Name here must exactly match name in DnaLibrary.Initialize.
 			ru.EndUpdate();
 			Console.WriteLine("Completed Packing {0}.", xllOutputPath);
 #if DEBUG
@@ -211,7 +225,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 
 		static int lastPackIndex = 0;
 
-		static byte[] PackDnaLibrary(byte[] dnaContent, string dnaDirectory, ResourceHelper.ResourceUpdater ru)
+		static byte[] PackDnaLibrary(byte[] dnaContent, string dnaDirectory, ResourceHelper.ResourceUpdater ru, bool compress, bool multithreading)
 		{
 			DnaLibrary dna = DnaLibrary.LoadFrom(dnaContent, dnaDirectory);
             if (dna == null)
@@ -231,13 +245,13 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 						if (Path.GetExtension(path).Equals(".DNA", StringComparison.OrdinalIgnoreCase))
 						{
 							string name = Path.GetFileNameWithoutExtension(path).ToUpperInvariant() + "_" + lastPackIndex++ + ".DNA";
-							byte[] dnaContentForPacking = PackDnaLibrary(File.ReadAllBytes(path), Path.GetDirectoryName(path), ru);
-							ru.AddDnaFile(dnaContentForPacking, name);
+							byte[] dnaContentForPacking = PackDnaLibrary(File.ReadAllBytes(path), Path.GetDirectoryName(path), ru, compress, multithreading);
+							ru.AddFile(dnaContentForPacking, name, ResourceHelper.TypeName.DNA, compress, multithreading);
 							ext.Path = "packed:" + name;
 						}
 						else
 						{
-							string packedName = ru.AddAssembly(path);
+							string packedName = ru.AddAssembly(path, compress, multithreading);
 							if (packedName != null)
 							{
 								ext.Path = "packed:" + packedName;
@@ -338,7 +352,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 					}
 					
 					// It worked!
-					string packedName = ru.AddAssembly(path);
+					string packedName = ru.AddAssembly(path, compress, multithreading);
 					if (packedName != null)
 					{
 						rf.Path = "packed:" + packedName;
@@ -357,7 +371,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                     }
                     string name = Path.GetFileNameWithoutExtension(path).ToUpperInvariant() + "_" + lastPackIndex++ + Path.GetExtension(path).ToUpperInvariant();
                     byte[] imageBytes = File.ReadAllBytes(path);
-                    ru.AddImage(imageBytes, name);
+                    ru.AddFile(imageBytes, name, ResourceHelper.TypeName.IMAGE, compress, multithreading);
                     image.Path = "packed:" + name;
                 }
             }
@@ -375,7 +389,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                         }
                         string name = Path.GetFileNameWithoutExtension(path).ToUpperInvariant() + "_" + lastPackIndex++ + Path.GetExtension(path).ToUpperInvariant();
                         byte[] sourceBytes = File.ReadAllBytes(path);
-                        ru.AddSource(sourceBytes, name);
+                        ru.AddFile(sourceBytes, name, ResourceHelper.TypeName.SOURCE, compress, multithreading);
                         source.Path = "packed:" + name;
                     }
                 }

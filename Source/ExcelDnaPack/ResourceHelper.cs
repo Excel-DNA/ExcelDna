@@ -9,11 +9,21 @@ using System.Reflection;
 using System.IO;
 using System.Collections.Generic;
 using SevenZip.Compression.LZMA;
+using System.Threading;
 
 internal unsafe static class ResourceHelper
 {
-	// TODO: Learn about locales
-	private const ushort localeNeutral		= 0;
+    internal enum TypeName
+    {
+        CONFIG = -1,
+        ASSEMBLY = 0,
+        DNA = 1,
+        IMAGE = 2,
+        SOURCE = 3,
+    }
+
+    // TODO: Learn about locales
+    private const ushort localeNeutral		= 0;
 	private const ushort localeEnglishUS	= 1033;
 	private const ushort localeEnglishSA	= 7177;
 
@@ -48,13 +58,18 @@ internal unsafe static class ResourceHelper
 
 	[DllImport("kernel32.dll")]
 	private static extern uint GetLastError();
+
 	internal unsafe class ResourceUpdater
-	{
+	{        
         int typelibIndex = 0;
 		IntPtr _hUpdate;
 		List<object> updateData = new List<object>();
 
-		public ResourceUpdater(string fileName)
+        object lockResource = new object();
+
+        List<ManualResetEvent> finishedTask = new List<ManualResetEvent>();
+
+        public ResourceUpdater(string fileName)
 		{
 			_hUpdate = BeginUpdateResource(fileName, false);
 			if (_hUpdate == IntPtr.Zero)
@@ -63,7 +78,35 @@ internal unsafe static class ResourceHelper
 			}
 		}
 
-		public string AddAssembly(string path)
+        private void CompressDoUpdateHelper(byte[] content, string name, TypeName typeName, bool compress)
+        {
+            if (compress)
+                content = SevenZipHelper.Compress(content);
+            DoUpdateResource(typeName.ToString() + (compress ? "_LZMA" : ""), name, content);
+        }
+
+        public string AddFile(byte[] content, string name, TypeName typeName, bool compress, bool multithreading)
+        {
+            Debug.Assert(name == name.ToUpperInvariant());
+
+            if (multithreading)
+            {
+                var mre = new ManualResetEvent(false);
+                finishedTask.Add(mre);
+                ThreadPool.QueueUserWorkItem(delegate
+                    {
+                        CompressDoUpdateHelper(content, name, typeName, compress);
+                        mre.Set();
+                    }
+                );
+            }
+            else
+                CompressDoUpdateHelper(content, name, typeName, compress);
+
+            return name;
+        }
+
+        public string AddAssembly(string path, bool compress, bool multithreading)
 		{
 			try
 			{
@@ -72,8 +115,8 @@ internal unsafe static class ResourceHelper
 				// check that the assembly can Load from bytes (mixed assemblies can't).
 				Assembly ass = Assembly.Load(assBytes);
 				string name = ass.GetName().Name.ToUpperInvariant(); // .ToUpperInvariant().Replace(".", "_");
-				byte[] data = SevenZipHelper.Compress(assBytes);
-				DoUpdateResource("ASSEMBLY_LZMA", name, data);
+
+                AddFile(assBytes, name, TypeName.ASSEMBLY, compress, multithreading);				
 				return name;
 			}
 			catch (Exception e)
@@ -83,77 +126,54 @@ internal unsafe static class ResourceHelper
 			}
 		}
 
-        public void AddDnaFileUncompressed(byte[] dnaContent, string name)
-        {
-            Debug.Assert(name == name.ToUpperInvariant());
-            DoUpdateResource("DNA", name, dnaContent);
-        }
-
-		public void AddDnaFile(byte[] dnaContent, string name)
-		{
-			Debug.Assert(name == name.ToUpperInvariant());
-			byte[] data = SevenZipHelper.Compress(dnaContent);
-			DoUpdateResource("DNA_LZMA", name, data);
-		}
-
-        public void AddImage(byte[] imageBytes, string name)
-        {
-            Debug.Assert(name == name.ToUpperInvariant());
-            byte[] data = SevenZipHelper.Compress(imageBytes);
-            DoUpdateResource("IMAGE_LZMA", name, data);
-        }
-
-        public void AddSource(byte[] sourceBytes, string name)
-        {
-            Debug.Assert(name == name.ToUpperInvariant());
-            byte[] data = SevenZipHelper.Compress(sourceBytes);
-            DoUpdateResource("SOURCE_LZMA", name, data);
-        }
-
-		public void AddConfigFile(byte[] configContent, string name)
-		{
-			DoUpdateResource("CONFIG", name, configContent);
-		}
-
         public int AddTypeLib(byte[] data)
         {
-            string typeName = "TYPELIB";
-            typelibIndex++;
-
-            Console.WriteLine(string.Format("  ->  Updating typelib: Type: {0}, Index: {1}, Length: {2}", typeName, typelibIndex, data.Length));
-            GCHandle pinHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
-            updateData.Add(pinHandle);
-
-            bool result = ResourceHelper.UpdateResource(_hUpdate, typeName, (IntPtr)typelibIndex, localeNeutral, pinHandle.AddrOfPinnedObject(), (uint)data.Length);
-            if (!result)
+            lock (lockResource)
             {
-                throw new Win32Exception();
-            }
+                string typeName = "TYPELIB";
+                typelibIndex++;
 
+                Console.WriteLine(string.Format("  ->  Updating typelib: Type: {0}, Index: {1}, Length: {2}", typeName, typelibIndex, data.Length));
+                GCHandle pinHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
+                updateData.Add(pinHandle);
+
+                bool result = ResourceHelper.UpdateResource(_hUpdate, typeName, (IntPtr)typelibIndex, localeNeutral, pinHandle.AddrOfPinnedObject(), (uint)data.Length);
+                if (!result)
+                {
+                    throw new Win32Exception();
+                }
+
+            }
             return typelibIndex;
         }
 
 		public void DoUpdateResource(string typeName, string name, byte[] data)
 		{
-			Console.WriteLine(string.Format("  ->  Updating resource: Type: {0}, Name: {1}, Length: {2}", typeName, name, data.Length));
-			GCHandle pinHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
-			updateData.Add(pinHandle);
+            lock (lockResource)
+            {
+                Console.WriteLine(string.Format("  ->  Updating resource: Type: {0}, Name: {1}, Length: {2}", typeName, name, data.Length));
+                GCHandle pinHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
+                updateData.Add(pinHandle);
 
-			bool result = ResourceHelper.UpdateResource(_hUpdate, typeName, name, localeNeutral, pinHandle.AddrOfPinnedObject(), (uint)data.Length);
-			if (!result)
-			{
-				throw new Win32Exception();
-			}
-		}
+                bool result = ResourceHelper.UpdateResource(_hUpdate, typeName, name, localeNeutral, pinHandle.AddrOfPinnedObject(), (uint)data.Length);
+                if (!result)
+                {
+                    throw new Win32Exception();
+                }
+            }
+        }
 
-		public void RemoveResource(string typeName, string name)
-		{
-			bool result = ResourceHelper.UpdateResource(_hUpdate, typeName, name, localeEnglishUS, IntPtr.Zero, 0);
-			if (!result)
-			{
-				throw new Win32Exception();
-			}
-		}
+        public void RemoveResource(string typeName, string name)
+        {
+            lock (lockResource)
+            {
+                bool result = ResourceHelper.UpdateResource(_hUpdate, typeName, name, localeEnglishUS, IntPtr.Zero, 0);
+                if (!result)
+                {
+                    throw new Win32Exception();
+                }
+            }
+        }
 
 		public void EndUpdate()
 		{
@@ -162,7 +182,16 @@ internal unsafe static class ResourceHelper
 
 		public void EndUpdate(bool discard)
 		{
-			bool result = EndUpdateResource(_hUpdate, discard);
+            if (finishedTask.Count > 0)
+            {
+                ManualResetEvent[] mre = new ManualResetEvent[finishedTask.Count];
+                for (int i = 0; i < finishedTask.Count; i++)
+                    mre[i] = finishedTask[i];
+
+                WaitHandle.WaitAll(mre);
+            }
+
+            bool result = EndUpdateResource(_hUpdate, discard);
 			if (!result)
 			{
 				throw new Win32Exception();
