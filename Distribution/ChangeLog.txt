@@ -1,3 +1,7 @@
+Version 0.34 (???)
+------------------
+* Add ExplicitExports="false" to NuGet .dna file template
+
 Version 0.33 (9 September 2015)
 -------------------------------
 * Improve RtdObserver/Async array function handling to ensure RTD DisconnectData when complete.
