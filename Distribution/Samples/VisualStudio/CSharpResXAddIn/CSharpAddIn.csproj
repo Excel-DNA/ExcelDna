@@ -51,12 +51,17 @@
   <ItemGroup>
     <None Include="SampleCS.dna">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
     </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\Source\ExcelDna.Integration\ExcelDna.Integration.csproj">
       <Project>{196735bc-5a5c-4a21-9fe4-ec01cb7f3de9}</Project>
       <Name>ExcelDna.Integration</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Source\ExcelDna.Loader\ExcelDna.Loader.csproj">
+      <Project>{59ae5bc6-f37e-4ce3-bae3-796f807a9882}</Project>
+      <Name>ExcelDna.Loader</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\Source\ExcelDnaPack\ExcelDnaPack.csproj">
       <Project>{fd7f2ee3-9922-4825-96a2-be2c877baeb9}</Project>
@@ -81,10 +86,10 @@ move /Y "$(TargetDir)SampleCS.dna" "$(TargetDir)ExcelDna64.dna"
 
 "$(TargetDir)ExcelDnaPack.exe" ExcelDna64.dna /Y /NoCompression /O "$(TargetDir)packed\ExcelDna64.xll"
 
-rmdir /Q /S $(TargetDir)\de-de
-rmdir /Q /S $(TargetDir)\en-us
-del  $(TargetDir)\ExcelDna.Integration.dll /Q
-del  $(TargetDir)\ExcelDna.Integration.pdb /Q</PostBuildEvent>
+rem rmdir /Q /S $(TargetDir)\de-de
+rem rmdir /Q /S $(TargetDir)\en-us
+rem del  $(TargetDir)\ExcelDna.Integration.dll /Q
+rem del  $(TargetDir)\ExcelDna.Integration.pdb /Q</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

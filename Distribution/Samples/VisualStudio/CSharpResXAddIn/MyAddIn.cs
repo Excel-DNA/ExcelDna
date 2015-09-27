@@ -1,9 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using ExcelDna.Integration;
+using System.Runtime.InteropServices;
+using ExcelDna.Integration.CustomUI;
 
 namespace CSharpAddIn
 {
+
+     [ComVisible(true)]     
+    public class MyRibbon : ExcelRibbon
+    {
+        public void OnShowCTP(IRibbonControl control)
+        {
+          
+        }
+
+
+        public void OnDeleteCTP(IRibbonControl control)
+        {
+           
+        }
+    }
+
     public static class MyAddIn
     {
         public static string SayHello(string name)
