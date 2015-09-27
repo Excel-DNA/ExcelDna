@@ -12,6 +12,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using ExcelDna.Loader.Logging;
 using SevenZip.Compression.LZMA;
+using System.Security.Cryptography;
 
 namespace ExcelDna.Loader
 {
@@ -21,6 +22,7 @@ namespace ExcelDna.Loader
         static string pathXll;
         static IntPtr hModule;
         static Dictionary<string, Assembly> loadedAssemblies = new Dictionary<string,Assembly>();
+        static Dictionary<string, Assembly> loadedAssembliesHashes = new Dictionary<string, Assembly>();
 
         internal static void Initialize(IntPtr hModule, string pathXll)
         {
@@ -81,18 +83,40 @@ namespace ExcelDna.Loader
             assemblyBytes = ResourceHelper.LoadResourceBytes(hModule, "ASSEMBLY", name, lcid);
           
             if (assemblyBytes == null)
-            {               
-                Logger.Initialization.Warn("Assembly {0} could not be loaded from resources.", name);
+            {                
+                // if the missing Assembly only a Resource use a lower LogLevel
+                if (assName.Name.EndsWith(".RESOURCES", StringComparison.InvariantCultureIgnoreCase))
+                    Logger.Initialization.Verbose("Assembly {0} could not be loaded from resources.", name);
+                else
+                    Logger.Initialization.Warn("Assembly {0} could not be loaded from resources.", name);
                 return null;
             }
 
             Logger.Initialization.Info("Trying Assembly.Load for {0} (from {1} bytes).", name, assemblyBytes.Length);
             //File.WriteAllBytes(@"c:\Temp\" + name + ".dll", assemblyBytes);
+
+            // compute the hash of the bytes
+            string assemblyBytesHash="";
+            using (SHA1CryptoServiceProvider sha1 = new SHA1CryptoServiceProvider())
+            {
+                assemblyBytesHash = Convert.ToBase64String(sha1.ComputeHash(assemblyBytes));
+            }
+
+            // this make it impossible to load the same bytes again as assembly
+            if (loadedAssembliesHashes.ContainsKey(assemblyBytesHash))
+            {
+                var assembly = loadedAssembliesHashes[assemblyBytesHash];
+                // add assemblie with the requested name to the assembly dictionary, to find it faster
+                loadedAssemblies.Add(args.Name, assembly);
+                return assembly;
+            }
+            
             try
             {              
                 loadedAssembly = Assembly.Load(assemblyBytes);
-                Logger.Initialization.Info("Assembly Loaded from bytes. FullName: {0}", loadedAssembly.FullName);
-                loadedAssemblies.Add(args.Name, loadedAssembly);                                   
+                Logger.Initialization.Info("Assembly Loaded from bytes. FullName: {0} with SHA1: {1}", loadedAssembly.FullName, assemblyBytesHash);
+                loadedAssemblies.Add(args.Name, loadedAssembly);
+                loadedAssembliesHashes.Add(assemblyBytesHash, loadedAssembly);
                 return loadedAssembly;
             }
             catch (Exception e)
