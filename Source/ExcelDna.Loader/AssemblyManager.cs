@@ -12,24 +12,75 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using ExcelDna.Loader.Logging;
 using SevenZip.Compression.LZMA;
-using System.Security.Cryptography;
 
 namespace ExcelDna.Loader
 {
     // TODO: Lots more to make a flexible loader.
     internal static class AssemblyManager
     {
+        internal static class AssemblyDictionary
+        {
+            static Dictionary<string, Assembly> loadedAssemblies = new Dictionary<string, Assembly>();
+
+            private static string GetCleanAssemblyName(string assemblyName)
+            {
+                AssemblyName assName = new AssemblyName(assemblyName);
+                // remove Version
+                assName.Version = null;
+                // remove Public Key
+                assName.SetPublicKey(null);
+                // remove Public KeyToken
+                assName.SetPublicKeyToken(null);
+                // remove Flags
+                assName.Flags = AssemblyNameFlags.None;
+
+                if (assName.CultureInfo == null)
+                    assName.CultureInfo = CultureInfo.InvariantCulture;
+
+                // other Variant
+                //return assName.Name + ", Culture=" + assName.CultureInfo.ToString();
+
+                return assName.FullName;
+            }
+
+            public static Assembly GetAssemblyByName(string assemblyName)
+            {
+                var assName = GetCleanAssemblyName(assemblyName);
+             
+                // Check our AssemblyResolve cache
+                if (loadedAssemblies.ContainsKey(assName))
+                    return loadedAssemblies[assName];
+
+                //update AssemblyResolve Cache
+                foreach (Assembly loadedAssemblyItem in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    AddLoadedAssembly(loadedAssemblyItem);
+                }
+
+                //// Check our AssemblyResolve cache after update again
+                if (loadedAssemblies.ContainsKey(assName))
+                    return loadedAssemblies[assName];
+
+                return null;
+            }
+
+            public static void AddLoadedAssembly(Assembly assembly)
+            {
+                var assName = GetCleanAssemblyName(assembly.FullName);
+
+                if (!loadedAssemblies.ContainsKey(assName))
+                loadedAssemblies.Add(assName, assembly);
+            }
+        }
+
         static string pathXll;
         static IntPtr hModule;
-        static Dictionary<string, Assembly> loadedAssemblies = new Dictionary<string,Assembly>();
-        static Dictionary<string, Assembly> loadedAssembliesHashes = new Dictionary<string, Assembly>();
-
+     
         internal static void Initialize(IntPtr hModule, string pathXll)
         {
             AssemblyManager.pathXll = pathXll;
             AssemblyManager.hModule = hModule;
-            loadedAssemblies.Add(Assembly.GetExecutingAssembly().FullName, Assembly.GetExecutingAssembly());
-
+            
             // TODO: Load up the DnaFile and Assembly names ?
 
             AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolve;
@@ -38,85 +89,40 @@ namespace ExcelDna.Loader
         [MethodImpl(MethodImplOptions.Synchronized)]
         private static Assembly AssemblyResolve(object sender, ResolveEventArgs args)
         {
-            string name;
-            byte[] assemblyBytes;
-            Assembly loadedAssembly = null;
+            byte[] assemblyBytes= null;
+                  
+            Logger.Initialization.Info("Attempting to load {0} from resources.", args.Name);
+
+            // try to get Assembly from already loaded assemblies
+            var loadedAssembly = AssemblyDictionary.GetAssemblyByName(args.Name);
+            if (loadedAssembly != null)
+                return loadedAssembly;
 
             AssemblyName assName = new AssemblyName(args.Name);
-            name = assName.Name.ToUpperInvariant();
-
-            if (name == "EXCELDNA") /* Special case for pre-0.14 versions of ExcelDna */
-            {
-                name = "EXCELDNA.INTEGRATION";
-            }
-
-            if (name == "EXCELDNA.LOADER")
-            {
-                // Loader must have been loaded from bytes.
-                // But I have seen the Loader, and it is us.
-                return Assembly.GetExecutingAssembly();
-            }
-         
-            // Check our AssemblyResolve cache
-            if (loadedAssemblies.ContainsKey(args.Name))
-                return loadedAssemblies[args.Name];
-
-            // update AssemblyResolve Cache
-            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            foreach (Assembly loadedAssemblyItem in assemblies)
-            {
-                if (!loadedAssemblies.ContainsKey(loadedAssemblyItem.FullName))
-                {
-                    loadedAssemblies.Add(loadedAssemblyItem.FullName, loadedAssemblyItem);
-                    // if new Item found, check if we search this assembly
-                    if (loadedAssemblyItem.FullName == args.Name)
-                        return loadedAssemblyItem;
-                }
-            }
-         
-            Logger.Initialization.Info("Attempting to load {0} from resources.", name);
-
             ushort lcid = 0;
             // if we don't have a culture info or of it is the Neutral culture take 0, otherwise take LCID
             if (assName.CultureInfo != null &&  !string.IsNullOrEmpty(assName.CultureInfo.Name))
                 lcid = (ushort)assName.CultureInfo.TextInfo.LCID;
-            assemblyBytes = ResourceHelper.LoadResourceBytes(hModule, "ASSEMBLY", name, lcid);
+            assemblyBytes = ResourceHelper.LoadResourceBytes(hModule, "ASSEMBLY", assName.Name.ToUpper(), lcid);
           
             if (assemblyBytes == null)
             {                
-                // if the missing Assembly only a Resource use a lower LogLevel
+                // if the missing Assembly is only a Resource use a lower LogLevel
                 if (assName.Name.EndsWith(".RESOURCES", StringComparison.InvariantCultureIgnoreCase))
-                    Logger.Initialization.Verbose("Assembly {0} could not be loaded from resources.", name);
+                    Logger.Initialization.Verbose("Assembly {0} could not be loaded from resources.", args.Name);
                 else
-                    Logger.Initialization.Warn("Assembly {0} could not be loaded from resources.", name);
+                    Logger.Initialization.Warn("Assembly {0} could not be loaded from resources.", args.Name);
                 return null;
             }
 
-            Logger.Initialization.Info("Trying Assembly.Load for {0} (from {1} bytes).", name, assemblyBytes.Length);
+            Logger.Initialization.Info("Trying Assembly.Load for {0} (from {1} bytes).", args.Name, assemblyBytes.Length);
             //File.WriteAllBytes(@"c:\Temp\" + name + ".dll", assemblyBytes);
-
-            // compute the hash of the bytes
-            string assemblyBytesHash="";
-            using (SHA1CryptoServiceProvider sha1 = new SHA1CryptoServiceProvider())
-            {
-                assemblyBytesHash = Convert.ToBase64String(sha1.ComputeHash(assemblyBytes));
-            }
-
-            // this make it impossible to load the same bytes again as assembly
-            if (loadedAssembliesHashes.ContainsKey(assemblyBytesHash))
-            {
-                var assembly = loadedAssembliesHashes[assemblyBytesHash];
-                // add assemblie with the requested name to the assembly dictionary, to find it faster
-                loadedAssemblies.Add(args.Name, assembly);
-                return assembly;
-            }
             
             try
             {              
                 loadedAssembly = Assembly.Load(assemblyBytes);
-                Logger.Initialization.Info("Assembly Loaded from bytes. FullName: {0} with SHA1: {1}", loadedAssembly.FullName, assemblyBytesHash);
-                loadedAssemblies.Add(args.Name, loadedAssembly);
-                loadedAssembliesHashes.Add(assemblyBytesHash, loadedAssembly);
+                Logger.Initialization.Info("Assembly Loaded from bytes. FullName: {0}", loadedAssembly.FullName);
+                AssemblyDictionary.AddLoadedAssembly(loadedAssembly);
                 return loadedAssembly;
             }
             catch (Exception e)
