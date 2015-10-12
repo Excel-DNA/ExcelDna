@@ -78,65 +78,53 @@ internal unsafe static class ResourceHelper
 			}
 		}
 
-        public string AddFile(byte[] content, string name, TypeName typeName, bool compress, ushort lcid)
+        private void CompressDoUpdateHelper(byte[] content, string name, TypeName typeName, bool compress)
+        {
+            if (compress)
+                content = SevenZipHelper.Compress(content);
+            DoUpdateResource(typeName.ToString() + (compress ? "_LZMA" : ""), name, content);
+        }
+
+        public string AddFile(byte[] content, string name, TypeName typeName, bool compress, bool multithreading)
         {
             Debug.Assert(name == name.ToUpperInvariant());
 
-            var mre = new ManualResetEvent(false);
-            finishedTask.Add(mre);
-            ThreadPool.QueueUserWorkItem(delegate
+            if (multithreading)
             {
-                if (compress)
-                    content = SevenZipHelper.Compress(content);
-                DoUpdateResource(typeName.ToString() + (compress ? "_LZMA" : ""), name, content, lcid);
-
-                mre.Set();
+                var mre = new ManualResetEvent(false);
+                finishedTask.Add(mre);
+                ThreadPool.QueueUserWorkItem(delegate
+                    {
+                        CompressDoUpdateHelper(content, name, typeName, compress);
+                        mre.Set();
+                    }
+                );
             }
-            );
+            else
+                CompressDoUpdateHelper(content, name, typeName, compress);
 
             return name;
         }
 
-        public string AddAssembly(string path, bool compress)
-        {
-            try
-            {
-                byte[] assBytes = File.ReadAllBytes(path);
-                // Not just into the Reflection context, because this Load is used to get the name and also to 
-                // check that the assembly can Load from bytes (mixed assemblies can't).                
-                Assembly ass = Assembly.Load(assBytes);
-                string name = ass.GetName().Name.ToUpperInvariant(); // .ToUpperInvariant().Replace(".", "_");
-                ushort lcid = localeNeutral;
+        public string AddAssembly(string path, bool compress, bool multithreading)
+		{
+			try
+			{
+				byte[] assBytes = File.ReadAllBytes(path);
+				// Not just into the Reflection context, because this Load is used to get the name and also to 
+				// check that the assembly can Load from bytes (mixed assemblies can't).
+				Assembly ass = Assembly.Load(assBytes);
+				string name = ass.GetName().Name.ToUpperInvariant(); // .ToUpperInvariant().Replace(".", "_");
 
-                try
-                {
-                    var assName = new AssemblyName(ass.FullName);
-
-                    if (!String.IsNullOrEmpty(assName.CultureInfo.Name))
-                        lcid = (ushort)assName.CultureInfo.TextInfo.LCID;
-                }
-                catch (Exception)
-                {
-                    Console.WriteLine("Error Fetching LCID for Assembly");
-                }
-
-                //if (path.ToUpper().EndsWith(".RESOURCES.DLL"))
-                //{
-                //    var pp = Path.GetDirectoryName(path);
-
-                //    name += "." + pp.Substring(pp.LastIndexOf(@"\") + 1).ToUpper();
-                //}
-
-                AddFile(assBytes, name, TypeName.ASSEMBLY, compress, lcid);               
-
-                return name;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Assembly at " + path + " could not be packed. Possibly a mixed assembly? (These are not supported yet.)\r\nException: " + e);
-                return null;
-            }
-        }
+                AddFile(assBytes, name, TypeName.ASSEMBLY, compress, multithreading);				
+				return name;
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine("Assembly at " + path + " could not be packed. Possibly a mixed assembly? (These are not supported yet.)\r\nException: " + e);
+				return null;
+			}
+		}
 
         public int AddTypeLib(byte[] data)
         {
@@ -159,15 +147,15 @@ internal unsafe static class ResourceHelper
             return typelibIndex;
         }
 
-		public void DoUpdateResource(string typeName, string name, byte[] data, ushort lcid)
+		public void DoUpdateResource(string typeName, string name, byte[] data)
 		{
             lock (lockResource)
             {
-                Console.WriteLine(string.Format("  ->  Updating resource: Type: {0}, Name: {1}, Length: {2}, LCID: {3}", typeName, name, data.Length, lcid));
+                Console.WriteLine(string.Format("  ->  Updating resource: Type: {0}, Name: {1}, Length: {2}", typeName, name, data.Length));
                 GCHandle pinHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
                 updateData.Add(pinHandle);
 
-                bool result = ResourceHelper.UpdateResource(_hUpdate, typeName, name, lcid, pinHandle.AddrOfPinnedObject(), (uint)data.Length);
+                bool result = ResourceHelper.UpdateResource(_hUpdate, typeName, name, localeNeutral, pinHandle.AddrOfPinnedObject(), (uint)data.Length);
                 if (!result)
                 {
                     throw new Win32Exception();
@@ -179,7 +167,6 @@ internal unsafe static class ResourceHelper
         {
             lock (lockResource)
             {
-                // TODO search for all languages and removes them
                 bool result = ResourceHelper.UpdateResource(_hUpdate, typeName, name, localeEnglishUS, IntPtr.Zero, 0);
                 if (!result)
                 {
