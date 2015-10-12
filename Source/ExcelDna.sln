@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.Loader", "ExcelDna.Loader\ExcelDna.Loader.csproj", "{59AE5BC6-F37E-4CE3-BAE3-796F807A9882}"
 EndProject
@@ -14,7 +14,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDnaPack", "ExcelDnaPac
 		{59AE5BC6-F37E-4CE3-BAE3-796F807A9882} = {59AE5BC6-F37E-4CE3-BAE3-796F807A9882}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpResxAddIn", "..\Distribution\Samples\VisualStudio\CSharpResxAddIn\CSharpAddIn.csproj", "{F23B5FC7-B72A-4A83-ACA5-9FC082BE3215}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpAddIn", "..\Distribution\Samples\VisualStudio\CSharpResxAddIn\CSharpAddIn.csproj", "{F23B5FC7-B72A-4A83-ACA5-9FC082BE3215}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A8D668E2-63C1-4F4E-A01E-E026C6E4D601} = {A8D668E2-63C1-4F4E-A01E-E026C6E4D601}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

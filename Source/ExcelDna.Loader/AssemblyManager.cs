@@ -12,6 +12,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using ExcelDna.Loader.Logging;
 using SevenZip.Compression.LZMA;
+using System.Security.Cryptography;
 
 namespace ExcelDna.Loader
 {
@@ -21,6 +22,8 @@ namespace ExcelDna.Loader
         internal static class AssemblyDictionary
         {
             static Dictionary<string, Assembly> loadedAssemblies = new Dictionary<string, Assembly>();
+
+            static int lastAppDomainCurrentDomainAssemblyCount = 0;
 
             private static string GetCleanAssemblyName(string assemblyName)
             {
@@ -46,36 +49,45 @@ namespace ExcelDna.Loader
             public static Assembly GetAssemblyByName(string assemblyName)
             {
                 var assName = GetCleanAssemblyName(assemblyName);
-             
+
                 // Check our AssemblyResolve cache
                 if (loadedAssemblies.ContainsKey(assName))
                     return loadedAssemblies[assName];
 
-                //update AssemblyResolve Cache
-                foreach (Assembly loadedAssemblyItem in AppDomain.CurrentDomain.GetAssemblies())
-                {
-                    AddLoadedAssembly(loadedAssemblyItem);
-                }
+                var appDomainAssemblies = AppDomain.CurrentDomain.GetAssemblies();
 
-                //// Check our AssemblyResolve cache after update again
-                if (loadedAssemblies.ContainsKey(assName))
-                    return loadedAssemblies[assName];
+                // performance optimisation, if the count of assemblies didn't change don't serach for new ones
+                if (appDomainAssemblies.Length != lastAppDomainCurrentDomainAssemblyCount)
+                {
+                    //update AssemblyResolve Cache
+                    foreach (Assembly loadedAssemblyItem in AppDomain.CurrentDomain.GetAssemblies())
+                    {
+                        AddLoadedAssembly(loadedAssemblyItem);
+                    }
+                    lastAppDomainCurrentDomainAssemblyCount = appDomainAssemblies.Length;
+
+                    //// Check our AssemblyResolve cache after update again
+                    if (loadedAssemblies.ContainsKey(assName))
+                        return loadedAssemblies[assName];
+                }
 
                 return null;
             }
 
             public static void AddLoadedAssembly(Assembly assembly)
             {
-                var assName = GetCleanAssemblyName(assembly.FullName);
+                    var assName = GetCleanAssemblyName(assembly.FullName);
 
-                if (!loadedAssemblies.ContainsKey(assName))
-                loadedAssemblies.Add(assName, assembly);
+                    if (!loadedAssemblies.ContainsKey(assName))
+                        loadedAssemblies.Add(assName, assembly);
             }
         }
 
         static string pathXll;
         static IntPtr hModule;
-     
+
+        static Dictionary<string, Assembly> loadedAssembliesHashes = new Dictionary<string, Assembly>();
+
         internal static void Initialize(IntPtr hModule, string pathXll)
         {
             AssemblyManager.pathXll = pathXll;
@@ -90,7 +102,7 @@ namespace ExcelDna.Loader
         private static Assembly AssemblyResolve(object sender, ResolveEventArgs args)
         {
             byte[] assemblyBytes= null;
-                  
+                            
             Logger.Initialization.Info("Attempting to load {0} from resources.", args.Name);
 
             // try to get Assembly from already loaded assemblies
@@ -103,6 +115,11 @@ namespace ExcelDna.Loader
             // if we don't have a culture info or of it is the Neutral culture take 0, otherwise take LCID
             if (assName.CultureInfo != null &&  !string.IsNullOrEmpty(assName.CultureInfo.Name))
                 lcid = (ushort)assName.CultureInfo.TextInfo.LCID;
+
+            // 4096 -> 0x1000 are user defined LCIDs / Cultures
+            if (lcid == 4096)
+                return null;
+
             assemblyBytes = ResourceHelper.LoadResourceBytes(hModule, "ASSEMBLY", assName.Name.ToUpper(), lcid);
           
             if (assemblyBytes == null)
@@ -117,12 +134,30 @@ namespace ExcelDna.Loader
 
             Logger.Initialization.Info("Trying Assembly.Load for {0} (from {1} bytes).", args.Name, assemblyBytes.Length);
             //File.WriteAllBytes(@"c:\Temp\" + name + ".dll", assemblyBytes);
-            
+
+            // here it would be much nicer, if the FullName is already stored in the __MAIN__ / Packed DNA Files
+            // an loaded, so it can be checked against the requested assembly
+
+            // compute the hash of the bytes
+            string assemblyBytesHash = "";
+            using (SHA1CryptoServiceProvider sha1 = new SHA1CryptoServiceProvider())
+            {
+                assemblyBytesHash = Convert.ToBase64String(sha1.ComputeHash(assemblyBytes));
+            }
+
+            // this make it impossible to load the same bytes again as assembly
+            if (loadedAssembliesHashes.ContainsKey(assemblyBytesHash))
+            {
+                var assembly = loadedAssembliesHashes[assemblyBytesHash];     
+                return assembly;
+            }
+
             try
-            {              
+            {             
                 loadedAssembly = Assembly.Load(assemblyBytes);
                 Logger.Initialization.Info("Assembly Loaded from bytes. FullName: {0}", loadedAssembly.FullName);
                 AssemblyDictionary.AddLoadedAssembly(loadedAssembly);
+                loadedAssembliesHashes.Add(assemblyBytesHash, loadedAssembly);
                 return loadedAssembly;
             }
             catch (Exception e)
