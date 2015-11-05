@@ -264,7 +264,7 @@ namespace ExcelDna.Logging
         {
             lock (SyncRoot)
             {
-                string message = string.Format(format, args);
+                string message = args.Length > 0 ? string.Format(format, args) : format;
                 string[] messageLines = message.Split(LineEndChars, StringSplitOptions.RemoveEmptyEntries);
                 if (DisplayOrder == DisplayOrder.NewestLast)
                 {
