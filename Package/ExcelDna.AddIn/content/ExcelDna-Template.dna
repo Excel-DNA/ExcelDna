@@ -1,5 +1,5 @@
 <DnaLibrary Name="%ProjectName% Add-In" RuntimeVersion="v4.0">
-  <ExternalLibrary Path="%OutputFileName%" LoadFromBytes="true" Pack="true" />
+  <ExternalLibrary Path="%OutputFileName%" ExplicitExports="false" LoadFromBytes="true" Pack="true" />
   
   <!-- 
        The RuntimeVersion attribute above allows two settings:

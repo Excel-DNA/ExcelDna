@@ -23,7 +23,7 @@ if ($Env:PLATFORM -eq "Any CPU")
 if (($Env:PLATFORM -eq "x64") -and ($Env:CONFIGURATION -eq "Release"))
 {
   Write-Host "Performing NuGet pack after final build job"
-  $version = "0.33.9." + $Env:APPVEYOR_BUILD_NUMBER
+  $version = "0.34.0-dev" + $Env:APPVEYOR_BUILD_NUMBER
   nuget pack $root\Package\ExcelDna.Integration\ExcelDna.Integration.nuspec -Version $version
   nuget pack $root\Package\ExcelDna.AddIn\ExcelDna.AddIn.nuspec -Version $version
 }
