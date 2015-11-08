@@ -1,5 +1,5 @@
 ﻿<DnaLibrary RuntimeVersion="v4.0" Name="Sample Excel-DNA Library in C#">
-	<ExternalLibrary Path="CSharpAddIn.dll" Pack="true"/>
+	<ExternalLibrary Path="CSharpAddIn.dll" Pack="true" ExplicitExports="true"/>
 
   <Reference Path="en-us/CSharpAddIn.resources.dll" Pack="true"/>
 	<Reference Path="de-de/CSharpAddIn.resources.dll" Pack="true"/>
