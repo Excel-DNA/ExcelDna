@@ -278,8 +278,9 @@ namespace ExcelDna.Loader
                         }
 
                         // DOCUMENT: Here is the patch for the Excel Function Description bug.
-                        // DOCUMENT: I add ". " to the last parameter.
-                        argumentDescriptions[j] += ". ";
+                        // DOCUMENT: Ensure the ". " suffix exists on the last parameter.
+                        if (!argumentDescriptions[j].EndsWith(". "))
+                            argumentDescriptions[j] += argumentDescriptions[j].EndsWith(".") ? " " : ". ";
                     }
                 }
             } // for each parameter
@@ -307,9 +308,9 @@ namespace ExcelDna.Loader
             string functionDescription = Truncate(mi.Description, 253, "function description", mi);
 
             // DOCUMENT: Here is the patch for the Excel Function Description bug.
-            // DOCUMENT: I add ". " if the function takes no parameters and has a description.
-            if (mi.Parameters.Length == 0 && functionDescription != "")
-                functionDescription += ". ";
+            // DOCUMENT: Ensure the ". " suffix exists if the function takes no parameters and has a description.
+            if (mi.Parameters.Length == 0 && functionDescription != "" && !functionDescription.EndsWith(". "))
+                functionDescription += functionDescription.EndsWith(".") ? " " : ". ";
 
             // DOCUMENT: When there is no description, we don't add any.
             // This allows the user to work around the Excel bug where an extra parameter is displayed if
