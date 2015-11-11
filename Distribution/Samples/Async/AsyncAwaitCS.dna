@@ -1,5 +1,7 @@
 <DnaLibrary RuntimeVersion="v4.0" Language="CS" >
 
+<Reference AssemblyPath="System.Net.dll" />
+<Reference AssemblyPath="System.Net.Http.dll" />
 <!-- 
 
     IMPORTANT:
@@ -19,6 +21,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Net.Http;
 
 namespace AsyncAwait
 {
@@ -172,20 +175,6 @@ namespace AsyncAwait
         }
 
     }
-}
-
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AsyncAwait
-{
-    using ExcelDna.Integration;
-    using System.Net.Http;
-using System.Threading;
 
     public class AsyncAwaitAddIn : IExcelAddIn
     {
@@ -218,7 +207,7 @@ using System.Threading;
         {
             Console.Beep();
             EnsureHttpInitialized();
-            return ExcelTaskUtil.RunTask("asyncDownloadString", url,
+            return ExcelTaskUtil.Run("asyncDownloadString", url,
                 async token =>
                 {
                     var response = await _httpClient.GetAsync(url, token);
@@ -230,14 +219,14 @@ using System.Threading;
         public static object asyncDownloadString(string url)
         {
             EnsureHttpInitialized();
-            return ExcelTaskUtil.RunAsTask("asyncDownloadString", url, 
+            return ExcelTaskUtil.Run("asyncDownloadString", url, 
                 cancellationToken => DownloadStringAsync(url, cancellationToken));
         }
 
-        public static object asyncDownloadString(string url)
+        public static object asyncDownloadStringNoCancel(string url)
         {
             EnsureHttpInitialized();
-            return ExcelTaskUtil.RunTask("asyncDownloadString", url,
+            return ExcelTaskUtil.Run("asyncDownloadString", url,
                 () => DownloadStringAsyncNoCancel(url));
         }
 
@@ -286,7 +275,7 @@ using System.Threading;
                     // Set the formatting of the function caller
                     if (caller is ExcelReference)
                     {
-                        using (new ExcelEchoOffHelper)
+                        using (new ExcelEchoOffHelper())
                         using (new ExcelSelectionHelper((ExcelReference)caller))
                         {
                             XlCall.Excel(XlCall.xlcFormatNumber, "h:mm:ss");
@@ -311,7 +300,7 @@ using System.Threading;
                     ExcelAsyncUtil.QueueAsMacro(delegate
                         {
                             // Set the formatting of the function caller
-                            using (new ExcelEchoOffHelper)
+                            using (new ExcelEchoOffHelper())
                             using (new ExcelSelectionHelper((ExcelReference)caller))
                             {
                                 XlCall.Excel(XlCall.xlcFormatNumber, desiredFormat);
