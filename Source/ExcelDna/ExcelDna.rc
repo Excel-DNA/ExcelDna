@@ -34,6 +34,7 @@ BEGIN
     "#include ""winresrc.h""\r\0"
 END
 
+LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
 3 TEXTINCLUDE 
 BEGIN
     "#ifdef _DEBUG\r\n"
@@ -44,7 +45,7 @@ BEGIN
     "EXCELDNA.INTEGRATION    ASSEMBLY                ""..\\\\ExcelDna.Integration\\\\bin\\\\Release\\\\ExcelDna.Integration.dll""\r\n"
     "#endif\r\0"
 END
-
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #endif    // APSTUDIO_INVOKED
 
 
@@ -197,6 +198,7 @@ END
 //
 // Generated from the TEXTINCLUDE 3 resource.
 //
+LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
 #ifdef _DEBUG
 EXCELDNA.LOADER         ASSEMBLY                "..\\ExcelDna.Loader\\bin\\Debug\\ExcelDna.Loader.dll"
 EXCELDNA.INTEGRATION    ASSEMBLY                "..\\ExcelDna.Integration\\bin\\Debug\\ExcelDna.Integration.dll"

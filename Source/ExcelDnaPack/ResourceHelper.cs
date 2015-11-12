@@ -178,7 +178,7 @@ internal unsafe static class ResourceHelper
         {
             lock (lockResource)
             {
-                bool result = ResourceHelper.UpdateResource(_hUpdate, typeName, name, localeEnglishUS, IntPtr.Zero, 0);
+                bool result = ResourceHelper.UpdateResource(_hUpdate, typeName, name, localeNeutral, IntPtr.Zero, 0);
                 if (!result)
                 {
                     throw new Win32Exception();
