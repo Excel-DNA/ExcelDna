@@ -78,14 +78,19 @@ internal unsafe static class ResourceHelper
 			}
 		}
 
-        private void CompressDoUpdateHelper(byte[] content, string name, TypeName typeName, bool compress)
+        private void CompressDoUpdateHelper(byte[] content, string name, TypeName typeName, bool compress, ushort lcid)
         {
             if (compress)
                 content = SevenZipHelper.Compress(content);
-            DoUpdateResource(typeName.ToString() + (compress ? "_LZMA" : ""), name, content);
+            DoUpdateResource(typeName.ToString() + (compress ? "_LZMA" : ""), name, content, lcid);
         }
 
         public string AddFile(byte[] content, string name, TypeName typeName, bool compress, bool multithreading)
+        {
+            return AddFile(content, name, typeName, compress, multithreading, localeNeutral);
+        }
+
+        public string AddFile(byte[] content, string name, TypeName typeName, bool compress, bool multithreading, ushort lcid)
         {
             Debug.Assert(name == name.ToUpperInvariant());
 
@@ -95,13 +100,13 @@ internal unsafe static class ResourceHelper
                 finishedTask.Add(mre);
                 ThreadPool.QueueUserWorkItem(delegate
                     {
-                        CompressDoUpdateHelper(content, name, typeName, compress);
+                        CompressDoUpdateHelper(content, name, typeName, compress, lcid);
                         mre.Set();
                     }
                 );
             }
             else
-                CompressDoUpdateHelper(content, name, typeName, compress);
+                CompressDoUpdateHelper(content, name, typeName, compress, lcid);
 
             return name;
         }
@@ -116,7 +121,20 @@ internal unsafe static class ResourceHelper
 				Assembly ass = Assembly.Load(assBytes);
 				string name = ass.GetName().Name.ToUpperInvariant(); // .ToUpperInvariant().Replace(".", "_");
 
-                AddFile(assBytes, name, TypeName.ASSEMBLY, compress, multithreading);				
+                ushort lcid = localeNeutral;
+                try
+                {
+                    var assName = new AssemblyName(ass.FullName);
+
+                    if (!String.IsNullOrEmpty(assName.CultureInfo.Name))
+                        lcid = (ushort)assName.CultureInfo.TextInfo.LCID;
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("Error Fetching LCID for Assembly");
+                }
+
+                AddFile(assBytes, name, TypeName.ASSEMBLY, compress, multithreading, lcid);				
 				return name;
 			}
 			catch (Exception e)
@@ -147,15 +165,15 @@ internal unsafe static class ResourceHelper
             return typelibIndex;
         }
 
-		public void DoUpdateResource(string typeName, string name, byte[] data)
+        private void DoUpdateResource(string typeName, string name, byte[] data, ushort lcid)
 		{
             lock (lockResource)
             {
-                Console.WriteLine(string.Format("  ->  Updating resource: Type: {0}, Name: {1}, Length: {2}", typeName, name, data.Length));
+                Console.WriteLine(string.Format("  ->  Updating resource: Type: {0}, Name: {1}, Length: {2}, LCID: {3}", typeName, name, data.Length, lcid));
                 GCHandle pinHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
                 updateData.Add(pinHandle);
 
-                bool result = ResourceHelper.UpdateResource(_hUpdate, typeName, name, localeNeutral, pinHandle.AddrOfPinnedObject(), (uint)data.Length);
+                bool result = ResourceHelper.UpdateResource(_hUpdate, typeName, name, lcid, pinHandle.AddrOfPinnedObject(), (uint)data.Length);
                 if (!result)
                 {
                     throw new Win32Exception();
@@ -167,6 +185,7 @@ internal unsafe static class ResourceHelper
         {
             lock (lockResource)
             {
+                // TODO search for all languages and removes them
                 bool result = ResourceHelper.UpdateResource(_hUpdate, typeName, name, localeEnglishUS, IntPtr.Zero, 0);
                 if (!result)
                 {

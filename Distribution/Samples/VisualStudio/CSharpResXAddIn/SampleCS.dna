@@ -1,0 +1,29 @@
+﻿<DnaLibrary RuntimeVersion="v4.0" Name="Sample Excel-DNA Library in C#">
+	<ExternalLibrary Path="CSharpAddIn.dll" Pack="true" ExplicitExports="true"/>
+
+  <Reference Path="en-us/CSharpAddIn.resources.dll" Pack="true"/>
+	<Reference Path="de-de/CSharpAddIn.resources.dll" Pack="true"/>
+
+  <CustomUI>
+    <!-- Inside here is the exact RibbonX xml passed to Excel -->
+    <!-- This will only be loaded for Excel 2010 because of the namespace -->
+    <customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="onLoad" loadImage="LoadImage">
+      <ribbon>
+        <tabs>
+          <tab id="SenseExcelRibbonTab" label="Test">
+            <group id="GroupConnection" label="test2" >
+              <box id="id_box01" boxStyle="vertical">
+               
+                  <button id="Connect" size="normal"  label="Test"
+                          />
+               
+              </box>
+           
+            </group>
+          </tab>
+        </tabs>
+      </ribbon>
+    </customUI>
+  </CustomUI>
+
+</DnaLibrary>

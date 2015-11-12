@@ -12,22 +12,87 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using ExcelDna.Loader.Logging;
 using SevenZip.Compression.LZMA;
+using System.Security.Cryptography;
 
 namespace ExcelDna.Loader
 {
     // TODO: Lots more to make a flexible loader.
     internal static class AssemblyManager
     {
+        internal static class AssemblyDictionary
+        {
+            static Dictionary<string, Assembly> loadedAssemblies = new Dictionary<string, Assembly>();
+
+            static int lastAppDomainCurrentDomainAssemblyCount = 0;
+
+            private static string GetCleanAssemblyName(string assemblyName)
+            {
+                AssemblyName assName = new AssemblyName(assemblyName);
+                // remove Version
+                assName.Version = null;
+                // remove Public Key
+                assName.SetPublicKey(null);
+                // remove Public KeyToken
+                assName.SetPublicKeyToken(null);
+                // remove Flags
+                assName.Flags = AssemblyNameFlags.None;
+
+                if (assName.CultureInfo == null)
+                    assName.CultureInfo = CultureInfo.InvariantCulture;
+
+                // other Variant
+                //return assName.Name + ", Culture=" + assName.CultureInfo.ToString();
+
+                return assName.FullName;
+            }
+
+            public static Assembly GetAssemblyByName(string assemblyName)
+            {
+                var assName = GetCleanAssemblyName(assemblyName);
+
+                // Check our AssemblyResolve cache
+                if (loadedAssemblies.ContainsKey(assName))
+                    return loadedAssemblies[assName];
+
+                var appDomainAssemblies = AppDomain.CurrentDomain.GetAssemblies();
+
+                // performance optimisation, if the count of assemblies didn't change don't serach for new ones
+                if (appDomainAssemblies.Length != lastAppDomainCurrentDomainAssemblyCount)
+                {
+                    //update AssemblyResolve Cache
+                    foreach (Assembly loadedAssemblyItem in AppDomain.CurrentDomain.GetAssemblies())
+                    {
+                        AddLoadedAssembly(loadedAssemblyItem);
+                    }
+                    lastAppDomainCurrentDomainAssemblyCount = appDomainAssemblies.Length;
+
+                    //// Check our AssemblyResolve cache after update again
+                    if (loadedAssemblies.ContainsKey(assName))
+                        return loadedAssemblies[assName];
+                }
+
+                return null;
+            }
+
+            public static void AddLoadedAssembly(Assembly assembly)
+            {
+                    var assName = GetCleanAssemblyName(assembly.FullName);
+
+                    if (!loadedAssemblies.ContainsKey(assName))
+                        loadedAssemblies.Add(assName, assembly);
+            }
+        }
+
         static string pathXll;
         static IntPtr hModule;
-        static Dictionary<string, Assembly> loadedAssemblies = new Dictionary<string,Assembly>();
+
+        static Dictionary<string, Assembly> loadedAssembliesHashes = new Dictionary<string, Assembly>();
 
         internal static void Initialize(IntPtr hModule, string pathXll)
         {
             AssemblyManager.pathXll = pathXll;
             AssemblyManager.hModule = hModule;
-            loadedAssemblies.Add(Assembly.GetExecutingAssembly().FullName, Assembly.GetExecutingAssembly());
-
+            
             // TODO: Load up the DnaFile and Assembly names ?
 
             AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolve;
@@ -36,77 +101,70 @@ namespace ExcelDna.Loader
         [MethodImpl(MethodImplOptions.Synchronized)]
         private static Assembly AssemblyResolve(object sender, ResolveEventArgs args)
         {
-			string name;
-			byte[] assemblyBytes;
-            Assembly loadedAssembly = null;
+            byte[] assemblyBytes= null;
+                            
+            Logger.Initialization.Info("Attempting to load {0} from resources.", args.Name);
 
-			AssemblyName assName = new AssemblyName(args.Name);
-			name = assName.Name.ToUpperInvariant();
-
-			if (name == "EXCELDNA") /* Special case for pre-0.14 versions of ExcelDna */
-			{
-				name = "EXCELDNA.INTEGRATION";
-			}
-			
-			if (name == "EXCELDNA.LOADER")
-			{
-				// Loader must have been loaded from bytes.
-				// But I have seen the Loader, and it is us.
-				return Assembly.GetExecutingAssembly();
-			}
-
-            // Check our AssemblyResolve cache
-            if (loadedAssemblies.ContainsKey(name))
-                return loadedAssemblies[name];
-
-            // Check if it is loaded in the AppDomain already, 
-            // e.g. from resources as an ExternalLibrary
-            loadedAssembly = GetAssemblyIfLoaded(name);
+            // try to get Assembly from already loaded assemblies
+            var loadedAssembly = AssemblyDictionary.GetAssemblyByName(args.Name);
             if (loadedAssembly != null)
-            {
-                Logger.Initialization.Info("Assembly {0} was found to already be loaded into the AppDomain.", name);
-                loadedAssemblies.Add(name, loadedAssembly);
                 return loadedAssembly;
+
+            AssemblyName assName = new AssemblyName(args.Name);
+            ushort lcid = 0;
+            // if we don't have a culture info or of it is the Neutral culture take 0, otherwise take LCID
+            if (assName.CultureInfo != null &&  !string.IsNullOrEmpty(assName.CultureInfo.Name))
+                lcid = (ushort)assName.CultureInfo.TextInfo.LCID;
+
+            // 4096 -> 0x1000 are user defined LCIDs / Cultures
+            if (lcid == 4096)
+                return null;
+
+            assemblyBytes = ResourceHelper.LoadResourceBytes(hModule, "ASSEMBLY", assName.Name.ToUpper(), lcid);
+          
+            if (assemblyBytes == null)
+            {                
+                // if the missing Assembly is only a Resource use a lower LogLevel
+                if (assName.Name.EndsWith(".RESOURCES", StringComparison.InvariantCultureIgnoreCase))
+                    Logger.Initialization.Verbose("Assembly {0} could not be loaded from resources.", args.Name);
+                else
+                    Logger.Initialization.Warn("Assembly {0} could not be loaded from resources.", args.Name);
+                return null;
             }
 
-            // We expect failures for Resource assemblies
-            // From: http://blogs.msdn.com/b/suzcook/archive/2003/05/29/57120.aspx
-            // "Note: Unless you are explicitly debugging the failure of a resource to load, 
-            //        you will likely want to ignore failures to find assemblies with the ".resources" extension 
-            //        with the culture set to something other than "neutral". Those are expected failures when the 
-            //        ResourceManager is probing for satellite assemblies."
-            bool isResourceAssembly = name.EndsWith(".RESOURCES", StringComparison.InvariantCultureIgnoreCase) /*&& assName.CultureInfo.Name != "neutral"*/;
+            Logger.Initialization.Info("Trying Assembly.Load for {0} (from {1} bytes).", args.Name, assemblyBytes.Length);
+            //File.WriteAllBytes(@"c:\Temp\" + name + ".dll", assemblyBytes);
 
-            // Now check in resources ...
-            if (isResourceAssembly)
-                Logger.Initialization.Verbose("Attempting to load {0} from resources.", name);
-            else
-                Logger.Initialization.Info("Attempting to load {0} from resources.", name);
+            // here it would be much nicer, if the FullName is already stored in the __MAIN__ / Packed DNA Files
+            // an loaded, so it can be checked against the requested assembly
 
-			assemblyBytes = GetResourceBytes(name, 0);
-			if (assemblyBytes == null)
-			{
-                if (isResourceAssembly)
-                    Logger.Initialization.Verbose("Assembly {0} could not be loaded from resources (ResourceManager probing for satellite assemblies).", name);
-                else
-                    Logger.Initialization.Warn("Assembly {0} could not be loaded from resources.", name);
-				return null;
-			}
+            // compute the hash of the bytes
+            string assemblyBytesHash = "";
+            using (SHA1CryptoServiceProvider sha1 = new SHA1CryptoServiceProvider())
+            {
+                assemblyBytesHash = Convert.ToBase64String(sha1.ComputeHash(assemblyBytes));
+            }
 
-            Logger.Initialization.Info("Trying Assembly.Load for {0} (from {1} bytes).", name, assemblyBytes.Length);
-			//File.WriteAllBytes(@"c:\Temp\" + name + ".dll", assemblyBytes);
-			try
-			{
-				loadedAssembly = Assembly.Load(assemblyBytes);
+            // this make it impossible to load the same bytes again as assembly
+            if (loadedAssembliesHashes.ContainsKey(assemblyBytesHash))
+            {
+                var assembly = loadedAssembliesHashes[assemblyBytesHash];     
+                return assembly;
+            }
+
+            try
+            {             
+                loadedAssembly = Assembly.Load(assemblyBytes);
                 Logger.Initialization.Info("Assembly Loaded from bytes. FullName: {0}", loadedAssembly.FullName);
-				loadedAssemblies.Add(name, loadedAssembly);
-				return loadedAssembly;
-			}
-			catch (Exception e)
-			{
+                AssemblyDictionary.AddLoadedAssembly(loadedAssembly);
+                loadedAssembliesHashes.Add(assemblyBytesHash, loadedAssembly);
+                return loadedAssembly;
+            }
+            catch (Exception e)
+            {
                 Logger.Initialization.Error(e, "Error during Assembly Load from bytes");
-			}
-			return null;
+            }
+            return null;
         }
 
         // TODO: This method probably should not be here.
@@ -135,21 +193,8 @@ namespace ExcelDna.Loader
             {
                 throw new ArgumentOutOfRangeException("type", "Unknown resource type. Only types 0 (Assembly), 1 (Dna file), 2 (Image) or 3 (Source) are valid.");
             }
-			return ResourceHelper.LoadResourceBytes(hModule, typeName, resourceName);
-		}
-
-        // A copy of this method lives in ExcelDna.Integration - ExternalLibrary.cs
-        private static Assembly GetAssemblyIfLoaded(string assemblyName)
-        {
-            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            foreach (Assembly loadedAssembly in assemblies)
-            {
-                string loadedAssemblyName = loadedAssembly.FullName.Split(',')[0];
-                if (string.Equals(loadedAssemblyName, assemblyName, StringComparison.OrdinalIgnoreCase))
-                    return loadedAssembly;
-            }
-            return null;
-        }
+			return ResourceHelper.LoadResourceBytes(hModule, typeName, resourceName,0);
+		}     
     }
 
     internal unsafe static class ResourceHelper
@@ -159,6 +204,14 @@ namespace ExcelDna.Loader
 			IntPtr hModule,
 			string lpName,
 			string lpType);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern IntPtr FindResourceEx(
+          IntPtr hModule,
+          string lpType,
+          string lpName,
+          uint wLanguage);
+
         [DllImport("kernel32.dll", SetLastError = true)]
 		private static extern IntPtr LoadResource(
 			IntPtr hModule,
@@ -174,13 +227,21 @@ namespace ExcelDna.Loader
         [DllImport("kernel32.dll")]
 		private static extern uint GetLastError();
 
-		// Load the resource, trying also as compressed if no uncompressed version is found.
-		// If the resource type ends with "_LZMA", we decompress from the LZMA format.
-		internal static byte[] LoadResourceBytes(IntPtr hModule, string typeName, string resourceName)
+        internal static IntPtr FindResourceIndependet(IntPtr hModule, string resourceName, string typeName, uint lcid)
+        {
+            IntPtr hResInfo = FindResourceEx(hModule, typeName, resourceName, lcid);
+            if (hResInfo == IntPtr.Zero)
+                hResInfo = FindResource(hModule, resourceName, typeName);
+            return hResInfo;
+        }
+
+        // Load the resource, trying also as compressed if no uncompressed version is found.
+        // If the resource type ends with "_LZMA", we decompress from the LZMA format.
+        internal static byte[] LoadResourceBytes(IntPtr hModule, string typeName, string resourceName, ushort lcid)
 		{
             // CAREFUL: Can't log here yet as this method is called during Integration.Initialize()
             // Logger.Initialization.Info("LoadResourceBytes for resource {0} of type {1}", resourceName, typeName);
-			IntPtr hResInfo	= FindResource(hModule, resourceName, typeName);
+			IntPtr hResInfo	= FindResourceIndependet(hModule, resourceName, typeName, lcid);
 			if (hResInfo == IntPtr.Zero)
 			{
 				// We expect this null result value when the resource does not exists.
@@ -189,8 +250,8 @@ namespace ExcelDna.Loader
 				{
 					// Try the compressed name.
 					typeName += "_LZMA";
-					hResInfo = FindResource(hModule, resourceName, typeName);
-				}
+					hResInfo = FindResourceIndependet(hModule, resourceName, typeName, lcid);
+                }
 				if (hResInfo == IntPtr.Zero)
 				{
                     // CAREFUL: Can't log here yet as this method is called during Integration.Initialize()
