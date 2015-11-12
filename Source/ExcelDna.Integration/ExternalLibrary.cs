@@ -251,14 +251,15 @@ namespace ExcelDna.Integration
 			}
 		}
         
-        // A copy of this method lives in ExcelDna.Loader - AssemblyManager.cs
+        // Similar copy to this method lives in ExcelDna.Loader - AssemblyManager.cs
+        // But here we don't deal with .resources assemblies
         private static Assembly GetAssemblyIfLoaded(string assemblyName)
         {
             Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
             foreach (Assembly loadedAssembly in assemblies)
             {
-                string loadedAssemblyName = loadedAssembly.FullName.Split(',')[0];
-                if (string.Equals(assemblyName, loadedAssemblyName, StringComparison.OrdinalIgnoreCase))
+                AssemblyName loadedAssemblyName = loadedAssembly.GetName();
+                if (string.Equals(assemblyName, loadedAssemblyName.Name, StringComparison.OrdinalIgnoreCase))
                     return loadedAssembly;
             }
             return null;

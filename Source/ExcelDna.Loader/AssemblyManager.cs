@@ -40,8 +40,9 @@ namespace ExcelDna.Loader
 			byte[] assemblyBytes;
             Assembly loadedAssembly = null;
 
-			AssemblyName assName = new AssemblyName(args.Name);
-			name = assName.Name.ToUpperInvariant();
+			AssemblyName assemblyName = new AssemblyName(args.Name);
+            CultureInfo cultureInfo = assemblyName.CultureInfo;
+			name = assemblyName.Name.ToUpperInvariant();
 
 			if (name == "EXCELDNA") /* Special case for pre-0.14 versions of ExcelDna */
 			{
@@ -55,13 +56,21 @@ namespace ExcelDna.Loader
 				return Assembly.GetExecutingAssembly();
 			}
 
+            bool isResourceAssembly = name.EndsWith(".RESOURCES");
+
+            // This check and mapping must match that done when packing (in ResourceHelper.cs : ResourceUpdate.AddAssembly)
+            if (isResourceAssembly && cultureInfo != null && !string.IsNullOrEmpty(cultureInfo.Name))
+            {
+                name += "." + cultureInfo.Name.ToUpperInvariant();
+            }
+
             // Check our AssemblyResolve cache
             if (loadedAssemblies.ContainsKey(name))
                 return loadedAssemblies[name];
 
             // Check if it is loaded in the AppDomain already, 
             // e.g. from resources as an ExternalLibrary
-            loadedAssembly = GetAssemblyIfLoaded(name);
+            loadedAssembly = GetAssemblyIfLoaded(assemblyName);
             if (loadedAssembly != null)
             {
                 Logger.Initialization.Info("Assembly {0} was found to already be loaded into the AppDomain.", name);
@@ -69,15 +78,14 @@ namespace ExcelDna.Loader
                 return loadedAssembly;
             }
 
-            // We expect failures for Resource assemblies
+            // Now check in resources ...
+            // We expect failures when loading .resources assemblies, so only log at the Verbose level.
             // From: http://blogs.msdn.com/b/suzcook/archive/2003/05/29/57120.aspx
             // "Note: Unless you are explicitly debugging the failure of a resource to load, 
             //        you will likely want to ignore failures to find assemblies with the ".resources" extension 
             //        with the culture set to something other than "neutral". Those are expected failures when the 
             //        ResourceManager is probing for satellite assemblies."
-            bool isResourceAssembly = name.EndsWith(".RESOURCES", StringComparison.InvariantCultureIgnoreCase) /*&& assName.CultureInfo.Name != "neutral"*/;
 
-            // Now check in resources ...
             if (isResourceAssembly)
                 Logger.Initialization.Verbose("Attempting to load {0} from resources.", name);
             else
@@ -94,7 +102,6 @@ namespace ExcelDna.Loader
 			}
 
             Logger.Initialization.Info("Trying Assembly.Load for {0} (from {1} bytes).", name, assemblyBytes.Length);
-			//File.WriteAllBytes(@"c:\Temp\" + name + ".dll", assemblyBytes);
 			try
 			{
 				loadedAssembly = Assembly.Load(assemblyBytes);
@@ -139,14 +146,26 @@ namespace ExcelDna.Loader
 		}
 
         // A copy of this method lives in ExcelDna.Integration - ExternalLibrary.cs
-        private static Assembly GetAssemblyIfLoaded(string assemblyName)
+        private static Assembly GetAssemblyIfLoaded(AssemblyName assemblyName)
         {
             Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
             foreach (Assembly loadedAssembly in assemblies)
             {
-                string loadedAssemblyName = loadedAssembly.FullName.Split(',')[0];
-                if (string.Equals(loadedAssemblyName, assemblyName, StringComparison.OrdinalIgnoreCase))
+                AssemblyName loadedName = loadedAssembly.GetName();
+                if (loadedName.Name.Equals(assemblyName.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    // For resources, also check the culture
+                    if (loadedName.Name.EndsWith(".RESOURCES", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if ((loadedName.CultureInfo == null) && (assemblyName.CultureInfo != null) ||
+                            (loadedName.CultureInfo != null) && (assemblyName.CultureInfo == null) ||
+                            !string.Equals(loadedName.CultureInfo.Name, assemblyName.CultureInfo.Name))
+                        {
+                            continue; // next loadedAssembly
+                        }
+                    }
                     return loadedAssembly;
+                }
             }
             return null;
         }
