@@ -10,6 +10,7 @@ using System.IO;
 using System.Collections.Generic;
 using SevenZip.Compression.LZMA;
 using System.Threading;
+using System.Globalization;
 
 internal unsafe static class ResourceHelper
 {
@@ -101,7 +102,9 @@ internal unsafe static class ResourceHelper
                 );
             }
             else
+            {
                 CompressDoUpdateHelper(content, name, typeName, compress);
+            }
 
             return name;
         }
@@ -110,13 +113,21 @@ internal unsafe static class ResourceHelper
 		{
 			try
 			{
-				byte[] assBytes = File.ReadAllBytes(path);
+				byte[] assemblyBytes = File.ReadAllBytes(path);
 				// Not just into the Reflection context, because this Load is used to get the name and also to 
 				// check that the assembly can Load from bytes (mixed assemblies can't).
-				Assembly ass = Assembly.Load(assBytes);
-				string name = ass.GetName().Name.ToUpperInvariant(); // .ToUpperInvariant().Replace(".", "_");
+				Assembly assembly = Assembly.Load(assemblyBytes);
+                AssemblyName assemblyName = assembly.GetName();
+                CultureInfo cultureInfo = assemblyName.CultureInfo;
+				string name = assemblyName.Name.ToUpperInvariant(); // .ToUpperInvariant().Replace(".", "_");
 
-                AddFile(assBytes, name, TypeName.ASSEMBLY, compress, multithreading);				
+                // For .resources assemblies we add the Culture name to the packed name
+                if (name.EndsWith(".RESOURCES") && cultureInfo != null && !string.IsNullOrEmpty(cultureInfo.Name))
+                {
+                    name += "." + cultureInfo.Name.ToUpperInvariant();
+                }
+
+                AddFile(assemblyBytes, name, TypeName.ASSEMBLY, compress, multithreading);				
 				return name;
 			}
 			catch (Exception e)
