@@ -76,7 +76,7 @@ else
 
 Write-Host "`tAdding post-build commands"
 # We'd actually like to put $(SolutionDir)packages\Excel-DNA.0.30.0\tools\ExcelDna.xll
-$solutionPath = [System.IO.Path]::GetDirectoryName($project.DTE.Solution.FullName) + "\"
+$solutionPath = [System.IO.Path]::GetDirectoryName($project.DTE.Solution.FullName)
 # Write-host ("`tSolution Path: " + $solutionPath)
 # Write-host $toolsPath
 $escapedSearch = [regex]::Escape($solutionPath)
