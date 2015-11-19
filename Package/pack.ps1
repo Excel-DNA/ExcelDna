@@ -16,7 +16,7 @@ if ($Env:PLATFORM -eq "x64")
 if ($Env:PLATFORM -eq "Any CPU")
 {
   Write-Host "Copying 'Any CPU' output to Distribution"
-  Copy-Item -force $root\Source\ExcelDna.Integration\bin\Release\ExcelDna.Integration.dll $root\DistributionX\ExcelDna.Integration.dll
+  Copy-Item -force $root\Source\ExcelDna.Integration\bin\Release\ExcelDna.Integration.dll $root\Distribution\ExcelDna.Integration.dll
   Copy-Item -force $root\Source\ExcelDnaPack\bin\Release\ExcelDnaPack.exe $root\DistributionX\ExcelDnaPack.exe
 }
 
