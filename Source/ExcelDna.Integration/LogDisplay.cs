@@ -193,7 +193,7 @@ namespace ExcelDna.Logging
 
     public static class LogDisplay
     {
-        internal static List<string> LogStrings;
+        internal static List<string> LogStrings = new List<string>();
         internal static bool LogStringsUpdated;
         const int maxLogSize = 10000;   // Max number of strings we'll allow in the buffer. Individual strings are unbounded.
         internal static object SyncRoot = new object();
@@ -205,7 +205,6 @@ namespace ExcelDna.Logging
         // This must be called on the main Excel thread.
         internal static void CreateInstance()
         {
-            LogStrings = new List<string>();
             LogStringsUpdated = true;
             _syncContext = SynchronizationContext.Current;
             IsFormVisible = false;
