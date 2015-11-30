@@ -42,7 +42,7 @@ namespace ExcelDna.Logging
             this.btnClear.Location = new System.Drawing.Point(175, 3);
             this.btnClear.Name = "btnClear";
             this.btnClear.Size = new System.Drawing.Size(80, 24);
-            this.btnClear.TabIndex = 3;
+            this.btnClear.TabIndex = 4;
             this.btnClear.Text = "C&lear";
             this.btnClear.UseVisualStyleBackColor = true;
             this.btnClear.Click += new System.EventHandler(this.btnClear_Click);
@@ -74,13 +74,15 @@ namespace ExcelDna.Logging
             this.btnCopy.Location = new System.Drawing.Point(89, 3);
             this.btnCopy.Name = "btnCopy";
             this.btnCopy.Size = new System.Drawing.Size(80, 24);
-            this.btnCopy.TabIndex = 4;
+            this.btnCopy.TabIndex = 3;
             this.btnCopy.Text = "&Copy";
             this.btnCopy.UseVisualStyleBackColor = true;
             this.btnCopy.Click += new System.EventHandler(this.btnCopy_Click);
             // 
             // logMessages
             // 
+            this.logMessages.AccessibleDescription = "Log Messages";
+            this.logMessages.AccessibleName = "Log Messages";
             this.logMessages.BackColor = System.Drawing.SystemColors.Window;
             this.logMessages.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.logMessageText});
