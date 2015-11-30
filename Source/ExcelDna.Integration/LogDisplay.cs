@@ -49,6 +49,8 @@ namespace ExcelDna.Logging
         {
             InitializeComponent();
             Text = DnaLibrary.CurrentLibraryName + " - Diagnostic Display";
+            AccessibleDescription = Text;
+            AccessibleName = Text;
             CenterToParent();
             logMessages.VirtualListSize = LogDisplay.LogStrings.Count;
             updateTimer = new System.Windows.Forms.Timer();
