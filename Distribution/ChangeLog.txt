@@ -1,6 +1,7 @@
 Version 0.34 (???)
 ------------------
 * Add ExplicitExports="false" to NuGet .dna file template
+* Fix getting Application from ProtectedViewWindow
 
 Version 0.33 (9 September 2015)
 -------------------------------

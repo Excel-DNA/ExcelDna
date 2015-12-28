@@ -348,8 +348,31 @@ namespace ExcelDna.Integration
                     object obj = Marshal.GetObjectForIUnknown(pUnk);
                     Marshal.Release(pUnk);
 
-                    object app = obj.GetType().InvokeMember("Application", System.Reflection.BindingFlags.GetProperty, null, obj, null, new CultureInfo(1033));
-                    Marshal.ReleaseComObject(obj);
+                    object app = null;
+                    try
+                    {
+                        app = obj.GetType().InvokeMember("Application", BindingFlags.GetProperty, null, obj, null, new CultureInfo(1033));
+                    }
+                    catch
+                    {
+                        // In some cases - always when Excel only a workbook open in Protected Mode when this code runs - 
+                        // we get a ProtectedViewWindow.
+                        // This does not have an Application property, but we can try via ProtectedViewWindow.Workbook.Application.
+                        try
+                        {
+                            object workbook = obj.GetType().InvokeMember("Workbook", BindingFlags.GetProperty, null, obj, null, new CultureInfo(1033));
+                            app = workbook.GetType().InvokeMember("Application", BindingFlags.GetProperty, null, workbook, null, new CultureInfo(1033));
+                        }
+                        catch
+                        {
+                            // Otherwise we fail - this way the higher-level call will open up a regular workbook and try again
+                            return null;
+                        }
+                    }
+                    finally
+                    {
+                        Marshal.ReleaseComObject(obj);
+                    }
 
                     //   object ver = app.GetType().InvokeMember("Version", System.Reflection.BindingFlags.GetProperty, null, app, null);
                     return app;
