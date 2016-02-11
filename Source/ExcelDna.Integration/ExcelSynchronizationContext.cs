@@ -246,7 +246,7 @@ namespace ExcelDna.Integration
             catch (InvalidOperationException ioe)
             {
                 // Expected when Excel is shutting down - abandon
-                Logger.Runtime.Error(ioe, "Error trying to run SyncMacro - Excel is shutting down. Queued macro execution abandoned.");
+                Logger.Runtime.Warn("Error (InvalidOperationException) trying to run SyncMacro - Excel is shutting down. Queued macro execution abandoned.");
             }
             catch (Exception ex)
             {
