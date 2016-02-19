@@ -66,13 +66,6 @@ namespace MyRTDServers
             File.AppendAllText(_logPath, DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss.fff") + " - " + string.Format(format, args) + "\r\n");
         }
 
-        int GetTopicId(Topic topic)
-        {
-            return (int)typeof(Topic)
-                        .GetField("TopicId", BindingFlags.GetField | BindingFlags.Instance | BindingFlags.NonPublic)
-                        .GetValue(topic);
-        }
-
         protected override bool ServerStart()
         {
             Log("ServerStart");
@@ -86,7 +79,7 @@ namespace MyRTDServers
 
         protected override object ConnectData(Topic topic, System.Collections.Generic.IList<string> topicInfo, ref bool newValues)
         {
-            Log("ConnectData: {0} - {{{1}}}", GetTopicId(topic), string.Join(", ", topicInfo));
+            Log("ConnectData: {0} - {{{1}}}", topic.TopicId, string.Join(", ", topicInfo));
             _topics.Add(topic);
             return ExcelErrorUtil.ToComError(ExcelError.ExcelErrorNA);
         }
@@ -94,7 +87,7 @@ namespace MyRTDServers
         protected override void DisconnectData(Topic topic)
         {
             _topics.Remove(topic);
-            Log("DisconnectData: {0}", GetTopicId(topic));
+            Log("DisconnectData: {0}", topic.TopicId);
         }
     }
 }
