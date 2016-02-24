@@ -362,13 +362,19 @@ extern "C"
 
 	HRESULT __stdcall DllCanUnloadNow()
 	{
-		HRESULT result = S_OK;
-		if (EnsureInitialized() && 
-			pExportInfo->pDllCanUnloadNow != NULL)
-		{
-			result = pExportInfo->pDllCanUnloadNow();
-		}
-		return result;
+		// CONSIDER: This caused problems for unloaded add-ins, when shutting Excel down.
+		//           We need to add a flag that tracks whether the add-in has beren unloaded.
+		//           Always returning FALSE is what was happening internally anyway, so we're no worse off than before.
+		
+		//HRESULT result = S_OK;
+		//if (EnsureInitialized() &&
+		//	pExportInfo->pDllCanUnloadNow != NULL)
+		//{
+		//	result = pExportInfo->pDllCanUnloadNow();
+		//}
+		//return result;
+
+		return S_FALSE;
 	}
 
 	void __stdcall SyncMacro(double param)
