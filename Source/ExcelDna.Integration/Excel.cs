@@ -250,25 +250,6 @@ namespace ExcelDna.Integration
                 throw new InvalidOperationException("Excel API is unavailable - cannot retrieve Application object. Excel may be shutting down", ave);
             }
         }
-        private static string InsertScratchBook()
-        {
-            XlCall.Excel(XlCall.xlcNew, 5);
-            XlCall.Excel(XlCall.xlcWorkbookInsert, 6);
-            var scratch = (object[,])XlCall.Excel(XlCall.xlfGetWorkbook, 1);
-            var name = Regex.Match(scratch[0, 0].ToString(), "\\[[^\\[\\]]+\\]").Value;
-            return name.Substring(1, name.Length - 2); // trim leading [ and trailing ]
-        }
-
-        private static void CloseScratchBook(object app, string bookName)
-        {
-            //XlCall.Excel(XlCall.xlcFileClose, false);
-
-            //Use the COM model to close a book is safer when the COM model is initialised by 
-            // other COM Add-Ins, e.g.Reuters Eikon)
-            var books = app.GetType().InvokeMember("Workbooks", BindingFlags.GetProperty, null, app, null, _enUsCulture);
-            var book = books.GetType().InvokeMember("Item", BindingFlags.GetProperty, null, books, new object[] { bookName }, _enUsCulture);
-            book.GetType().InvokeMember("Close", BindingFlags.InvokeMethod, null, book, new object[] { false }, _enUsCulture);
-        }
 
         private static object GetApplication()
         {
@@ -287,18 +268,31 @@ namespace ExcelDna.Integration
             // Create new workbook with the right stuff
             // Echo calls removed for Excel 2013 - this caused trouble in the Excel 2013 'browse' scenario.
             bool isExcelPre15 = SafeIsExcelVersionPre15;
+            if (isExcelPre15) XlCall.Excel(XlCall.xlcEcho, false);
             try
             {
-                if (isExcelPre15)
-                    XlCall.Excel(XlCall.xlcEcho, false);
-                var bookName = InsertScratchBook();
+                System.Windows.Forms.MessageBox.Show("insert book", "Test");
+                XlCall.Excel(XlCall.xlcNew, 5);
+                XlCall.Excel(XlCall.xlcWorkbookInsert, 6);
+                var scratch = (object[,])XlCall.Excel(XlCall.xlfGetWorkbook, 1);
+                var bookName = Regex.Match(scratch[0, 0].ToString(), "\\[[^\\[\\]]+\\]").Value;
+                bookName = bookName.Substring(1, bookName.Length - 2); // trim leading [ and trailing ]
 
                 // Try again
                 application = GetApplicationFromWindows();
                 if (application == null)
                     // This is really bad - throwing an exception ...
                     throw new InvalidOperationException("Excel Application object could not be retrieved.");
-                CloseScratchBook(application, bookName);
+
+                System.Windows.Forms.MessageBox.Show("found app", "Test");
+
+                //Use the COM model to close a book is safer when the COM model is initialised by other COM Add-Ins, e.g.Reuters Eikon
+                //XlCall.Excel(XlCall.xlcFileClose, false);
+                var books = application.GetType().InvokeMember("Workbooks", BindingFlags.GetProperty, null, application, null, _enUsCulture);
+                var book = books.GetType().InvokeMember("Item", BindingFlags.GetProperty, null, books, new object[] { bookName }, _enUsCulture);
+                book.GetType().InvokeMember("Close", BindingFlags.InvokeMethod, null, book, new object[] { false }, _enUsCulture);
+
+                System.Windows.Forms.MessageBox.Show("clise book", "Test");
             }
             finally
             {
@@ -346,18 +340,19 @@ namespace ExcelDna.Integration
             // It does not work when there are no Workbooks open.
             object app = null;
             StringBuilder cname = new StringBuilder(256);
+
             EnumChildWindows(hWndMain, delegate(IntPtr hWndEnum, IntPtr param)
             {
                 // Check the window class
                 GetClassNameW(hWndEnum, cname, cname.Capacity);
                 if (cname.ToString() != "EXCEL7")
-                    // Continue enumerating
+                    // Not a workbook window, continue enumerating
                     return true;	
 
                 IntPtr pUnk = IntPtr.Zero;
                 int hr = AccessibleObjectFromWindow(hWndEnum, OBJID_NATIVEOM, IID_IDispatchBytes, ref pUnk);
                 if (hr != 0)
-                    // Continue enumerating
+                    // Windows does not implement the IID, continue enumerating
                     return true;    
                 
                 // Marshal to .NET, then call .Application
@@ -381,7 +376,7 @@ namespace ExcelDna.Integration
                     Marshal.ReleaseComObject(obj);
                 }
 
-                // Stop enumerating if app found
+                // App found?, the stop enumerating (return false)
                 return app == null;	
             }, IntPtr.Zero);
 
