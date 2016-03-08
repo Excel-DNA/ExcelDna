@@ -250,6 +250,25 @@ namespace ExcelDna.Integration
                 throw new InvalidOperationException("Excel API is unavailable - cannot retrieve Application object. Excel may be shutting down", ave);
             }
         }
+        private static string InsertScratchBook()
+        {
+            XlCall.Excel(XlCall.xlcNew, 5);
+            XlCall.Excel(XlCall.xlcWorkbookInsert, 6);
+            var scratch = (object[,])XlCall.Excel(XlCall.xlfGetWorkbook, 1);
+            var name = Regex.Match(scratch[0, 0].ToString(), "\\[[^\\[\\]]+\\]").Value;
+            return name.Substring(1, name.Length - 2); // trim leading [ and trailing ]
+        }
+
+        private static void CloseScratchBook(object app, string bookName)
+        {
+            //XlCall.Excel(XlCall.xlcFileClose, false);
+
+            //Use the COM model to close a book is safer when the COM model is initialised by 
+            // other COM Add-Ins, e.g.Reuters Eikon)
+            var books = app.GetType().InvokeMember("Workbooks", BindingFlags.GetProperty, null, app, null, _enUsCulture);
+            var book = books.GetType().InvokeMember("Item", BindingFlags.GetProperty, null, books, new object[] { bookName }, _enUsCulture);
+            book.GetType().InvokeMember("Close", BindingFlags.InvokeMethod, null, book, new object[] { false }, _enUsCulture);
+        }
 
         private static object GetApplication()
         {
@@ -268,22 +287,24 @@ namespace ExcelDna.Integration
             // Create new workbook with the right stuff
             // Echo calls removed for Excel 2013 - this caused trouble in the Excel 2013 'browse' scenario.
             bool isExcelPre15 = SafeIsExcelVersionPre15;
-            if (isExcelPre15) XlCall.Excel(XlCall.xlcEcho, false);
+            try
+            {
+                if (isExcelPre15)
+                    XlCall.Excel(XlCall.xlcEcho, false);
+                var bookName = InsertScratchBook();
 
-            XlCall.Excel(XlCall.xlcNew, 5);
-            XlCall.Excel(XlCall.xlcWorkbookInsert, 6);
-
-            // Try again
-            application = GetApplicationFromWindows();
-
-            // Clean up
-            XlCall.Excel(XlCall.xlcFileClose, false);
-            if (isExcelPre15) XlCall.Excel(XlCall.xlcEcho, true);
-
-            if (application != null) return application;
-            
-            // This is really bad - throwing an exception ...
-            throw new InvalidOperationException("Excel Application object could not be retrieved.");
+                // Try again
+                application = GetApplicationFromWindows();
+                if (application == null)
+                    // This is really bad - throwing an exception ...
+                    throw new InvalidOperationException("Excel Application object could not be retrieved.");
+                CloseScratchBook(application, bookName);
+            }
+            finally
+            {
+                if (isExcelPre15) XlCall.Excel(XlCall.xlcEcho, true);
+            }
+            return application;
         }
 
         static object GetApplicationFromWindows()
@@ -323,62 +344,48 @@ namespace ExcelDna.Integration
         {
             // This is Andrew Whitechapel's plan for getting the Application object.
             // It does not work when there are no Workbooks open.
-            IntPtr hWndChild = IntPtr.Zero;
+            object app = null;
             StringBuilder cname = new StringBuilder(256);
             EnumChildWindows(hWndMain, delegate(IntPtr hWndEnum, IntPtr param)
             {
                 // Check the window class
                 GetClassNameW(hWndEnum, cname, cname.Capacity);
-                if (cname.ToString() == "EXCEL7")
-                {
-                    hWndChild = hWndEnum;
-                    return false;	// Stop enumerating
-                }
-                return true;	// Continue enumerating
-            }, IntPtr.Zero);
-            if (hWndChild != IntPtr.Zero)
-            {
+                if (cname.ToString() != "EXCEL7")
+                    // Continue enumerating
+                    return true;	
+
                 IntPtr pUnk = IntPtr.Zero;
-                int hr = AccessibleObjectFromWindow(
-                        hWndChild, OBJID_NATIVEOM,
-                        IID_IDispatchBytes, ref pUnk);
-                if (hr >= 0)
+                int hr = AccessibleObjectFromWindow(hWndEnum, OBJID_NATIVEOM, IID_IDispatchBytes, ref pUnk);
+                if (hr != 0)
+                    // Continue enumerating
+                    return true;    
+                
+                // Marshal to .NET, then call .Application
+                object obj = Marshal.GetObjectForIUnknown(pUnk);
+                Marshal.Release(pUnk);
+
+                try
                 {
-                    // Marshal to .NET, then call .Application
-                    object obj = Marshal.GetObjectForIUnknown(pUnk);
-                    Marshal.Release(pUnk);
-
-                    object app = null;
-                    try
-                    {
-                        app = obj.GetType().InvokeMember("Application", BindingFlags.GetProperty, null, obj, null, new CultureInfo(1033));
-                    }
-                    catch
-                    {
-                        // In some cases - always when Excel only a workbook open in Protected Mode when this code runs - 
-                        // we get a ProtectedViewWindow.
-                        // This does not have an Application property, but we can try via ProtectedViewWindow.Workbook.Application.
-                        try
-                        {
-                            object workbook = obj.GetType().InvokeMember("Workbook", BindingFlags.GetProperty, null, obj, null, new CultureInfo(1033));
-                            app = workbook.GetType().InvokeMember("Application", BindingFlags.GetProperty, null, workbook, null, new CultureInfo(1033));
-                        }
-                        catch
-                        {
-                            // Otherwise we fail - this way the higher-level call will open up a regular workbook and try again
-                            return null;
-                        }
-                    }
-                    finally
-                    {
-                        Marshal.ReleaseComObject(obj);
-                    }
-
-                    //   object ver = app.GetType().InvokeMember("Version", System.Reflection.BindingFlags.GetProperty, null, app, null);
-                    return app;
+                    app = obj.GetType().InvokeMember("Application", BindingFlags.GetProperty, null, obj, null, _enUsCulture);
                 }
-            }
-            return null;
+                catch
+                {
+                    // In some cases - always when Excel only a workbook open in Protected Mode when this code runs - 
+                    // we get a ProtectedViewWindow.
+                    // This does not have an Application property, but we can try via ProtectedViewWindow.Workbook.Application.
+                    object workbook = obj.GetType().InvokeMember("Workbook", BindingFlags.GetProperty, null, obj, null, _enUsCulture);
+                    app = workbook.GetType().InvokeMember("Application", BindingFlags.GetProperty, null, workbook, null, _enUsCulture);
+                }
+                finally
+                {
+                    Marshal.ReleaseComObject(obj);
+                }
+
+                // Stop enumerating if app found
+                return app == null;	
+            }, IntPtr.Zero);
+
+            return app;
         }
 
         // Returns true if the cached _application reference is valid.
