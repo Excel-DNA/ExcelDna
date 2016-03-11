@@ -68,7 +68,7 @@ internal unsafe static class ResourceHelper
 
         object lockResource = new object();
 
-        List<ManualResetEvent> finishedTask = new List<ManualResetEvent>();
+        Queue<ManualResetEvent> finishedTask = new Queue<ManualResetEvent>();
 
         public ResourceUpdater(string fileName)
 		{
@@ -93,7 +93,7 @@ internal unsafe static class ResourceHelper
             if (multithreading)
             {
                 var mre = new ManualResetEvent(false);
-                finishedTask.Add(mre);
+                finishedTask.Enqueue(mre);
                 ThreadPool.QueueUserWorkItem(delegate
                     {
                         CompressDoUpdateHelper(content, name, typeName, compress);
@@ -195,11 +195,19 @@ internal unsafe static class ResourceHelper
 		{
             if (finishedTask.Count > 0)
             {
-                ManualResetEvent[] mre = new ManualResetEvent[finishedTask.Count];
-                for (int i = 0; i < finishedTask.Count; i++)
-                    mre[i] = finishedTask[i];
+                while (finishedTask.Count > 0)
+                {
+                    int cnt = finishedTask.Count;
+                    // WaitAll accepts a maximum of 64 WaitHandles
+                    if (cnt > 64) cnt = 64;
 
-                WaitHandle.WaitAll(mre);
+                    ManualResetEvent[] mre = new ManualResetEvent[cnt];
+
+                    for (int i = 0; i < cnt; i++)
+                        mre[i] = finishedTask.Dequeue();
+
+                    WaitHandle.WaitAll(mre);
+                }
             }
 
             bool result = EndUpdateResource(_hUpdate, discard);
