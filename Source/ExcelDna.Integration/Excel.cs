@@ -273,21 +273,15 @@ namespace ExcelDna.Integration
             {
                 XlCall.Excel(XlCall.xlcNew, 5);
                 XlCall.Excel(XlCall.xlcWorkbookInsert, 6);
-                var scratch = (object[,])XlCall.Excel(XlCall.xlfGetWorkbook, 1);
-                var bookName = Regex.Match(scratch[0, 0].ToString(), "\\[[^\\[\\]]+\\]").Value;
-                bookName = bookName.Substring(1, bookName.Length - 2); // trim leading [ and trailing ]
-
+                
                 // Try again
                 application = GetApplicationFromWindows();
+
+                XlCall.Excel(XlCall.xlcFileClose, false);
+
                 if (application == null)
                     // This is really bad - throwing an exception ...
                     throw new InvalidOperationException("Excel Application object could not be retrieved.");
-
-                //Use the COM model to close a book is safer when the COM model is initialised by other COM Add-Ins, e.g.Reuters Eikon
-                //XlCall.Excel(XlCall.xlcFileClose, false);
-                var books = application.GetType().InvokeMember("Workbooks", BindingFlags.GetProperty, null, application, null, _enUsCulture);
-                var book = books.GetType().InvokeMember("Item", BindingFlags.GetProperty, null, books, new object[] { bookName }, _enUsCulture);
-                book.GetType().InvokeMember("Close", BindingFlags.InvokeMethod, null, book, new object[] { false }, _enUsCulture);
             }
             finally
             {
