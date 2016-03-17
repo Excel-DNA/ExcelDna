@@ -13,6 +13,14 @@ using ExcelDna.Logging;
 
 namespace ExcelDna.Integration
 {
+    // NOTE: A COM add-in might be able to know phow Excel started by looking in the Custom() values passed to OnConnection
+    // See: https://msdn.microsoft.com/en-us/library/aa189748%28office.10%29.aspx
+    // Custom()	Variant	An array of Variant type values that provides additional data. 
+    // The numeric value of the first element in this array indicates how the host application was started: 
+    // from the user interface (1), 
+    // by embedding a document created in the host application in another application (2), 
+    // or through Automation (3).
+
     [ComVisible(true)]
     [ClassInterface(ClassInterfaceType.AutoDispatch)]
     public class ExcelComAddIn : IDTExtensibility2
