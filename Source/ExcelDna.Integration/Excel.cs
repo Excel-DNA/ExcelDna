@@ -341,7 +341,7 @@ namespace ExcelDna.Integration
                 IntPtr pUnk = IntPtr.Zero;
                 int hr = AccessibleObjectFromWindow(hWndEnum, OBJID_NATIVEOM, IID_IDispatchBytes, ref pUnk);
                 if (hr != 0)
-                    // Windows does not implement the IID, continue enumerating
+                    // Window does not implement the IID, continue enumerating
                     return true;    
                 
                 // Marshal to .NET, then call .Application
@@ -357,8 +357,15 @@ namespace ExcelDna.Integration
                     // In some cases - always when Excel only a workbook open in Protected Mode when this code runs - 
                     // we get a ProtectedViewWindow.
                     // This does not have an Application property, but we can try via ProtectedViewWindow.Workbook.Application.
-                    object workbook = obj.GetType().InvokeMember("Workbook", BindingFlags.GetProperty, null, obj, null, _enUsCulture);
-                    app = workbook.GetType().InvokeMember("Application", BindingFlags.GetProperty, null, workbook, null, _enUsCulture);
+                    try
+                    {
+                        object workbook = obj.GetType().InvokeMember("Workbook", BindingFlags.GetProperty, null, obj, null, _enUsCulture);
+                        app = workbook.GetType().InvokeMember("Application", BindingFlags.GetProperty, null, workbook, null, _enUsCulture);
+                    }
+                    catch
+                    {
+                        // Otherwise we fail - this way the higher-level call will open up a regular workbook and try again
+                    }
                 }
                 finally
                 {
