@@ -4,6 +4,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Security;
+using System.Security.Principal;
 using Microsoft.Win32;
 using ExcelDna.Integration;
 using ExcelDna.Integration.Extensibility;
