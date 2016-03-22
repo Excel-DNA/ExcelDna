@@ -152,10 +152,10 @@ namespace ExcelDna.ComInterop.ComRegistration
             {
                 if (_rootKey == null)
                 {
-                    _rootKey = CanWriteMachineHive() ? 
-                                Registry.ClassesRoot : 
-                                Registry.CurrentUser.CreateSubKey(@"Software\Classes", RegistryKeyPermissionCheck.ReadWriteSubTree);
-                }
+                    // 3/22/2016: We use the intended hard coded reference of the HKCU hive to address the issue: https://groups.google.com/forum/#!topic/exceldna/CF_aNXTmV2Y
+                    _rootKey = CanWriteMachineHive() ?
+                                Registry.ClassesRoot :
+                                Registry.Users.CreateSubKey(WindowsIdentity.GetCurrent().User.ToString() + @"_CLASSES", RegistryKeyPermissionCheck.ReadWriteSubTree);                }
                 return _rootKey;
             }
         }
@@ -258,15 +258,17 @@ namespace ExcelDna.ComInterop.ComRegistration
         {
             _progId = progId;
             // Register the ProgId as a COM Add-In in Excel.
-            Registry.SetValue(@"HKEY_CURRENT_USER\Software\Microsoft\Office\Excel\Addins\" + progId, "LoadBehavior", 0, RegistryValueKind.DWord);
-            Registry.SetValue(@"HKEY_CURRENT_USER\Software\Microsoft\Office\Excel\Addins\" + progId, "FriendlyName", friendlyName, RegistryValueKind.String);
-            Registry.SetValue(@"HKEY_CURRENT_USER\Software\Microsoft\Office\Excel\Addins\" + progId, "Description", description, RegistryValueKind.String);
+            // 3/22/2016: We use the intended hard coded reference of the HKCU hive to address the issue: https://groups.google.com/forum/#!topic/exceldna/CF_aNXTmV2Y
+            RegistryKey rk = Registry.Users.CreateSubKey(WindowsIdentity.GetCurrent().User.ToString() + @"\Software\Microsoft\Office\Excel\Addins\" + progId, RegistryKeyPermissionCheck.ReadWriteSubTree);
+            rk.SetValue("LoadBehavior", 0, RegistryValueKind.DWord);
+            rk.SetValue("FriendlyName", friendlyName, RegistryValueKind.String);
+            rk.SetValue("Description", description, RegistryValueKind.String);
         }
 
         protected override void Deregister()
         {
             // Remove Add-In registration from Excel
-            Registry.CurrentUser.DeleteSubKey(@"Software\Microsoft\Office\Excel\Addins\" + _progId);
+            Registry.Users.DeleteSubKey(WindowsIdentity.GetCurrent().User.ToString()+ @"\Software\Microsoft\Office\Excel\Addins\" + _progId);
         }
     }
 
