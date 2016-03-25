@@ -152,7 +152,9 @@ namespace ExcelDna.Integration.Rtd
         internal ExcelRtdObserver(ExcelRtdServer.Topic topic)
         {
             _topic = topic;
-            Value = ExcelError.ExcelErrorNA;
+            // Set our wrapper Value, but not the internal Topic value 
+            // (which must never be #N/A if we want re-open restart).
+            Value = ExcelError.ExcelErrorNA;    
         }
 
         public void OnCompleted()
@@ -168,8 +170,6 @@ namespace ExcelDna.Integration.Rtd
         public void OnError(Exception exception)
         {
             Value = ExcelIntegration.HandleUnhandledException(exception);
-            // Set the topic value to #VALUE (not used!?) - converted to COM code in Topic
-            _topic.UpdateValue(ExcelError.ExcelErrorValue);
             OnCompleted();
         }
 
@@ -178,9 +178,15 @@ namespace ExcelDna.Integration.Rtd
             Value = value;
             // Not actually setting the topic value, just poking it
             // TODO: Using the 'fake' RTD value should be optional - to give us a way to deal with 'newValues' one day.
+            //       But then we'd need to be really careful with error values (which prevent restart).
             // BUGBUG: The ToOADate truncates, things might happy in the same millisecond etc.
             //         See https://exceldna.codeplex.com/workitem/9472
             //_topic.UpdateValue(DateTime.UtcNow.ToOADate());
+
+            // 2016-03-25: Further bug here - We can't leave the Topic value as #N/A (which is what happens if we don't update it)
+            //             since that prevents restart when a book is re-opened. (See details in ExcelObderserRtdServer.ConnectData)
+            //             So we now initialize the Topic with a new value.
+
             _topic.UpdateNotify();
         }
     }
@@ -191,8 +197,17 @@ namespace ExcelDna.Integration.Rtd
         class ObserverRtdTopic : Topic
         {
             public readonly Guid Id;
+
+            // The topic has an internal value that is returned to Excel in the RTD UpdateValues,
+            // but never returned by us to the UDF wrapper.
+            // This internal value is stored by Excel in the volatileDependencies.xml part.
+            // If it is the default #N/A error value, then the topic is not restarted when re-opening the sheet.
+            // So we never want to be in the #N/A state.
+            // CONSIDER: What do we do use for the alternative value - something more obviously invalid?
+            const double internalValue = -1.0;
+
             public ObserverRtdTopic(ExcelObserverRtdServer server, int topicId, Guid id)
-                : base(server, topicId)
+                : base(server, topicId, internalValue)
             {
                 Id = id;
             }
@@ -219,13 +234,13 @@ namespace ExcelDna.Integration.Rtd
                 // topic.UpdateNotify();   
 
                 newValues = true;
-                return DateTime.UtcNow.ToOADate();
+                return topic.Value;
             }
             // Retrieve and store the GUID from the topic's first info string - used to hook up to the Async state
             Guid id = ((ObserverRtdTopic)topic).Id;
 
             // Create a new ExcelRtdObserver, for the Topic, which will listen to the Observable
-            // (Internally this will also set the initial value to #N/A)
+            // (Internally this will also set the initial value of the Observer wrapper to #N/A)
             ExcelRtdObserver rtdObserver = new ExcelRtdObserver(topic);
             // ... and subscribe it
             AsyncObservableImpl.ConnectObserver(id, rtdObserver);
@@ -235,9 +250,9 @@ namespace ExcelDna.Integration.Rtd
             // However, it seems that Excel handles the special 'busy' error #N/A here (return ExcelErrorUtil.ToComError(ExcelError.ExcelErrorNA))
             // in a special way (<tp t="e"><v>#N/A</v> in volatileDependencies.xml) - while other values seem to trigger a recalculate on file open, 
             // when Excel attempts to restart the RTD server and fails (due to transient ProgId).
-            // So we already return the same kind of value we'd return for updates, putting Excel into the 'value has been updated' state
-            // even if the sheet is saved. That will trigger a proper formula recalcs on file open.
-            return DateTime.UtcNow.ToOADate();
+            // So for the ObserverRtdTopic we ensure the internal value is not an error,
+            // and we can just return that value from here.
+            return topic.Value;
         }
 
         protected override void DisconnectData(Topic topic)

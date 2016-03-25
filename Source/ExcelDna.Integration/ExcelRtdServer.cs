@@ -69,6 +69,13 @@ namespace ExcelDna.Integration.Rtd
                 _value = ExcelErrorUtil.ToComError(ExcelError.ExcelErrorNA);
             }
 
+            protected internal Topic(ExcelRtdServer server, int topicId, object initialValue)
+            {
+                _server = server;
+                _topicId = topicId;
+                _value = initialValue;
+            }
+
             object FixValue(object value)
             {
                 if (value is ExcelError)

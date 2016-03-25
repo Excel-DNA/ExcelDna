@@ -3,6 +3,7 @@ Version 0.34 (???)
 * Add ExplicitExports="false" to NuGet .dna file template
 * Fix getting Application from ProtectedViewWindow
 * Add attempts to get Application object from all windows of class EXCEL7.
+* Fix ExcelAsyncUtil.Observe re-open restart - broken by other fixes in the previous version.
 
 Version 0.33 (9 September 2015)
 -------------------------------
