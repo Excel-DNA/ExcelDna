@@ -36,6 +36,7 @@ namespace ExcelDna.Loader
         public bool IsClusterSafe; // For Functions only
         public string HelpTopic;
         public bool ExplicitRegistration;
+        public bool SuppressOverwriteError;
         public double RegisterId;
 
         public XlParameterInfo[] Parameters;
@@ -226,6 +227,7 @@ namespace ExcelDna.Loader
                 bool isThreadSafe = (bool) attribType.GetField("IsThreadSafe").GetValue(attrib);
                 bool isClusterSafe = (bool)attribType.GetField("IsClusterSafe").GetValue(attrib);
                 bool explicitRegistration = (bool)attribType.GetField("ExplicitRegistration").GetValue(attrib);
+                bool suppressOverwriteError = (bool)attribType.GetField("SuppressOverwriteError").GetValue(attrib);
                 if (name != null)
                 {
                     Name = name;
@@ -251,6 +253,7 @@ namespace ExcelDna.Loader
                 //           [xlfRegister (Form 1) page in the Microsoft Excel 2010 XLL SDK Documentation]
                 IsClusterSafe = (!isMacroType && isClusterSafe);
                 ExplicitRegistration = explicitRegistration;
+                SuppressOverwriteError = suppressOverwriteError;
                 IsCommand = false;
             }
             else if (TypeHelper.TypeHasAncestorWithFullName(attribType, "ExcelDna.Integration.ExcelCommandAttribute"))
@@ -264,6 +267,7 @@ namespace ExcelDna.Loader
 //                    bool isHidden = (bool)attribType.GetField("IsHidden").GetValue(attrib);
                 bool isExceptionSafe = (bool) attribType.GetField("IsExceptionSafe").GetValue(attrib);
                 bool explicitRegistration = (bool)attribType.GetField("ExplicitRegistration").GetValue(attrib);
+                bool suppressOverwriteError = (bool)attribType.GetField("SuppressOverwriteError").GetValue(attrib);
 
                 if (name != null)
                 {
@@ -292,6 +296,7 @@ namespace ExcelDna.Loader
 //                    IsHidden = isHidden;  // Only for functions.
                 IsExceptionSafe = isExceptionSafe;
                 ExplicitRegistration = explicitRegistration;
+                SuppressOverwriteError = suppressOverwriteError;
 
                 // Override IsCommand, even though this 'macro' might have a return value.
                 // Allow for more flexibility in what kind of macros are supported, particularly for calling

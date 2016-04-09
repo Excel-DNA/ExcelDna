@@ -102,15 +102,23 @@ namespace ExcelDna.Loader
         {
             int index = registeredMethods.Count;
             XlAddIn.SetJump(index, mi.FunctionPointer);
-            String exportedProcName = String.Format("f{0}", index);
+            string exportedProcName = string.Format("f{0}", index);
 
             object[] registerParameters = GetRegisterParameters(mi, exportedProcName);
 
             if (registrationInfo.Exists(ri => ((string)ri[3]).Equals((string)registerParameters[3], StringComparison.OrdinalIgnoreCase)))
             {
                 // This function will be registered with a name that has already been used (by this add-in)
-                // This logged as an error, but the registration continues - the last function with the name wins, for backward compatibility.
-                Logger.Registration.Error("Repeated function name: '{0}' - previous registration will be overwritten. ", registerParameters[3]);
+                if (mi.SuppressOverwriteError)
+                {
+                    // Logged at Info level - to allow re-registration without error popup
+                    Logger.Registration.Info("Repeated function name: '{0}' - previous registration will be overwritten. ", registerParameters[3]);
+                }
+                else
+                {
+                    // This logged as an error, but the registration continues - the last function with the name wins, for backward compatibility.
+                    Logger.Registration.Error("Repeated function name: '{0}' - previous registration will be overwritten. ", registerParameters[3]);
+                }
             }
             
             // Basically suppress problems here !?
