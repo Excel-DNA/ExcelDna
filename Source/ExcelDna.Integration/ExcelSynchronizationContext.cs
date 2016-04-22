@@ -291,7 +291,15 @@ namespace ExcelDna.Integration
                 }
                 catch (Exception ex)
                 {
-                    Logger.Runtime.Error(ex, "Unhandled exception in async delegate call.");
+                    UnhandledExceptionHandler handler = ExcelIntegration.GetRegisterUnhandledExceptionHandler();
+                    if (handler != null)
+                    {
+                        handler(ex);
+                    }
+                    else
+                    {
+                        Logger.Runtime.Error(ex, "Unhandled exception in async delegate call.");
+                    }
                 }
             }
         }
