@@ -119,6 +119,10 @@ namespace ExcelDna.Integration
 			unhandledExceptionHandler = h;
 		}
 
+        public static UnhandledExceptionHandler GetRegisterUnhandledExceptionHandler()
+        {
+            return unhandledExceptionHandler;
+        }
 
         #region Registration Info
         // Public function to get registration info for this or other Excel-DNA .xlls
