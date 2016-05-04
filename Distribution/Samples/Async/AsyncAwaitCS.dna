@@ -180,14 +180,12 @@ namespace AsyncAwait
     {
         public void AutoOpen()
         {
-            ExcelAsyncUtil.Initialize();
             ExcelIntegration.RegisterUnhandledExceptionHandler(
                 delegate (object ex) { return string.Format("!!!ERROR: {0}", ex.ToString()); });
         }
         
         public void AutoClose()
         {
-            ExcelAsyncUtil.Uninitialize();
         }
     }
 

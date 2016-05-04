@@ -16,7 +16,6 @@
     {
       ExcelIntegration.RegisterUnhandledExceptionHandler( ex => "!!!Error " + ex);
 
-      ExcelAsyncUtil.Initialize();
       ExcelAsyncUtil.CalculationCanceled += CalculationCanceled;
       ExcelAsyncUtil.CalculationEnded += CalculationEnded;
 
@@ -24,7 +23,6 @@
 
     public void AutoClose()
     {
-        ExcelAsyncUtil.Uninitialize();
         ExcelAsyncUtil.CalculationCanceled -= CalculationCanceled;
         ExcelAsyncUtil.CalculationEnded -= CalculationEnded;
     }
