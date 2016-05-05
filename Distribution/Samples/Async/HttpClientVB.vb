@@ -68,11 +68,10 @@ Public Class AddIn
     Public Sub AutoOpen() Implements IExcelAddIn.AutoOpen
         ExcelIntegration.RegisterUnhandledExceptionHandler(
                 AddressOf HandleError)
-        ExcelAsyncUtil.Initialize()
     End Sub
 
     Public Sub AutoClose() Implements IExcelAddIn.AutoClose
-        ExcelAsyncUtil.Uninitialize()
+        
     End Sub
 
     Private Shared Function HandleError(ex As Object) As Object

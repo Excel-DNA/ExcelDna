@@ -13,7 +13,6 @@ public class MyAddIn : IExcelAddIn
 {
     public void AutoOpen()
     {
-        ExcelAsyncUtil.Initialize();
         ExcelIntegration.RegisterUnhandledExceptionHandler(
             delegate (object ex) 
             { 
@@ -25,7 +24,6 @@ public class MyAddIn : IExcelAddIn
 
     public void AutoClose()
     {
-        ExcelAsyncUtil.Uninitialize();
     }
 }
 
