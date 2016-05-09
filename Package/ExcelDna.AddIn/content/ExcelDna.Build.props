@@ -6,6 +6,7 @@
      or
 
      * Close Visual Studio
+     * Delete .vs folder, if exists
      * Delete ProjectName.csproj.user (or equivalent for VB, F#, etc.), if exists
      * Delete SolutionName.suo, if exists
      * Open your solution/project again in Visual Studio
@@ -18,14 +19,14 @@
     <!--
       Enable/Disable automatic generation of platform-specific versions of .dna files
     -->
-    <ExcelDnaCreate64BitAddIn Condition="'$(ExcelDnaCreate64BitAddIn)' == ''">true</ExcelDnaCreate64BitAddIn>
     <ExcelDnaCreate32BitAddIn Condition="'$(ExcelDnaCreate32BitAddIn)' == ''">true</ExcelDnaCreate32BitAddIn>
+    <ExcelDnaCreate64BitAddIn Condition="'$(ExcelDnaCreate64BitAddIn)' == ''">true</ExcelDnaCreate64BitAddIn>
 
     <!--
       Define the suffix used for each platform-specific file e.g. MyAddIn64.dna
     -->
-    <ExcelDna32FileSuffix Condition="'$(ExcelDna32FileSuffix)' == ''"></ExcelDna32FileSuffix>
-    <ExcelDna64FileSuffix Condition="'$(ExcelDna64FileSuffix)' == ''">64</ExcelDna64FileSuffix>
+    <ExcelDna32BitAddInSuffix Condition="'$(ExcelDna32BitAddInSuffix)' == ''"></ExcelDna32BitAddInSuffix>
+    <ExcelDna64BitAddInSuffix Condition="'$(ExcelDna64BitAddInSuffix)' == ''">64</ExcelDna64BitAddInSuffix>
   </PropertyGroup>
 
   <!--
@@ -40,7 +41,7 @@
     <!--
       Suffix used for packed .xll files e.g. MyAddIn-packed.xll
     -->
-    <ExcelDnaPackFileSuffix Condition="'$(ExcelDnaPackFileSuffix)' == ''">-packed</ExcelDnaPackFileSuffix>
+    <ExcelDnaPackXllSuffix Condition="'$(ExcelDnaPackXllSuffix)' == ''">-packed</ExcelDnaPackXllSuffix>
   </PropertyGroup>
 </Project>
 
