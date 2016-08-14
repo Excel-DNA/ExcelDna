@@ -635,6 +635,9 @@ namespace ExcelDna.Loader
 	{
 		// One and only instance of this marshaler shared by all threads.
 		static XlObject12Marshaler instance;
+        readonly static object boxedZero = 0.0;
+        readonly static object boxedOne = 1.0;
+        readonly object excelEmpty = IntegrationMarshalHelpers.GetExcelEmptyValue();
 
 		public XlObject12Marshaler()
 		{
@@ -665,7 +668,13 @@ namespace ExcelDna.Loader
             switch (type)
             {
                 case XlType12.XlTypeNumber:
-                    managed = pOper->numValue;
+                    double val = pOper->numValue;
+                    if (val == 0.0)
+                        managed = boxedZero;
+                    else if (val == 1.0)
+                        managed = boxedOne;
+                    else
+                        managed = val;
                     break;
                 case XlType12.XlTypeString:
                     XlString12* pString = pOper->pstrValue;
@@ -685,19 +694,40 @@ namespace ExcelDna.Loader
                 case XlType12.XlTypeEmpty:
                     // DOCUMENT: Changed in version 0.17.
                     // managed = null;
-                    managed = IntegrationMarshalHelpers.GetExcelEmptyValue();
+                    managed = excelEmpty; // IntegrationMarshalHelpers.GetExcelEmptyValue();
                     break;
                 case XlType12.XlTypeArray:
                     int rows = pOper->arrayValue.Rows;
                     int columns = pOper->arrayValue.Columns;
                     object[,] array = new object[rows, columns];
+                    // TODO: Initialize as ExcelEmpty
                     XlOper12* opers = (XlOper12*)pOper->arrayValue.pOpers;
                     for (int i = 0; i < rows; i++)
                     {
+                        int rowStart = i * columns;
                         for (int j = 0; j < columns; j++)
                         {
-                            int pos = i * columns + j;
-                            array[i, j] = MarshalNativeToManaged((IntPtr)(opers + pos));
+                            int pos = rowStart + j;
+                            XlOper12* oper = opers + pos;
+                            // Fast-path for some cases
+                            if (oper->xlType == XlType12.XlTypeEmpty)
+                            {
+                                array[i, j] = excelEmpty;
+                            }
+                            else if (oper->xlType == XlType12.XlTypeNumber)
+                            {
+                                double dval = oper->numValue;
+                                if (dval == 0.0)
+                                    array[i, j] = boxedZero;
+                                else if (dval == 1.0)
+                                    array[i, j] = boxedOne;
+                                else
+                                    array[i, j] = dval;
+                            }
+                            else
+                            {
+                                array[i, j] = MarshalNativeToManaged((IntPtr)oper);
+                            }
                         }
                     }
                     managed = array;
