@@ -1,0 +1,67 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ExcelDnaAddInTasksImported>true</ExcelDnaAddInTasksImported>
+    <ExcelDnaTestPackageDir>$(ProjectDir)..\Tests\.exceldna.addin\</ExcelDnaTestPackageDir>
+  </PropertyGroup>
+
+  <!--
+    Extend the Clean target to call our ExcelDnaAddInTasksClean target
+  -->
+  <PropertyGroup>
+    <CleanDependsOn>
+      $(CleanDependsOn);
+      ExcelDnaAddInTasksClean;
+    </CleanDependsOn>
+  </PropertyGroup>
+
+  <!--
+    Extend the AfterBuild target to call our ExcelDnaAddInTasksBuild target
+  -->
+  <PropertyGroup>
+    <BuildDependsOn>
+      $(BuildDependsOn);
+      ExcelDnaAddInTasksBuild;
+    </BuildDependsOn>
+  </PropertyGroup>
+
+  <!--
+    Target that removes all files previously copied to run the integration tests
+  -->
+  <Target Name="ExcelDnaAddInTasksClean">
+    <Message Text="Cleaning files previously copied to run the integration tests in $(ExcelDnaTestPackageDir)" Importance="High" />
+
+    <ItemGroup>
+      <ExcelDnaTestPackageFilesToDelete Include="$(ExcelDnaTestPackageDir)**\*.*" />
+    </ItemGroup>
+
+    <Delete Files="@(ExcelDnaTestPackageFilesToDelete)"/>
+  </Target>
+
+  <!--
+    Target that copies the necessary files to run the integration tests
+  -->
+  <Target Name="ExcelDnaAddInTasksBuild">
+    <Message Text="Copying necessary files to run the integration tests to $(ExcelDnaTestPackageDir)" Importance="High" />
+
+    <ItemGroup>
+      <ExcelDnaTestFilesToCopyToRoot Include="..\..\Package\ExcelDna.AddIn\**\*.*" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(ExcelDnaTestFilesToCopyToRoot)"
+          DestinationFolder="$(ExcelDnaTestPackageDir)%(RecursiveDir)"
+          ContinueOnError="false" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" />
+
+    <ItemGroup>
+      <ExcelDnaTestFilesToCopyToTools Include="$(ProjectDir)..\..\Distribution\ExcelDna.xll" />
+      <ExcelDnaTestFilesToCopyToTools Include="$(ProjectDir)..\..\Distribution\ExcelDna64.xll" />
+      <ExcelDnaTestFilesToCopyToTools Include="$(ProjectDir)..\..\Distribution\ExcelDna.Integration.dll" />
+      <ExcelDnaTestFilesToCopyToTools Include="$(ProjectDir)..\..\Distribution\ExcelDnaPack.exe" />
+      <ExcelDnaTestFilesToCopyToTools Include="$(ProjectDir)..\..\Distribution\ExcelDnaPack.exe.config" />
+      <ExcelDnaTestFilesToCopyToTools Include="$(TargetDir)*" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(ExcelDnaTestFilesToCopyToTools)"
+          DestinationFolder="$(ExcelDnaTestPackageDir)tools\%(RecursiveDir)"
+          ContinueOnError="false" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" />
+  </Target>
+</Project>

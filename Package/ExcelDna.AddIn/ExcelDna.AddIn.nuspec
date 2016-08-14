@@ -31,8 +31,12 @@
         <file src="..\..\Distribution\ExcelDnaPack.exe" target="tools\ExcelDnaPack.exe" />
         <file src="..\..\Distribution\ExcelDnaPack.exe.config" target="tools\ExcelDnaPack.exe.config" />
         <file src="content\ExcelDna-Template.dna" target="content\ExcelDna-Template.dna" />
+        <file src="content\ExcelDna.Build.props" target="content\Properties\ExcelDna.Build.props" />
         <file src="tools\install.ps1" target="tools\install.ps1" />
         <file src="tools\uninstall.ps1" target="tools\uninstall.ps1" />
+        <file src="tools\ExcelDna.AddIn.targets" target="tools\ExcelDna.AddIn.targets" />
+        <file src="tools\ExcelDna.AddIn.Tasks.dll" target="tools\ExcelDna.AddIn.Tasks.dll" />
+        <file src="tools\ExcelDna.AddIn.Tasks.pdb" target="tools\ExcelDna.AddIn.Tasks.pdb" />
         <file src="readme.txt" target="readme.txt" />
     </files>
 </package>

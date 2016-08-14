@@ -4,6 +4,11 @@
 * text=auto
 
 ###############################################################################
+# Explicitly declare files that should always be converted to LF regardless of platform
+###############################################################################
+*.dotsettings text eol=lf
+
+###############################################################################
 # Set default behavior for command prompt diff.
 #
 # This is need for earlier builds of msysgit that does not have it on by

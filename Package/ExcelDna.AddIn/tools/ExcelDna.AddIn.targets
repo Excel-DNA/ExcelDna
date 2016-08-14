@@ -1,0 +1,136 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <UsingTask TaskName="ExcelDna.AddIn.Tasks.CreateExcelAddIn" AssemblyFile="ExcelDna.AddIn.Tasks.dll" />
+
+  <PropertyGroup>
+    <ExcelDnaTargetsImported>true</ExcelDnaTargetsImported>
+  </PropertyGroup>
+
+  <!--
+    Extend the Clean target to call our ExcelDnaClean target
+  -->
+  <PropertyGroup>
+    <CleanDependsOn>
+      $(CleanDependsOn);
+      ExcelDnaClean;
+    </CleanDependsOn>
+  </PropertyGroup>
+
+  <!--
+    Extend the AfterBuild target to call our ExcelDnaBuild target
+  -->
+  <PropertyGroup>
+    <BuildDependsOn>
+      $(BuildDependsOn);
+      ExcelDnaBuild;
+      ExcelDnaPack;
+    </BuildDependsOn>
+  </PropertyGroup>
+
+  <!--
+    Load configuration properties file for the project, if exist
+  -->
+  <PropertyGroup>
+    <ExcelDnaProjectPath Condition="'$(ExcelDnaProjectPath)' == ''">$(MSBuildProjectDirectory)\</ExcelDnaProjectPath>
+    <ExcelDnaPropsFilePath Condition="'$(ExcelDnaPropsFilePath)' == ''">$(ExcelDnaProjectPath)\Properties\ExcelDna.Build.props</ExcelDnaPropsFilePath>
+  </PropertyGroup>
+  <Import Project="$(ExcelDnaPropsFilePath)" Condition="Exists('$(ExcelDnaPropsFilePath)')" />
+
+  <!--
+    Default values for configuration properties - in case they were not set in via .props file or command-line
+  -->
+  <PropertyGroup>
+    <RunExcelDnaClean Condition="'$(RunExcelDnaClean)' == ''">true</RunExcelDnaClean>
+    <RunExcelDnaBuild Condition="'$(RunExcelDnaBuild)' == ''">true</RunExcelDnaBuild>
+    <RunExcelDnaPack Condition="'$(RunExcelDnaPack)' == ''">true</RunExcelDnaPack>
+
+    <ExcelDnaCreate32BitAddIn Condition="'$(ExcelDnaCreate32BitAddIn)' == ''">true</ExcelDnaCreate32BitAddIn>
+    <ExcelDnaCreate64BitAddIn Condition="'$(ExcelDnaCreate64BitAddIn)' == ''">true</ExcelDnaCreate64BitAddIn>
+
+    <ExcelDna32BitAddInSuffix Condition="'$(ExcelDna32BitAddInSuffix)' == ''"></ExcelDna32BitAddInSuffix>
+    <ExcelDna64BitAddInSuffix Condition="'$(ExcelDna64BitAddInSuffix)' == ''">64</ExcelDna64BitAddInSuffix>
+
+    <ExcelDnaToolsPath Condition="'$(ExcelDnaToolsPath)' == ''">$(MSBuildThisFileDirectory)</ExcelDnaToolsPath>
+    
+    <ExcelDnaPackExePath Condition="'$(ExcelDnaPackExePath)' == ''">$(ExcelDnaToolsPath)ExcelDnaPack.exe</ExcelDnaPackExePath>
+    <ExcelDnaPackXllSuffix Condition="'$(ExcelDnaPackXllSuffix)' == ''">-packed</ExcelDnaPackXllSuffix>
+    <ExcelDnaPackCompressResources Condition="'$(ExcelDnaPackCompressResources)' == ''">true</ExcelDnaPackCompressResources>
+    <ExcelDnaPackRunMultithreaded Condition="'$(ExcelDnaPackRunMultithreaded)' == ''">true</ExcelDnaPackRunMultithreaded>
+  </PropertyGroup>
+
+  <!--
+    Target that removes all .dna, .xll, and .xll.config from the build output folder
+  -->
+  <Target Name="ExcelDnaClean" Condition="$(RunExcelDnaClean)">
+    <ItemGroup>
+      <ExcelDnaFilesToDelete Include="$(TargetDir)**\*.dna" />
+      <ExcelDnaFilesToDelete Include="$(TargetDir)**\*.xll" />
+      <ExcelDnaFilesToDelete Include="$(TargetDir)**\*.xll.config" />
+    </ItemGroup>
+
+    <Delete Files="@(ExcelDnaFilesToDelete)"/>
+  </Target>
+
+  <!--
+    Target that copies .dna, .xll, and .xll.config to the build output folder, for each platform
+  -->
+  <Target Name="ExcelDnaBuild" Condition="$(RunExcelDnaBuild)">
+    <Message Text="---" Importance="High" />
+
+    <Error Text="ExcelDna32BitAddInSuffix and ExcelDna64BitAddInSuffix cannot be identical. Fix your ExcelDna.Build.props file"
+              Condition="'$(ExcelDna32BitAddInSuffix)' == '$(ExcelDna64BitAddInSuffix)'" />
+
+    <Warning Text="ExcelDnaCreate32BitAddIn and ExcelDnaCreate64BitAddIn are both 'false'. Nothing to do"
+             Condition="(!$(ExcelDnaCreate32BitAddIn)) AND (!$(ExcelDnaCreate64BitAddIn))" />
+
+    <ItemGroup>
+      <ExcelDnaFilesInProject Include="@(None)" />
+      <ExcelDnaFilesInProject Include="@(Content)" />
+    </ItemGroup>
+
+    <CreateExcelAddIn
+      FilesInProject="@(ExcelDnaFilesInProject)"
+      OutDirectory="$(OutDir)"
+      Xll32FilePath="$(ExcelDnaToolsPath)ExcelDna.xll"
+      Xll64FilePath="$(ExcelDnaToolsPath)ExcelDna64.xll"
+      Create32BitAddIn="$(ExcelDnaCreate32BitAddIn)"
+      Create64BitAddIn="$(ExcelDnaCreate64BitAddIn)"
+      FileSuffix32Bit="$(ExcelDna32BitAddInSuffix)"
+      FileSuffix64Bit="$(ExcelDna64BitAddInSuffix)"
+      PackIsEnabled="$(RunExcelDnaPack)"
+      PackedFileSuffix="$(ExcelDnaPackXllSuffix)">
+      <Output TaskParameter="DnaFilesToPack" ItemName="ExcelDnaFilesToPack" />
+    </CreateExcelAddIn>
+
+    <Message Text="---" Condition="$(RunExcelDnaPack)" Importance="High" />
+  </Target>
+
+  <!--
+    Target that runs ExcelDnaPack.exe for each .dna copied to the build output folder
+  -->
+  <Target Name="ExcelDnaPack" Condition="($(RunExcelDnaPack)) AND ('@(ExcelDnaFilesToPack->Count())' &gt; 0)" Outputs="%(ExcelDnaFilesToPack.Identity)">
+    <Error Text="ExcelDnaPack: ExcelDnaPack.exe not found: $(ExcelDnaPackExePath)" Condition="!Exists('$(ExcelDnaPackExePath)')" />
+
+    <!-- Run ExcelDnaPack.exe -->
+    <Message Text="ExcelDnaPack: %(ExcelDnaFilesToPack.OutputDnaFileName) -> %(ExcelDnaFilesToPack.OutputPackedXllFileName)" Importance="High" />
+
+    <PropertyGroup>
+      <ExcelDnaPackExtraArgs Condition="!$(ExcelDnaPackCompressResources)">/NoCompression</ExcelDnaPackExtraArgs>
+      <ExcelDnaPackExtraArgs Condition="!$(ExcelDnaPackRunMultithreaded)">$(ExcelDnaPackExtraArgs) /NoMultiThreading</ExcelDnaPackExtraArgs>
+    </PropertyGroup>
+
+    <Exec Command="&quot;$(ExcelDnaPackExePath)&quot; &quot;%(ExcelDnaFilesToPack.OutputDnaFileName)&quot; /Y $(ExcelDnaPackExtraArgs) /O &quot;%(ExcelDnaFilesToPack.OutputPackedXllFileName)&quot;"
+          IgnoreExitCode="false"
+          ContinueOnError="false" />
+
+    <!-- Copy .xll.config file to -packed.xll.config (if .xll.config exists) -->
+    <Message Text="ExcelDnaPack: %(ExcelDnaFilesToPack.OutputXllConfigFileName) -> %(ExcelDnaFilesToPack.OutputPackedXllFileName).config" Importance="High"
+             Condition="Exists('%(ExcelDnaFilesToPack.OutputXllConfigFileName)')" />
+   
+    <Copy SourceFiles="%(ExcelDnaFilesToPack.OutputXllConfigFileName)"
+          DestinationFiles="%(ExcelDnaFilesToPack.OutputPackedXllFileName).config"
+          Condition="Exists('%(ExcelDnaFilesToPack.OutputXllConfigFileName)')"
+          ContinueOnError="false"
+          OverwriteReadOnlyFiles="true"
+          SkipUnchangedFiles="true" />
+  </Target>
+</Project>
