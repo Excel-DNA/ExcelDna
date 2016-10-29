@@ -41,6 +41,7 @@ namespace ExcelDna.Logging
             }
             else
             {
+                // TODO: Add an extension point so that trace providers can register event ids for the display.
                 idDescription = id.ToString(CultureInfo.InvariantCulture);
             }
             string header = string.Format(CultureInfo.InvariantCulture, "{0} [{1}] ", idDescription, eventType.ToString());
