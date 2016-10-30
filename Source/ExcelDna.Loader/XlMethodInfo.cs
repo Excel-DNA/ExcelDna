@@ -483,8 +483,7 @@ namespace ExcelDna.Loader
                 if (HasReturnType && ReturnType.DelegateParamType == typeof (object))
                 {
                     // Call Integration.HandleUnhandledException - Exception object is on the stack.
-                    wrapIL.Emit(OpCodes.Ldsfld, typeof(IntegrationHelpers).GetField("UnhandledExceptionHandler", BindingFlags.Static | BindingFlags.Public));
-                    wrapIL.Emit(OpCodes.Callvirt, typeof(IntegrationHelpers.ExceptionHandler).GetMethod("Invoke"));
+                    wrapIL.Emit(OpCodes.Call, typeof(IntegrationHelpers).GetMethod("HandleUnhandledException"));
                     // Stack now has return value from the ExceptionHandler - Store to local 
                     wrapIL.Emit(OpCodes.Stloc_S, retobj);
 
