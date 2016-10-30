@@ -42,9 +42,14 @@ namespace ExcelDna.Loader
         public XlParameterInfo[] Parameters;
         public XlParameterInfo ReturnType; // Macro will have ReturnType null (as will native async functions)
 
+        // Temporary during construction...
+        Type _delegateType;
+        object _target;
+        MethodInfo _methodInfo;
+
         // THROWS: Throws a DnaMarshalException if the method cannot be turned into an XlMethodInfo
         // TODO: Manage errors if things go wrong
-        XlMethodInfo(ModuleBuilder modBuilder, MethodInfo targetMethod, object target, object methodAttribute, List<object> argumentAttributes)
+        XlMethodInfo(MethodInfo targetMethod, object target, object methodAttribute, List<object> argumentAttributes)
         {
             // Default Name, Description and Category
             Name = targetMethod.Name;
@@ -107,25 +112,8 @@ namespace ExcelDna.Loader
                 // It really is a function, though it might return null
                 IsCommand = false;
             }
-
-            // Create the delegate type, wrap the targetMethod and create the delegate
-
-            // CONSIDER: Currently we need a special delegate type here so that we can hook on the marshaling attributes.
-            //           Future version might do straight-forward marshaling, so we can get rid of these types (just use generic methods)
-            
-            // FirstArgument (if received) is not used in the delegate type created ...
-            Type delegateType = CreateDelegateType(modBuilder);
-            // ... but is baked into the delegate itself.
-            Delegate xlDelegate = CreateMethodDelegate(delegateType, targetMethod, target);
-
-            // Need to add a reference to prevent garbage collection of our delegate
-            // Don't need to pin, according to 
-            // "How to: Marshal Callbacks and Delegates Using C++ Interop"
-            // Currently this delegate is never released
-            // TODO: Clean up properly
-            DelegateHandle = GCHandle.Alloc(xlDelegate);
-            FunctionPointer = Marshal.GetFunctionPointerForDelegate(xlDelegate);
         }
+
 
         // Native async functions have a final parameter that is an ExcelAsyncHandle.
         public bool IsExcelAsyncFunction 
@@ -384,7 +372,7 @@ namespace ExcelDna.Loader
             return typeBuilder.CreateType();
         }
 
-        Delegate CreateMethodDelegate(Type delegateType, MethodInfo targetMethod, object target)
+        MethodInfo CreateMethodInfo(TypeBuilder wrapperType, Type delegateType, MethodInfo targetMethod, object target)
         {
             bool isInstanceMethod = !targetMethod.IsStatic;
             // We expect static methods to have target null
@@ -399,15 +387,7 @@ namespace ExcelDna.Loader
                                     delegate(XlParameterInfo pi) { return pi.BoxedValueType == null; })
                 && (!HasReturnType || ReturnType.BoxedValueType == null))
             {
-                // Create the delegate directly
-                if (isInstanceMethod)
-                {
-                    // Can't be DynamicMethod
-                    return Delegate.CreateDelegate(delegateType, target, targetMethod);
-                }
-                if (targetMethod is DynamicMethod)
-                        return ((DynamicMethod)targetMethod).CreateDelegate(delegateType);
-                    return Delegate.CreateDelegate(delegateType, targetMethod);
+                return targetMethod;
             }
 
             // DateTime input parameters are never exception safe - we need to be able to fail out of the 
@@ -429,10 +409,21 @@ namespace ExcelDna.Loader
                 paramTypes = allParams;
             }
 
-            DynamicMethod wrapper = new DynamicMethod(
+            MethodBuilder wrapper =  wrapperType.DefineMethod(
                 string.Format("Wrapped_f{0}_{1}", Index, targetMethod.Name),
+                MethodAttributes.Public | MethodAttributes.Static, 
                 HasReturnType ? ReturnType.DelegateParamType : typeof(void),
-                paramTypes, typeof (object), true);
+                paramTypes);
+
+            // Add [HandleCorruptProcessExceptions] to wrapper method, if we're running on .NET 4.0
+            if (Environment.Version.Major >= 4 && emitExceptionHandler)
+            {
+                Type hcpeType = Type.GetType("System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute");
+                ConstructorInfo hcpeCtorInfo = hcpeType.GetConstructor(Type.EmptyTypes);
+                CustomAttributeBuilder hcpeBuilder = new CustomAttributeBuilder(hcpeCtorInfo, Type.EmptyTypes);
+                wrapper.SetCustomAttribute(hcpeBuilder);
+            }
+
             ILGenerator wrapIL = wrapper.GetILGenerator();
             Label endOfMethod = wrapIL.DefineLabel();
 
@@ -492,7 +483,8 @@ namespace ExcelDna.Loader
                 if (HasReturnType && ReturnType.DelegateParamType == typeof (object))
                 {
                     // Call Integration.HandleUnhandledException - Exception object is on the stack.
-                    wrapIL.EmitCall(OpCodes.Call, IntegrationHelpers.UnhandledExceptionHandler, null);
+                    wrapIL.Emit(OpCodes.Ldsfld, typeof(IntegrationHelpers).GetField("UnhandledExceptionHandler", BindingFlags.Static | BindingFlags.Public));
+                    wrapIL.Emit(OpCodes.Callvirt, typeof(IntegrationHelpers.ExceptionHandler).GetMethod("Invoke"));
                     // Stack now has return value from the ExceptionHandler - Store to local 
                     wrapIL.Emit(OpCodes.Stloc_S, retobj);
 
@@ -517,11 +509,47 @@ namespace ExcelDna.Loader
             wrapIL.Emit(OpCodes.Ret);
             // End of Wrapper
 
-            if (isInstanceMethod)
-            {
-                return wrapper.CreateDelegate(delegateType, target);
-            }
-            return wrapper.CreateDelegate(delegateType);
+            return wrapper;
+        }
+        
+        void CreateDelegateTypeAndMethodInfo(ModuleBuilder moduleBuilder, TypeBuilder wrapperTypeBuilder, MethodInfo targetMethod, object target)
+        {
+            // Create the delegate type, wrap the targetMethod and create the delegate
+
+            // CONSIDER: Currently we need a special delegate type here so that we can hook on the marshaling attributes.
+            //           Future version might do straight-forward marshaling, so we can get rid of these types (just use generic methods)
+            
+            // FirstArgument (if received) is not used in the delegate type created ...
+            _delegateType = CreateDelegateType(moduleBuilder);
+            // ... but is baked into the delegate itself.
+            _methodInfo = CreateMethodInfo(wrapperTypeBuilder, _delegateType, targetMethod, target);
+            _target = target;
+        }
+
+        void CreateDelegateAndFunctionPointer(Type wrapperType)
+        {
+            // Get compiled method if we need to
+            if (_methodInfo is MethodBuilder)
+                _methodInfo = wrapperType.GetMethod(_methodInfo.Name);
+
+            Delegate xlDelegate;
+            if (_target != null)
+                xlDelegate = Delegate.CreateDelegate(_delegateType, _target, _methodInfo);
+            else
+                xlDelegate = Delegate.CreateDelegate(_delegateType, _methodInfo);
+            
+            // Need to add a reference to prevent garbage collection of our delegate
+            // Don't need to pin, according to 
+            // "How to: Marshal Callbacks and Delegates Using C++ Interop"
+            // Currently this delegate is never released
+            // TODO: Clean up properly
+            DelegateHandle = GCHandle.Alloc(xlDelegate);
+            FunctionPointer = Marshal.GetFunctionPointerForDelegate(xlDelegate);
+
+            // Clean up instance fields no longer needed.
+            _delegateType = null;
+            _methodInfo = null;
+            _target = null;
         }
 
         // This is the main conversion function called from XlLibrary.RegisterMethods
@@ -536,10 +564,13 @@ namespace ExcelDna.Loader
 
             AssemblyBuilder assemblyBuilder;
             ModuleBuilder moduleBuilder;
+            TypeBuilder wrapperTypeBuilder;
+
             assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(
                 new AssemblyName("ExcelDna.DynamicDelegateAssembly"),
                 AssemblyBuilderAccess.Run /*AndSave*/);
             moduleBuilder = assemblyBuilder.DefineDynamicModule("DynamicDelegates");
+            wrapperTypeBuilder = moduleBuilder.DefineType("WrapperType");
 
             for (int i = 0; i < methods.Count; i++)
             {
@@ -549,20 +580,29 @@ namespace ExcelDna.Loader
                 List<object> argAttribs = (argumentAttributes != null && i < argumentAttributes.Count) ? argumentAttributes[i] : null;
                 try
                 {
-                    XlMethodInfo xlmi = new XlMethodInfo(moduleBuilder, mi, target, methodAttrib, argAttribs);
+                    XlMethodInfo xlmi = new XlMethodInfo(mi, target, methodAttrib, argAttribs);
                     // Skip if suppressed
                     if (xlmi.ExplicitRegistration)
                     {
                         Logger.Registration.Info("Suppressing due to ExplictRegistration attribute: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
                         continue;
                     }
-                    // otherwise add
+                    // otherwise continue with delegate type and method building
+                    xlmi.CreateDelegateTypeAndMethodInfo(moduleBuilder, wrapperTypeBuilder, mi, target);
+
+                    // ... and add to list for further processing and registration
                     xlMethodInfos.Add(xlmi);
                 }
                 catch (DnaMarshalException e)
                 {
                     Logger.Registration.Error(e, "Method not registered due to unsupported signature: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
                 }
+            }
+
+            Type wrapperType = wrapperTypeBuilder.CreateType();
+            foreach (XlMethodInfo xlmi in xlMethodInfos)
+            {
+                xlmi.CreateDelegateAndFunctionPointer(wrapperType);
             }
 
             //			assemblyBuilder.Save(@"ExcelDna.DynamicDelegateAssembly.dll");

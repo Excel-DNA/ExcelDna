@@ -3,6 +3,7 @@
 
 using System;
 using System.Reflection;
+using System.Reflection.Emit;
 
 namespace ExcelDna.Loader
 {
@@ -12,14 +13,20 @@ namespace ExcelDna.Loader
 
     // This class has a friend in XlCustomMarshal.
     // TODO: Nothing here is performance-critical, but the Invoke calls might be quite slow... use delegates?
-    internal static class IntegrationHelpers
+    public static class IntegrationHelpers
     {
         static Type integrationType;
         static MethodInfo addCommandMenu;
         static MethodInfo removeCommandMenus;
-		internal static MethodInfo UnhandledExceptionHandler; // object->object
+        internal delegate object ExceptionHandler(object ex);
+		internal static ExceptionHandler UnhandledExceptionHandler;
         
-        public static void Bind(Assembly integrationAssembly, Type bindIntegrationType)
+        public static object HandleUnhandledException(object exception)
+        {
+            return UnhandledExceptionHandler(exception);
+        }
+
+        internal static void Bind(Assembly integrationAssembly, Type bindIntegrationType)
         {
             integrationType = bindIntegrationType;
 
@@ -27,15 +34,32 @@ namespace ExcelDna.Loader
             addCommandMenu = menuManagerType.GetMethod("AddCommandMenu", BindingFlags.Static | BindingFlags.NonPublic);
             removeCommandMenus = menuManagerType.GetMethod("RemoveCommandMenus", BindingFlags.Static | BindingFlags.NonPublic);
 
-			UnhandledExceptionHandler = integrationType.GetMethod("HandleUnhandledException", BindingFlags.Static | BindingFlags.NonPublic);
+            CreateUnhandledExceptionHandlerWrapper();
         }
 
-        public static void AddCommandMenu(string commandName, string menuName, string menuText, string description, string shortCut, string helpTopic)
+        // We want to call an internal method in ExcelIntegration from a generator export wrapper.
+        // In the past we could just hook up the MethodInfo, since we create a DynamicMethod.
+        // We changed from DynamicMethod to a MethodBuilder to handle AccessViolations, but this puts us in a different
+        // security context, where the restricted-visibility method calls are not allowed.
+        // So we create a DynamicMethod here which makes the call fast, and expose internally via a public method.
+        internal static void CreateUnhandledExceptionHandlerWrapper()
+        {
+			MethodInfo unhandledExceptionHandler = integrationType.GetMethod("HandleUnhandledException", BindingFlags.Static | BindingFlags.NonPublic);
+            DynamicMethod ueh = new DynamicMethod("UnhandledExceptionHandler", typeof(object), new Type[] { typeof(object) }, true);
+            ILGenerator uehIL = ueh.GetILGenerator();
+            // uehIL.DeclareLocal(typeof(object));
+            uehIL.Emit(OpCodes.Ldarg_0);
+            uehIL.Emit(OpCodes.Call, unhandledExceptionHandler);
+            uehIL.Emit(OpCodes.Ret);
+            UnhandledExceptionHandler = (ExceptionHandler)ueh.CreateDelegate(typeof(ExceptionHandler));
+        }
+
+        internal static void AddCommandMenu(string commandName, string menuName, string menuText, string description, string shortCut, string helpTopic)
         {
             addCommandMenu.Invoke(null, new object[] { commandName, menuName, menuText, description, shortCut, helpTopic});
         }
 
-        public static void RemoveCommandMenus()
+        internal static void RemoveCommandMenus()
         {
             removeCommandMenus.Invoke(null, null);
         }
