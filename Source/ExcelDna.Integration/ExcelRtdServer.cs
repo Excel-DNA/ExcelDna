@@ -246,12 +246,27 @@ namespace ExcelDna.Integration.Rtd
                     // Not sure what to return here for error. We try the COM error version of #VALUE !?
                     return ExcelErrorUtil.ToComError(ExcelError.ExcelErrorValue);
                 }
-                _activeTopics[topicId] = topic;
+
+                // NOTE: 2016-11-04
+                //       Before v 0.34 the topic was added to _activeTopics before ConnectData was called
+                //       The effect of moving it after (hence that topic is not in _activeTopics during the ConnectData call)
+                //       is that a call to UpdateValue during the the ConnectData call will no longer cause an Update call to Excel
+                //       (since SetDirty is ignored for topics not in _activeTopics)
+                object value;
                 using (XlCall.Suspend())
                 {
-                    return ConnectData(topic, topicInfo, ref newValues);
+                    value = ConnectData(topic, topicInfo, ref newValues);
                 }
-                
+                _activeTopics[topicId] = topic;
+
+                // Now we need to ensure that the topic value does indeed agree with the returned value
+                // Otherwise we are left with an inconsistent state for future updates.
+                // If there's a difference, we do force the update.
+                if (!object.Equals(value, topic.Value))
+                {
+                    topic.UpdateNotify();
+                }
+                return value;
             }
             catch (Exception e)
             {

@@ -160,10 +160,7 @@ namespace ExcelDna.Integration.Rtd
         public void OnCompleted()
         {
             IsCompleted = true;
-            // Force another update to ensure DisconnectData is called.
-            // CONSIDER: Do we need to UpdateNotify here?
-            //           Not necessarily. Next recalc will call the function, not call RTD and that will trigger DisconnectData.
-            //           However, this ensures a more deterministic call to DisconnectData
+            // Force an update to ensure DisconnectData is called deterministically.
             _topic.UpdateNotify();
         }
 
@@ -184,9 +181,11 @@ namespace ExcelDna.Integration.Rtd
             //_topic.UpdateValue(DateTime.UtcNow.ToOADate());
 
             // 2016-03-25: Further bug here - We can't leave the Topic value as #N/A (which is what happens if we don't update it)
-            //             since that prevents restart when a book is re-opened. (See details in ExcelObderserRtdServer.ConnectData)
+            //             since that prevents restart when a book is re-opened. (See details in ExcelObserverRtdServer.ConnectData)
             //             So we now initialize the Topic with a new value.
 
+            // 2016-11-04: ExcelRtdServer.ConnectData was changed so that this call, 
+            //             if it happens during the ConnectData, will have no effect (saving an extra function call).
             _topic.UpdateNotify();
         }
     }
