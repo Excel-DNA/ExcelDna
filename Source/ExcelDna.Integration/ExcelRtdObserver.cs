@@ -160,8 +160,12 @@ namespace ExcelDna.Integration.Rtd
         public void OnCompleted()
         {
             IsCompleted = true;
-            // Force an update to ensure DisconnectData is called deterministically.
-            _topic.UpdateNotify();
+
+            // 2016-11-04: We have to ensure that the UpdateNotify call is still called if 
+            //             OnCompleted happens during the ConnectData
+            //             To ensure this we set the internal topic value
+
+            _topic.UpdateValue(ExcelObserverRtdServer.TopicValueCompleted);
         }
 
         public void OnError(Exception exception)
@@ -193,20 +197,24 @@ namespace ExcelDna.Integration.Rtd
     [ComVisible(true)]
     internal class ExcelObserverRtdServer : ExcelRtdServer
     {
+        // The topic has an internal value that is returned to Excel in the RTD UpdateValues,
+        // but never returned by us to the UDF wrapper.
+        // This internal value is stored by Excel in the volatileDependencies.xml part.
+        // If it is the default #N/A error value, then the topic is not restarted when re-opening the sheet.
+        // So we never want to be in the #N/A state.
+        // CONSIDER: What do we do use for the alternative values - something more obviously invalid?
+        internal const double TopicValueActive   = -1.0;
+        internal const double TopicValueCompleted = -2.0;
+
         class ObserverRtdTopic : Topic
         {
             public readonly Guid Id;
 
-            // The topic has an internal value that is returned to Excel in the RTD UpdateValues,
-            // but never returned by us to the UDF wrapper.
-            // This internal value is stored by Excel in the volatileDependencies.xml part.
-            // If it is the default #N/A error value, then the topic is not restarted when re-opening the sheet.
-            // So we never want to be in the #N/A state.
-            // CONSIDER: What do we do use for the alternative value - something more obviously invalid?
-            const double internalValue = -1.0;
-
+            // NOTE: That the topic is initialized with the value TopicValueActive is 
+            //       important to the ConnectData implementation below
+            //       - there is some interaction between topic values and the return value from ConnectData.
             public ObserverRtdTopic(ExcelObserverRtdServer server, int topicId, Guid id)
-                : base(server, topicId, internalValue)
+                : base(server, topicId, TopicValueActive)
             {
                 Id = id;
             }
@@ -226,14 +234,11 @@ namespace ExcelDna.Integration.Rtd
             {
                 // Excel has a cached value, and we are being called from the file open refresh.
 
-                // Calling UpdateNotify here seems to work (it causes the wrapper function to recalc, 
-                //    which Disconnects the bad topic, and allows a fresh one to be created)
-                // Not needed if we return a new 'fake' value, which is safe since it is consistent with normal updates.
+                // Indicating "newValues", should be safe since it is consistent with normal updates.
                 // Result should be a Disconnect followed by a proper Connect via the wrapper.
-                // topic.UpdateNotify();   
 
                 newValues = true;
-                return topic.Value;
+                return TopicValueActive;
             }
             // Retrieve and store the GUID from the topic's first info string - used to hook up to the Async state
             Guid id = ((ObserverRtdTopic)topic).Id;
@@ -250,8 +255,16 @@ namespace ExcelDna.Integration.Rtd
             // in a special way (<tp t="e"><v>#N/A</v> in volatileDependencies.xml) - while other values seem to trigger a recalculate on file open, 
             // when Excel attempts to restart the RTD server and fails (due to transient ProgId).
             // So for the ObserverRtdTopic we ensure the internal value is not an error,
-            // and we can just return that value from here.
-            return topic.Value;
+            // (it is initialized to TopicValueActive)
+            // which we return from here.
+
+            // 2016-11-04: We are no longer returning the current value of topic.Value here.
+            //             Since calls to UpdateValue inside the ConnectData no longer raise an
+            //             UpdateNotify automatically, we need to ensure a different value
+            //             is returned for a completed topic (so that ConnectData.returned != topic.Value)
+            //             to raise an extra UpdateNotify, for the Disconnect of the already completed topic.
+
+            return TopicValueActive;
         }
 
         protected override void DisconnectData(Topic topic)
