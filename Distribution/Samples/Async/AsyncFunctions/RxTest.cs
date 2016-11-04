@@ -18,11 +18,13 @@ namespace AsyncFunctions
                 () => Observable.Return(value));
         }
 
-        // We don't currently distinguish between Empty and Never.
+        // Empty and Never are subtly different.
         // Empty is a sequence that immediately completes without pushing a value.
         // So we return #N/A (the pre-Value 'Not Available' return state), 
-        // and then never have anything else to return when the sequence completes.
-        // CONSIDER: Should we rather transition to an empty string if we comlete without seeing a value?
+        // and then the sequence is complete, causing an update that internally Disposes the observable
+        // (and disconnects the RTD topic).
+        // So we are left with a disconneced cell, saying #N/A.
+        // When a cell is saved in this state, it will not reconnect (call this UDF wrapper again) when the book is opened.
         public static object rxEmpty()
         {
             return RxExcel.Observe("rxEmpty", null,
@@ -30,7 +32,9 @@ namespace AsyncFunctions
         }
 
         // Never just doesn't return anything, so our functions stays in the #N/A pre-value return state.
-        // This seems fine.
+        // And the RTD topic is left connected.
+        // When a cell is saved in this state, it will reconnect (and automatically call this UDF wrapper again)
+        // when the book is opened.
         public static object rxNever()
         {
             return RxExcel.Observe("rxNever", null,
