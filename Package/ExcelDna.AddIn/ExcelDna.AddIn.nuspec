@@ -3,7 +3,7 @@
     <metadata>
         <id>ExcelDna.AddIn</id>
         <version>0.34.1-beta</version>
-        <title>Excel-DNA</title>
+        <title>Excel-DNA Add-In</title>
         <authors>Govert van Drimmelen</authors>
         <owners>Govert van Drimmelen</owners>
         <projectUrl>http://excel-dna.net</projectUrl>
