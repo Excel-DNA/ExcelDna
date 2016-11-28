@@ -8,8 +8,8 @@ using System.Runtime.InteropServices;
 
 namespace ExcelDna.Loader
 {
-	// Return type and all parameters are described by this structure.
-	internal class XlParameterInfo
+    // Return type and all parameters are described by this structure.
+    internal class XlParameterInfo
 	{
 		public string XlType;
 		public string Name;         // Ignored for return 'parameter'
@@ -91,10 +91,11 @@ namespace ExcelDna.Loader
 
         public void SetTypeInfo(Type type, bool isReturnType, bool isExceptionSafe)
         {
-#if DEBUG
-                SetTypeInfo4(type, isReturnType, isExceptionSafe);
-#else
-            if (XlAddIn.XlCallVersion < 12)
+            if ((XlAddIn.XlCallVersion < 12)
+#if DEBUG // on debug-32bit we want to keep exercising the Excel4 APIs
+                || (IntPtr.Size == 4)
+#endif
+            )
             {
                 SetTypeInfo4(type, isReturnType, isExceptionSafe);
             }
@@ -102,7 +103,6 @@ namespace ExcelDna.Loader
             {
                 SetTypeInfo12(type, isReturnType, isExceptionSafe);
             }
-#endif
         }
 
         private void SetTypeInfo4(Type type, bool isReturnType, bool isExceptionSafe)
