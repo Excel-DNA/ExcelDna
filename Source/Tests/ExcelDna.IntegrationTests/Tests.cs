@@ -12,7 +12,7 @@ using NUnit.Framework;
 
 namespace ExcelDna.Integration.Tests
 {
-    [TestFixture]
+    [TestFixture, Explicit] // the Explicit attribute causes the test to be skipped during aytomated runs. This is because XL is not suitable for non-interactive sessions
     public class ExcelBasedTests
     {
         #region Member variables
@@ -25,7 +25,7 @@ namespace ExcelDna.Integration.Tests
         private string PrepareXlDna(string outDir)
         {
             bool is64Bit = (Marshal.SizeOf(m_xlApp.HinstancePtr) == 8);
-            var xldna = Path.Combine(outDir, "ExcelDna.vs2015") + (is64Bit ? "64" : "") + ".xll";
+            var xldna = Path.Combine(outDir, "ExcelDna") + (is64Bit ? "64" : "") + ".xll";
             var xldnaToLoad = Path.Combine(outDir, "ExcelDna.IntegrationTests-AddIn.xll");
             var mtx = new Mutex(false, "xldnaTests");
             lock (mtx)

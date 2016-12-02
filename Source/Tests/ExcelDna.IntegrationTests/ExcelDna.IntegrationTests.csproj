@@ -86,7 +86,7 @@
   </Target>
   -->
   <Target Name="AfterBuild">
-    <Copy SourceFiles="$(SolutionDir)ExcelDna\$(Configuration)\ExcelDna.vs2015.xll" DestinationFolder="$(TargetDir)" />
-    <Copy SourceFiles="$(SolutionDir)ExcelDna\$(Configuration)64\ExcelDna.vs201564.xll" DestinationFolder="$(TargetDir)" />
+    <Copy SourceFiles="$(SolutionDir)ExcelDna\$(Configuration)\ExcelDna.xll" DestinationFolder="$(TargetDir)" ContinueOnError="WarnAndContinue"/>
+    <Copy SourceFiles="$(SolutionDir)ExcelDna\$(Configuration)64\ExcelDna64.xll" DestinationFolder="$(TargetDir)" ContinueOnError="WarnAndContinue"/>
   </Target>
 </Project>
