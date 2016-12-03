@@ -18,7 +18,6 @@ namespace ExcelDna.Integration.Tests
         #region Member variables
         private Process m_xlProcess;
         private Application m_xlApp;
-        private Workbooks m_xlWorkbooks;
         private Workbook m_xlWorkbook;
         #endregion
 
@@ -81,9 +80,9 @@ namespace ExcelDna.Integration.Tests
             m_xlApp = new Application();
             Assert.IsNotNull(m_xlApp, "Could not create an Excel Application object");
 
-            m_xlWorkbooks = m_xlApp.Workbooks;
+            var xlWorkbooks = m_xlApp.Workbooks;
             var testMacrosPath = Path.Combine(outDir, "testMacros.xlsm");
-            var testMacros = m_xlWorkbooks.Open(testMacrosPath, 0, true, 5, "", "", true, XlPlatform.xlWindows, "\t", false, false, 0, true, 1, 0);
+            var testMacros = xlWorkbooks.Open(testMacrosPath, 0, true, 5, "", "", true, XlPlatform.xlWindows, "\t", false, false, 0, true, 1, 0);
             var pidAsObject = m_xlApp.Run(testMacros.Name + "!getpid");
             m_xlProcess = Process.GetProcessById(pidAsObject);
             var xldnaToLoad = PrepareXlDna(outDir);
@@ -96,7 +95,7 @@ namespace ExcelDna.Integration.Tests
 
             m_xlApp.DisplayAlerts = false;
 
-            m_xlWorkbook = m_xlWorkbooks.Open(workbook, 0, true, 5, "", "", true, XlPlatform.xlWindows, "\t", false, false, 0, true, 1, 0);
+            m_xlWorkbook = xlWorkbooks.Open(workbook, 0, true, 5, "", "", true, XlPlatform.xlWindows, "\t", false, false, 0, true, 1, 0);
             var workDir = Path.Combine(outDir, "evidence");
             if (!Directory.Exists(workDir))
             {
@@ -136,31 +135,42 @@ namespace ExcelDna.Integration.Tests
 
             // the test has passed. we don't need to leave the xlsm around
             m_xlWorkbook.Close(false);
-            Marshal.FinalReleaseComObject(m_xlWorkbook);
             m_xlWorkbook = null;
             File.Delete(workbook);
+        }
+
+        void CloseExcel()
+        {
+            if (m_xlWorkbook != null)
+            {
+                // Failed test - save the workbook and leave it there...
+                m_xlWorkbook.Save();
+                m_xlWorkbook.Close(false);
+                m_xlWorkbook = null;
+            }
+            if (m_xlApp != null)
+            {
+                m_xlApp.Quit();
+                m_xlApp = null;
+            }
         }
 
         [TearDown]
         public void TearDown()
         {
-            if (m_xlWorkbook != null)
+            CloseExcel();
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            if (!m_xlProcess.WaitForExit(5000))
             {
-                m_xlWorkbook.Save();
-                m_xlWorkbook.Close(false);
-                Marshal.FinalReleaseComObject(m_xlWorkbook);
-            }
-            if (m_xlWorkbooks != null)
-            {
-                Marshal.FinalReleaseComObject(m_xlWorkbooks);
-            }
-            if (m_xlApp != null)
-            {
-                m_xlApp.Quit();
-                Marshal.FinalReleaseComObject(m_xlApp);
-            }
-            if (!m_xlProcess.WaitForExit(500))
+                // This should never happen
+                Debug.Fail("Unexpected zombie Excel");
                 m_xlProcess.Kill();
+            }
         }
     }
 }
