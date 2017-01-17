@@ -117,6 +117,53 @@ namespace ExcelDna.Integration.Rtd
         IRTDUpdateEvent _callbackObject;
         readonly object _updateLock = new object();
 
+        /// <summary>
+        /// Performs a batch update of multiple topics, ensuring that all updates are visible to Excel at the same time.
+        /// </summary>
+        /// <param name="topics">List or array of topics to update</param>
+        /// <param name="values">List or array of values matching the topics</param>
+        public void UpdateValues(IList<Topic> topics, IList<object> values)
+        {
+            if (topics == null)
+                throw new ArgumentNullException("topics");
+            if (values == null)
+                throw new ArgumentNullException("values");
+            if (topics.Count != values.Count)
+                throw new ArgumentException("Number of values must match number of topics");
+
+            lock (_updateLock)
+            {
+                // Pretend that we've already notified, which will suppress the extra notification calls
+                var wasNotified = _notified;
+                _notified = true;
+                try
+                {
+                    for (int i = 0; i < topics.Count; i++)
+                    {
+                        var topic = topics[i];
+                        var value = values[i];
+                        // Call the real Topic.UpdateValue so that values get normalized and server notified
+                        topic.UpdateValue(value);
+                    }
+                }
+                finally
+                {
+                    if (!wasNotified && _dirtyTopics.Count > 0)
+                    {
+                        _updateSync.UpdateNotify(_callbackObject);
+                        // and leave _notified as true (which we've alread set above)
+                    }
+                    else
+                    {
+                        // else wasNotified is false, or there are no dirty topics
+                        // set _notified false so that next update will notify
+                        _notified = false;
+                    }
+                }
+            }
+            
+        }
+
         // The next few are the core RTD methods to be overridden by implementations
         protected virtual bool ServerStart()
         {
