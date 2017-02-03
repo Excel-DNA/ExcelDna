@@ -44,6 +44,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
@@ -90,6 +91,7 @@
     <Compile Include="Reference.cs" />
     <Compile Include="ExcelRtd.cs" />
     <Compile Include="RegistrationInfo.cs" />
+    <Compile Include="RegistryHelper.cs" />
     <Compile Include="SourceItem.cs" />
     <Compile Include="XlCall.cs" />
     <Compile Include="ExcelIntegration.cs" />

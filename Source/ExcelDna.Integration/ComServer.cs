@@ -16,6 +16,7 @@ namespace ExcelDna.ComInterop
     using IID = System.Guid;
     using CLSID = System.Guid;
     using System.Runtime.InteropServices.ComTypes;
+    using Logging;
 
     // The Excel-DNA .xll can also act as an in-process COM server.
     // This is implemented to support direct use of the RTD servers from the worksheet
@@ -138,6 +139,8 @@ namespace ExcelDna.ComInterop
         // Can throw UnauthorizedAccessException if nothing is writeable
         public void RegisterServer()
         {
+            Logger.ComServer.Verbose("ExcelComClassType.RegisterServer {0} - {1} ({2})", Type.FullName, ProgId, ClsId);
+
             // Registering under the user key is problematic when Excel runs under an elevated account, e.g. when "Run as Administrator" 
             // or when UAC is disabled and the account is a member of local Adminstrators group.
             // In these cases the COM activation will ignore the user hive of the registry.
@@ -170,6 +173,8 @@ namespace ExcelDna.ComInterop
         // Can throw UnauthorizedAccessException if nothing is writeable
         public void UnregisterServer()
         {
+            Logger.ComServer.Verbose("ExcelComClassType.UnregisterServer {0} - {1} ({2})", Type.FullName, ProgId, ClsId);
+
             RegistryKey rootKey = RegistrationUtil.ClassesRootKey;
 
             if (!string.IsNullOrEmpty(TypeLibPath))

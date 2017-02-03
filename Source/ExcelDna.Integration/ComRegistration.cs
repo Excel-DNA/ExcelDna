@@ -2,6 +2,7 @@
 //  Excel-DNA is licensed under the zlib license. See LICENSE.txt for details.
 
 using System;
+using System.Configuration;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Principal;
@@ -9,12 +10,13 @@ using Microsoft.Win32;
 using ExcelDna.Integration;
 using ExcelDna.Integration.Extensibility;
 using ExcelDna.Integration.Rtd;
-
-using CLSID     = System.Guid;
-using DWORD     = System.Int32;
-using HRESULT   = System.Int32;
-using IID       = System.Guid;
 using ExcelDna.Logging;
+using ExcelDna.Integration.Utils;
+
+using CLSID = System.Guid;
+using DWORD = System.Int32;
+using HRESULT = System.Int32;
+using IID = System.Guid;
 
 namespace ExcelDna.ComInterop.ComRegistration
 {
@@ -145,7 +147,17 @@ namespace ExcelDna.ComInterop.ComRegistration
 
     internal static class RegistrationUtil
     {
+        static bool _registryPersist;
+        static bool _registryVolatile;
         static RegistryKey _rootKey;
+
+        static RegistrationUtil()
+        {
+            // Get some settings from the .xll.config file
+            _registryPersist = AppSettingsFlag("ComAddIn.RegistryPersist");
+            _registryVolatile = AppSettingsFlag("ComAddIn.RegistryVolatile");
+            Logger.ComAddIn.Verbose("Loading Ribbon/COM Add-In - Registry Settings: Persist {0}, Volatile {1}", _registryPersist, _registryVolatile);
+        }
 
         public static RegistryKey ClassesRootKey
         {
@@ -154,9 +166,41 @@ namespace ExcelDna.ComInterop.ComRegistration
                 if (_rootKey == null)
                 {
                     // 3/22/2016: We use the intended hard coded reference of the HKCU hive to address the issue: https://groups.google.com/forum/#!topic/exceldna/CF_aNXTmV2Y
-                    _rootKey = CanWriteMachineHive() ?
-                                Registry.ClassesRoot :
-                                Registry.Users.CreateSubKey(WindowsIdentity.GetCurrent().User.ToString() + @"_CLASSES", RegistryKeyPermissionCheck.ReadWriteSubTree);                }
+                    if (CanWriteMachineHive())
+                    {
+                        var subkey = @"Software\Classes";
+                        if (_registryVolatile)
+                        {
+                            Logger.ComAddIn.Verbose(@"RegistrationUtil.ClassesRootKey - Using HKLM\Software\Classes as volatile");
+                            _rootKey = RegistryHelper.CreateVolatileSubKey(Registry.LocalMachine, subkey, RegistryKeyPermissionCheck.ReadWriteSubTree);
+                        }
+                        else
+                        {
+                            Logger.ComAddIn.Verbose(@"RegistrationUtil.ClassesRootKey - Using HKLM\Software\Classes");
+                            _rootKey = Registry.LocalMachine.CreateSubKey(subkey, RegistryKeyPermissionCheck.ReadWriteSubTree);
+                        }
+                    }
+                    else if (CanWriteUserHive())
+                    {
+                        string subkey = WindowsIdentity.GetCurrent().User.ToString() + @"_CLASSES";
+                        if (_registryVolatile)
+                        {
+                            Logger.ComAddIn.Verbose("RegistrationUtil.ClassesRootKey - Using Users subkey {0} as volatile", subkey);
+                            _rootKey = RegistryHelper.CreateVolatileSubKey(Registry.Users, subkey, RegistryKeyPermissionCheck.ReadWriteSubTree);
+                        }
+                        else
+                        {
+                            Logger.ComAddIn.Verbose("RegistrationUtil.ClassesRootKey - Using Users subkey {0}", subkey);
+                            _rootKey = Registry.Users.CreateSubKey(subkey, RegistryKeyPermissionCheck.ReadWriteSubTree);
+                        }
+                    }
+                    else
+                    {
+                        // We have no further plan
+                        Logger.ComAddIn.Error("RegistrationUtil - Unable to write to Machine or Users hives of registry - Ribbon/COM Add-In load cancelled");
+                        throw new UnauthorizedAccessException("RegistrationUtil - Unable to write to Machine or Users hives of registry");
+                    }
+                }
                 return _rootKey;
             }
         }
@@ -166,39 +210,151 @@ namespace ExcelDna.ComInterop.ComRegistration
             // This is not an easy question to answer, due to Registry Virtualization: http://msdn.microsoft.com/en-us/library/aa965884(v=vs.85).aspx
             // So if registry virtualization is active, the machine writes will redirect to a special user key.
             // I don't know how to detect that case, so we'll just write to the virtualized location.
-
+            string machineClassesRoot = @"Software\Classes";
             const string testKeyName = "_ExcelDna.PermissionsTest";
             try
             {
-                RegistryKey testKey = Registry.ClassesRoot.CreateSubKey(testKeyName, RegistryKeyPermissionCheck.ReadWriteSubTree);
-                if (testKey == null)
+                RegistryKey classesKey = Registry.LocalMachine.CreateSubKey(machineClassesRoot, RegistryKeyPermissionCheck.ReadWriteSubTree);
+                if (classesKey == null)
                 {
-                    Logger.ComAddIn.Error("Unexpected failure in CanWriteMachineHive check");
+                    Logger.ComAddIn.Verbose("RegistrationUtil.CanWriteMachineHive - Opening LocalMachineClassesRoot as ReadWrite failed - returning False");
                     return false;
                 }
-                else
-                {
-                    Registry.ClassesRoot.DeleteSubKeyTree(testKeyName);
 
-                    // Looks fine, even though it might well be virtualized to some part of the user hive.
-                    // I'd have preferred to return false in the virtualized case, but don't know how to detect it.
-                    return true;
+                RegistryKey testKey = classesKey.CreateSubKey(testKeyName, RegistryKeyPermissionCheck.ReadWriteSubTree);
+                if (testKey == null)
+                {
+                    Logger.ComAddIn.Verbose("RegistrationUtil.CanWriteMachineHive - Creating test sub key failed - returning False");
+                    return false;
                 }
+
+                classesKey.DeleteSubKeyTree(testKeyName);
+                Logger.ComAddIn.Verbose("RegistrationUtil.CanWriteMachineHive - returning True");
+
+                // Looks fine, even though it might well be virtualized to some part of the user hive.
+                // I'd have preferred to return false in the virtualized case, but don't know how to detect it.
+                return true;
             }
             catch (UnauthorizedAccessException)
             {
+                Logger.ComAddIn.Verbose("RegistrationUtil.CanWriteMachineHive - UnauthorizedAccessException - False");
                 return false;
             }
             catch (SecurityException)
             {
+                Logger.ComAddIn.Verbose("RegistrationUtil.CanWriteMachineHive - SecurityException - False");
                 return false;
             }
             catch (Exception e)
             {
-                Logger.ComAddIn.Error(e, "Unexpected exception in CanWriteMachineHive check");
+                Logger.ComAddIn.Error(e, "RegistrationUtil.CanWriteMachineHive - Unexpected exception - False");
                 return false;
             }
         }
+
+        static bool CanWriteUserHive()
+        {
+            string userClassesRoot = WindowsIdentity.GetCurrent().User.ToString() + @"_CLASSES";
+            const string testKeyName = "_ExcelDna.PermissionsTest";
+            try
+            {
+                RegistryKey classesKey = Registry.Users.CreateSubKey(userClassesRoot, RegistryKeyPermissionCheck.ReadWriteSubTree);
+                if (classesKey == null)
+                {
+                    Logger.ComAddIn.Error("RegistrationUtil.CanWriteUserHive - Opening UserClassesRoot - Unexpected failure - False");
+                    return false;
+                }
+
+                RegistryKey testKey = classesKey.CreateSubKey(testKeyName);
+                if (testKey == null)
+                {
+                    Logger.ComAddIn.Error("RegistrationUtil.CanWriteUserHive - Creating test sub key - Unexpected failure - False");
+                    return false;
+                }
+
+                classesKey.DeleteSubKeyTree(testKeyName);
+                Logger.ComAddIn.Verbose("RegistrationUtil.CanWriteUserHive - True");
+
+                // Looks fine, even though it might well be virtualized to some part of the user hive.
+                // I'd have preferred to return false in the virtualized case, but don't know how to detect it.
+                return true;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                Logger.ComAddIn.Verbose("RegistrationUtil.CanWriteUserHive - UnauthorizedAccessException - False");
+                return false;
+            }
+            catch (SecurityException)
+            {
+                Logger.ComAddIn.Verbose("RegistrationUtil.CanWriteUserHive - SecurityException - False");
+                return false;
+            }
+            catch (Exception e)
+            {
+                Logger.ComAddIn.Error(e, "RegistrationUtil.CanWriteUserHive - Unexpected exception - False");
+                return false;
+            }
+        }
+
+        // Registry calls 
+        public static RegistryKey UsersCreateSubKey(string subkey, RegistryKeyPermissionCheck permissionsCheck)
+        {
+            Logger.ComAddIn.Verbose("RegistrationUtil.UsersCreateSubKey({0}, {1})", subkey, permissionsCheck);
+            return Registry.Users.CreateSubKey(subkey, permissionsCheck);
+        }
+
+        public static void UsersDeleteSubKey(string subkey)
+        {
+            Logger.ComAddIn.Verbose("RegistrationUtil.UsersDeleteSubKey({0})", subkey);
+            if (_registryPersist)
+            {
+                Logger.ComAddIn.Verbose("RegistrationUtil.UsersDeleteSubKey - Not deleting");
+            }
+            else
+            {
+                Registry.Users.DeleteSubKey(subkey);
+            }
+        }
+
+        public static void KeySetValue(RegistryKey key, string name, object value, RegistryValueKind valueKind)
+        {
+            Logger.ComAddIn.Verbose("RegistrationUtil.KeySetValue({0}, {1}, {2}, {3})", key.Name, name, value.ToString(), valueKind.ToString());
+            key.SetValue(name, value, valueKind);
+        }
+
+        public static void DeleteSubKeyTree(RegistryKey key, string subkey)
+        {
+            Logger.ComAddIn.Verbose("RegistrationUtil.DeleteSubKeyTree({0}, {1})", key.Name, subkey);
+            if (_registryPersist)
+            {
+                Logger.ComAddIn.Verbose("RegistrationUtil.DeleteSubKeyTree - Not deleting");
+            }
+            else
+            {
+                key.DeleteSubKeyTree(subkey);
+            }
+        }
+
+        public static void SetValue(string keyName, string valueName, object value, RegistryValueKind valueKind)
+        {
+            Logger.ComAddIn.Verbose("RegistrationUtil.SetValue({0}, {1}, {2}, {3})", keyName, valueName, value.ToString(), valueKind.ToString());
+            Registry.SetValue(keyName, valueName, value, valueKind);
+        }
+
+        // Helper for AppSettings (can move somewhere later)
+        static bool AppSettingsFlag(string key)
+        {
+            var value = ConfigurationManager.AppSettings[key];
+            if (value == null)
+                return false;
+            
+            bool flag;
+            if (bool.TryParse(value, out flag))
+                return flag;
+
+            return false;
+        }
+
     }
 
     // Disposable base class
@@ -252,24 +408,27 @@ namespace ExcelDna.ComInterop.ComRegistration
 
     internal class ComAddInRegistration : Registration
     {
-        
         readonly string _progId;
+        readonly string _subKeyName;
 
         public ComAddInRegistration(string progId, string friendlyName, string description)
         {
-            _progId = progId;
             // Register the ProgId as a COM Add-In in Excel.
-            // 3/22/2016: We use the intended hard coded reference of the HKCU hive to address the issue: https://groups.google.com/forum/#!topic/exceldna/CF_aNXTmV2Y
-            RegistryKey rk = Registry.Users.CreateSubKey(WindowsIdentity.GetCurrent().User.ToString() + @"\Software\Microsoft\Office\Excel\Addins\" + progId, RegistryKeyPermissionCheck.ReadWriteSubTree);
-            rk.SetValue("LoadBehavior", 0, RegistryValueKind.DWord);
-            rk.SetValue("FriendlyName", friendlyName, RegistryValueKind.String);
-            rk.SetValue("Description", description, RegistryValueKind.String);
+            _progId = progId;
+            _subKeyName = WindowsIdentity.GetCurrent().User.ToString() + @"\Software\Microsoft\Office\Excel\Addins\" + progId;
+            Logger.ComAddIn.Verbose("ComAddInRegistration - Creating User SubKey: " + _subKeyName);
+
+            RegistryKey rk = RegistrationUtil.UsersCreateSubKey(_subKeyName, RegistryKeyPermissionCheck.ReadWriteSubTree);
+            RegistrationUtil.KeySetValue(rk, "LoadBehavior", 0, RegistryValueKind.DWord);
+            RegistrationUtil.KeySetValue(rk, "FriendlyName", friendlyName, RegistryValueKind.String);
+            RegistrationUtil.KeySetValue(rk, "Description", description, RegistryValueKind.String);
         }
 
         protected override void Deregister()
         {
             // Remove Add-In registration from Excel
-            Registry.Users.DeleteSubKey(WindowsIdentity.GetCurrent().User.ToString()+ @"\Software\Microsoft\Office\Excel\Addins\" + _progId);
+            Logger.ComAddIn.Verbose("ComAddInRegistration - Deleting User SubKey: " + _subKeyName);
+            RegistrationUtil.UsersDeleteSubKey(_subKeyName);
         }
     }
 
@@ -281,43 +440,49 @@ namespace ExcelDna.ComInterop.ComRegistration
         {
             _progId = progId;
             string rootKeyName = RegistrationUtil.ClassesRootKey.Name;
-
+            string progIdKeyName = rootKeyName + @"\" + _progId;
+            string value = clsId.ToString("B").ToUpperInvariant();
             // Register the ProgId for CLSIDFromProgID.
-            Registry.SetValue(rootKeyName + @"\" + _progId + @"\CLSID", null, clsId.ToString("B").ToUpperInvariant(), RegistryValueKind.String);
+            Logger.ComAddIn.Verbose("ProgIdRegistration - Set Value - {0} -> {1}", progIdKeyName, value);
+            RegistrationUtil.SetValue(progIdKeyName + @"\CLSID", null, value, RegistryValueKind.String);
         }
 
         protected override void Deregister()
         {
             // Deregister the ProgId for CLSIDFromProgID.
-            RegistrationUtil.ClassesRootKey.DeleteSubKeyTree(_progId);
+            Logger.ComAddIn.Verbose("ProgIdRegistration - Delete SubKey {0}", _progId);
+            RegistrationUtil.DeleteSubKeyTree(RegistrationUtil.ClassesRootKey, _progId);
         }
     }
 
     internal class ClsIdRegistration : Registration
     {
         readonly Guid _clsId;
+        readonly string _clsIdKeyName;
+
         public ClsIdRegistration(CLSID clsId, string progId)
         {
             _clsId = clsId;
             string clsIdString = clsId.ToString("B").ToUpperInvariant();
             string rootKeyName = RegistrationUtil.ClassesRootKey.Name;
-
+            _clsIdKeyName = rootKeyName + @"\CLSID\" + clsIdString;
             // Register the CLSID
 
             // NOTE: Remember that all the CLSID keys are redirected under WOW64.
-
-            Registry.SetValue(rootKeyName + @"\CLSID\" + clsIdString + @"\InProcServer32", null, DnaLibrary.XllPath, RegistryValueKind.String);
-            Registry.SetValue(rootKeyName + @"\CLSID\" + clsIdString + @"\InProcServer32", "ThreadingModel", "Both", RegistryValueKind.String);
+            Logger.ComAddIn.Verbose("ClsIdRegistration - Set Values - {0} ({1}) - {2}", _clsIdKeyName, progId, DnaLibrary.XllPath);
+            RegistrationUtil.SetValue(_clsIdKeyName + @"\InProcServer32", null, DnaLibrary.XllPath, RegistryValueKind.String);
+            RegistrationUtil.SetValue(_clsIdKeyName + @"\InProcServer32", "ThreadingModel", "Both", RegistryValueKind.String);
             if (!string.IsNullOrEmpty(progId))
             {
-                Registry.SetValue(rootKeyName + @"\CLSID\" + clsIdString + @"\ProgID", null, progId, RegistryValueKind.String);
+                RegistrationUtil.SetValue(_clsIdKeyName + @"\ProgID", null, progId, RegistryValueKind.String);
             }
         }
 
         protected override void Deregister()
         {
             // Deregister the ProgId for CLSIDFromProgID.
-            RegistrationUtil.ClassesRootKey.DeleteSubKeyTree(@"CLSID\" + _clsId.ToString("B").ToUpperInvariant());
+            Logger.ComAddIn.Verbose("ClsIdRegistration - Delete SubKey {0}", _clsIdKeyName);
+            RegistrationUtil.DeleteSubKeyTree(RegistrationUtil.ClassesRootKey, _clsIdKeyName);
         }
     }
 
@@ -341,4 +506,5 @@ namespace ExcelDna.ComInterop.ComRegistration
     }
 
     #endregion
+
 }
