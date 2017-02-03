@@ -153,11 +153,14 @@ namespace ExcelDna.Integration
                 // in a COM-unfriendly mode where (sometimes) the COM add-in for the ribbon won't load. 
                 // We skip the log display in this case.
                 // CONSIDER: How would an add-in know that its COM AddIn load failed in this case?
-                if (!Environment.CommandLine.Contains(" /K"))
+                if (Environment.CommandLine.Contains(" /K"))
+                {
+                    Logger.ComAddIn.Info("LoadComAddIn exception: {0} with /K in CommandLine", ex.ToString());
+                }
+                else
                 {
                     Logger.ComAddIn.Error("The Ribbon/COM add-in helper required by add-in {0} could not be registered.\r\nThis is an unexpected error.", DnaLibrary.CurrentLibrary.Name);
                 }
-                Logger.ComAddIn.Info("LoadComAddIn exception: {0} with /K in CommandLine", ex.ToString());
             }
         }
 
