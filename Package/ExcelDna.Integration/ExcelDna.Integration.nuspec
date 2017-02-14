@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>ExcelDna.Integration</id>
-        <version>0.34.1-beta</version>
+        <version>0.34.2-rc</version>
         <title>Excel-DNA Reference Library</title>
         <authors>Govert van Drimmelen</authors>
         <owners>Govert van Drimmelen</owners>

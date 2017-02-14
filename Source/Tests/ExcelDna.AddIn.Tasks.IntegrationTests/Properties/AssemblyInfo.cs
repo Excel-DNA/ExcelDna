@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Excel-DNA Add-In Framework for Microsoft Excel")]
-[assembly: AssemblyCopyright("Copyright © 2005-2016 Excel-DNA Contributors")]
+[assembly: AssemblyCopyright("Copyright © 2005-2017 Excel-DNA Contributors")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

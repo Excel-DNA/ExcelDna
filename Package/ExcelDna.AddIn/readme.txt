@@ -4,15 +4,16 @@ Find more information about Excel-DNA at http://excel-dna.net.
 
 Installing the ExcelDna.AddIn NuGet package into your project has made the following changes:
 1. Added a reference to <package>\lib\ExcelDna.Integration.dll.
-2. Added a post-build event command-line to copy <package>\tools\ExcelDna\ExcelDna.xll to your output directory as 
+2. Added a build properties file called ExcelDna.Build.props under your Properties item group. This file allows build customization, and ensures that a copy of <package>\tools\ExcelDna\ExcelDna.xll will be placed in your output directory as 
    <ProjectName>-AddIn.xll. This is the add-in loader for your Excel add-in. 
-3. Another command is also added to run the Excel-DNA packing tool ExcelDnaPack.exe to create a single-file 
+3. The build targets file in the packages also lets the Excel-DNA packing tool ExcelDnaPack.exe run to create a single-file 
    redistributable, called <ProjectName>-AddIn-packed.xll.
 4. Added a file called <ProjectName>-AddIn.dna to your project, set to be copied to the output directory (same name 
    as the .xll). This is the configuration file for your Excel add-in.
 5. Configured <ProjectName>-Addin.dna to load your project library as an add-in library, and pack the compiled library
    into the redistributable.
 6. Configured debugging to start Excel and load the <ProjectName>-AddIn.xll. 
+
    NOTE: Debugging will fail to load the add-in for 64-bit Excel installations. See below under Troubleshooting.
    NOTE: Debugging will not be configured for F# projects when installing in Visual Studio 2013 or older. See instructions at the bottom of this file.
 
