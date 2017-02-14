@@ -11,7 +11,6 @@ using ExcelDna.Integration;
 using ExcelDna.Integration.Extensibility;
 using ExcelDna.Integration.Rtd;
 using ExcelDna.Logging;
-using ExcelDna.Integration.Utils;
 
 using CLSID = System.Guid;
 using DWORD = System.Int32;
@@ -147,16 +146,11 @@ namespace ExcelDna.ComInterop.ComRegistration
 
     internal static class RegistrationUtil
     {
-        static bool _registryPersist;
-        static bool _registryVolatile;
         static RegistryKey _rootKey;
 
         static RegistrationUtil()
         {
-            // Get some settings from the .xll.config file
-            _registryPersist = AppSettingsFlag("ComAddIn.RegistryPersist");
-            _registryVolatile = AppSettingsFlag("ComAddIn.RegistryVolatile");
-            Logger.ComAddIn.Verbose("Loading Ribbon/COM Add-In - Registry Settings: Persist {0}, Volatile {1}", _registryPersist, _registryVolatile);
+            Logger.ComAddIn.Verbose("Loading Ribbon/COM Add-In");
         }
 
         public static RegistryKey ClassesRootKey
@@ -169,30 +163,14 @@ namespace ExcelDna.ComInterop.ComRegistration
                     if (CanWriteMachineHive())
                     {
                         var subkey = @"Software\Classes";
-                        if (_registryVolatile)
-                        {
-                            Logger.ComAddIn.Verbose(@"RegistrationUtil.ClassesRootKey - Using HKLM\Software\Classes as volatile");
-                            _rootKey = RegistryHelper.CreateVolatileSubKey(Registry.LocalMachine, subkey, RegistryKeyPermissionCheck.ReadWriteSubTree);
-                        }
-                        else
-                        {
-                            Logger.ComAddIn.Verbose(@"RegistrationUtil.ClassesRootKey - Using HKLM\Software\Classes");
-                            _rootKey = Registry.LocalMachine.CreateSubKey(subkey, RegistryKeyPermissionCheck.ReadWriteSubTree);
-                        }
+                        Logger.ComAddIn.Verbose(@"RegistrationUtil.ClassesRootKey - Using HKLM\Software\Classes");
+                        _rootKey = Registry.LocalMachine.CreateSubKey(subkey, RegistryKeyPermissionCheck.ReadWriteSubTree);
                     }
                     else if (CanWriteUserHive())
                     {
                         string subkey = WindowsIdentity.GetCurrent().User.ToString() + @"_CLASSES";
-                        if (_registryVolatile)
-                        {
-                            Logger.ComAddIn.Verbose("RegistrationUtil.ClassesRootKey - Using Users subkey {0} as volatile", subkey);
-                            _rootKey = RegistryHelper.CreateVolatileSubKey(Registry.Users, subkey, RegistryKeyPermissionCheck.ReadWriteSubTree);
-                        }
-                        else
-                        {
-                            Logger.ComAddIn.Verbose("RegistrationUtil.ClassesRootKey - Using Users subkey {0}", subkey);
-                            _rootKey = Registry.Users.CreateSubKey(subkey, RegistryKeyPermissionCheck.ReadWriteSubTree);
-                        }
+                        Logger.ComAddIn.Verbose("RegistrationUtil.ClassesRootKey - Using Users subkey {0}", subkey);
+                        _rootKey = Registry.Users.CreateSubKey(subkey, RegistryKeyPermissionCheck.ReadWriteSubTree);
                     }
                     else
                     {
@@ -306,14 +284,7 @@ namespace ExcelDna.ComInterop.ComRegistration
         public static void UsersDeleteSubKey(string subkey)
         {
             Logger.ComAddIn.Verbose("RegistrationUtil.UsersDeleteSubKey({0})", subkey);
-            if (_registryPersist)
-            {
-                Logger.ComAddIn.Verbose("RegistrationUtil.UsersDeleteSubKey - Not deleting");
-            }
-            else
-            {
-                Registry.Users.DeleteSubKey(subkey);
-            }
+            Registry.Users.DeleteSubKey(subkey);
         }
 
         public static void KeySetValue(RegistryKey key, string name, object value, RegistryValueKind valueKind)
@@ -325,14 +296,7 @@ namespace ExcelDna.ComInterop.ComRegistration
         public static void DeleteSubKeyTree(RegistryKey key, string subkey)
         {
             Logger.ComAddIn.Verbose("RegistrationUtil.DeleteSubKeyTree({0}, {1})", key.Name, subkey);
-            if (_registryPersist)
-            {
-                Logger.ComAddIn.Verbose("RegistrationUtil.DeleteSubKeyTree - Not deleting");
-            }
-            else
-            {
-                key.DeleteSubKeyTree(subkey);
-            }
+            key.DeleteSubKeyTree(subkey);
         }
 
         public static void SetValue(string keyName, string valueName, object value, RegistryValueKind valueKind)
@@ -379,7 +343,7 @@ namespace ExcelDna.ComInterop.ComRegistration
         {
             // Not thread-safe...
             if (!_disposed)
-            {
+            {                
                 // if (disposing)
                 // {
                 //     // Here comes explicit free of other managed disposable objects.
