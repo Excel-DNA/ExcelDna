@@ -65,7 +65,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 //			return;
 
             // Set to an 'Error' exit unless we get to the end.
-            Environment.ExitCode = -1;
+            Environment.ExitCode = 1;
 
 			// Force jit-load of ExcelDna.Integration assembly
 			int unused = XlCall.xlAbort;
