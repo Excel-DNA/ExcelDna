@@ -57,6 +57,28 @@ internal unsafe static class ResourceHelper
         IntPtr lpData,
         uint cbData);
 
+    // This overload provides the resource type and name conversions that would be done by MAKEINTRESOURCE
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool UpdateResource(
+        IntPtr hUpdate,
+        uint lpType,
+        uint lpName,
+        ushort wLanguage,
+        IntPtr lpData,
+        uint cbData);
+
+    [DllImport("version.dll", SetLastError = true)]
+    private static extern uint GetFileVersionInfoSize(
+        string lptstrFilename,
+        out uint lpdwHandle);
+
+    [DllImport("version.dll", SetLastError = true)]
+    private static extern bool GetFileVersionInfo(
+        string lptstrFilename,
+        uint dwHandle,
+        uint dwLen,
+        byte[] lpData);
+
 	[DllImport("kernel32.dll")]
 	private static extern uint GetLastError();
 
@@ -185,6 +207,48 @@ internal unsafe static class ResourceHelper
                 }
             }
         }
+
+	    public void CopyFileVersion(string fromFile)
+	    {
+	        uint ignored;
+	        uint versionSize = ResourceHelper.GetFileVersionInfoSize(fromFile, out ignored);
+	        if (versionSize == 0)
+	        {
+	            throw new Win32Exception();
+	        }
+            
+            byte[] versionBuf = new byte[versionSize];
+	        bool result = ResourceHelper.GetFileVersionInfo(fromFile, ignored, versionSize, versionBuf);
+	        if (!result)
+	        {
+	            throw new Win32Exception();
+	        }
+
+	        GCHandle versionBufHandle = GCHandle.Alloc(versionBuf, GCHandleType.Pinned);
+            try
+	        {
+	            lock (lockResource)
+	            {
+	                uint versionResourceType = 16;
+	                uint versionResourceId = 1;
+	                result = ResourceHelper.UpdateResource(
+	                    _hUpdate,
+	                    versionResourceType,
+	                    versionResourceId,
+	                    localeNeutral,
+	                    versionBufHandle.AddrOfPinnedObject(),
+	                    versionSize);
+	                if (!result)
+	                {
+	                    throw new Win32Exception();
+	                }
+	            }
+	        }
+	        finally
+	        {
+	            versionBufHandle.Free();
+	        }
+	    }
 
 		public void EndUpdate()
 		{
