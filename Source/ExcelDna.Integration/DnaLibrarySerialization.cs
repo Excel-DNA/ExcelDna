@@ -227,6 +227,7 @@ namespace ExcelDna.Serialization
             WriteAttribute(@"LoadFromBytes", @"", System.Xml.XmlConvert.ToString((global::System.Boolean)((global::System.Boolean)o.@LoadFromBytes)));
             WriteAttribute(@"ExplicitExports", @"", System.Xml.XmlConvert.ToString((global::System.Boolean)((global::System.Boolean)o.@ExplicitExports)));
             WriteAttribute(@"ExplicitRegistration", @"", System.Xml.XmlConvert.ToString((global::System.Boolean)((global::System.Boolean)o.@ExplicitRegistration)));
+            WriteAttribute(@"UseVersionAsOutputVersion", @"", System.Xml.XmlConvert.ToString((global::System.Boolean)((global::System.Boolean)o.@UseVersionAsOutputVersion)));
             WriteEndElement(o);
         }
 
@@ -651,7 +652,7 @@ namespace ExcelDna.Serialization
             if (isNull) return null;
             global::ExcelDna.Integration.ExternalLibrary o;
             o = new global::ExcelDna.Integration.ExternalLibrary();
-            bool[] paramsRead = new bool[7];
+            bool[] paramsRead = new bool[8];
             while (Reader.MoveToNextAttribute()) {
                 if (!paramsRead[0] && ((object) Reader.LocalName == (object)id16_Path && (object) Reader.NamespaceURI == (object)id2_Item)) {
                     o.@Path = Reader.Value;
@@ -681,8 +682,12 @@ namespace ExcelDna.Serialization
                     o.@ExplicitRegistration = System.Xml.XmlConvert.ToBoolean(Reader.Value);
                     paramsRead[6] = true;
                 }
+                else if (!paramsRead[7] && ((object) Reader.LocalName == (object)id25_UseVersionAsOutputVersion && (object) Reader.NamespaceURI == (object) id2_Item)) {
+                    o.@UseVersionAsOutputVersion = System.Xml.XmlConvert.ToBoolean(Reader.Value);
+                    paramsRead[7] = true;
+                }
                 else if (!IsXmlnsAttribute(Reader.Name)) {
-                    UnknownNode((object)o, @":Path, :TypeLibPath, :ComServer, :Pack, :LoadFromBytes, :ExplicitExports, :ExplicitRegistration");
+                    UnknownNode((object)o, @":Path, :TypeLibPath, :ComServer, :Pack, :LoadFromBytes, :ExplicitExports, :ExplicitRegistration, :UseVersionAsOutputVersion");
                 }
             }
             Reader.MoveToElement();
@@ -735,6 +740,7 @@ namespace ExcelDna.Serialization
         string id4_RuntimeVersion;
         string id8_CompilerVersion;
         string id21_ComServer;
+        string id25_UseVersionAsOutputVersion;
 
         protected override void InitIDs() {
             id2_Item = Reader.NameTable.Add(@"");
@@ -761,6 +767,7 @@ namespace ExcelDna.Serialization
             id4_RuntimeVersion = Reader.NameTable.Add(@"RuntimeVersion");
             id8_CompilerVersion = Reader.NameTable.Add(@"CompilerVersion");
             id21_ComServer = Reader.NameTable.Add(@"ComServer");
+            id25_UseVersionAsOutputVersion = Reader.NameTable.Add(@"UseVersionAsOutputVersion");
         }
     }
 
