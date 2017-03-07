@@ -236,11 +236,12 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
             }
 			if (dna.ExternalLibraries != null)
 			{
+			    bool copiedVersion = false;
 				foreach (ExternalLibrary ext in dna.ExternalLibraries)
 				{
+				    string path = dna.ResolvePath(ext.Path);
 					if (ext.Pack)
 					{
-						string path = dna.ResolvePath(ext.Path);
                         Console.WriteLine("  ~~> ExternalLibrary path {0} resolved to {1}.", ext.Path, path);
 						if (Path.GetExtension(path).Equals(".DNA", StringComparison.OrdinalIgnoreCase))
 						{
@@ -292,7 +293,23 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                             }
                         }
 					}
-                    
+				    if (ext.UseVersionAsOutputVersion)
+				    {
+				        if (copiedVersion)
+				        {
+				            Console.WriteLine("  ~~> Assembly version already copied from previous ExternalLibrary; ignoring 'UseVersionAsOutputVersion' attribute.");
+				            continue;
+				        }
+				        try
+				        {
+				            ru.CopyFileVersion(path);
+				            copiedVersion = true;
+				        }
+				        catch (Exception e)
+				        {
+				            Console.WriteLine("  ~~> Error copying version to output version: {0}", e.Message);
+				        }
+				    }
 				}
 			}
 			// Collect the list of all the references.

@@ -76,6 +76,14 @@ namespace ExcelDna.Integration
             set { _ExplicitRegistration = value; }
         }
 
+	    private bool _UseVersionAsOutputVersion = false;
+	    [XmlAttribute]
+	    public bool UseVersionAsOutputVersion
+        {
+	        get { return _UseVersionAsOutputVersion; }
+            set { _UseVersionAsOutputVersion = value; }
+	    }
+
 		internal List<ExportedAssembly> GetAssemblies(string pathResolveRoot, DnaLibrary dnaLibrary)
 		{
 			List<ExportedAssembly> list = new List<ExportedAssembly>();
