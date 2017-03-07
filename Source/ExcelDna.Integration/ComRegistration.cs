@@ -445,7 +445,7 @@ namespace ExcelDna.ComInterop.ComRegistration
             _clsId = clsId;
             _clsIdString = clsId.ToString("B").ToUpperInvariant();
             string clsIdRootKeyName = RegistrationUtil.ClsIdRootKey.Name;
-            string clsIdKeyName = clsIdRootKeyName + _clsIdString;
+            string clsIdKeyName = clsIdRootKeyName + "\\" + _clsIdString;
             // Register the CLSID
 
             // NOTE: Remember that all the CLSID keys are redirected under WOW64.
