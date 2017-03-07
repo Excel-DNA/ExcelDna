@@ -3,6 +3,8 @@
 
 using System;
 using System.Configuration;
+using System.Globalization;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Principal;
@@ -16,6 +18,7 @@ using CLSID = System.Guid;
 using DWORD = System.Int32;
 using HRESULT = System.Int32;
 using IID = System.Guid;
+
 
 namespace ExcelDna.ComInterop.ComRegistration
 {
@@ -146,7 +149,8 @@ namespace ExcelDna.ComInterop.ComRegistration
 
     internal static class RegistrationUtil
     {
-        static RegistryKey _rootKey;
+        static RegistryKey _classesRootKey;
+        static RegistryKey _clsIdRootKey;
 
         static RegistrationUtil()
         {
@@ -157,20 +161,20 @@ namespace ExcelDna.ComInterop.ComRegistration
         {
             get
             {
-                if (_rootKey == null)
+                if (_classesRootKey == null)
                 {
                     // 3/22/2016: We use the intended hard coded reference of the HKCU hive to address the issue: https://groups.google.com/forum/#!topic/exceldna/CF_aNXTmV2Y
                     if (CanWriteMachineHive())
                     {
                         var subkey = @"Software\Classes";
                         Logger.ComAddIn.Verbose(@"RegistrationUtil.ClassesRootKey - Using HKLM\Software\Classes");
-                        _rootKey = Registry.LocalMachine.CreateSubKey(subkey, RegistryKeyPermissionCheck.ReadWriteSubTree);
+                        _classesRootKey = Registry.LocalMachine.CreateSubKey(subkey, RegistryKeyPermissionCheck.ReadWriteSubTree);
                     }
                     else if (CanWriteUserHive())
                     {
                         string subkey = WindowsIdentity.GetCurrent().User.ToString() + @"_CLASSES";
                         Logger.ComAddIn.Verbose("RegistrationUtil.ClassesRootKey - Using Users subkey {0}", subkey);
-                        _rootKey = Registry.Users.CreateSubKey(subkey, RegistryKeyPermissionCheck.ReadWriteSubTree);
+                        _classesRootKey = Registry.Users.CreateSubKey(subkey, RegistryKeyPermissionCheck.ReadWriteSubTree);
                     }
                     else
                     {
@@ -179,7 +183,19 @@ namespace ExcelDna.ComInterop.ComRegistration
                         throw new UnauthorizedAccessException("RegistrationUtil - Unable to write to Machine or Users hives of registry");
                     }
                 }
-                return _rootKey;
+                return _classesRootKey;
+            }
+        }
+
+        public static RegistryKey ClsIdRootKey
+        {
+            get
+            {
+                if (_clsIdRootKey == null)
+                {
+                    _clsIdRootKey = ClassesRootKey.CreateSubKey("CLSID", RegistryKeyPermissionCheck.ReadWriteSubTree);
+                }
+                return _clsIdRootKey;
             }
         }
 
@@ -422,31 +438,31 @@ namespace ExcelDna.ComInterop.ComRegistration
     internal class ClsIdRegistration : Registration
     {
         readonly Guid _clsId;
-        readonly string _clsIdKeyName;
+        readonly string _clsIdString;
 
         public ClsIdRegistration(CLSID clsId, string progId)
         {
             _clsId = clsId;
-            string clsIdString = clsId.ToString("B").ToUpperInvariant();
-            string rootKeyName = RegistrationUtil.ClassesRootKey.Name;
-            _clsIdKeyName = rootKeyName + @"\CLSID\" + clsIdString;
+            _clsIdString = clsId.ToString("B").ToUpperInvariant();
+            string clsIdRootKeyName = RegistrationUtil.ClsIdRootKey.Name;
+            string clsIdKeyName = clsIdRootKeyName + _clsIdString;
             // Register the CLSID
 
             // NOTE: Remember that all the CLSID keys are redirected under WOW64.
-            Logger.ComAddIn.Verbose("ClsIdRegistration - Set Values - {0} ({1}) - {2}", _clsIdKeyName, progId, DnaLibrary.XllPath);
-            RegistrationUtil.SetValue(_clsIdKeyName + @"\InProcServer32", null, DnaLibrary.XllPath, RegistryValueKind.String);
-            RegistrationUtil.SetValue(_clsIdKeyName + @"\InProcServer32", "ThreadingModel", "Both", RegistryValueKind.String);
+            Logger.ComAddIn.Verbose("ClsIdRegistration - Set Values - {0} ({1}) - {2}", clsIdKeyName, progId, DnaLibrary.XllPath);
+            RegistrationUtil.SetValue(clsIdKeyName + @"\InProcServer32", null, DnaLibrary.XllPath, RegistryValueKind.String);
+            RegistrationUtil.SetValue(clsIdKeyName + @"\InProcServer32", "ThreadingModel", "Both", RegistryValueKind.String);
             if (!string.IsNullOrEmpty(progId))
             {
-                RegistrationUtil.SetValue(_clsIdKeyName + @"\ProgID", null, progId, RegistryValueKind.String);
+                RegistrationUtil.SetValue(clsIdKeyName + @"\ProgID", null, progId, RegistryValueKind.String);
             }
         }
 
         protected override void Deregister()
         {
             // Deregister the ProgId for CLSIDFromProgID.
-            Logger.ComAddIn.Verbose("ClsIdRegistration - Delete SubKey {0}", _clsIdKeyName);
-            RegistrationUtil.DeleteSubKeyTree(RegistrationUtil.ClassesRootKey, _clsIdKeyName);
+            Logger.ComAddIn.Verbose("ClsIdRegistration - Delete SubKey {0}", RegistrationUtil.ClsIdRootKey.Name + _clsIdString);
+            RegistrationUtil.DeleteSubKeyTree(RegistrationUtil.ClsIdRootKey, _clsIdString);
         }
     }
 
@@ -466,6 +482,48 @@ namespace ExcelDna.ComInterop.ComRegistration
         protected override void Deregister()
         {
             ComServer.UnregisterClassFactory(_clsId);
+        }
+    }
+
+    // We want to temporarily set Application.AutomationSecurity = 1 (msoAutomationSecurityLow)
+    internal class AutomationSecurityOverride : Registration
+    {
+        object _app;
+        object _oldValue = null;
+        public AutomationSecurityOverride(object app)
+        {
+            _app = app;
+            _oldValue = SetAutomationSecurity(1);
+        }
+
+        protected override void Deregister()
+        {
+            if (_oldValue != null)
+            {
+                SetAutomationSecurity(_oldValue);
+            }
+        }
+
+        object SetAutomationSecurity(object value)
+        {
+            CultureInfo ci = new CultureInfo(1033);
+            Type appType = _app.GetType();
+            try
+            {
+                var oldValue = appType.InvokeMember("AutomationSecurity", BindingFlags.GetProperty, null, _app, null, ci);
+                if (oldValue.Equals(value)) // Careful...they're boxed ints
+                    return null;
+
+                Logger.ComAddIn.Verbose("AutomationSecurityEnable - Setting Application.AutomationSecurity to {0}", value);
+                appType.InvokeMember("AutomationSecurity", BindingFlags.SetProperty, null, _app, new object[] { value }, ci);
+                return oldValue;
+            }
+            catch (Exception ex)
+            {
+                // We're not going to treat this as an error - we expect the COM add-in load to fail, which may pop up an error.
+                Logger.ComAddIn.Info("AutomationSecurityEnable - SetAutomationSecurity error: {0}", ex.ToString());
+            }
+            return null;
         }
     }
 

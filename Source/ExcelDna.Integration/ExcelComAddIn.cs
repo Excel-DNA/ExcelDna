@@ -129,6 +129,7 @@ namespace ExcelDna.Integration
                 using (new ProgIdRegistration(progId, clsId))
                 using (new ClsIdRegistration(clsId, progId))
                 using (new ComAddInRegistration(progId, friendlyName, description))
+                using (new AutomationSecurityOverride(app))
                 {
                     excelComAddIns = appType.InvokeMember("COMAddIns", BindingFlags.GetProperty, null, app, null, ci);
                     //                            Debug.Print("Got COMAddins object: " + excelComAddIns.GetType().ToString());
@@ -151,7 +152,7 @@ namespace ExcelDna.Integration
             }
             catch (UnauthorizedAccessException secex)
             {
-                Logger.ComAddIn.Error(secex, "The Ribbon/COM Add-In helper required by add-in {0} could not be registered.\r\nThis may be due to restricted permissions on the user's HKCU\\Software\\Classes key", DnaLibrary.CurrentLibrary.Name);
+                Logger.ComAddIn.Error(secex, "The Ribbon/COM Add-In helper required by add-in {0} could not be registered.\r\nThis may be due to restricted permissions on the HKCU\\Software\\Classes key", DnaLibrary.CurrentLibrary.Name);
             }
             catch (Exception ex)
             {
@@ -161,11 +162,11 @@ namespace ExcelDna.Integration
                 // CONSIDER: How would an add-in know that its COM AddIn load failed in this case?
                 if (Environment.CommandLine.Contains(" /K"))
                 {
-                    Logger.ComAddIn.Info("Load Ribbon/COM Add-In exception: {0} with /K in CommandLine", ex.ToString());
+                    Logger.ComAddIn.Info("Load Ribbon/COM Add-In exception with /K in CommandLine \r\n{0}", ex.ToString());
                 }
                 else
                 {
-                    Logger.ComAddIn.Error("The Ribbon/COM add-in helper required by add-in {0} could not be registered.\r\nThis is an unexpected error.", DnaLibrary.CurrentLibrary.Name);
+                    Logger.ComAddIn.Error("The Ribbon/COM add-in helper required by add-in {0} could not be registered.\r\nThis is an unexpected error.\r\nError details:", DnaLibrary.CurrentLibrary.Name, ex.ToString());
                 }
             }
         }
