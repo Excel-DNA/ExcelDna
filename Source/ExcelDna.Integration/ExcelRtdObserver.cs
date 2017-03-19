@@ -15,8 +15,8 @@ namespace ExcelDna.Integration.Rtd
         static readonly Dictionary<Guid, AsyncObservableState> _observableStates = new Dictionary<Guid, AsyncObservableState>();
 
         // This is the most general RTD registration
-        // This should not be called from a ThreadSafe function. Checked in the callers.
-        public static object ProcessObservable(string functionName, object parameters, ExcelObservableSource getObservable)
+        // This should not be called from a ThreadSafe function.
+        public static object ProcessObservable(string functionName, object parameters, ExcelObservableOptions options, ExcelObservableSource getObservable)
         {
             if (!SynchronizationManager.IsInstalled)
             {
@@ -47,19 +47,19 @@ namespace ExcelDna.Integration.Rtd
 
             // Not registered before - actually register as a new Observable
             IExcelObservable observable = getObservable();
-            return RegisterObservable(callInfo, observable);
+            return RegisterObservable(callInfo, options, observable);
         }
 
         // Make a one-shot 'Observable' from the func
         public static object ProcessFunc(string functionName, object parameters, ExcelFunc func)
         {
-            return ProcessObservable(functionName, parameters,
+            return ProcessObservable(functionName, parameters, ExcelObservableOptions.None,
                 delegate { return new ThreadPoolDelegateObservable(func); });
         }
 
         public static object ProcessFuncAsyncHandle(string functionName, object parameters, ExcelFuncAsyncHandle func)
         {
-            return ProcessObservable(functionName, parameters,
+            return ProcessObservable(functionName, parameters, ExcelObservableOptions.None,
                 delegate
                 {
                     ExcelAsyncHandleObservable asyncHandleObservable = new ExcelAsyncHandleObservable();
@@ -70,7 +70,7 @@ namespace ExcelDna.Integration.Rtd
 
         // Register a new observable
         // Returns null if it failed (due to RTD array-caller first call)
-        static object RegisterObservable(AsyncCallInfo callInfo, IExcelObservable observable)
+        static object RegisterObservable(AsyncCallInfo callInfo, ExcelObservableOptions options, IExcelObservable observable)
         {
             // Check it's not registered already
             Debug.Assert(!_asyncCallIds.ContainsKey(callInfo));
@@ -81,7 +81,7 @@ namespace ExcelDna.Integration.Rtd
             Guid id = Guid.NewGuid();
             Debug.Print("AsyncObservableImpl.RegisterObservable - Id: {0}", id);
             _asyncCallIds[callInfo] = id;
-            AsyncObservableState state = new AsyncObservableState(id, callInfo, caller, observable);
+            AsyncObservableState state = new AsyncObservableState(id, callInfo, caller, options, observable);
             _observableStates[id] = state;
 
             // Will spin up RTD server and topic if required, causing us to be called again...
@@ -203,8 +203,9 @@ namespace ExcelDna.Integration.Rtd
         // If it is the default #N/A error value, then the topic is not restarted when re-opening the sheet.
         // So we never want to be in the #N/A state.
         // CONSIDER: What do we do use for the alternative values - something more obviously invalid?
-        internal const double TopicValueActive   = -1.0;
-        internal const double TopicValueCompleted = -2.0;
+        internal static readonly object TopicValueActive = -1.0;
+        internal static readonly object TopicValueActiveNA = ExcelErrorUtil.ToComError(ExcelError.ExcelErrorNA);
+        internal static readonly object TopicValueCompleted = -2.0;
 
         class ObserverRtdTopic : Topic
         {
@@ -213,22 +214,38 @@ namespace ExcelDna.Integration.Rtd
             // NOTE: That the topic is initialized with the value TopicValueActive is 
             //       important to the ConnectData implementation below
             //       - there is some interaction between topic values and the return value from ConnectData.
-            public ObserverRtdTopic(ExcelObserverRtdServer server, int topicId, Guid id)
-                : base(server, topicId, TopicValueActive)
+            public ObserverRtdTopic(ExcelObserverRtdServer server, int topicId, Guid id, object valueActive)
+                : base(server, topicId, valueActive)
             {
                 Id = id;
             }
         }
 
+        object ValueActiveFromTopicInfo(IList<string> topicInfo)
+        {
+            if (topicInfo.Count > 1 && topicInfo[1] == "1") // If ExcelObservableOptions expand, we might need to be more careful here.
+            {
+                // Special case - use #N/A to implement ExcelObservableOptions.NoAutoStartOnOpen
+                return TopicValueActiveNA;
+            }
+            return TopicValueActive;
+        }
+
         protected override Topic CreateTopic(int topicId, IList<string> topicInfo)
         {
             Guid id = new Guid(topicInfo[0]);
-            return new ObserverRtdTopic(this, topicId, id);
+            object valueActive = ValueActiveFromTopicInfo(topicInfo);
+            return new ObserverRtdTopic(this, topicId, id, valueActive);
         }
 
         protected override object ConnectData(Topic topic, IList<string> topicInfo, ref bool newValues)
         {
             Debug.Print("ExcelObserverRtdServer.ConnectData: ProgId: {0}, TopicId: {1}, TopicInfo: {2}, NewValues: {3}", RegisteredProgId, topic.TopicId, topicInfo[0], newValues);
+
+            // The topic might be "completed" on a separate thread, so we need to return the initial, intended active value
+            // Mostly this is TopicValueActive, but sometimes TopicValueActiveNA
+            // Rather than store this for every topic, we just recalculate it here
+            object valueActive = ValueActiveFromTopicInfo(topicInfo);
 
             if (newValues == false)
             {
@@ -238,7 +255,7 @@ namespace ExcelDna.Integration.Rtd
                 // Result should be a Disconnect followed by a proper Connect via the wrapper.
 
                 newValues = true;
-                return TopicValueActive;
+                return valueActive;
             }
             // Retrieve and store the GUID from the topic's first info string - used to hook up to the Async state
             Guid id = ((ObserverRtdTopic)topic).Id;
@@ -257,14 +274,17 @@ namespace ExcelDna.Integration.Rtd
             // So for the ObserverRtdTopic we ensure the internal value is not an error,
             // (it is initialized to TopicValueActive)
             // which we return from here.
+            // 2017-03-19: Except if the topic is configured as ExcelObservableOptions.NoAutoStartOnOpen, in which case we _do_ want
+            //             the internal value to be #N/A. We return whichever ective value was set in the CreateTopic according to the topic info.
 
             // 2016-11-04: We are no longer returning the current value of topic.Value here.
             //             Since calls to UpdateValue inside the ConnectData no longer raise an
             //             UpdateNotify automatically, we need to ensure a different value
             //             is returned for a completed topic (so that ConnectData.returned != topic.Value)
-            //             to raise an extra UpdateNotify, for the Disconnect of the already completed topic.
+            //             to raise an extra UpdateNotify, for the Disconnect of the already completed topic
+            //             (I.e. if the completion happened during the ConnectData call).
 
-            return TopicValueActive;
+            return valueActive;
         }
 
         protected override void DisconnectData(Topic topic)
@@ -605,18 +625,21 @@ namespace ExcelDna.Integration.Rtd
     internal class AsyncObservableState
     {
         const string _observerRtdServerProgId = "ExcelDna.Integration.Rtd.ExcelObserverRtdServer";
-        readonly string _id;
         readonly AsyncCallerState _callerState;
         readonly AsyncCallInfo _callInfo; // Bit ugly having this here - need a bi-directional dictionary...
+        readonly string[] _topics; // Contains id (Guid.ToString()) and possibly Integer retpresentation of the ExcelObservableOptions enum value
         readonly IExcelObservable _observable;
         ExcelRtdObserver _currentObserver;
         IDisposable _currentSubscription;
 
         // caller may be null when not called as a worksheet function.
-        public AsyncObservableState(Guid id, AsyncCallInfo callInfo, ExcelReference caller, IExcelObservable observable)
+        public AsyncObservableState(Guid id, AsyncCallInfo callInfo, ExcelReference caller, ExcelObservableOptions options, IExcelObservable observable)
         {
-            _id = id.ToString();
             _callInfo = callInfo;
+            if (options == ExcelObservableOptions.None)
+                _topics = new string[] { id.ToString() };
+            else
+                _topics = new string[] { id.ToString(), ((int)options).ToString() } ;
             _observable = observable;
             _callerState = AsyncCallerState.GetCallerState(caller); // caller might be null, _callerState should not be
         }
@@ -624,7 +647,7 @@ namespace ExcelDna.Integration.Rtd
         public bool TryGetValue(out object value)
         {
             // We need to be careful when this is called from an array formula.
-            // In the 'completed' case we actually still have to call xlfRtd, then only skip if for the next (single-cell calller) call.
+            // In the 'completed' case we actually still have to call xlfRtd, then only skip if for the next (single-cell caller) call.
             // That gives us a proper Disconnect...
             ExcelReference caller = XlCall.Excel(XlCall.xlfCaller) as ExcelReference;
             bool isCallerArray = caller != null &&
@@ -646,7 +669,7 @@ namespace ExcelDna.Integration.Rtd
                 // NOTE: First time this will result in a call to ConnectData, which will call Subscribe and set the _currentObserver
                 //       For the first array-group call, this returns null (due to xlUncalced error), 
                 //       but Excel will call us again... (I hope).
-                if (!RtdRegistration.TryRTD(out value, _observerRtdServerProgId, null, _id))
+                if (!RtdRegistration.TryRTD(out value, _observerRtdServerProgId, null, _topics))
                 {
                     // This is the special case...
                     // We return false - to the state creation function that indicates the state should not be saved.
@@ -659,7 +682,7 @@ namespace ExcelDna.Integration.Rtd
                 // Special call for the Excel 2010 bug helper to indicate we are not refreshing (due to completion)
                 if (ExcelRtd2010BugHelper.ExcelVersionHasRtdBug)
                 {
-                    ExcelRtd2010BugHelper.RecordRtdComplete(_observerRtdServerProgId, _id);
+                    ExcelRtd2010BugHelper.RecordRtdComplete(_observerRtdServerProgId, _topics);
                 }
             }
 

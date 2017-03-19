@@ -35,6 +35,13 @@ namespace ExcelDna.Integration
         void OnNext(object value);
     }
 
+    [Flags]
+    public enum ExcelObservableOptions
+    {
+        None = 0,
+        NoAutoStartOnOpen = 1
+    }
+
     public static class ExcelAsyncUtil
     {
         [Obsolete("ExcelAsyncUtil.Initialize is no longer required. The call can be removed.")]
@@ -46,7 +53,12 @@ namespace ExcelDna.Integration
         // This is the most general RTD registration
         public static object Observe(string callerFunctionName, object callerParameters, ExcelObservableSource observableSource)
         {
-            return AsyncObservableImpl.ProcessObservable(callerFunctionName, callerParameters, observableSource);
+            return Observe(callerFunctionName, callerParameters, ExcelObservableOptions.None, observableSource);
+        }
+
+        public static object Observe(string callerFunctionName, object callerParameters, ExcelObservableOptions options, ExcelObservableSource observableSource)
+        {
+            return AsyncObservableImpl.ProcessObservable(callerFunctionName, callerParameters, options, observableSource);
         }
 
         // Async function support
