@@ -366,7 +366,28 @@ namespace ExcelDna.Integration
                 Type appType = xlApp.GetType();
 
                 // Now try Application.Run(macroName) if we are still alive.
-                appType.InvokeMember("Run", BindingFlags.InvokeMethod, null, xlApp, new object[] { macroName, 0.0 }, _enUsCulture);
+                object result = appType.InvokeMember("Run", BindingFlags.InvokeMethod, null, xlApp, new object[] { macroName, 0.0 }, _enUsCulture);
+                // Sometimes (e.g. when the paste live preview feature is active) Application.Run returns the integer value for E_FAIL, 
+                // and not a COM Error that is converted to an exception.
+                if (!result.Equals(0.0))    // We expect our "void" macro to just return 0.0.
+                {
+#if DEBUG
+                    // Some extra checks to see if we can understand the return values better
+                    if (!(result is int))
+                    {
+                        Logger.Registration.Error("Unexpected return type from Application.Run(\"SyncMacro_...\") - " + result);
+                    }
+                    else
+                    {
+                        if (   (int)result != -2147467259  /* E_FAIL = 0x80004005 */ 
+                            && (int)result != -2146826246) /* #N/A   = 0x800A07FA */
+                        {
+                            Logger.Registration.Error("Unexpected return value from Application.Run(\"SyncMacro_...\") - " + result);
+                        }
+                    }
+#endif
+                    return false;
+                }
                 return true;
             }
             catch (TargetInvocationException tie)
@@ -380,6 +401,9 @@ namespace ExcelDna.Integration
                 throw;
             }
         }
+
+                const uint E_FAIL = 0x80004005; // -2147467259;
+        const uint E_NA = 0x800A07FA;   // Not sure why we get this back from Application.Run("SyncMacro...")
 
         #region Checks for known COM errors
         const uint RPC_E_SERVERCALL_RETRYLATER = 0x8001010A;

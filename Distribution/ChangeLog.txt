@@ -3,13 +3,14 @@ Version 0.34 (???)
 * Add ExplicitExports="false" to NuGet .dna file template
 * Fix getting Application from ProtectedViewWindow
 * Add attempts to get Application object from all windows of class EXCEL7.
-* Fix ExcelAsyncUtil.Observe re-open restart - broken by other fixes in the previous version.
+* Fix ExcelAsyncUtil.Observe re-open restart - broken by other fixes in the previous version. Add option to not restart.
 * Change ExcelRtdServer.ConnectData to be more careful about raising an update notice. 
   Calls to Topic.UpdateNotify during the ConnectData overload are now always ignored.
   If the topic value is updated (through Topic.UpdateValue) during ConnectData, and the same value is returned from ConnectData, 
   then no spurious UpdateNotify is raised.
   If the value returned from ConnectData differs from Topic.Value, UpdateNotify will still be raised.
 * Allow AccessViolation exceptions to be caught under .NET 4.0 - change marshaling wrapper from DynamicMethod to MethodBuilder.
+* Fix QueueAsMacro failure after paste live preview.
 
 Version 0.33 (9 September 2015)
 -------------------------------
