@@ -16,14 +16,14 @@
   </PropertyGroup>
 
   <!--
-    Extend the AfterBuild target to call our ExcelDnaBuild target
+    Extend the PostBuild target to call our ExcelDnaBuild and ExcelDnaPack targets
   -->
   <PropertyGroup>
-    <BuildDependsOn>
-      $(BuildDependsOn);
+    <PostBuildEventDependsOn>
+      $(PostBuildEventDependsOn);
       ExcelDnaBuild;
       ExcelDnaPack;
-    </BuildDependsOn>
+    </PostBuildEventDependsOn>
   </PropertyGroup>
 
   <!--

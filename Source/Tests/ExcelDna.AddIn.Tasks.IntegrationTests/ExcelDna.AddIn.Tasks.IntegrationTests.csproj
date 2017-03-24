@@ -46,6 +46,7 @@
     <Compile Include="SeparateDnaFilesCustomSuffix_x86_x64IntegrationTests.cs" />
     <Compile Include="SeparateDnaFilesDefaultSuffixIntegrationTests.cs" />
     <Compile Include="MsBuildParametersOverrideTests.cs" />
+    <Compile Include="PreAndPostBuildEventsIntegrationTests.cs" />
     <Compile Include="SingleDnaFileNoConfigDefaultSuffixIntegrationTests.cs" />
     <Compile Include="SingleDnaFileDefaultSuffixSubFolderTests.cs" />
     <Compile Include="Utils\SilentProcessRunner.cs" />
