@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SingleDnaFileInSubFolderDef
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SingleDnaFileNoConfigDefaultSuffix", "SingleDnaFileNoConfigDefaultSuffix\SingleDnaFileNoConfigDefaultSuffix.csproj", "{34B3D54A-3D96-4754-BBED-B9DE164BAA80}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PreAndPostBuildEvents", "PreAndPostBuildEvents\PreAndPostBuildEvents.csproj", "{01805002-4F09-432A-B1E2-803C273671CB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{34B3D54A-3D96-4754-BBED-B9DE164BAA80}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{34B3D54A-3D96-4754-BBED-B9DE164BAA80}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{34B3D54A-3D96-4754-BBED-B9DE164BAA80}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01805002-4F09-432A-B1E2-803C273671CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01805002-4F09-432A-B1E2-803C273671CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01805002-4F09-432A-B1E2-803C273671CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01805002-4F09-432A-B1E2-803C273671CB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
