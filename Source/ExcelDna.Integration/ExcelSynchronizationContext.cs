@@ -379,8 +379,8 @@ namespace ExcelDna.Integration
                     }
                     else
                     {
-                        if (   (int)result != -2147467259  /* E_FAIL = 0x80004005 */ 
-                            && (int)result != -2146826246) /* #N/A   = 0x800A07FA */
+                        if (   (int)result != E_FAIL
+                            && (int)result != E_NA)
                         {
                             Logger.Registration.Error("Unexpected return value from Application.Run(\"SyncMacro_...\") - " + result);
                         }
@@ -402,8 +402,8 @@ namespace ExcelDna.Integration
             }
         }
 
-                const uint E_FAIL = 0x80004005; // -2147467259;
-        const uint E_NA = 0x800A07FA;   // Not sure why we get this back from Application.Run("SyncMacro...")
+        const int E_FAIL = unchecked((int)0x80004005);
+        const int E_NA = unchecked((int)0x800A07FA);   // Not sure why we get this back from Application.Run("SyncMacro...")
 
         #region Checks for known COM errors
         const uint RPC_E_SERVERCALL_RETRYLATER = 0x8001010A;
