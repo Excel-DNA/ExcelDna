@@ -126,6 +126,32 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
             }
         }
 
+        protected static void AssertFound(string basePath, string searchPattern, params string[] expectedFiles)
+        {
+            var existingFiles = Directory.GetFiles(basePath, searchPattern, SearchOption.AllDirectories)
+               .ToArray();
+
+            var expectedFilesWithBasePath = expectedFiles
+                .Select(f => Path.Combine(basePath, f))
+                .ToArray();
+
+            var filesMissing = expectedFilesWithBasePath.Except(existingFiles, StringComparer.OrdinalIgnoreCase).ToArray();
+            if (filesMissing.Length > 0)
+            {
+                Assert.Fail("Expected file(s) missing in the output: {0}", string.Join(", ", filesMissing));
+            }
+        }
+
+        protected void AssertNotFound(string fileName)
+        {
+            if (File.Exists(fileName))
+            {
+                Assert.Fail("File {0} exists", fileName);
+            }
+
+            Assert.Pass("File {0} does not exist", fileName);
+        }
+
         protected void AssertIdentical(string fileName1, string fileName2)
         {
             if (!File.Exists(fileName1))
@@ -141,6 +167,8 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
             Assert.IsTrue(FilesHaveEqualHash(fileName1, fileName2), "Contents of {0} and {1} do not match",
                 fileName1, fileName2);
         }
+
+
 
         protected void Assert32BitXll(string xllFileName)
         {

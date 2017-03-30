@@ -34,6 +34,11 @@ namespace ExcelDna.AddIn.Tasks.Utils
             File.Copy(sourceFileName, destFileName, overwrite);
         }
 
+        public void DeleteFile(string sourceFileName)
+        {
+            File.Delete(sourceFileName);
+        }
+
         public string GetRelativePath(string path, string workingDirectory = null)
         {
             workingDirectory = workingDirectory ?? Environment.CurrentDirectory;
