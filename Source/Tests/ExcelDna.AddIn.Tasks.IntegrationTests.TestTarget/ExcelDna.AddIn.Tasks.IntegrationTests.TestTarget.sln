@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SingleDnaFileDefaultSuffix", "SingleDnaFileDefaultSuffix\SingleDnaFileDefaultSuffix.csproj", "{69CFC6E4-EAF6-416A-B462-B586DC3E051D}"
 EndProject
@@ -16,10 +16,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SingleDnaFileInSubFolderDefaultSuffix", "SingleDnaFileInSubFolderDefaultSuffix\SingleDnaFileInSubFolderDefaultSuffix.csproj", "{3A3C232A-83DF-4FB1-9049-CF6A7E1C8351}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SingleDnaFileNoConfigDefaultSuffix", "SingleDnaFileNoConfigDefaultSuffix\SingleDnaFileNoConfigDefaultSuffix.csproj", "{34B3D54A-3D96-4754-BBED-B9DE164BAA80}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PreAndPostBuildEvents", "PreAndPostBuildEvents\PreAndPostBuildEvents.csproj", "{01805002-4F09-432A-B1E2-803C273671CB}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MultipleAddInProjectTwo", "MultipleAddInProjectTwo\MultipleAddInProjectTwo.csproj", "{C174238C-B87F-41D3-BCAA-325AB66F0A7F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PreAndPostBuildEvents", "PreAndPostBuildEvents\PreAndPostBuildEvents.csproj", "{01805002-4F09-432A-B1E2-803C273671CB}"
 EndProject
@@ -61,15 +57,6 @@ Global
 		{01805002-4F09-432A-B1E2-803C273671CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{01805002-4F09-432A-B1E2-803C273671CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{01805002-4F09-432A-B1E2-803C273671CB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C174238C-B87F-41D3-BCAA-325AB66F0A7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C174238C-B87F-41D3-BCAA-325AB66F0A7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C174238C-B87F-41D3-BCAA-325AB66F0A7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C174238C-B87F-41D3-BCAA-325AB66F0A7F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4CE13234-A53E-4539-9AFF-D03F7DF2721C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4CE13234-A53E-4539-9AFF-D03F7DF2721C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4CE13234-A53E-4539-9AFF-D03F7DF2721C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4CE13234-A53E-4539-9AFF-D03F7DF2721C}.Release|Any CPU.Build.0 = Release|Any CPU
-		
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
