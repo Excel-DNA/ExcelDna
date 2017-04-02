@@ -117,14 +117,14 @@ namespace ExcelDna.AddIn.Tasks
         {
             foreach (var item in buildItemsForDnaFiles)
             {
-                _fileSystem.DeleteFile(item.OutputDnaFileNameAs32Bit);
-                _fileSystem.DeleteFile(item.OutputDnaFileNameAs64Bit);
+                DeleteFileIfExists(item.OutputDnaFileNameAs32Bit);
+                DeleteFileIfExists(item.OutputDnaFileNameAs64Bit);
 
-                _fileSystem.DeleteFile(item.OutputXllFileNameAs32Bit);
-                _fileSystem.DeleteFile(item.OutputXllFileNameAs64Bit);
+                DeleteFileIfExists(item.OutputXllFileNameAs32Bit);
+                DeleteFileIfExists(item.OutputXllFileNameAs64Bit);
 
-                _fileSystem.DeleteFile(item.OutputConfigFileNameAs32Bit);
-                _fileSystem.DeleteFile(item.OutputConfigFileNameAs64Bit);
+                DeleteFileIfExists(item.OutputConfigFileNameAs32Bit);
+                DeleteFileIfExists(item.OutputConfigFileNameAs64Bit);
             }
         }
 
@@ -132,10 +132,18 @@ namespace ExcelDna.AddIn.Tasks
         {
             filesToDelete.ToList().ForEach(f =>
             {
-                _fileSystem.DeleteFile(f.GetMetadata("OutputPackedDnaFileName"));
-                _fileSystem.DeleteFile(f.GetMetadata("OutputPackedXllFileName"));
-                _fileSystem.DeleteFile(f.GetMetadata("OutputPackedXllConfigFileName"));
+                DeleteFileIfExists(f.GetMetadata("OutputPackedDnaFileName"));
+                DeleteFileIfExists(f.GetMetadata("OutputPackedXllFileName"));
+                DeleteFileIfExists(f.GetMetadata("OutputPackedXllConfigFileName"));
             });
+        }
+
+        private void DeleteFileIfExists(string path)
+        {
+            if (_fileSystem.FileExists(path))
+            {
+                _fileSystem.DeleteFile(path);
+            }
         }
 
         /// <summary>
