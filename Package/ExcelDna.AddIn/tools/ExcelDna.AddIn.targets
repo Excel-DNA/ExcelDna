@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="Windows-1252"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <UsingTask TaskName="ExcelDna.AddIn.Tasks.CreateExcelAddIn" AssemblyFile="ExcelDna.AddIn.Tasks.dll" />
   <UsingTask TaskName="ExcelDna.AddIn.Tasks.CleanExcelAddIn" AssemblyFile="ExcelDna.AddIn.Tasks.dll" />
@@ -15,16 +16,16 @@
       ExcelDnaClean;
     </CleanDependsOn>
   </PropertyGroup>
- 
+
   <!--
-    Extend the PostBuild target to call our ExcelDnaBuild and ExcelDnaPack targets
+    Extend the Build target to call our ExcelDnaBuild and ExcelDnaPack targets
   -->
   <PropertyGroup>
-    <PostBuildEventDependsOn>
-      $(PostBuildEventDependsOn);
+    <BuildDependsOn>
+      $(BuildDependsOn);
       ExcelDnaBuild;
       ExcelDnaPack;
-    </PostBuildEventDependsOn>
+    </BuildDependsOn>
   </PropertyGroup>
 
   <!--
@@ -51,7 +52,7 @@
     <ExcelDna64BitAddInSuffix Condition="'$(ExcelDna64BitAddInSuffix)' == ''">64</ExcelDna64BitAddInSuffix>
 
     <ExcelDnaToolsPath Condition="'$(ExcelDnaToolsPath)' == ''">$(MSBuildThisFileDirectory)</ExcelDnaToolsPath>
-    
+
     <ExcelDnaPackExePath Condition="'$(ExcelDnaPackExePath)' == ''">$(ExcelDnaToolsPath)ExcelDnaPack.exe</ExcelDnaPackExePath>
     <ExcelDnaPackXllSuffix Condition="'$(ExcelDnaPackXllSuffix)' == ''">-packed</ExcelDnaPackXllSuffix>
     <ExcelDnaPackCompressResources Condition="'$(ExcelDnaPackCompressResources)' == ''">true</ExcelDnaPackCompressResources>
@@ -66,7 +67,7 @@
 
     <Error Text="ExcelDna32BitAddInSuffix and ExcelDna64BitAddInSuffix cannot be identical. Fix your ExcelDna.Build.props file"
               Condition="'$(ExcelDna32BitAddInSuffix)' == '$(ExcelDna64BitAddInSuffix)'" />
-    
+
     <ItemGroup>
       <ExcelDnaFilesInProject Include="@(None)" />
       <ExcelDnaFilesInProject Include="@(Content)" />
@@ -88,7 +89,7 @@
   <!--
     Target that copies .dna, .xll, and .xll.config to the build output folder, for each platform
   -->
-  <Target Name="ExcelDnaBuild" Condition="$(RunExcelDnaBuild)">
+  <Target Name="ExcelDnaBuild" BeforeTargets="PostBuildEvent" Condition="$(RunExcelDnaBuild)">
     <Message Text="---" Importance="High" />
 
     <Error Text="ExcelDna32BitAddInSuffix and ExcelDna64BitAddInSuffix cannot be identical. Fix your ExcelDna.Build.props file"
@@ -122,7 +123,7 @@
   <!--
     Target that runs ExcelDnaPack.exe for each .dna copied to the build output folder
   -->
-  <Target Name="ExcelDnaPack" Condition="($(RunExcelDnaPack)) AND ('@(ExcelDnaFilesToPack->Count())' &gt; 0)" Outputs="%(ExcelDnaFilesToPack.Identity)">
+  <Target Name="ExcelDnaPack" DependsOnTargets="ExcelDnaBuild" BeforeTargets="PostBuildEvent" Condition="($(RunExcelDnaPack)) AND ('@(ExcelDnaFilesToPack->Count())' &gt; 0)" Outputs="%(ExcelDnaFilesToPack.Identity)">
     <Error Text="ExcelDnaPack: ExcelDnaPack.exe not found: $(ExcelDnaPackExePath)" Condition="!Exists('$(ExcelDnaPackExePath)')" />
 
     <!-- Run ExcelDnaPack.exe -->
@@ -140,7 +141,7 @@
     <!-- Copy .xll.config file to -packed.xll.config (if .xll.config exists) -->
     <Message Text="ExcelDnaPack: %(ExcelDnaFilesToPack.OutputXllConfigFileName) -> %(ExcelDnaFilesToPack.OutputPackedXllFileName).config" Importance="High"
              Condition="Exists('%(ExcelDnaFilesToPack.OutputXllConfigFileName)')" />
-   
+
     <Copy SourceFiles="%(ExcelDnaFilesToPack.OutputXllConfigFileName)"
           DestinationFiles="%(ExcelDnaFilesToPack.OutputPackedXllFileName).config"
           Condition="Exists('%(ExcelDnaFilesToPack.OutputXllConfigFileName)')"
