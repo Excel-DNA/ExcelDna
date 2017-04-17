@@ -1,5 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <UsingTask TaskName="ExcelDna.AddIn.Tasks.CreateExcelAddIn" AssemblyFile="ExcelDna.AddIn.Tasks.dll" />
+  <UsingTask TaskName="ExcelDna.AddIn.Tasks.CleanExcelAddIn" AssemblyFile="ExcelDna.AddIn.Tasks.dll" />
 
   <PropertyGroup>
     <ExcelDnaTargetsImported>true</ExcelDnaTargetsImported>
@@ -14,7 +15,7 @@
       ExcelDnaClean;
     </CleanDependsOn>
   </PropertyGroup>
-
+ 
   <!--
     Extend the PostBuild target to call our ExcelDnaBuild and ExcelDnaPack targets
   -->
@@ -58,16 +59,30 @@
   </PropertyGroup>
 
   <!--
-    Target that removes all .dna, .xll, and .xll.config from the build output folder
+    Target that removes .dna, .xll, and .xll.config from the build output folder
   -->
   <Target Name="ExcelDnaClean" Condition="$(RunExcelDnaClean)">
+    <Message Text="---" Importance="High" />
+
+    <Error Text="ExcelDna32BitAddInSuffix and ExcelDna64BitAddInSuffix cannot be identical. Fix your ExcelDna.Build.props file"
+              Condition="'$(ExcelDna32BitAddInSuffix)' == '$(ExcelDna64BitAddInSuffix)'" />
+    
     <ItemGroup>
-      <ExcelDnaFilesToDelete Include="$(TargetDir)**\*.dna" />
-      <ExcelDnaFilesToDelete Include="$(TargetDir)**\*.xll" />
-      <ExcelDnaFilesToDelete Include="$(TargetDir)**\*.xll.config" />
+      <ExcelDnaFilesInProject Include="@(None)" />
+      <ExcelDnaFilesInProject Include="@(Content)" />
     </ItemGroup>
 
-    <Delete Files="@(ExcelDnaFilesToDelete)"/>
+    <CleanExcelAddIn
+      FilesInProject="@(ExcelDnaFilesInProject)"
+      OutDirectory="$(OutDir)"
+      Xll32FilePath="$(ExcelDnaToolsPath)ExcelDna.xll"
+      Xll64FilePath="$(ExcelDnaToolsPath)ExcelDna64.xll"
+      FileSuffix32Bit="$(ExcelDna32BitAddInSuffix)"
+      FileSuffix64Bit="$(ExcelDna64BitAddInSuffix)"
+      PackIsEnabled="$(RunExcelDnaPack)"
+      PackedFileSuffix="$(ExcelDnaPackXllSuffix)">
+    </CleanExcelAddIn>
+
   </Target>
 
   <!--

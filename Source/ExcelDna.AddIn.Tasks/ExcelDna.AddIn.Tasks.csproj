@@ -40,6 +40,8 @@
     <Compile Include="AbstractTask.cs" />
     <Compile Include="BuildItemSpec.cs" />
     <None Include="Properties\ExcelDna.AddIn.Tasks.targets" />
+    <Compile Include="CleanExcelAddIn.cs" />
+    <Compile Include="Common.cs" />
     <Compile Include="CreateExcelAddIn.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils\ExcelDnaPhysicalFileSystem.cs" />
@@ -48,9 +50,11 @@
   <ItemGroup>
     <None Include="..\..\Package\ExcelDna.AddIn\content\ExcelDna.Build.props">
       <Link>ExcelDna.Build.props</Link>
+      <SubType>Designer</SubType>
     </None>
     <None Include="..\..\Package\ExcelDna.AddIn\tools\ExcelDna.AddIn.targets">
       <Link>ExcelDna.AddIn.targets</Link>
+      <SubType>Designer</SubType>
     </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
