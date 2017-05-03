@@ -12,7 +12,6 @@ namespace ExcelDna.AddIn.Tasks
     public class CleanExcelAddIn : AbstractTask
     {
         private readonly IExcelDnaFileSystem _fileSystem;
-        private ITaskItem[] _configFilesInProject;
         private List<ITaskItem> _packedFilesToDelete;
         private BuildTaskCommon common;
 
