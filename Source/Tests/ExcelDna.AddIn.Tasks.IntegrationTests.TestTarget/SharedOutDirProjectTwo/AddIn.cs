@@ -2,7 +2,7 @@
 using System.Windows.Forms;
 using ExcelDna.Integration;
 
-namespace MultipleAddInProjectChild
+namespace SharedOutDirProjectTwo
 {
     public class AddIn : IExcelAddIn
     {

@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{C174238C-B87F-41D3-BCAA-325AB66F0A7F}</ProjectGuid>
+    <ProjectGuid>{4CE13234-A53E-4539-9AFF-D03F7DF2721C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>MultipleAddInProjectTwo</RootNamespace>
-    <AssemblyName>MultipleAddInProjectTwo</AssemblyName>
+    <RootNamespace>SharedOutDirProjectOne</RootNamespace>
+    <AssemblyName>SharedOutDirProjectOne</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -16,7 +16,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\out\MultipleAddInBuild\Debug\</OutputPath>
+    <OutputPath>..\out\SharedOutDir\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -24,7 +24,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\out\MultipleAddInBuild\Release\</OutputPath>
+    <OutputPath>..\out\SharedOutDir\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -37,23 +37,14 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AddIn.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="AddIn-Two-x64.config">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="AddIn-Two-x64.dna">
-      <SubType>Designer</SubType>
-    </None>
+    <None Include="AddIn-One-x64.config" />
+    <None Include="AddIn-One-x64.dna" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(ProjectDir)..\..\.exceldna.addin\tools\ExcelDna.AddIn.targets" />

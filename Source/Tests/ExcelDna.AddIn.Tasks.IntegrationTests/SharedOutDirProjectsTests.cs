@@ -4,20 +4,20 @@ using NUnit.Framework;
 namespace ExcelDna.AddIn.Tasks.IntegrationTests
 {
     [TestFixture]
-    public class MultipleAddInIntegrationTests : IntegrationTestBase
+    public class SharedOutDirProjectsTests : IntegrationTestBase
     {
         [Test]
         public void Multiple_AddIn_Projects_Built_To_The_Same_Directory_Should_Only_Clean_Themselves()
         {
-            const string projectOneBasePath = @"MultipleAddInProjectOne\";
-            const string projectTwoBasePath = @"MultipleAddInProjectTwo\";
+            const string projectOneBasePath = @"SharedOutDirProjectOne\";
+            const string projectTwoBasePath = @"SharedOutDirProjectTwo\";
 
-            const string relativeProjectOutDir = @"..\out\MultipleAddInBuild\";
+            const string relativeProjectOutDir = @"..\out\SharedOutDir\";
             var projectOutDir = Path.Combine(projectOneBasePath, relativeProjectOutDir);
 
-            MsBuild(projectOneBasePath + "MultipleAddInProjectOne.csproj /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", relativeProjectOutDir));
-            MsBuild(projectTwoBasePath + "MultipleAddInProjectTwo.csproj /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", relativeProjectOutDir));
-            MsBuild(projectTwoBasePath + "MultipleAddInProjectTwo.csproj /t:Clean /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", relativeProjectOutDir));
+            MsBuild(projectOneBasePath + "SharedOutDirProjectOne.csproj /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", relativeProjectOutDir));
+            MsBuild(projectTwoBasePath + "SharedOutDirProjectTwo.csproj /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", relativeProjectOutDir));
+            MsBuild(projectTwoBasePath + "SharedOutDirProjectTwo.csproj /t:Clean /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", relativeProjectOutDir));
 
             // The .DNA files, XLL + config files should remain for project one
             AssertFound(projectOutDir, "*.dna", "AddIn-One-x.dna", "AddIn-One-x64.dna");

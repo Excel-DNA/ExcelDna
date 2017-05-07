@@ -1,5 +1,5 @@
-<DnaLibrary Name="MultipleAddInProjectOne 64-bit Add-In" RuntimeVersion="v4.0">
-  <ExternalLibrary Path="MultipleAddInProjectOne.dll" LoadFromBytes="true" Pack="true" />
+<DnaLibrary Name="SharedOutDirProjectOne 64-bit Add-In" RuntimeVersion="v4.0">
+  <ExternalLibrary Path="SharedOutDirProjectOne.dll" LoadFromBytes="true" Pack="true" />
   
   <!-- 
        The RuntimeVersion attribute above allows two settings:
