@@ -14,7 +14,7 @@ namespace ExcelDna.AddIn.Tasks
         private readonly IExcelDnaFileSystem _fileSystem;
         private ITaskItem[] _configFilesInProject;
         private List<ITaskItem> _dnaFilesToPack;
-        private BuildTaskCommon common;
+        private BuildTaskCommon _common;
 
         public CreateExcelAddIn()
             : this(new ExcelDnaPhysicalFileSystem())
@@ -46,9 +46,9 @@ namespace ExcelDna.AddIn.Tasks
                 LogMessage("Number of files in project: " + FilesInProject.Length, MessageImportance.Low);
 
                 _configFilesInProject = GetConfigFilesInProject();
-                common = new BuildTaskCommon(FilesInProject, OutDirectory, FileSuffix32Bit, FileSuffix64Bit);
+                _common = new BuildTaskCommon(FilesInProject, OutDirectory, FileSuffix32Bit, FileSuffix64Bit);
 
-                var buildItemsForDnaFiles = common.GetBuildItemsForDnaFiles();
+                var buildItemsForDnaFiles = _common.GetBuildItemsForDnaFiles();
 
                 TryBuildAddInFor32Bit(buildItemsForDnaFiles);
 
