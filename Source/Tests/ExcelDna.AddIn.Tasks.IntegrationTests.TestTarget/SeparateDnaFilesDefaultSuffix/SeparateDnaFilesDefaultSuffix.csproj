@@ -54,12 +54,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(ProjectDir)..\..\.exceldna.addin\tools\ExcelDna.AddIn.targets" />
-  <PropertyGroup>
-    <PreBuildEvent>ECHO Running ExcelDna **Pre-build** event</PreBuildEvent>
-  </PropertyGroup>
-  <PropertyGroup>
-    <PostBuildEvent>ECHO Running ExcelDna **Post-build** event</PostBuildEvent>
-  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

@@ -12,9 +12,8 @@ namespace ExcelDna.AddIn.Tasks
     public class CleanExcelAddIn : AbstractTask
     {
         private readonly IExcelDnaFileSystem _fileSystem;
-        private ITaskItem[] _configFilesInProject;
         private List<ITaskItem> _packedFilesToDelete;
-        private BuildTaskCommon common;
+        private BuildTaskCommon _common;
 
         public CleanExcelAddIn()
             : this(new ExcelDnaPhysicalFileSystem())
@@ -40,14 +39,14 @@ namespace ExcelDna.AddIn.Tasks
                 FilesInProject = FilesInProject ?? new ITaskItem[0];
                 LogMessage("Number of files in project: " + FilesInProject.Length, MessageImportance.Low);
 
-                common = new BuildTaskCommon(FilesInProject, OutDirectory, FileSuffix32Bit, FileSuffix64Bit);
+                _common = new BuildTaskCommon(FilesInProject, OutDirectory, FileSuffix32Bit, FileSuffix64Bit);
 
-                var existingBuiltFiles = common.GetBuildItemsForDnaFiles();
+                var existingBuiltFiles = _common.GetBuildItemsForDnaFiles();
                 _packedFilesToDelete = GetPackedFilesToDelete(existingBuiltFiles);
 
                 LogMessage("---");
 
-                //Get the packed name versions : Refactor this + build items
+                // Get the packed name versions : Refactor this + build items
                 DeleteAddInFiles(existingBuiltFiles);
                 DeletePackedAddInFiles(_packedFilesToDelete);
 
@@ -73,17 +72,17 @@ namespace ExcelDna.AddIn.Tasks
             LogMessage("-----------------", MessageImportance.Low);
         }
 
-        private List<ITaskItem>  GetPackedFilesToDelete(BuildItemSpec[] existingBuiltFiles)
+        private List<ITaskItem> GetPackedFilesToDelete(BuildItemSpec[] existingBuiltFiles)
         {
-            var _packedFilesToDelete = new List<ITaskItem>();
+            var packedFilesToDelete = new List<ITaskItem>();
 
             foreach (var item in existingBuiltFiles)
             {
-                _packedFilesToDelete.Add(GetPackedFileNames(item.OutputDnaFileNameAs32Bit, item.OutputXllFileNameAs32Bit, item.OutputConfigFileNameAs32Bit));
-                _packedFilesToDelete.Add(GetPackedFileNames(item.OutputDnaFileNameAs64Bit, item.OutputXllFileNameAs64Bit, item.OutputConfigFileNameAs64Bit));
+                packedFilesToDelete.Add(GetPackedFileNames(item.OutputDnaFileNameAs32Bit, item.OutputXllFileNameAs32Bit, item.OutputConfigFileNameAs32Bit));
+                packedFilesToDelete.Add(GetPackedFileNames(item.OutputDnaFileNameAs64Bit, item.OutputXllFileNameAs64Bit, item.OutputConfigFileNameAs64Bit));
             }
 
-            return _packedFilesToDelete;
+            return packedFilesToDelete;
         }
 
         private TaskItem GetPackedFileNames(string outputDnaFileName, string outputXllFileName, string outputXllConfigFileName)
@@ -117,14 +116,14 @@ namespace ExcelDna.AddIn.Tasks
         {
             foreach (var item in buildItemsForDnaFiles)
             {
-                _fileSystem.DeleteFile(item.OutputDnaFileNameAs32Bit);
-                _fileSystem.DeleteFile(item.OutputDnaFileNameAs64Bit);
+                DeleteFileIfExists(item.OutputDnaFileNameAs32Bit);
+                DeleteFileIfExists(item.OutputDnaFileNameAs64Bit);
 
-                _fileSystem.DeleteFile(item.OutputXllFileNameAs32Bit);
-                _fileSystem.DeleteFile(item.OutputXllFileNameAs64Bit);
+                DeleteFileIfExists(item.OutputXllFileNameAs32Bit);
+                DeleteFileIfExists(item.OutputXllFileNameAs64Bit);
 
-                _fileSystem.DeleteFile(item.OutputConfigFileNameAs32Bit);
-                _fileSystem.DeleteFile(item.OutputConfigFileNameAs64Bit);
+                DeleteFileIfExists(item.OutputConfigFileNameAs32Bit);
+                DeleteFileIfExists(item.OutputConfigFileNameAs64Bit);
             }
         }
 
@@ -132,10 +131,18 @@ namespace ExcelDna.AddIn.Tasks
         {
             filesToDelete.ToList().ForEach(f =>
             {
-                _fileSystem.DeleteFile(f.GetMetadata("OutputPackedDnaFileName"));
-                _fileSystem.DeleteFile(f.GetMetadata("OutputPackedXllFileName"));
-                _fileSystem.DeleteFile(f.GetMetadata("OutputPackedXllConfigFileName"));
+                DeleteFileIfExists(f.GetMetadata("OutputPackedDnaFileName"));
+                DeleteFileIfExists(f.GetMetadata("OutputPackedXllFileName"));
+                DeleteFileIfExists(f.GetMetadata("OutputPackedXllConfigFileName"));
             });
+        }
+
+        private void DeleteFileIfExists(string path)
+        {
+            if (_fileSystem.FileExists(path))
+            {
+                _fileSystem.DeleteFile(path);
+            }
         }
 
         /// <summary>

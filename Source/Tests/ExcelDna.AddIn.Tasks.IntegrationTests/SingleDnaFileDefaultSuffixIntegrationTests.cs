@@ -45,6 +45,21 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
         }
 
         [Test]
+        public void A_project_with_a_single_dna_file_using_default_suffix_can_be_cleaned_without_ever_being_built()
+        {
+            const string projectBasePath = @"SingleDnaFileDefaultSuffix\";
+            const string projectOutDir = projectBasePath + @"bin\Release\";
+
+            Clean(projectOutDir);
+
+            MsBuild(projectBasePath + "SingleDnaFileDefaultSuffix.csproj /t:Clean /p:Configuration=Release /v:m");
+
+            AssertOutput(projectOutDir, "*.dna", new string[0]);
+            AssertOutput(projectOutDir, "*.xll", new string[0]);
+            AssertOutput(projectOutDir, "*.xll.config", new string[0]);
+        }
+
+        [Test]
         public void A_project_with_a_single_dna_file_using_default_suffix_gets_its_output_clean_via_clean_build_target()
         {
             const string projectBasePath = @"SingleDnaFileDefaultSuffix\";

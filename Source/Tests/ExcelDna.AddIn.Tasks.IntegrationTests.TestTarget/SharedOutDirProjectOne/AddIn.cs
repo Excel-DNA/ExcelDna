@@ -1,7 +1,8 @@
 ﻿using System.IO;
 using System.Windows.Forms;
 using ExcelDna.Integration;
-namespace MultipleAddInProjectParent
+
+namespace SharedOutDirProjectOne
 {
     public class AddIn : IExcelAddIn
     {

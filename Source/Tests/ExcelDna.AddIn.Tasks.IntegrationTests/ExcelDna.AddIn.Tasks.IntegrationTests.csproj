@@ -42,7 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IntegrationTestBase.cs" />
-    <Compile Include="MultipleAddInIntegrationTests.cs" />
+    <Compile Include="SharedOutDirProjectsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SeparateDnaFilesCustomSuffix_x86_x64IntegrationTests.cs" />
     <Compile Include="SeparateDnaFilesDefaultSuffixIntegrationTests.cs" />

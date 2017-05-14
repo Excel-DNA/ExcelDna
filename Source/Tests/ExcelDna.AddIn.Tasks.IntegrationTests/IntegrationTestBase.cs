@@ -148,8 +148,6 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
             {
                 Assert.Fail("File {0} exists", fileName);
             }
-
-            Assert.Pass("File {0} does not exist", fileName);
         }
 
         protected void AssertIdentical(string fileName1, string fileName2)
@@ -167,8 +165,6 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
             Assert.IsTrue(FilesHaveEqualHash(fileName1, fileName2), "Contents of {0} and {1} do not match",
                 fileName1, fileName2);
         }
-
-
 
         protected void Assert32BitXll(string xllFileName)
         {
