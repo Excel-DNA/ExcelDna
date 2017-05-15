@@ -1,0 +1,46 @@
+<DnaLibrary Name="AttributesVB Sample" Language="VB">
+<![CDATA[
+
+  <ExcelFunction(Category:="VolatileFuncs", IsVolatile:=true)> _
+  Public Module MyModule
+
+    Function funcA(x As Object, y As Object) As Object
+      return x + y
+    End Function
+
+    <ExcelFunction(IsVolatile:=false)> _
+    Function funcB(x As Object, y As Object) As Object
+      return x * y
+    End Function
+
+    <ExcelFunction(Name:="Cfunc")> _
+    Function funcC(x As Object, y As Object) As Object
+      return x - y
+    End Function
+
+    <ExcelFunction(Category:="NotVolatileFuncs", IsVolatile:=false)> _
+    Function funcD(x As Object, y As Object) As Object
+      return x / y
+    End Function
+
+  End Module
+
+  <ExcelCommand(MenuName:="SampleMenu")> _
+  Public Module MyMenuModule
+
+    <ExcelCommand(MenuText:="MenuItem 1")> _
+    Sub aaa()
+    End Sub
+
+    <ExcelCommand(MenuText:="MenuItem 2")> _
+    Sub bbb()
+    End Sub
+
+    <ExcelCommand(MenuName:="SampleMenu 2", MenuText:="Item 1")> _
+    Sub ccc()
+    End Sub
+
+  End Module
+
+]]>
+</DnaLibrary>

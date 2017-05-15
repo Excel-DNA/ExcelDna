@@ -208,14 +208,14 @@ namespace ExcelDna.Loader
                 string description = (string) attribType.GetField("Description").GetValue(attrib);
                 string category = (string) attribType.GetField("Category").GetValue(attrib);
                 string helpTopic = (string) attribType.GetField("HelpTopic").GetValue(attrib);
-                bool isVolatile = (bool) attribType.GetField("IsVolatile").GetValue(attrib);
-                bool isExceptionSafe = (bool) attribType.GetField("IsExceptionSafe").GetValue(attrib);
-                bool isMacroType = (bool) attribType.GetField("IsMacroType").GetValue(attrib);
-                bool isHidden = (bool) attribType.GetField("IsHidden").GetValue(attrib);
-                bool isThreadSafe = (bool) attribType.GetField("IsThreadSafe").GetValue(attrib);
-                bool isClusterSafe = (bool)attribType.GetField("IsClusterSafe").GetValue(attrib);
-                bool explicitRegistration = (bool)attribType.GetField("ExplicitRegistration").GetValue(attrib);
-                bool suppressOverwriteError = (bool)attribType.GetField("SuppressOverwriteError").GetValue(attrib);
+                bool isVolatile = (bool) attribType.GetProperty("IsVolatile").GetValue(attrib, null);
+                bool isExceptionSafe = (bool) attribType.GetProperty("IsExceptionSafe").GetValue(attrib, null);
+                bool isMacroType = (bool) attribType.GetProperty("IsMacroType").GetValue(attrib, null);
+                bool isHidden = (bool) attribType.GetProperty("IsHidden").GetValue(attrib, null);
+                bool isThreadSafe = (bool) attribType.GetProperty("IsThreadSafe").GetValue(attrib, null);
+                bool isClusterSafe = (bool)attribType.GetProperty("IsClusterSafe").GetValue(attrib, null);
+                bool explicitRegistration = (bool)attribType.GetProperty("ExplicitRegistration").GetValue(attrib, null);
+                bool suppressOverwriteError = (bool)attribType.GetProperty("SuppressOverwriteError").GetValue(attrib, null);
                 if (name != null)
                 {
                     Name = name;
@@ -253,9 +253,9 @@ namespace ExcelDna.Loader
                 string menuName = (string) attribType.GetField("MenuName").GetValue(attrib);
                 string menuText = (string) attribType.GetField("MenuText").GetValue(attrib);
 //                    bool isHidden = (bool)attribType.GetField("IsHidden").GetValue(attrib);
-                bool isExceptionSafe = (bool) attribType.GetField("IsExceptionSafe").GetValue(attrib);
-                bool explicitRegistration = (bool)attribType.GetField("ExplicitRegistration").GetValue(attrib);
-                bool suppressOverwriteError = (bool)attribType.GetField("SuppressOverwriteError").GetValue(attrib);
+                bool isExceptionSafe = (bool) attribType.GetProperty("IsExceptionSafe").GetValue(attrib, null);
+                bool explicitRegistration = (bool)attribType.GetProperty("ExplicitRegistration").GetValue(attrib, null);
+                bool suppressOverwriteError = (bool)attribType.GetProperty("SuppressOverwriteError").GetValue(attrib, null);
 
                 if (name != null)
                 {
@@ -614,25 +614,58 @@ namespace ExcelDna.Loader
             argumentAttributes = new List<List<object>>();
             foreach (MethodInfo method in methodInfos)
             {
-                // If we don't find an attribute, we'll set a null in the list at a token
-                methodAttributes.Add(null);
+                object methodAttribute = null;
                 foreach (object att in method.GetCustomAttributes(false))
                 {
                     Type attType = att.GetType();
-                    if (TypeHelper.TypeHasAncestorWithFullName(attType, "ExcelDna.Integration.ExcelFunctionAttribute") ||
-                        TypeHelper.TypeHasAncestorWithFullName(attType, "ExcelDna.Integration.ExcelCommandAttribute"))
+                    if (TypeHelper.TypeHasAncestorWithFullName(attType, "ExcelDna.Integration.ExcelFunctionAttribute"))
                     {
-                        // Set last value to this attribute
-                        methodAttributes[methodAttributes.Count - 1] = att;
+                        foreach (object dtAtt in method.DeclaringType.GetCustomAttributes(false))
+                        {
+                            Type dtAttType = dtAtt.GetType();
+                            if (TypeHelper.TypeHasAncestorWithFullName(dtAttType, "ExcelDna.Integration.ExcelFunctionAttribute"))
+                            {
+                                att.GetType().InvokeMember("MergeGroupAttributes", BindingFlags.InvokeMethod, null, att, new Object[] { dtAtt }); ;
+                                break;
+                            }
+                        }
+                        methodAttribute = att;
+                        break;
+                    }
+                    else if (TypeHelper.TypeHasAncestorWithFullName(attType, "ExcelDna.Integration.ExcelCommandAttribute"))
+                    {
+                        foreach (object dtAtt in method.DeclaringType.GetCustomAttributes(false))
+                        {
+                            Type dtAttType = dtAtt.GetType();
+                            if (TypeHelper.TypeHasAncestorWithFullName(dtAttType, "ExcelDna.Integration.ExcelCommandAttribute"))
+                            {
+                                att.GetType().InvokeMember("MergeGroupAttributes", BindingFlags.InvokeMethod, null, att, new Object[] { dtAtt }); ;
+                                break;
+                            }
+                        }
+                        methodAttribute = att;
                         break;
                     }
                     if (att is System.ComponentModel.DescriptionAttribute)
                     {
                         // Some compatibility - use Description if no Excel* attribute
-                        if (methodAttributes[methodAttributes.Count - 1] == null)
-                            methodAttributes[methodAttributes.Count - 1] = att;
+                        if (methodAttribute == null) methodAttribute = att;
                     }
                 }
+                if (methodAttribute == null)
+                {
+                    foreach (object dtAtt in method.DeclaringType.GetCustomAttributes(false))
+                    {
+                        Type dtAttType = dtAtt.GetType();
+                        if (TypeHelper.TypeHasAncestorWithFullName(dtAttType, "ExcelDna.Integration.ExcelFunctionAttribute") ||
+                            TypeHelper.TypeHasAncestorWithFullName(dtAttType, "ExcelDna.Integration.ExcelCommandAttribute"))
+                        {
+                            methodAttribute = dtAtt;
+                            break;
+                        }
+                    }
+                }
+                methodAttributes.Add(methodAttribute);
 
                 List<object> argAttribs = new List<object>();
                 argumentAttributes.Add(argAttribs);

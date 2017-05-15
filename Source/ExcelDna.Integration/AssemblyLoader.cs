@@ -167,6 +167,16 @@ namespace ExcelDna.Integration
 					return true;
 				}
 			}
+      atts = mi.DeclaringType.GetCustomAttributes(false);
+			foreach (object att in atts)
+			{
+				Type attType = att.GetType();
+                if (TypeHasAncestorWithFullName(attType, "ExcelDna.Integration.ExcelFunctionAttribute") ||
+                    TypeHasAncestorWithFullName(attType, "ExcelDna.Integration.ExcelCommandAttribute" ) )
+				{
+					return true;
+				}
+			}
 			return false;
 		}
 

@@ -1,0 +1,45 @@
+<DnaLibrary Name="Attributes Sample" Language="C#">
+<![CDATA[
+
+  using ExcelDna.Integration;
+
+  [ExcelFunction(Category="VolatileFuncs", IsVolatile=true)]
+  public class MyClass {
+
+    public static double funcA(double x, double y) {
+      return (x + y) ;
+    }
+
+    [ExcelFunction(IsVolatile=false)]
+    public static double funcB(double x, double y) {
+      return (x * y) ;
+    }
+
+    [ExcelFunction(Name="Cfunc")]
+    public static double funcC(double x, double y) {
+      return (x - y) ;
+    }
+
+    [ExcelFunction(Category="NotVolatileFuncs", IsVolatile=false)]
+    public static double funcD(double x, double y) {
+      return (x / y) ;
+    }
+
+  }
+
+  [ExcelCommand(MenuName="SampleMenu")]
+  public class MyMenuClass {
+
+    [ExcelCommand(MenuText="MenuItem 1")]
+    public static void aaa() {}
+
+    [ExcelCommand(MenuText="MenuItem 2")]
+    public static void bbb() {}
+
+    [ExcelCommand(MenuName="SampleMenu 2", MenuText="Item 1")]
+    public static void ccc() {}
+
+  }
+
+]]>
+</DnaLibrary>

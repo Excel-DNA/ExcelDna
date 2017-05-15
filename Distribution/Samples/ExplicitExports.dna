@@ -23,6 +23,28 @@
 		End Function	
 	End Module
 
+	<ExcelFunction(Category:="ExplicitModule")> _
+	Public Module VisibleModule
+		Function MultiplyThem(x, y)
+			MultiplyThem = x * y
+		End Function
+
+    <ExcelFunction(Name:="SubtractThem")> _
+		Function SubThem(x, y)
+			SubThem = x - y
+		End Function
+	End Module
+
+	Public Module InvisibleModule
+		Function MultiplyThem(x, y)
+			MultiplyThem = x * y
+		End Function
+
+		Function SubThem(x, y)
+			SubThem = x - y
+		End Function
+	End Module
+
 ]]>
 </Project>
 </DnaLibrary>
