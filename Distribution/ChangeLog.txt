@@ -11,6 +11,7 @@ Version 0.34 (???)
   If the value returned from ConnectData differs from Topic.Value, UpdateNotify will still be raised.
 * Allow AccessViolation exceptions to be caught under .NET 4.0 - change marshaling wrapper from DynamicMethod to MethodBuilder.
 * Fix QueueAsMacro failure after paste live preview.
+* Fix AssemblyResolve re-entrancy race condition.
 
 Version 0.33 (9 September 2015)
 -------------------------------
