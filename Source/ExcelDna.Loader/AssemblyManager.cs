@@ -65,8 +65,8 @@ namespace ExcelDna.Loader
             }
 
             // Check our AssemblyResolve cache
-            if (loadedAssemblies.ContainsKey(name))
-                return loadedAssemblies[name];
+            if (loadedAssemblies.TryGetValue(name, out loadedAssembly))
+                return loadedAssembly;
 
             // Check if it is loaded in the AppDomain already, 
             // e.g. from resources as an ExternalLibrary
@@ -74,7 +74,7 @@ namespace ExcelDna.Loader
             if (loadedAssembly != null)
             {
                 Logger.Initialization.Info("Assembly {0} was found to already be loaded into the AppDomain.", name);
-                loadedAssemblies.Add(name, loadedAssembly);
+                loadedAssemblies[name] = loadedAssembly;
                 return loadedAssembly;
             }
 
@@ -106,7 +106,7 @@ namespace ExcelDna.Loader
 			{
 				loadedAssembly = Assembly.Load(assemblyBytes);
                 Logger.Initialization.Info("Assembly Loaded from bytes. FullName: {0}", loadedAssembly.FullName);
-				loadedAssemblies.Add(name, loadedAssembly);
+				loadedAssemblies[name] = loadedAssembly;
 				return loadedAssembly;
 			}
 			catch (Exception e)
