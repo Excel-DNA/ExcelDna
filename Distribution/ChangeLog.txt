@@ -1,5 +1,5 @@
-Version 0.34 (???)
-------------------
+Version 0.34 (18 June 2017)
+---------------------------
 * Add ExplicitExports="false" to NuGet .dna file template
 * Fix getting Application from ProtectedViewWindow
 * Add attempts to get Application object from all windows of class EXCEL7.
@@ -12,6 +12,7 @@ Version 0.34 (???)
 * Allow AccessViolation exceptions to be caught under .NET 4.0 - change marshaling wrapper from DynamicMethod to MethodBuilder.
 * Fix QueueAsMacro failure after paste live preview.
 * Fix AssemblyResolve re-entrancy race condition.
+* Add NuGet package build targets and properties (thanks to @caioproiete).
 
 Version 0.33 (9 September 2015)
 -------------------------------

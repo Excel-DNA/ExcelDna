@@ -1,6 +1,6 @@
 ExcelDna.AddIn - NuGet package for creating an Excel-DNA add-in
 ===============================================================
-Find more information about Excel-DNA at http://excel-dna.net.
+The Excel-DNA home page is at http://excel-dna.net.
 
 Installing the ExcelDna.AddIn NuGet package into your project has made the following changes:
 1. Added a reference to <package>\lib\ExcelDna.Integration.dll.
@@ -16,6 +16,7 @@ Installing the ExcelDna.AddIn NuGet package into your project has made the follo
 
    NOTE: Debugging will fail to load the add-in for 64-bit Excel installations. See below under Troubleshooting.
    NOTE: Debugging will not be configured for F# projects when installing in Visual Studio 2013 or older. See instructions at the bottom of this file.
+   NOTE: F# projects built with newer Visual Studio versions should be configured to target .NET 4.5 or later, and ensure that the FSharp.Core.dll is copied to the output directory.
 
 Next steps
 ----------
@@ -23,7 +24,7 @@ Next steps
   Then press F5 to run Excel and load the add-in, and type into a cell: =HelloDna("your name")
 * Add Public Shared functions (and functions in a Public Module) will be registered with Excel.
 * Further configure packing for your library to add additional references by editing the <ProjectName>-Addin.dna file.
-* Add samples from NuGet by installing the Excel-DNA.Samples package (when available...).
+* Source code, related projects and samples can be found on GitHub at https://github.com/Excel-DNA.
 
 Troubleshooting
 ---------------
