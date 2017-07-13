@@ -14,46 +14,44 @@
   {
     public void AutoOpen()
     {
-      DynamicMethod mult = new DynamicMethod("MyMultiply",
-                                typeof(double),
-                                new Type[] {typeof(double), typeof(double)},
-                                typeof(Test));
-      ILGenerator il = mult.GetILGenerator();
-      il.Emit(OpCodes.Ldarg_0);
-      il.Emit(OpCodes.Ldarg_1);
-      il.Emit(OpCodes.Mul);
-      il.Emit(OpCodes.Ret);
-      // Method will be completed when CreateDelegate is called during registration.
+        DynamicMethod mult = new DynamicMethod("MyMultiply",
+                                  typeof(double),
+                                  new Type[] { typeof(double), typeof(double) },
+                                  typeof(Test));
+        ILGenerator il = mult.GetILGenerator();
+        il.Emit(OpCodes.Ldarg_0);
+        il.Emit(OpCodes.Ldarg_1);
+        il.Emit(OpCodes.Mul);
+        il.Emit(OpCodes.Ret);
+        // Method will be completed when CreateDelegate is called during registration.
 
-      // Registration takes a list of methods - the registration
-      // creates a new assembly and a type every time it is called.
-      List<MethodInfo> methods = new List<MethodInfo>();
-      methods.Add(mult);
-      
-      // If we just want to register the method(s), with no customization, we'd be done:
-      // ExcelIntegration.RegisterMethods(methods);
-      
-      // We can also create some attributes to customize the function registration:
-      ExcelFunctionAttribute att = new ExcelFunctionAttribute();
-      att.Description = "A function to multiply two numbers";
-      
-      List<object> funcAttribs = new List<object>();
-      funcAttribs.Add(att);
-      
-      ExcelArgumentAttribute atta1 = new ExcelArgumentAttribute();
-      atta1.Description = "is the first number";
-      
-      ExcelArgumentAttribute atta2 = new ExcelArgumentAttribute();
-      atta2.Description = "is the second number";
+        // Registration takes a list of Delegates - the registration
+        // creates a new assembly and a type every time it is called.
+        List<Delegate> delegates = new List<Delegate>();
+        delegates.Add(mult.CreateDelegate(typeof(Func<double, double, double>)));
 
-      List<object> argAttribs = new List<object>();
-      argAttribs.Add(atta1);
-      argAttribs.Add(atta2);
-      
-      List<List<object>> argAttribsList = new List<List<object>>();
-      argAttribsList.Add(argAttribs);
-      
-      ExcelIntegration.RegisterMethods(methods, funcAttribs, argAttribsList);
+        // We can also create some attributes to customize the function registration:
+        ExcelFunctionAttribute att = new ExcelFunctionAttribute();
+        att.Name = "MyMultiply";
+        att.Description = "A function to multiply two numbers";
+
+        List<object> funcAttribs = new List<object>();
+        funcAttribs.Add(att);
+
+        ExcelArgumentAttribute atta1 = new ExcelArgumentAttribute();
+        atta1.Description = "is the first number";
+
+        ExcelArgumentAttribute atta2 = new ExcelArgumentAttribute();
+        atta2.Description = "is the second number";
+
+        List<object> argAttribs = new List<object>();
+        argAttribs.Add(atta1);
+        argAttribs.Add(atta2);
+
+        List<List<object>> argAttribsList = new List<List<object>>();
+        argAttribsList.Add(argAttribs);
+
+        ExcelIntegration.RegisterDelegates(delegates, funcAttribs, argAttribsList);
     }
 
     public void AutoClose()
