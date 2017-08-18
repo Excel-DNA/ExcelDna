@@ -36,6 +36,12 @@ namespace ExcelDna.AddIn.Tasks.Utils
 
         public void DeleteFile(string sourceFileName)
         {
+            var fileInfo = new FileInfo(sourceFileName);
+            if (fileInfo.IsReadOnly)
+            {
+                fileInfo.IsReadOnly = false;
+            }
+
             File.Delete(sourceFileName);
         }
 
