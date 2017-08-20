@@ -55,7 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="testWorkbooks\basic.xlsm">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="packages.config" />
     <Content Include="testMacros.xlsm">
@@ -86,7 +86,7 @@
   </Target>
   -->
   <Target Name="AfterBuild">
-    <Copy SourceFiles="$(SolutionDir)ExcelDna\$(Configuration)\ExcelDna.xll" DestinationFolder="$(TargetDir)" ContinueOnError="WarnAndContinue"/>
-    <Copy SourceFiles="$(SolutionDir)ExcelDna\$(Configuration)64\ExcelDna64.xll" DestinationFolder="$(TargetDir)" ContinueOnError="WarnAndContinue"/>
+    <Copy SourceFiles="$(SolutionDir)ExcelDna\$(Configuration)\ExcelDna.xll" DestinationFolder="$(TargetDir)" ContinueOnError="WarnAndContinue" />
+    <Copy SourceFiles="$(SolutionDir)ExcelDna\$(Configuration)64\ExcelDna64.xll" DestinationFolder="$(TargetDir)" ContinueOnError="WarnAndContinue" />
   </Target>
 </Project>
