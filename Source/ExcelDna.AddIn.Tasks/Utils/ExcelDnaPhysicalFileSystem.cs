@@ -22,16 +22,22 @@ namespace ExcelDna.AddIn.Tasks.Utils
 
         public void CopyFile(string sourceFileName, string destFileName, bool overwrite)
         {
-            if (overwrite)
-            {
-                var fileInfo = new FileInfo(destFileName);
-                if (fileInfo.Exists && fileInfo.IsReadOnly)
-                {
-                    fileInfo.IsReadOnly = false;
-                }
-            }
+            var outputFileMode = overwrite ? FileMode.Create : FileMode.CreateNew;
 
-            File.Copy(sourceFileName, destFileName, overwrite);
+            using (var inputStream = new FileStream(sourceFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var outputStream = new FileStream(destFileName, outputFileMode, FileAccess.Write, FileShare.None))
+            {
+                const int bufferSize = 16384; // 16 Kb
+                var buffer = new byte[bufferSize];
+
+                int bytesRead;
+
+                do
+                {
+                    bytesRead = inputStream.Read(buffer, 0, bufferSize);
+                    outputStream.Write(buffer, 0, bytesRead);
+                } while (bytesRead == bufferSize);
+            }
         }
 
         public void DeleteFile(string sourceFileName)
