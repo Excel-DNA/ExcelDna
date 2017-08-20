@@ -250,7 +250,15 @@ namespace ExcelDna.Integration
             }
             if (registerSyncManager)
             {
-                SynchronizationManager.Install();  // TODO: Careful here!?
+                try
+                {
+                    SynchronizationManager.Install();
+                }
+                catch (InvalidOperationException)
+                {
+                    // This is expected if we are running under HPC or Regsvr32.
+                    Logger.Initialization.Warn("SynchonizationManager could not be installed - probably running in HPC host or Regsvr32.exe");
+                }
             }
 
             // Register COM Server Types immediately
