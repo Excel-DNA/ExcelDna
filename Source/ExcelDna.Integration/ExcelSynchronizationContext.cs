@@ -149,6 +149,8 @@ namespace ExcelDna.Integration
                             pendingRtdUpdate.UpdateNotify();
                         }
                     }
+                    // NOTE: Added the Clear() call on 2017/09/07 (after v0.34)
+                    _pendingRtdUpdates.Clear();
                 }
                 catch (InvalidCastException ice)
                 {
