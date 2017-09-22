@@ -93,6 +93,10 @@ namespace ExcelDna.Loader
             Debug.Assert(targets == null || targets.Count == methods.Count);
             Logger.Registration.Verbose("Registering {0} methods", methods.Count);
             List<XlMethodInfo> xlMethods = XlMethodInfo.ConvertToXlMethodInfos(methods, targets, methodAttributes, argumentAttributes);
+
+            // Sort by name in reverse order before registering - this is inspired by the article http://www.benf.org/excel/regcost/
+            // Makes a small but measurable difference in the Excel registration calls
+            xlMethods.Sort(delegate (XlMethodInfo mi1, XlMethodInfo mi2) { return -string.Compare(mi1.Name, mi2.Name, StringComparison.OrdinalIgnoreCase); });
             xlMethods.ForEach(RegisterXlMethod);
             // Increment the registration version (safe to call a few times)
             registrationInfoVersion += 1.0;
