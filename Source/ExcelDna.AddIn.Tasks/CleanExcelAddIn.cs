@@ -21,6 +21,7 @@ namespace ExcelDna.AddIn.Tasks
         }
 
         public CleanExcelAddIn(IExcelDnaFileSystem fileSystem)
+            : base("ExcelDnaClean")
         {
             if (fileSystem == null)
             {

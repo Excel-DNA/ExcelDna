@@ -22,6 +22,7 @@ namespace ExcelDna.AddIn.Tasks
         }
 
         public CreateExcelAddIn(IExcelDnaFileSystem fileSystem)
+            : base("ExcelDnaBuild")
         {
             if (fileSystem == null)
             {
