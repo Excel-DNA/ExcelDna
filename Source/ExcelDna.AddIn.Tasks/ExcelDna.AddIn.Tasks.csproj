@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="AbstractTask.cs" />
     <Compile Include="BuildItemSpec.cs" />
+    <Compile Include="SetDebuggerOptions.cs" />
     <Compile Include="Utils\ExcelDnaProject.cs" />
     <Compile Include="Utils\IExcelDnaProject.cs" />
     <None Include="Properties\ExcelDna.AddIn.Tasks.targets" />
