@@ -14,6 +14,28 @@
   -->
 
   <!--
+    Configuration properties for debugging Excel-DNA add-ins
+  -->
+  <PropertyGroup>
+    <!--
+      Enable/Disable setting the debug options when building the project
+    -->
+    <RunExcelDnaSetDebuggerOptions Condition="'$(RunExcelDnaSetDebuggerOptions)' == ''">true</RunExcelDnaSetDebuggerOptions>
+
+    <!--
+      Override the path of EXCEL.EXE used for debugging the project, if you need
+      By default, it will use the latest version of Excel it can find on the machine
+    -->
+    <ExcelDnaExcelExePath Condition="'$(ExcelDnaExcelExePath)' == ''"></ExcelDnaExcelExePath>
+
+    <!--
+      Override the name of the .XLL add-in to use when debugging the project, if you need
+      By default, it will use the first unpacked .xll add-in that matches the bitness of EXCEL.EXE
+    -->
+    <ExcelDnaAddInForDebugging Condition="'$(ExcelDnaAddInForDebugging)' == ''"></ExcelDnaAddInForDebugging>
+  </PropertyGroup>
+
+  <!--
     Configuration properties for building .dna files
   -->
   <PropertyGroup>
