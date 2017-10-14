@@ -19,6 +19,15 @@ namespace ExcelDna.AddIn.Tasks
 
         public abstract bool Execute();
 
+        protected void LogDebugMessage(string message)
+        {
+            #if DEBUG
+                LogMessage(message, MessageImportance.High);
+            #else
+                LogMessage(message, MessageImportance.Low);
+            #endif
+        }
+
         protected void LogMessage(string message, MessageImportance importance = MessageImportance.High)
         {
             BuildEngine.LogMessageEvent(new BuildMessageEventArgs(string.Format("{0}: {1}", _targetName, message),
