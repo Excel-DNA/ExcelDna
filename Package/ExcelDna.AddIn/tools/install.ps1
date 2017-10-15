@@ -2,7 +2,6 @@ param($installPath, $toolsPath, $package, $project)
     Write-Host "Starting ExcelDna.AddIn install script"
 
     $dteVersion = $project.DTE.Version
-    $isBeforeVS2015 = ($dteVersion -lt 14.0)
     $isFSharpProject = ($project.Type -eq "F#")
     $projectName = $project.Name
 
@@ -47,40 +46,6 @@ param($installPath, $toolsPath, $package, $project)
             $outputFileName = $project.Properties.Item("OutputFileName").Value
             (get-content $dnaFullPath) | foreach-object { $_ -replace "%OutputFileName%", $outputFileName } | set-content $dnaFullPath
             (get-content $dnaFullPath) | foreach-object { $_ -replace "%ProjectName%"   , $projectName    } | set-content $dnaFullPath
-        }
-    }
-
-    if ($isFSharpProject -and $isBeforeVS2015)
-    {
-        # I don't know how to do this for F# projects on old VS
-        Write-Host "`t*** Unable to configure Debug startup setting.`r`n`t    Please configure manually to start Excel when debugging.`r`n`t    See readme.txt for details."
-    }
-    else
-    {
-        # Find Debug configuration and set debugger settings.
-        $exeValue = Get-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\Excel.XLL\shell\Open\command -name "(default)"
-        if ($exeValue -match "`".*`"")
-        {
-            $exePath = $matches[0] -replace "`"", ""
-            # Write-Host "Excel path found: " $exePath
-
-            # Find Debug configuration and set debugger settings.
-            $debugProject = $project.ConfigurationManager | Where-Object {$_.ConfigurationName -eq "Debug"}
-            if ($null -ne $debugProject)
-            {
-                # Write-Host "Start Action " $debugProject.Properties.Item("StartAction").Value
-                if ($debugProject.Properties.Item("StartAction").Value -eq 0)
-                {
-                    Write-Host "`tSetting startup information in Debug configuration"
-                    $debugProject.Properties.Item("StartAction").Value = 1
-                    $debugProject.Properties.Item("StartProgram").Value = $exePath
-                    $debugProject.Properties.Item("StartArguments").Value = "`"${projectName}-AddIn.xll`""
-                }
-            }
-        }
-        else
-        {
-            Write-Host "`tExcel path not found!" 
         }
     }
 
