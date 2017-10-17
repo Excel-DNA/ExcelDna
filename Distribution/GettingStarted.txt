@@ -30,7 +30,7 @@ http://www.microsoft.com/downloads/details.aspx?FamilyID=0856eacb-4362-4b0d-8edd
 	]]>
 	</DnaLibrary>
 
-* (To target .NET 4 or .NET 4.5, use RuntimeVersion="V4.0" instead.)	
+* (To target .NET 4 or .NET 4.5, use RuntimeVersion="v4.0" instead.)	
 * Load Test1.xll in Excel (either File->Open or Tools->Add-Ins and Browse).
 * You should be prompted whether to Enable Macros, click Enable.
 * Enter =AddThem(4,2) into a cell - you should get 6.
