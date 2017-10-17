@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <UsingTask TaskName="ExcelDna.AddIn.Tasks.CreateExcelAddIn" AssemblyFile="ExcelDna.AddIn.Tasks.dll" />
+  <UsingTask TaskName="ExcelDna.AddIn.Tasks.SetDebuggerOptions" AssemblyFile="ExcelDna.AddIn.Tasks.dll" />
   <UsingTask TaskName="ExcelDna.AddIn.Tasks.CleanExcelAddIn" AssemblyFile="ExcelDna.AddIn.Tasks.dll" />
+  <UsingTask TaskName="ExcelDna.AddIn.Tasks.CreateExcelAddIn" AssemblyFile="ExcelDna.AddIn.Tasks.dll" />
 
   <PropertyGroup>
     <ExcelDnaTargetsImported>true</ExcelDnaTargetsImported>
@@ -18,10 +19,11 @@
   </PropertyGroup>
 
   <!--
-    Extend the Build target to call our ExcelDnaBuild and ExcelDnaPack targets
+    Extend the Build target to call our ExcelDnaDebugger, ExcelDnaBuild, and ExcelDnaPack targets
   -->
   <PropertyGroup>
     <BuildDependsOn>
+      ExcelDnaSetDebuggerOptions;
       $(BuildDependsOn);
       ExcelDnaBuild;
       ExcelDnaPack;
@@ -41,6 +43,7 @@
     Default values for configuration properties - in case they were not set in via .props file or command-line
   -->
   <PropertyGroup>
+    <RunExcelDnaSetDebuggerOptions Condition="'$(RunExcelDnaSetDebuggerOptions)' == ''">true</RunExcelDnaSetDebuggerOptions>
     <RunExcelDnaClean Condition="'$(RunExcelDnaClean)' == ''">true</RunExcelDnaClean>
     <RunExcelDnaBuild Condition="'$(RunExcelDnaBuild)' == ''">true</RunExcelDnaBuild>
     <RunExcelDnaPack Condition="'$(RunExcelDnaPack)' == ''">true</RunExcelDnaPack>
@@ -58,6 +61,31 @@
     <ExcelDnaPackCompressResources Condition="'$(ExcelDnaPackCompressResources)' == ''">true</ExcelDnaPackCompressResources>
     <ExcelDnaPackRunMultithreaded Condition="'$(ExcelDnaPackRunMultithreaded)' == ''">true</ExcelDnaPackRunMultithreaded>
   </PropertyGroup>
+
+  <!--
+    Configure debugger options (Path for EXCEL.EXE, add-in to open, etc).
+  -->
+  <Target Name="ExcelDnaSetDebuggerOptions" BeforeTargets="PreBuildEvent" Condition="$(RunExcelDnaSetDebuggerOptions) AND '$(BuildingInsideVisualStudio)' == 'true'">
+    <Message Text="---" Importance="High" />
+
+    <Error Text="ExcelDna32BitAddInSuffix and ExcelDna64BitAddInSuffix cannot be identical. Fix your ExcelDna.Build.props file"
+           Condition="'$(ExcelDna32BitAddInSuffix)' == '$(ExcelDna64BitAddInSuffix)'" />
+
+    <ItemGroup>
+      <ExcelDnaFilesInProject Include="@(None)" />
+      <ExcelDnaFilesInProject Include="@(Content)" />
+    </ItemGroup>
+
+    <SetDebuggerOptions
+      ProjectName="$(MSBuildProjectName)"
+      ExcelExePath="$(ExcelDnaExcelExePath)"
+      AddInForDebugging="$(ExcelDnaAddInForDebugging)"
+      FilesInProject="@(ExcelDnaFilesInProject)"
+      OutDirectory="$(OutDir)"
+      FileSuffix32Bit="$(ExcelDna32BitAddInSuffix)"
+      FileSuffix64Bit="$(ExcelDna64BitAddInSuffix)">
+    </SetDebuggerOptions>
+  </Target>
 
   <!--
     Target that removes .dna, .xll, and .xll.config from the build output folder
@@ -83,7 +111,6 @@
       PackIsEnabled="$(RunExcelDnaPack)"
       PackedFileSuffix="$(ExcelDnaPackXllSuffix)">
     </CleanExcelAddIn>
-
   </Target>
 
   <!--

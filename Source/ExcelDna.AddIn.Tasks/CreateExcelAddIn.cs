@@ -22,6 +22,7 @@ namespace ExcelDna.AddIn.Tasks
         }
 
         public CreateExcelAddIn(IExcelDnaFileSystem fileSystem)
+            : base("ExcelDnaBuild")
         {
             if (fileSystem == null)
             {
@@ -35,6 +36,8 @@ namespace ExcelDna.AddIn.Tasks
         {
             try
             {
+                LogDebugMessage("Running CreateExcelAddIn MSBuild Task");
+
                 LogDiagnostics();
 
                 RunSanityChecks();
@@ -43,7 +46,7 @@ namespace ExcelDna.AddIn.Tasks
                 DnaFilesToPack = new ITaskItem[0];
 
                 FilesInProject = FilesInProject ?? new ITaskItem[0];
-                LogMessage("Number of files in project: " + FilesInProject.Length, MessageImportance.Low);
+                LogDebugMessage("Number of files in project: " + FilesInProject.Length);
 
                 _configFilesInProject = GetConfigFilesInProject();
                 _common = new BuildTaskCommon(FilesInProject, OutDirectory, FileSuffix32Bit, FileSuffix64Bit);
@@ -52,7 +55,7 @@ namespace ExcelDna.AddIn.Tasks
 
                 TryBuildAddInFor32Bit(buildItemsForDnaFiles);
 
-                LogMessage("---");
+                LogMessage("---", MessageImportance.High);
 
                 TryBuildAddInFor64Bit(buildItemsForDnaFiles);
 
@@ -70,16 +73,16 @@ namespace ExcelDna.AddIn.Tasks
 
         private void LogDiagnostics()
         {
-            LogMessage("----Arguments----", MessageImportance.Low);
-            LogMessage("FilesInProject: " + (FilesInProject ?? new ITaskItem[0]).Length, MessageImportance.Low);
-            LogMessage("OutDirectory: " + OutDirectory, MessageImportance.Low);
-            LogMessage("Xll32FilePath: " + Xll32FilePath, MessageImportance.Low);
-            LogMessage("Xll64FilePath: " + Xll64FilePath, MessageImportance.Low);
-            LogMessage("Create32BitAddIn: " + Create32BitAddIn, MessageImportance.Low);
-            LogMessage("Create64BitAddIn: " + Create64BitAddIn, MessageImportance.Low);
-            LogMessage("FileSuffix32Bit: " + FileSuffix32Bit, MessageImportance.Low);
-            LogMessage("FileSuffix64Bit: " + FileSuffix64Bit, MessageImportance.Low);
-            LogMessage("-----------------", MessageImportance.Low);
+            LogDebugMessage("----Arguments----");
+            LogDebugMessage("FilesInProject: " + (FilesInProject ?? new ITaskItem[0]).Length);
+            LogDebugMessage("OutDirectory: " + OutDirectory);
+            LogDebugMessage("Xll32FilePath: " + Xll32FilePath);
+            LogDebugMessage("Xll64FilePath: " + Xll64FilePath);
+            LogDebugMessage("Create32BitAddIn: " + Create32BitAddIn);
+            LogDebugMessage("Create64BitAddIn: " + Create64BitAddIn);
+            LogDebugMessage("FileSuffix32Bit: " + FileSuffix32Bit);
+            LogDebugMessage("FileSuffix64Bit: " + FileSuffix64Bit);
+            LogDebugMessage("-----------------");
         }
 
         private void RunSanityChecks()

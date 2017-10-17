@@ -21,6 +21,7 @@ namespace ExcelDna.AddIn.Tasks
         }
 
         public CleanExcelAddIn(IExcelDnaFileSystem fileSystem)
+            : base("ExcelDnaClean")
         {
             if (fileSystem == null)
             {
@@ -34,17 +35,17 @@ namespace ExcelDna.AddIn.Tasks
         {
             try
             {
+                LogDebugMessage("Running CleanExcelAddIn MSBuild Task");
+
                 LogDiagnostics();
 
                 FilesInProject = FilesInProject ?? new ITaskItem[0];
-                LogMessage("Number of files in project: " + FilesInProject.Length, MessageImportance.Low);
+                LogDebugMessage("Number of files in project: " + FilesInProject.Length);
 
                 _common = new BuildTaskCommon(FilesInProject, OutDirectory, FileSuffix32Bit, FileSuffix64Bit);
 
                 var existingBuiltFiles = _common.GetBuildItemsForDnaFiles();
                 _packedFilesToDelete = GetPackedFilesToDelete(existingBuiltFiles);
-
-                LogMessage("---");
 
                 // Get the packed name versions : Refactor this + build items
                 DeleteAddInFiles(existingBuiltFiles);
@@ -62,14 +63,14 @@ namespace ExcelDna.AddIn.Tasks
 
         private void LogDiagnostics()
         {
-            LogMessage("----Arguments----", MessageImportance.Low);
-            LogMessage("FilesInProject: " + (FilesInProject ?? new ITaskItem[0]).Length, MessageImportance.Low);
-            LogMessage("OutDirectory: " + OutDirectory, MessageImportance.Low);
-            LogMessage("Xll32FilePath: " + Xll32FilePath, MessageImportance.Low);
-            LogMessage("Xll64FilePath: " + Xll64FilePath, MessageImportance.Low);
-            LogMessage("FileSuffix32Bit: " + FileSuffix32Bit, MessageImportance.Low);
-            LogMessage("FileSuffix64Bit: " + FileSuffix64Bit, MessageImportance.Low);
-            LogMessage("-----------------", MessageImportance.Low);
+            LogDebugMessage("----Arguments----");
+            LogDebugMessage("FilesInProject: " + (FilesInProject ?? new ITaskItem[0]).Length);
+            LogDebugMessage("OutDirectory: " + OutDirectory);
+            LogDebugMessage("Xll32FilePath: " + Xll32FilePath);
+            LogDebugMessage("Xll64FilePath: " + Xll64FilePath);
+            LogDebugMessage("FileSuffix32Bit: " + FileSuffix32Bit);
+            LogDebugMessage("FileSuffix64Bit: " + FileSuffix64Bit);
+            LogDebugMessage("-----------------");
         }
 
         private List<ITaskItem> GetPackedFilesToDelete(BuildItemSpec[] existingBuiltFiles)
@@ -141,6 +142,7 @@ namespace ExcelDna.AddIn.Tasks
         {
             if (_fileSystem.FileExists(path))
             {
+                LogDebugMessage("Deleting file " + path);
                 _fileSystem.DeleteFile(path);
             }
         }
