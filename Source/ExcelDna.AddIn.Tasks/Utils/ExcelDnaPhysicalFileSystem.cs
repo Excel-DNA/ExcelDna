@@ -22,6 +22,15 @@ namespace ExcelDna.AddIn.Tasks.Utils
 
         public void CopyFile(string sourceFileName, string destFileName, bool overwrite)
         {
+            if (overwrite)
+            {
+                var destFileInfo = new FileInfo(destFileName);
+                if (destFileInfo.Exists && destFileInfo.IsReadOnly)
+                {
+                    destFileInfo.IsReadOnly = false;
+                }
+            }
+
             var outputFileMode = overwrite ? FileMode.Create : FileMode.CreateNew;
 
             using (var inputStream = new FileStream(sourceFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
