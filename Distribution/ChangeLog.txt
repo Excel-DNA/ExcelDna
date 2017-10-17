@@ -1,3 +1,7 @@
+Version 0.35 (???)
+------------------
+* Improve build tasks - more reliable clean-up and debugger detection.
+
 Version 0.34 (18 June 2017)
 ---------------------------
 * Add ExplicitExports="false" to NuGet .dna file template
