@@ -1,7 +1,6 @@
 param($installPath, $toolsPath, $package, $project)
     Write-Host "Starting ExcelDna.AddIn install script"
 
-    $dteVersion = $project.DTE.Version
     $isFSharpProject = ($project.Type -eq "F#")
     $projectName = $project.Name
 
