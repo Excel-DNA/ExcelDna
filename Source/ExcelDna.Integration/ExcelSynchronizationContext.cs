@@ -296,7 +296,15 @@ namespace ExcelDna.Integration
                     UnhandledExceptionHandler handler = ExcelIntegration.GetRegisterUnhandledExceptionHandler();
                     if (handler != null)
                     {
-                        handler(ex);
+                        try
+                        {
+                            handler(ex);
+                        }
+                        catch (Exception uehex)
+                        {
+                            Logger.Runtime.Error(ex, "Unhandled exception in async delegate call.");
+                            Logger.Runtime.Error(uehex, "Unhandled exception in UnhandledExceptionHandler after async delegate call.");
+                        }
                     }
                     else
                     {
