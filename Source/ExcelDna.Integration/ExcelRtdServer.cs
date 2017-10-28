@@ -375,12 +375,32 @@ namespace ExcelDna.Integration.Rtd
             }
         }
 
+        // Called by Excel is more that HeartbeatInterval millseconds have elapsed since the last UpdateNotify call
+        // HeartbeatInterval cannot be less than 15000, but Heartbeat support can be switched off (-1)
+        // So our redundant UpdateNotify call should not ahppenin often
+        // We use the Heartbeat to retry any outstanding UpdateNotify call
+        // (though this should not be needed according to the RTD interface contract)
         int IRtdServer.Heartbeat()
         {
             try
             {
+                // Re-post the notify in case something went wrong on the Excel side or our sync window
+                // This should not be necessary but should not be harmful either
+                // There has been a report f the RTD server ptopping, perhaps due to sync window PostMessage failing
+                // This is just an extra safety measure
+                lock (_updateLock)
+                {
+                    if (_notified)
+                    {
+                        // We've notified but Excel has not called us back, and Excel has not seen an UpdateNotify recently...
+                        // This is unexpected
+                        Logger.RtdServer.Warn("Heartbeat callback while Notified in RTD server {0} - retrying UpdateNotify", GetType().Name);
+                        _updateSync.UpdateNotify(_callbackObject);
+                    }
+                }
                 using (XlCall.Suspend())
                 {
+                    // Call the derived class's override
                     return Heartbeat();
                 }
             }

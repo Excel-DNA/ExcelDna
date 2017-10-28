@@ -540,7 +540,7 @@ namespace ExcelDna.Integration
     // to allow us to jump onto the main thread for calling RTD update notifications and running macros.
     sealed class SynchronizationWindow : NativeWindow, IDisposable
     {
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll", SetLastError = true)]
         static extern bool PostMessage(HandleRef hwnd, int msg, IntPtr wparam, IntPtr lparam);
 
         // Helpers for the two sync aspects
@@ -553,6 +553,12 @@ namespace ExcelDna.Integration
         const int WM_UPDATENOTIFY = WM_USER + 1;
         const int WM_SYNCMACRO = WM_USER + 2;
         //const int WM_SYNCMACRO_DIRECT = WM_USER + 3;
+
+        // We keep track of messages that are pending (after failed PostMessage calls)
+        Queue<int> _pendingPostMessages = new Queue<int>();
+        readonly object _pendingPostMessageLock = new object();
+        bool _pendingPostMessageThreadRunning = false;
+        const int RetryPostMessageDelayMs = 250;
 
         public SynchronizationWindow()
         {
@@ -567,12 +573,109 @@ namespace ExcelDna.Integration
 
         internal void PostUpdateNotify()
         {
- 	         PostMessage(new HandleRef(this, Handle), WM_UPDATENOTIFY, IntPtr.Zero, IntPtr.Zero);
+            ReliablePostMessage(WM_UPDATENOTIFY);
         }
 
         internal void PostRunSyncMacro()
         {
-            PostMessage(new HandleRef(this, Handle), WM_SYNCMACRO, IntPtr.Zero, IntPtr.Zero);
+            ReliablePostMessage(WM_SYNCMACRO);
+        }
+
+        // ReliablePostMessage ensures that there will be a successful PostMessage call with this msg
+        internal void ReliablePostMessage(int msg)
+        {
+            if (!_pendingPostMessageThreadRunning)
+            {
+                // Normal case - try to post directly
+                var postOK = PostMessage(new HandleRef(this, Handle), msg, IntPtr.Zero, IntPtr.Zero);
+                if (postOK)
+                    return;
+
+                // There was an error - log it and continue to retry behaviour
+                // Instead of dealing with the error code, we could do:
+                //     throw new Win32Exception() 
+                // which calls GetLastWin32Error and creates a formatted message string
+                // See: https://blogs.msdn.microsoft.com/adam_nathan/2003/04/25/getlasterror-and-managed-code/
+                int err = Marshal.GetLastWin32Error();
+                Logger.Runtime.Warn("SynchronizationWindow - PostMessage Error {0}", err);
+            }
+
+            // Rarely we might have a PostMessage call that fails
+            // (when Excel is very busy, the main thread is not processing messages and the queue gets too big?)
+            // Then we switch to a reliable retry mode
+
+            // Either PostMessage failed or we didn't even try, since we are (or were) busy running queued messages
+            lock (_pendingPostMessageLock)
+            {
+                Logger.Runtime.Verbose("SynchronizationWindow - Enqueueing message {0}", msg);
+                _pendingPostMessages.Enqueue(msg);
+            }
+            // Retry or ensure retry thread is running
+            AttemptPostMessages();
+        }
+
+        // Can be called from any thread to try to process the messages in _pendingPostMessages
+        internal void AttemptPostMessages()
+        {
+            lock (_pendingPostMessageLock)
+            {
+                Logger.Runtime.Verbose("SynchronizationWindow - AttemptPostMessages for {0} message(s)", _pendingPostMessages.Count);
+                bool postOK = true;
+                while (_pendingPostMessages.Count > 0 && postOK)
+                {
+                    int msg = _pendingPostMessages.Peek();
+                    postOK = PostMessage(new HandleRef(this, Handle), msg, IntPtr.Zero, IntPtr.Zero);
+                    if (postOK)
+                    {
+                        _pendingPostMessages.Dequeue();
+                    }
+                    else
+                    {
+                        // Error - we'll stop the loop since postOK == false
+                        int err = Marshal.GetLastWin32Error();
+                        Logger.Runtime.Warn("SynchronizationWindow - PostMessage Error {0}", err);
+                    }
+                }
+                // Were we finished?
+                if (_pendingPostMessages.Count == 0)
+                {
+                    // No more pending messages - retry thread can exit if it is running
+                    _pendingPostMessageThreadRunning = false;
+                    Logger.Runtime.Verbose("SynchronizationWindow - AttemptPostMessages complete - all messages posted");
+                }
+                else if (!_pendingPostMessageThreadRunning)
+                {
+                    // We still have pending messages and no thread was running
+                    // so we start a new retry thread
+                    Logger.Runtime.Verbose("SynchronizationWindow - AttemptPostMessages complete - starting retry thread");
+                    _pendingPostMessageThreadRunning = true;
+                    new Thread(RetryPostMessages).Start();
+                }
+                else
+                {
+                    Logger.Runtime.Verbose("SynchronizationWindow - AttemptPostMessages ending - {0} message(s) remain", _pendingPostMessages.Count);
+                }
+            }
+        }
+
+        // This is the retry thread routine
+        void RetryPostMessages(object _unused_)
+        {
+            Logger.Runtime.Verbose("SynchronizationWindow - RetryPostMessages starting");
+            while (true)
+            {
+                Thread.Sleep(RetryPostMessageDelayMs);
+                lock (_pendingPostMessageLock)
+                {
+                    AttemptPostMessages();
+                    if (!_pendingPostMessageThreadRunning)
+                    {
+                        // Stop running
+                        Logger.Runtime.Verbose("SynchronizationWindow - RetryPostMessages stopping");
+                        return;
+                    }
+                }
+            }
         }
 
         protected override void WndProc(ref Message m)
