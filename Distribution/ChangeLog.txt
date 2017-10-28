@@ -1,6 +1,7 @@
 Version 0.35 (???)
 ------------------
 * Improve build tasks - more reliable clean-up and debugger detection.
+* Improve RTD and async QueueAsMacro reliability
 
 Version 0.34 (18 June 2017)
 ---------------------------
