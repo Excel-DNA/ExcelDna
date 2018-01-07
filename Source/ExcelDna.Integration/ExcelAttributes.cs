@@ -42,9 +42,17 @@ namespace ExcelDna.Integration
 	[AttributeUsage(AttributeTargets.Parameter, Inherited = false, AllowMultiple = false)]
 	public class ExcelArgumentAttribute : Attribute
 	{
-		public string Name = null;
-		public string Description = null;
-		public bool   AllowReference = false;
+		private string _description;
+
+		public virtual string Name { get; set; }
+
+		public virtual string Description
+		{
+			get { return _description; }
+			set { _description = value; }
+		}
+
+		public virtual bool AllowReference { get; set; }
 
 		public ExcelArgumentAttribute()
 		{
@@ -52,7 +60,7 @@ namespace ExcelDna.Integration
 
 		public ExcelArgumentAttribute(string description)
 		{
-			Description = description;
+			_description = description;
 		}
 	}
 
