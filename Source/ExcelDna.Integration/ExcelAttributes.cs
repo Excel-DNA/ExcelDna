@@ -8,18 +8,26 @@ namespace ExcelDna.Integration
 	[AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
 	public class ExcelFunctionAttribute : Attribute
 	{
-		public string Name = null;
-		public string Description = null;
-		public string Category = null;
-		public string HelpTopic = null;
-		public bool   IsVolatile = false;
-        public bool   IsHidden = false;
-		public bool   IsExceptionSafe = false;
-		public bool   IsMacroType = false;
-        public bool   IsThreadSafe = false;
-        public bool   IsClusterSafe = false;
-        public bool   ExplicitRegistration = false;
-        public bool   SuppressOverwriteError = false;
+		private string _description;
+
+		public virtual string Name { get; set; }
+
+		public virtual string Description
+		{
+			get { return _description; }
+			set { _description = value; }
+		}
+
+		public virtual string Category { get; set; }
+		public virtual string HelpTopic { get; set; }
+		public virtual bool IsVolatile { get; set; }
+		public virtual bool IsHidden { get; set; }
+		public virtual bool IsExceptionSafe { get; set; }
+		public virtual bool IsMacroType { get; set; }
+		public virtual bool IsThreadSafe { get; set; }
+		public virtual bool IsClusterSafe { get; set; }
+		public virtual bool ExplicitRegistration { get; set; }
+		public virtual bool SuppressOverwriteError { get; set; }
 
 		public ExcelFunctionAttribute()
 		{
@@ -27,7 +35,7 @@ namespace ExcelDna.Integration
 
 		public ExcelFunctionAttribute(string description)
 		{
-			Description = description;
+			_description = description;
 		}
 	}
 
