@@ -67,17 +67,25 @@ namespace ExcelDna.Integration
 	[AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
 	public class ExcelCommandAttribute : Attribute
 	{
-		public string Name = null;
-		public string Description = null;
-		public string HelpTopic = null;
-		public string ShortCut = null;
-		public string MenuName = null;
-		public string MenuText = null;
-        public bool   IsExceptionSafe = false;
-        public bool   ExplicitRegistration = false;
-        public bool   SuppressOverwriteError = false;
+		private string _description;
 
-        [Obsolete("ExcelFunctions can be declared hidden, not ExcelCommands.")]
+		public virtual string Name { get; set; }
+
+		public virtual string Description
+		{
+			get { return _description; }
+			set { _description = value; }
+		}
+
+		public virtual string HelpTopic { get; set; }
+		public virtual string ShortCut { get; set; }
+		public virtual string MenuName { get; set; }
+		public virtual string MenuText { get; set; }
+		public virtual bool IsExceptionSafe { get; set; }
+		public virtual bool ExplicitRegistration { get; set; }
+		public virtual bool SuppressOverwriteError { get; set; }
+
+		[Obsolete("ExcelFunctions can be declared hidden, not ExcelCommands.")]
 		public bool IsHidden = false;
 
 		public ExcelCommandAttribute()
@@ -86,7 +94,7 @@ namespace ExcelDna.Integration
 
 		public ExcelCommandAttribute(string description)
 		{
-			Description = description;
+			_description = description;
 		}
 	}
 }
