@@ -390,12 +390,13 @@ namespace ExcelDna.Loader
                 return targetMethod;
             }
 
-            // DateTime input parameters are never exception safe - we need to be able to fail out of the 
-            // marshaler when the passed-in argument is an invalid date.
+            // DateTime and boolean input parameters are never exception safe - we need to be able to fail out of the 
+            // marshaler when the passed-in argument is an invalid date or bool.
             bool emitExceptionHandler = 
                 !IsExceptionSafe || 
                 Array.Exists(Parameters, 
-                             delegate(XlParameterInfo pi) { return pi.BoxedValueType == typeof(DateTime); });
+                             delegate(XlParameterInfo pi) { return pi.BoxedValueType == typeof(DateTime) ||
+                                                                   pi.BoxedValueType == typeof(bool); });
 
             // Now we create a dynamic wrapper
             Type[] paramTypes = Array.ConvertAll<XlParameterInfo, Type>(Parameters,
