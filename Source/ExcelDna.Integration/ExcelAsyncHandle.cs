@@ -133,7 +133,7 @@ namespace ExcelDna.Integration
             return DummyDisposable.Instance;
         }
 
-        class DummyDisposable : IDisposable
+        private sealed class DummyDisposable : IDisposable
         {
             public static readonly DummyDisposable Instance = new DummyDisposable();
 

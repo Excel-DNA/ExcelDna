@@ -17,7 +17,7 @@ namespace ExcelDna.Integration
         ExcelErrorGettingData = 43
     }
 
-    public class ExcelMissing
+    public sealed class ExcelMissing
     {
         public static readonly ExcelMissing Value = new ExcelMissing();
 
@@ -26,7 +26,7 @@ namespace ExcelDna.Integration
         }
     }
 
-    public class ExcelEmpty
+    public sealed class ExcelEmpty
     {
         public static readonly ExcelEmpty Value = new ExcelEmpty();
 

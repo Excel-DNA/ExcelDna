@@ -3,6 +3,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using JetBrains.Annotations;
 
 namespace ExcelDna.Integration
 {
@@ -1086,9 +1087,8 @@ namespace ExcelDna.Integration
 
         #endregion
 
-
-		// THROWS: XlCallException if anything goes wrong.
-		public static object Excel(int xlFunction, params object[] parameters )
+        
+		public static object Excel(int xlFunction, [NotNull] params object[] parameters )
 		{
 			object result;
 			XlReturn xlReturn = TryExcel(xlFunction, out result, parameters);
@@ -1097,13 +1097,11 @@ namespace ExcelDna.Integration
 			{
 					return result;
 			}
-			else
-			{
-					throw new XlCallException(xlReturn);
-			}
+
+		    throw new XlCallException(xlReturn);
 		}
 
-		public static XlReturn TryExcel(int xlFunction, out object result, params object[] parameters)
+		public static XlReturn TryExcel(int xlFunction, [CanBeNull] out object result, [NotNull] params object[] parameters)
 		{
             if (_suspended)
             {
@@ -1154,7 +1152,7 @@ namespace ExcelDna.Integration
             return new XlCallSuspended();
         }
 
-        class XlCallSuspended : IDisposable
+        internal sealed class XlCallSuspended : IDisposable
         {
             public XlCallSuspended()
             {

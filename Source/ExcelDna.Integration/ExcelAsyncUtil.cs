@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using ExcelDna.Integration.Rtd;
+using JetBrains.Annotations;
 
 namespace ExcelDna.Integration
 {
@@ -25,13 +26,15 @@ namespace ExcelDna.Integration
     // TODO: Make an adapter to make it easy to integrate with .NET 4.
     public interface IExcelObservable
     {
+        [NotNull]
+        [MustUseReturnValue] // ReSharper will warn developer to use return value, e.g. to dispose channel
         IDisposable Subscribe(IExcelObserver observer);
     }
 
     public interface IExcelObserver
     {
         void OnCompleted();
-        void OnError(Exception exception);
+        void OnError([NotNull] Exception exception);
         void OnNext(object value);
     }
 
