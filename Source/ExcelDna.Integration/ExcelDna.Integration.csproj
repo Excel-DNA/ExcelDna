@@ -91,6 +91,7 @@
     <Compile Include="Reference.cs" />
     <Compile Include="ExcelRtd.cs" />
     <Compile Include="RegistrationInfo.cs" />
+    <Compile Include="Properties\ReSharperAnnotations.cs" />
     <Compile Include="SourceItem.cs" />
     <Compile Include="XlCall.cs" />
     <Compile Include="ExcelIntegration.cs" />
