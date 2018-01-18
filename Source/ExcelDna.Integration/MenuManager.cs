@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using ExcelDna.Integration.CustomUI;
 using ExcelDna.Logging;
+using JetBrains.Annotations;
 
 namespace ExcelDna.Integration
 {
@@ -15,6 +16,7 @@ namespace ExcelDna.Integration
     /// </summary>
   
     // CAUTION: This 'internal' class is called via reflection by the ExcelDna Loader.
+    [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     internal static class MenuManager
     {
         static IMenuManager _menuManager;

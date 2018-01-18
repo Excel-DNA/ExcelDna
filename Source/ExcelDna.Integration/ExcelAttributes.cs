@@ -2,10 +2,12 @@
 //  Excel-DNA is licensed under the zlib license. See LICENSE.txt for details.
 
 using System;
+using JetBrains.Annotations;
 
 namespace ExcelDna.Integration
 {
 	[AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
+    [MeansImplicitUse]
 	public class ExcelFunctionAttribute : Attribute
 	{
 		public string Name = null;
@@ -32,7 +34,8 @@ namespace ExcelDna.Integration
 	}
 
 	[AttributeUsage(AttributeTargets.Parameter, Inherited = false, AllowMultiple = false)]
-	public class ExcelArgumentAttribute : Attribute
+	[MeansImplicitUse]
+    public class ExcelArgumentAttribute : Attribute
 	{
 		public string Name = null;
 		public string Description = null;
@@ -49,7 +52,8 @@ namespace ExcelDna.Integration
 	}
 
 	[AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
-	public class ExcelCommandAttribute : Attribute
+	[MeansImplicitUse]
+    public class ExcelCommandAttribute : Attribute
 	{
 		public string Name = null;
 		public string Description = null;

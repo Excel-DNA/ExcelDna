@@ -12,7 +12,7 @@ using System.Reflection;
 
 namespace ExcelDna.Integration
 {
-    public class ExcelDnaUtil
+    public static class ExcelDnaUtil
     {
         private delegate bool EnumWindowsCallback(IntPtr hwnd, /*ref*/ IntPtr param);
         private delegate bool EnumThreadWindowsCallback(IntPtr hwnd, /*ref*/ IntPtr param);

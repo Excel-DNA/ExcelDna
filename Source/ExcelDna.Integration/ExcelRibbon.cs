@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Xml;
 using ExcelDna.Logging;
+using JetBrains.Annotations;
 using CLSID = System.Guid;
 
 namespace ExcelDna.Integration.CustomUI
@@ -20,6 +21,7 @@ namespace ExcelDna.Integration.CustomUI
         public const string NamespaceCustomUI2007 = @"http://schemas.microsoft.com/office/2006/01/customui";
         // Info about changes in Excel 2013: http://www.rondebruin.nl/win/s2/win005.htm
 
+        [CanBeNull]
         public virtual string GetCustomUI(string RibbonID)
         {
             if (RibbonID != "Microsoft.Excel.Workbook")
