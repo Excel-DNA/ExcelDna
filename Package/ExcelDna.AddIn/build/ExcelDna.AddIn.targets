@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <UsingTask TaskName="ExcelDna.AddIn.Tasks.SetDebuggerOptions" AssemblyFile="ExcelDna.AddIn.Tasks.dll" />
-  <UsingTask TaskName="ExcelDna.AddIn.Tasks.CleanExcelAddIn" AssemblyFile="ExcelDna.AddIn.Tasks.dll" />
-  <UsingTask TaskName="ExcelDna.AddIn.Tasks.CreateExcelAddIn" AssemblyFile="ExcelDna.AddIn.Tasks.dll" />
-
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <ExcelDnaTargetsImported>true</ExcelDnaTargetsImported>
+    <ExcelDnaToolsPath Condition="$(ExcelDnaToolsPath) == '' Or $(ExcelDnaToolsPath) == '*Undefined*'">$(MSBuildThisFileDirectory)..\tools\</ExcelDnaToolsPath>
   </PropertyGroup>
+
+  <UsingTask TaskName="ExcelDna.AddIn.Tasks.SetDebuggerOptions" AssemblyFile="$(ExcelDnaToolsPath)ExcelDna.AddIn.Tasks.dll" />
+  <UsingTask TaskName="ExcelDna.AddIn.Tasks.CleanExcelAddIn" AssemblyFile="$(ExcelDnaToolsPath)ExcelDna.AddIn.Tasks.dll" />
+  <UsingTask TaskName="ExcelDna.AddIn.Tasks.CreateExcelAddIn" AssemblyFile="$(ExcelDnaToolsPath)ExcelDna.AddIn.Tasks.dll" />
 
   <!--
     Extend the Clean target to call our ExcelDnaClean target
@@ -53,8 +53,6 @@
 
     <ExcelDna32BitAddInSuffix Condition="'$(ExcelDna32BitAddInSuffix)' == ''"></ExcelDna32BitAddInSuffix>
     <ExcelDna64BitAddInSuffix Condition="'$(ExcelDna64BitAddInSuffix)' == ''">64</ExcelDna64BitAddInSuffix>
-
-    <ExcelDnaToolsPath Condition="'$(ExcelDnaToolsPath)' == ''">$(MSBuildThisFileDirectory)</ExcelDnaToolsPath>
 
     <ExcelDnaPackExePath Condition="'$(ExcelDnaPackExePath)' == ''">$(ExcelDnaToolsPath)ExcelDnaPack.exe</ExcelDnaPackExePath>
     <ExcelDnaPackXllSuffix Condition="'$(ExcelDnaPackXllSuffix)' == ''">-packed</ExcelDnaPackXllSuffix>
