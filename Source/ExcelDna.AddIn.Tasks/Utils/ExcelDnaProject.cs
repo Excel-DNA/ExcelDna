@@ -1,16 +1,18 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace ExcelDna.AddIn.Tasks.Utils
 {
     public class ExcelDnaProject : IExcelDnaProject
     {
-        public bool TrySetDebuggerOptions(string projectName, string excelExePath, string excelAddInToDebug)
+        public bool TrySetDebuggerOptions(string projectName, string excelExePath, string excelAddInToDebug, Action<string> logDebugMessage)
         {
             using (var dte = new DevToolsEnvironment())
             {
-                var project = dte.GetProjectByName(projectName);
+                var project = dte.GetProjectByName(projectName, logDebugMessage);
                 if (project != null)
                 {
+                    logDebugMessage($"Found project: {project.Name}");
                     var configuration = project
                         .ConfigurationManager
                         .ActiveConfiguration;

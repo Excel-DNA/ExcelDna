@@ -12,11 +12,14 @@ namespace ExcelDna.AddIn.Tasks.Utils
     {
         private bool _isMessageFilterRegistered;
 
-        public EnvDTE.Project GetProjectByName(string projectName)
+        public EnvDTE.Project GetProjectByName(string projectName, Action<string> logDebugMessage)
         {
+            logDebugMessage("Start GetProjectByName");
             var vsProcessId = GetVisualStudioProcessId();
+            logDebugMessage($"VS Process ID: {vsProcessId}");
 
             var dte = GetDevToolsEnvironment(vsProcessId);
+            logDebugMessage($"DevToolsEnvironment?: {dte}");
             if (dte == null) return null;
 
             if (!_isMessageFilterRegistered)
@@ -32,6 +35,16 @@ namespace ExcelDna.AddIn.Tasks.Utils
                 .SingleOrDefault(p =>
                     string.Compare(p.Name, projectName, StringComparison.OrdinalIgnoreCase) == 0);
 
+            if (project == null)
+            {
+                logDebugMessage($"Did not find project");
+                logDebugMessage($"Looked for {projectName}");
+                logDebugMessage($"List of projects:");
+                foreach (var p in dte.Solution.Projects)
+                {
+                    logDebugMessage($"    {p.GetType().Name}  -  Is EnvDTE? {p is EnvDTE.Project}  -  {(p as EnvDTE.Project)?.Name}");
+                }
+            }
             return project;
         }
 

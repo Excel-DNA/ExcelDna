@@ -40,15 +40,15 @@ namespace ExcelDna.AddIn.Tasks
             {
                 LogDebugMessage("Running SetDebuggerOptions MSBuild Task");
 
-                LogDiagnostics();
-
                 FilesInProject = FilesInProject ?? new ITaskItem[0];
                 LogDebugMessage("Number of files in project: " + FilesInProject.Length);
 
                 var excelExePath = GetExcelPath();
                 var addInForDebugging = GetAddInForDebugging(excelExePath);
 
-                if (!_dte.TrySetDebuggerOptions(ProjectName, excelExePath, addInForDebugging))
+                LogDiagnostics();
+
+                if (!_dte.TrySetDebuggerOptions(ProjectName, excelExePath, addInForDebugging, msg => LogDebugMessage(msg)))
                 {
                     LogWarning("DNA" + "DTE".GetHashCode(), "Unable to set the debugger options within Visual Studio.");
                 }
