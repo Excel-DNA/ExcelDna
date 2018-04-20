@@ -166,7 +166,7 @@ namespace ExcelDna.Integration
                 }
                 else
                 {
-                    Logger.ComAddIn.Error(ex, "The Ribbon/COM add-in helper required by add-in {0} could not be registered.\r\nThis is an unexpected error.\r\nError details: {1}", DnaLibrary.CurrentLibrary.Name, ex.ToString());
+                    Logger.ComAddIn.Error(ex, "The Ribbon/COM add-in helper required by add-in {0} could not be registered.\r\nThis may be due to the helper add-in being disabled by Excel.\r\nTo repair, open Disabled items in the Options->Add-Ins page and re-enable target add-in, then restart Excel.\r\n\r\nError details: {1}", DnaLibrary.CurrentLibrary.Name, ex.ToString());
                 }
             }
         }
