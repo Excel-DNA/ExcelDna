@@ -233,7 +233,7 @@ namespace ExcelDna.Integration
         // .NET40: If this assembly is compiled for .NET 4, add this attribute to get the expected behaviour.
         // (Also for CallPenHelper)
         // [HandleProcessCorruptedStateExceptions]
-        private static void CheckExcelApiAvailable()
+        private static bool IsExcelApiAvailable()
         {
             try
             {
@@ -242,13 +242,16 @@ namespace ExcelDna.Integration
                 if (result == XlCall.XlReturn.XlReturnFailed)
                 {
                     // no plan for getting Application (we're probably on a different thread?)
-                    throw new InvalidOperationException("Excel API is unavailable - cannot retrieve Application object.");
+                    // throw new InvalidOperationException("Excel API is unavailable - cannot retrieve Application object.");
+                    return false;
                 }
             }
-            catch (AccessViolationException ave)
+            catch (AccessViolationException)
             {
-                throw new InvalidOperationException("Excel API is unavailable - cannot retrieve Application object. Excel may be shutting down", ave);
+                // throw new InvalidOperationException("Excel API is unavailable - cannot retrieve Application object. Excel may be shutting down", ave);
+                return false;
             }
+            return true;
         }
 
         private static object GetApplication()
@@ -257,14 +260,27 @@ namespace ExcelDna.Integration
             // (?? Really ?? - Probably only when we're not on the main thread...)
             object application = GetApplicationFromWindows();
             if (application != null) return application;
-            
+
             // DOCUMENT: Under some circumstances, the C API and Automation interfaces are not available.
             //  This happens when there is no Workbook open in Excel.
             // Now make workbook with VBA sheet, according to some Google post.
 
             // We try a (possible) test for whether we can call the C API.
-            CheckExcelApiAvailable();
+            if (!IsExcelApiAvailable())
+            {
+                throw new InvalidOperationException("Excel API is unavailable - cannot retrieve Application object.");
+            }
 
+            if (!TryGetApplicationFromNewWorkbook(out application))
+            {
+                // This is really bad - throwing an exception ...
+                throw new InvalidOperationException("Excel Application object could not be retrieved.");
+            }
+            return application;
+        }
+
+        private static bool TryGetApplicationFromNewWorkbook(out object application)
+        {
             // Create new workbook with the right stuff
             // Echo calls removed for Excel 2013 - this caused trouble in the Excel 2013 'browse' scenario.
             bool isExcelPre15 = SafeIsExcelVersionPre15;
@@ -273,21 +289,52 @@ namespace ExcelDna.Integration
             {
                 XlCall.Excel(XlCall.xlcNew, 5);
                 XlCall.Excel(XlCall.xlcWorkbookInsert, 6);
-                
+
                 // Try again
                 application = GetApplicationFromWindows();
 
                 XlCall.Excel(XlCall.xlcFileClose, false);
 
                 if (application == null)
-                    // This is really bad - throwing an exception ...
-                    throw new InvalidOperationException("Excel Application object could not be retrieved.");
+                    // This is really bad - can't think of anything else to do
+                    return false;
+            }
+            catch
+            {
+                // Not expecting this ever - but be consistent about Try vs. exceptions
+                application = null;
+                return false;
             }
             finally
             {
                 if (isExcelPre15) XlCall.Excel(XlCall.xlcEcho, true);
             }
-            return application;
+            return true;
+        }
+
+        // internal implementation that does not throw in the case where the C API is unavailable,
+        // to improve QueueAsMacro reliability
+        internal static bool TryGetApplication(out object application)
+        {
+            if (!IsMainThread)
+            {
+                throw new InvalidOperationException("Must call TryGetApplication on the main thread");
+            }
+
+            if (IsApplicationOK())
+            {
+                application = _application;
+                return true;
+            }
+
+            application = GetApplicationFromWindows();
+            if (application != null) return true;
+
+            // We try a (possible) test for whether we can call the C API.
+            if (!IsExcelApiAvailable()) return false;
+
+            // We can call the C API - use it to make a new workbook and then get the Application through there
+            return TryGetApplicationFromNewWorkbook(out application);
         }
 
         static object GetApplicationFromWindows()
@@ -387,6 +434,7 @@ namespace ExcelDna.Integration
             try
             {
                 // TODO: Can we turn this into a delegate somehow - for performance.
+                //       I'm not sure how to pull out the Property if it's name might be based on the Culture...
                 _application.GetType().InvokeMember("Version", BindingFlags.GetProperty, null, _application, null, _enUsCulture);
                 return true;
             }

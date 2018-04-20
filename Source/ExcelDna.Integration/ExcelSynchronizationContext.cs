@@ -252,6 +252,7 @@ namespace ExcelDna.Integration
             }
             catch (Exception ex)
             {
+                // Includes unexpected TargetInvocationExceptions which are not known COMExceptions
                 Logger.Runtime.Error(ex, "Unexpected error trying to run SyncMacro for queued macro execution.");
             }
         }
@@ -365,14 +366,25 @@ namespace ExcelDna.Integration
         static readonly CultureInfo _enUsCulture = new CultureInfo(1033); // Don't know if this is useful...
 
         // Invoke Application.Run to run a macro
+        // Returns true if it ran OK, false if not and we should retry
         static bool COMRunMacro(string macroName)
         {
             try
             {
                 // If busy editing, don't even try to call Application.Run.
-                if (IsInFormulaEditMode()) return false;
+                if (IsInFormulaEditMode())
+                    return false;
 
-                object xlApp = ExcelDnaUtil.Application;
+                object xlApp;
+                if (!ExcelDnaUtil.TryGetApplication(out xlApp))
+                {
+                    // Some possibilities that get us here:
+                    // * Can't get Application object at all - first time we're trying is here, no workbook open and hence C API is needed but not available
+                    // * Excel is shutting down (would have abandoned in the past, now we keep re-trying)
+
+                    return false;
+                }
+
                 Type appType = xlApp.GetType();
 
                 // Now try Application.Run(macroName) if we are still alive.
@@ -407,7 +419,7 @@ namespace ExcelDna.Integration
                 if (cex != null && IsRetry(cex))
                     return false;
 
-                // Unexpected error
+                // Unexpected error - very bad - we abandon the whole QueueAsMacro plan forever - the exception is handled higher up and logged
                 throw;
             }
         }
