@@ -210,11 +210,13 @@ namespace ExcelDna.Integration
         {
             get
             {
+                bool isProtected;
+
                 if (!IsMainThread)
                 {
                     // Nothing cached - possibly being called on a different thread
                     // Just get from window and return
-                    return GetApplicationFromWindows();
+                    return GetApplicationFromWindows(true, out isProtected);
                 }
 
                 // Check whether we have a cached App and it is valid
@@ -222,10 +224,18 @@ namespace ExcelDna.Integration
                 {
                     return _application;
                 }
+
                 // There was a problem with the cached application.
+                _application = null;
+
                 // Try to get one and remember  it.
-                _application = GetApplication();
-                return _application;
+                var application = GetApplication(true, out isProtected);
+                if (!isProtected)
+                {
+                    // Only cache if it's not a protected Application object
+                    _application = application;
+                }
+                return application;
             }
         }
 
@@ -254,11 +264,11 @@ namespace ExcelDna.Integration
             return true;
         }
 
-        private static object GetApplication()
+        private static object GetApplication(bool allowProtected, out bool isProtected)
         {
             // Don't cache the one we get from the Window, it keeps Excel alive! 
             // (?? Really ?? - Probably only when we're not on the main thread...)
-            object application = GetApplicationFromWindows();
+            object application = GetApplicationFromWindows(allowProtected, out isProtected);
             if (application != null) return application;
 
             // DOCUMENT: Under some circumstances, the C API and Automation interfaces are not available.
@@ -271,18 +281,14 @@ namespace ExcelDna.Integration
                 throw new InvalidOperationException("Excel API is unavailable - cannot retrieve Application object.");
             }
 
-            if (!TryGetApplicationFromNewWorkbook(out application))
-            {
-                // This is really bad - throwing an exception ...
-                throw new InvalidOperationException("Excel Application object could not be retrieved.");
-            }
-            return application;
+            return GetApplicationFromNewWorkbook(allowProtected, out isProtected);
         }
 
-        private static bool TryGetApplicationFromNewWorkbook(out object application)
+        private static object GetApplicationFromNewWorkbook(bool allowProtected, out bool isProtected)
         {
             // Create new workbook with the right stuff
             // Echo calls removed for Excel 2013 - this caused trouble in the Excel 2013 'browse' scenario.
+            object application;
             bool isExcelPre15 = SafeIsExcelVersionPre15;
             if (isExcelPre15) XlCall.Excel(XlCall.xlcEcho, false);
             try
@@ -291,74 +297,92 @@ namespace ExcelDna.Integration
                 XlCall.Excel(XlCall.xlcWorkbookInsert, 6);
 
                 // Try again
-                application = GetApplicationFromWindows();
+                application = GetApplicationFromWindows(allowProtected, out isProtected);
 
                 XlCall.Excel(XlCall.xlcFileClose, false);
-
-                if (application == null)
-                    // This is really bad - can't think of anything else to do
-                    return false;
             }
             catch
             {
                 // Not expecting this ever - but be consistent about Try vs. exceptions
                 application = null;
-                return false;
+                isProtected = false;
             }
             finally
             {
                 if (isExcelPre15) XlCall.Excel(XlCall.xlcEcho, true);
             }
-            return true;
+
+            return application; // Might be null in a bad case, but we have no further ideas
         }
 
         // internal implementation that does not throw in the case where the C API is unavailable,
         // to improve QueueAsMacro reliability
-        internal static bool TryGetApplication(out object application)
+        internal static object GetApplicationNotProtectedNoThrow()
         {
             if (!IsMainThread)
             {
-                throw new InvalidOperationException("Must call TryGetApplication on the main thread");
+                Debug.Fail("Must call GetApplicationNotProtectedNoThrow on the main thread");
+                return null;
             }
 
+            // Check for a good cached one
             if (IsApplicationOK())
             {
-                application = _application;
-                return true;
+                return _application;
             }
 
-            application = GetApplicationFromWindows();
-            if (application != null) return true;
+            bool isProtected;
+            var application = GetApplicationFromWindows(false, out isProtected);
+            if (application != null && !isProtected)
+            {
+                // Only cache and use if not a protected application
+                _application = application;
+                return application;
+            }
 
             // We try a (possible) test for whether we can call the C API.
-            if (!IsExcelApiAvailable()) return false;
+            if (!IsExcelApiAvailable())
+            {
+                return null;
+            }
 
             // We can call the C API - use it to make a new workbook and then get the Application through there
-            return TryGetApplicationFromNewWorkbook(out application);
+            application = GetApplicationFromNewWorkbook(false, out isProtected);
+            if (application != null && isProtected)
+            {
+                // (We don't expect it to ever be protected in this case...)
+                Debug.Fail("Unexpected protected Application from GetApplicationFromNewWorkbook");
+                // Can't return this Application
+                return null;
+            }
+            _application = application; // Still null due to unexpected failure, or else valid, not protected, and thus safe to cache
+            return application;
         }
 
-        static object GetApplicationFromWindows()
+        static object GetApplicationFromWindows(bool allowProtected, out bool isProtected)
         {
             if (SafeIsExcelVersionPre15)
             {
-                return GetApplicationFromWindow(WindowHandle);
+                return GetApplicationFromWindow(WindowHandle, allowProtected, out isProtected);
             }
 
-            return GetApplicationFromWindows15();
+            return GetApplicationFromWindows15(allowProtected, out isProtected);
         }
 
         // Enumerate through all top-level windows of the main thread,
         // and for those of class XLMAIN, dig down by calling GetApplicationFromWindow.
-        static object GetApplicationFromWindows15()
+        static object GetApplicationFromWindows15(bool allowProtected, out bool isProtected)
         {
             object application = null;
             StringBuilder buffer = new StringBuilder(256);
+            bool localIsProtected = false;
+
             EnumThreadWindows(_mainNativeThreadId, delegate(IntPtr hWndEnum, IntPtr param)
             {
                 // Check the window class
                 if (IsAnExcelWindow(hWndEnum, buffer))
                 {
-                    application = GetApplicationFromWindow(hWndEnum);
+                    application = GetApplicationFromWindow(hWndEnum, allowProtected, out localIsProtected);
                     if (application != null)
                     {
                         return false;	// Stop enumerating
@@ -367,15 +391,17 @@ namespace ExcelDna.Integration
                 }
                 return true;	// Continue enumerating
             }, IntPtr.Zero);
+            isProtected = localIsProtected;
             return application; // May or may not be null
         }
 
-        private static object GetApplicationFromWindow(IntPtr hWndMain)
+        private static object GetApplicationFromWindow(IntPtr hWndMain, bool allowProtected, out bool isProtected)
         {
             // This is Andrew Whitechapel's plan for getting the Application object.
             // It does not work when there are no Workbooks open.
             object app = null;
             StringBuilder cname = new StringBuilder(256);
+            bool localIsProtected = false;
 
             EnumChildWindows(hWndMain, delegate(IntPtr hWndEnum, IntPtr param)
             {
@@ -388,8 +414,10 @@ namespace ExcelDna.Integration
                 IntPtr pUnk = IntPtr.Zero;
                 int hr = AccessibleObjectFromWindow(hWndEnum, OBJID_NATIVEOM, IID_IDispatchBytes, ref pUnk);
                 if (hr != 0)
+                {
                     // Window does not implement the IID, continue enumerating
-                    return true;    
+                    return true;
+                }
                 
                 // Marshal to .NET, then call .Application
                 object obj = Marshal.GetObjectForIUnknown(pUnk);
@@ -397,21 +425,37 @@ namespace ExcelDna.Integration
 
                 try
                 {
+                    // CONSIDER: We could avoid exception-as-flow-control if we could rewrite this to check whether the COM object has an Application property
                     app = obj.GetType().InvokeMember("Application", BindingFlags.GetProperty, null, obj, null, _enUsCulture);
                 }
                 catch
                 {
                     // In some cases - always when Excel only a workbook open in Protected Mode when this code runs - 
                     // we get a ProtectedViewWindow.
-                    // This does not have an Application property, but we can try via ProtectedViewWindow.Workbook.Application.
-                    try
+                    if (allowProtected)
                     {
-                        object workbook = obj.GetType().InvokeMember("Workbook", BindingFlags.GetProperty, null, obj, null, _enUsCulture);
-                        app = workbook.GetType().InvokeMember("Application", BindingFlags.GetProperty, null, workbook, null, _enUsCulture);
+                        // This window does not have an Application property, but we can check via ProtectedViewWindow.Workbook.Application.
+
+                        try
+                        {
+                            object workbook = obj.GetType().InvokeMember("Workbook", BindingFlags.GetProperty, null, obj, null, _enUsCulture);
+                            app = workbook.GetType().InvokeMember("Application", BindingFlags.GetProperty, null, workbook, null, _enUsCulture);
+
+                            // WARNING: The Application object returning from here can be problematic:
+                            //          * It is a "sandbox" view of the Application that cannot Run macros or change workbooks
+                            //          * It will die after the protected view closes
+                            //          We return it, but should not cache it
+                            localIsProtected = true;
+                        }
+                        catch
+                        {
+                            // Otherwise we fail - this way the higher-level call will open up a regular workbook and try again
+                        }
                     }
-                    catch
+                    else
                     {
-                        // Otherwise we fail - this way the higher-level call will open up a regular workbook and try again
+                        // We don't want to continue enumeration in this case - another window might give us an Application, but it will be a protected one anyway
+                        localIsProtected = true;
                     }
                 }
                 finally
@@ -419,10 +463,10 @@ namespace ExcelDna.Integration
                     Marshal.ReleaseComObject(obj);
                 }
 
-                // App found?, the stop enumerating (return false)
-                return app == null;	
+                // Continue enumeration? Only if the app is not yet found and protected flag not set.
+                return (app == null) && !localIsProtected;	
             }, IntPtr.Zero);
-
+            isProtected = localIsProtected;
             return app;
         }
 
@@ -444,6 +488,7 @@ namespace ExcelDna.Integration
                 return false;
             }
         }
+
         #endregion
 
         #region IsInFunctionWizard

@@ -375,8 +375,8 @@ namespace ExcelDna.Integration
                 if (IsInFormulaEditMode())
                     return false;
 
-                object xlApp;
-                if (!ExcelDnaUtil.TryGetApplication(out xlApp))
+                object xlApp = ExcelDnaUtil.GetApplicationNotProtectedNoThrow();
+                if (xlApp == null)
                 {
                     // Some possibilities that get us here:
                     // * Can't get Application object at all - first time we're trying is here, no workbook open and hence C API is needed but not available
