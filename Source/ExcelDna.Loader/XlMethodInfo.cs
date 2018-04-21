@@ -481,17 +481,26 @@ namespace ExcelDna.Loader
             {
                 wrapIL.Emit(OpCodes.Leave_S, endOfMethod);
                 wrapIL.BeginCatchBlock(typeof (object));
-                if (HasReturnType && ReturnType.DelegateParamType == typeof (object))
+                if (!HasReturnType || ReturnType.DelegateParamType == typeof (object))
                 {
                     // Call Integration.HandleUnhandledException - Exception object is on the stack.
                     wrapIL.Emit(OpCodes.Call, typeof(IntegrationHelpers).GetMethod("HandleUnhandledException"));
-                    // Stack now has return value from the ExceptionHandler - Store to local 
-                    wrapIL.Emit(OpCodes.Stloc_S, retobj);
 
-                    //// Create a boxed Excel error value, and set the return object to it
-                    //wrapIL.Emit(OpCodes.Ldc_I4, IntegrationMarshalHelpers.ExcelError_ExcelErrorValue);
-                    //wrapIL.Emit(OpCodes.Box, IntegrationMarshalHelpers.GetExcelErrorType());
-                    //wrapIL.Emit(OpCodes.Stloc_S, retobj);
+                    if (HasReturnType)
+                    {
+                        // Stack now has return value from the ExceptionHandler - Store to local if we have a return type
+                        wrapIL.Emit(OpCodes.Stloc_S, retobj);
+
+                        //// Create a boxed Excel error value, and set the return object to it
+                        //wrapIL.Emit(OpCodes.Ldc_I4, IntegrationMarshalHelpers.ExcelError_ExcelErrorValue);
+                        //wrapIL.Emit(OpCodes.Box, IntegrationMarshalHelpers.GetExcelErrorType());
+                        //wrapIL.Emit(OpCodes.Stloc_S, retobj);
+                    }
+                    else
+                    {
+                        // Pop result from ExceptionHandler off the stack
+                        wrapIL.Emit(OpCodes.Pop);
+                    }
                 }
                 else
                 {
