@@ -641,142 +641,209 @@ namespace ExcelDna.Integration.Rtd
 #endregion
 
 #region IDispatch reflection helper
-//// This IDispatch helper code is from:
-//// http://stackoverflow.com/questions/4159843/how-to-enumerate-members-of-com-object-in-c
-//// http://www.codeproject.com/Articles/523417/Reflection-with-IDispatch-based-COM-objects
-//// It requires a reference to CustomMarshalers.dll
-//// Use as:
-////    Type dispatchType = ExcelDna.ComInterop.DispatchUtility.GetType(obj, true);
-////    Debug.Print("TypeName: {0}", dispatchType.FullName);
-////    foreach (MemberInfo member in dispatchType.GetMembers())
-////    {
-////        Debug.Print("{0} -- {1}", member.MemberType, member);
-////    }
 
-//namespace ExcelDna.ComInterop
-//{
-//    using System;
-//    using System.Runtime.InteropServices;
-//    using System.Reflection;
+namespace ExcelDna.ComInterop
+{
 
-//    public static class DispatchUtility
-//    {
-//        private const int S_OK = 0; //From WinError.h
-//        private const int LOCALE_SYSTEM_DEFAULT = 2 << 10; //From WinNT.h == 2048 == 0x800
+    static class DispatchHelper
+    {
+        const int S_OK = 0; //From WinError.h
+        //const int LOCALE_SYSTEM_DEFAULT = 2 << 10; //From WinNT.h == 2048 == 0x800
+        const int LcidUsEnglish = 0x0409;
+        static string[] names = new string[1];
+        static int[] ids = new int[1];
 
-//        public static bool ImplementsIDispatch(object obj)
-//        {
-//            bool result = obj is IDispatchInfo;
-//            return result;
-//        }
+        public static bool HasProperty(object dispatchObject, string name)
+        {
+            IDispatch dispObj = dispatchObject as IDispatch;
+            if (dispObj == null)
+                return false;
+            names[0] = name;
+            int hr = dispObj.GetIDsOfNames(Guid.Empty, names, 1, LcidUsEnglish, ids);
+            return hr == S_OK;
+            // Otherwise expecting:
+            //     const int DISP_E_UNKNOWNNAME = unchecked((int)0x80020006); //From WinError.h
+        }
 
-//        public static Type GetType(object obj, bool throwIfNotFound)
-//        {
-//            RequireReference(obj, "obj");
-//            Type result = GetType((IDispatchInfo)obj, throwIfNotFound);
-//            return result;
-//        }
+        [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("00020400-0000-0000-C000-000000000046")]
+        interface IDispatch
+        {
+            [PreserveSig]
+            int GetTypeInfoCount(out int Count);
 
-//        public static bool TryGetDispId(object obj, string name, out int dispId)
-//        {
-//            RequireReference(obj, "obj");
-//            bool result = TryGetDispId((IDispatchInfo)obj, name, out dispId);
-//            return result;
-//        }
+            [PreserveSig]
+            int GetTypeInfo
+            (
+              [MarshalAs(UnmanagedType.U4)] int iTInfo,
+              [MarshalAs(UnmanagedType.U4)] int lcid,
+              out System.Runtime.InteropServices.ComTypes.ITypeInfo typeInfo
+            );
 
-//        public static object Invoke(object obj, int dispId, object[] args)
-//        {
-//            string memberName = "[DispId=" + dispId + "]";
-//            object result = Invoke(obj, memberName, args);
-//            return result;
-//        }
+            [PreserveSig]
+            int GetIDsOfNames
+            (
+              ref Guid riid,
+              [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr, SizeParamIndex = 2)]
+                    string[] rgsNames,
+              uint cNames,
+              int lcid,
+              [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.I4, SizeParamIndex = 2)] int[] rgDispId
+            );
 
-//        public static object Invoke(object obj, string memberName, object[] args)
-//        {
-//            RequireReference(obj, "obj");
-//            Type type = obj.GetType();
-//            object result = type.InvokeMember(memberName,
-//                BindingFlags.InvokeMethod | BindingFlags.GetProperty,
-//                null, obj, args, null);
-//            return result;
-//        }
+            [PreserveSig]
+            int Invoke
+            (
+              int dispIdMember,
+              ref Guid riid,
+              uint lcid,
+              ushort wFlags,
+              ref System.Runtime.InteropServices.ComTypes.DISPPARAMS pDispParams,
+              out object pVarResult,
+              ref System.Runtime.InteropServices.ComTypes.EXCEPINFO pExcepInfo,
+              out UInt32 pArgErr
+            );
+        }
 
-//        private static void RequireReference<T>(T value, string name) where T : class
-//        {
-//            if (value == null)
-//            {
-//                throw new ArgumentNullException(name);
-//            }
-//        }
+    }
 
-//        private static Type GetType(IDispatchInfo dispatch, bool throwIfNotFound)
-//        {
-//            RequireReference(dispatch, "dispatch");
+    //// This IDispatch helper code is from:
+    //// http://stackoverflow.com/questions/4159843/how-to-enumerate-members-of-com-object-in-c
+    //// http://www.codeproject.com/Articles/523417/Reflection-with-IDispatch-based-COM-objects
+    //// It requires a reference to CustomMarshalers.dll
+    //// Use as:
+    ////    Type dispatchType = ExcelDna.ComInterop.DispatchUtility.GetType(obj, true);
+    ////    Debug.Print("TypeName: {0}", dispatchType.FullName);
+    ////    foreach (MemberInfo member in dispatchType.GetMembers())
+    ////    {
+    ////        Debug.Print("{0} -- {1}", member.MemberType, member);
+    ////    }
 
-//            Type result = null;
-//            int typeInfoCount;
-//            int hr = dispatch.GetTypeInfoCount(out typeInfoCount);
-//            if (hr == S_OK && typeInfoCount > 0)
-//            {
-//                dispatch.GetTypeInfo(0, LOCALE_SYSTEM_DEFAULT, out result);
-//            }
+    //namespace ExcelDna.ComInterop
+    //{
+    //    using System;
+    //    using System.Runtime.InteropServices;
+    //    using System.Reflection;
 
-//            if (result == null && throwIfNotFound)
-//            {
-//                // If the GetTypeInfoCount called failed, throw an exception for that.
-//                Marshal.ThrowExceptionForHR(hr);
+    //    public static class DispatchUtility
+    //    {
+    //        private const int S_OK = 0; //From WinError.h
+    //        private const int LOCALE_SYSTEM_DEFAULT = 2 << 10; //From WinNT.h == 2048 == 0x800
 
-//                // Otherwise, throw the same exception that Type.GetType would throw.
-//                throw new TypeLoadException();
-//            }
+    //        public static bool ImplementsIDispatch(object obj)
+    //        {
+    //            bool result = obj is IDispatchInfo;
+    //            return result;
+    //        }
 
-//            return result;
-//        }
+    //        public static Type GetType(object obj, bool throwIfNotFound)
+    //        {
+    //            RequireReference(obj, "obj");
+    //            Type result = GetType((IDispatchInfo)obj, throwIfNotFound);
+    //            return result;
+    //        }
 
-//        private static bool TryGetDispId(IDispatchInfo dispatch, string name, out int dispId)
-//        {
-//            RequireReference(dispatch, "dispatch");
-//            RequireReference(name, "name");
+    //        public static bool TryGetDispId(object obj, string name, out int dispId)
+    //        {
+    //            RequireReference(obj, "obj");
+    //            bool result = TryGetDispId((IDispatchInfo)obj, name, out dispId);
+    //            return result;
+    //        }
 
-//            bool result = false;
+    //        public static object Invoke(object obj, int dispId, object[] args)
+    //        {
+    //            string memberName = "[DispId=" + dispId + "]";
+    //            object result = Invoke(obj, memberName, args);
+    //            return result;
+    //        }
 
-//            Guid iidNull = Guid.Empty;
-//            int hr = dispatch.GetDispId(ref iidNull, ref name, 1, LOCALE_SYSTEM_DEFAULT, out dispId);
+    //        public static object Invoke(object obj, string memberName, object[] args)
+    //        {
+    //            RequireReference(obj, "obj");
+    //            Type type = obj.GetType();
+    //            object result = type.InvokeMember(memberName,
+    //                BindingFlags.InvokeMethod | BindingFlags.GetProperty,
+    //                null, obj, args, null);
+    //            return result;
+    //        }
 
-//            const int DISP_E_UNKNOWNNAME = unchecked((int)0x80020006); //From WinError.h
-//            const int DISPID_UNKNOWN = -1; //From OAIdl.idl
-//            if (hr == S_OK)
-//            {
-//                result = true;
-//            }
-//            else if (hr == DISP_E_UNKNOWNNAME && dispId == DISPID_UNKNOWN)
-//            {
-//                result = false;
-//            }
-//            else
-//            {
-//                Marshal.ThrowExceptionForHR(hr);
-//            }
+    //        private static void RequireReference<T>(T value, string name) where T : class
+    //        {
+    //            if (value == null)
+    //            {
+    //                throw new ArgumentNullException(name);
+    //            }
+    //        }
 
-//            return result;
-//        }
+    //        private static Type GetType(IDispatchInfo dispatch, bool throwIfNotFound)
+    //        {
+    //            RequireReference(dispatch, "dispatch");
 
-//        [ComImport]
-//        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-//        [Guid("00020400-0000-0000-C000-000000000046")]
-//        private interface IDispatchInfo
-//        {
-//            [PreserveSig]
-//            int GetTypeInfoCount(out int typeInfoCount);
+    //            Type result = null;
+    //            int typeInfoCount;
+    //            int hr = dispatch.GetTypeInfoCount(out typeInfoCount);
+    //            if (hr == S_OK && typeInfoCount > 0)
+    //            {
+    //                dispatch.GetTypeInfo(0, LOCALE_SYSTEM_DEFAULT, out result);
+    //            }
 
-//            void GetTypeInfo(int typeInfoIndex, int lcid, [MarshalAs(UnmanagedType.CustomMarshaler,
-//            MarshalTypeRef = typeof(System.Runtime.InteropServices.CustomMarshalers.TypeToTypeInfoMarshaler))] out Type typeInfo);
+    //            if (result == null && throwIfNotFound)
+    //            {
+    //                // If the GetTypeInfoCount called failed, throw an exception for that.
+    //                Marshal.ThrowExceptionForHR(hr);
 
-//            [PreserveSig]
-//            int GetDispId(ref Guid riid, ref string name, int nameCount, int lcid, out int dispId);
+    //                // Otherwise, throw the same exception that Type.GetType would throw.
+    //                throw new TypeLoadException();
+    //            }
 
-//            // NOTE: The real IDispatch also has an Invoke method next, but we don't need it.
-//        }
-//    }
-//}
+    //            return result;
+    //        }
+
+    //        private static bool TryGetDispId(IDispatchInfo dispatch, string name, out int dispId)
+    //        {
+    //            RequireReference(dispatch, "dispatch");
+    //            RequireReference(name, "name");
+
+    //            bool result = false;
+
+    //            Guid iidNull = Guid.Empty;
+    //            int hr = dispatch.GetDispId(ref iidNull, ref name, 1, LOCALE_SYSTEM_DEFAULT, out dispId);
+
+    //            const int DISP_E_UNKNOWNNAME = unchecked((int)0x80020006); //From WinError.h
+    //            const int DISPID_UNKNOWN = -1; //From OAIdl.idl
+    //            if (hr == S_OK)
+    //            {
+    //                result = true;
+    //            }
+    //            else if (hr == DISP_E_UNKNOWNNAME && dispId == DISPID_UNKNOWN)
+    //            {
+    //                result = false;
+    //            }
+    //            else
+    //            {
+    //                Marshal.ThrowExceptionForHR(hr);
+    //            }
+
+    //            return result;
+    //        }
+
+    //        [ComImport]
+    //        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    //        [Guid("00020400-0000-0000-C000-000000000046")]
+    //        private interface IDispatchInfo
+    //        {
+    //            [PreserveSig]
+    //            int GetTypeInfoCount(out int typeInfoCount);
+
+    //            void GetTypeInfo(int typeInfoIndex, int lcid, [MarshalAs(UnmanagedType.CustomMarshaler,
+    //            MarshalTypeRef = typeof(System.Runtime.InteropServices.CustomMarshalers.TypeToTypeInfoMarshaler))] out Type typeInfo);
+
+    //            [PreserveSig]
+    //            int GetDispId(ref Guid riid, ref string name, int nameCount, int lcid, out int dispId);
+
+    //            // NOTE: The real IDispatch also has an Invoke method next, but we don't need it.
+    //        }
+    //    }
+    //}
+
+}
 #endregion

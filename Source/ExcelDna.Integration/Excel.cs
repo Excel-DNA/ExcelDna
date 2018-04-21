@@ -409,7 +409,7 @@ namespace ExcelDna.Integration
                 GetClassNameW(hWndEnum, cname, cname.Capacity);
                 if (cname.ToString() != "EXCEL7")
                     // Not a workbook window, continue enumerating
-                    return true;	
+                    return true;
 
                 IntPtr pUnk = IntPtr.Zero;
                 int hr = AccessibleObjectFromWindow(hWndEnum, OBJID_NATIVEOM, IID_IDispatchBytes, ref pUnk);
@@ -418,45 +418,51 @@ namespace ExcelDna.Integration
                     // Window does not implement the IID, continue enumerating
                     return true;
                 }
-                
+
                 // Marshal to .NET, then call .Application
                 object obj = Marshal.GetObjectForIUnknown(pUnk);
                 Marshal.Release(pUnk);
 
                 try
                 {
-                    // CONSIDER: We could avoid exception-as-flow-control if we could rewrite this to check whether the COM object has an Application property
-                    app = obj.GetType().InvokeMember("Application", BindingFlags.GetProperty, null, obj, null, _enUsCulture);
-                }
-                catch
-                {
-                    // In some cases - always when Excel only a workbook open in Protected Mode when this code runs - 
-                    // we get a ProtectedViewWindow.
-                    if (allowProtected)
+                    if (ComInterop.DispatchHelper.HasProperty(obj, "Application"))
                     {
-                        // This window does not have an Application property, but we can check via ProtectedViewWindow.Workbook.Application.
-
-                        try
-                        {
-                            object workbook = obj.GetType().InvokeMember("Workbook", BindingFlags.GetProperty, null, obj, null, _enUsCulture);
-                            app = workbook.GetType().InvokeMember("Application", BindingFlags.GetProperty, null, workbook, null, _enUsCulture);
-
-                            // WARNING: The Application object returning from here can be problematic:
-                            //          * It is a "sandbox" view of the Application that cannot Run macros or change workbooks
-                            //          * It will die after the protected view closes
-                            //          We return it, but should not cache it
-                            localIsProtected = true;
-                        }
-                        catch
-                        {
-                            // Otherwise we fail - this way the higher-level call will open up a regular workbook and try again
-                        }
+                        app = obj.GetType().InvokeMember("Application", BindingFlags.GetProperty, null, obj, null, _enUsCulture);
                     }
                     else
                     {
-                        // We don't want to continue enumeration in this case - another window might give us an Application, but it will be a protected one anyway
-                        localIsProtected = true;
+                        // In some cases - always when Excel only a workbook open in Protected Mode when this code runs - 
+                        // we get a ProtectedViewWindow, which has no Application property, but then we can do .Workbook.Application
+                        if (allowProtected)
+                        {
+                            try
+                            {
+                                object workbook = obj.GetType().InvokeMember("Workbook", BindingFlags.GetProperty, null, obj, null, _enUsCulture);
+                                app = workbook.GetType().InvokeMember("Application", BindingFlags.GetProperty, null, workbook, null, _enUsCulture);
+
+                                // WARNING: The Application object returning from here can be problematic:
+                                //          * It is a "sandbox" view of the Application that cannot Run macros or change workbooks
+                                //          * It will die after the protected view closes
+                                //          We return it, but should not cache it
+                                localIsProtected = true;
+                            }
+                            catch
+                            {
+                                // Otherwise we fail - this way the higher-level call will open up a regular workbook and try again
+                                Debug.Fail("Unexpected exception when getting Application");
+                            }
+                        }
+                        else
+                        {
+                            // We don't want to continue enumeration in this case - another window might give us an Application, but it will be a protected one anyway
+                            localIsProtected = true;
+                        }
                     }
+                }
+                catch
+                {
+                    // Otherwise we fail - this way the higher-level call will open up a regular workbook and try again
+                    Debug.Fail("Unexpected exception when getting Application");
                 }
                 finally
                 {
@@ -464,7 +470,7 @@ namespace ExcelDna.Integration
                 }
 
                 // Continue enumeration? Only if the app is not yet found and protected flag not set.
-                return (app == null) && !localIsProtected;	
+                return (app == null) && !localIsProtected;
             }, IntPtr.Zero);
             isProtected = localIsProtected;
             return app;
@@ -477,8 +483,9 @@ namespace ExcelDna.Integration
             if (_application == null) return false;
             try
             {
-                // TODO: Can we turn this into a delegate somehow - for performance.
-                //       I'm not sure how to pull out the Property if it's name might be based on the Culture...
+                // TODO: Can we turn this into a delegate somehow - for performance and to avoid the exception.
+                //       I'm not sure how to pull out the Property if it's name might be based on the Culture.
+                //       One way is to get the dispid, and call through IDispatch.Invoke, but that's a lot of work...
                 _application.GetType().InvokeMember("Version", BindingFlags.GetProperty, null, _application, null, _enUsCulture);
                 return true;
             }
@@ -522,7 +529,7 @@ namespace ExcelDna.Integration
             buffer.Length = 0;
             // Check the window class
             GetClassNameW(hWnd, buffer, buffer.Capacity);
-            if (!buffer.ToString().StartsWith("bosa_sdm_XL")) 
+            if (!buffer.ToString().StartsWith("bosa_sdm_XL"))
                 return false;
 
             buffer.Length = 0;
