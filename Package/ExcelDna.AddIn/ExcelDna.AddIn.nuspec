@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata minClientVersion="2.5">
         <id>ExcelDna.AddIn</id>
-        <version>0.35.1-beta</version>
+        <version>0.35.1-beta2</version>
         <title>Excel-DNA Add-In</title>
         <authors>Govert van Drimmelen</authors>
         <owners>Govert van Drimmelen</owners>
@@ -21,7 +21,7 @@
         <summary>Excel-DNA is an independent project to integrate .NET into Excel.</summary>
         <tags>excel exceldna udf excel-dna</tags>
             <dependencies>
-      <dependency id="ExcelDna.Integration" version="[0.35.1-beta]" />
+      <dependency id="ExcelDna.Integration" version="[0.35.1-beta2]" />
     </dependencies>
     </metadata>
     <files>
