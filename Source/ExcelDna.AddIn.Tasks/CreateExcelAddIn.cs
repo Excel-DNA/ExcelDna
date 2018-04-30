@@ -207,6 +207,12 @@ namespace ExcelDna.AddIn.Tasks
                 return appConfigFile.ItemSpec;
             }
 
+            var linkedAppConfigFile = _configFilesInProject.FirstOrDefault(c => c.GetMetadata("Link").Equals("App.config", StringComparison.OrdinalIgnoreCase));
+            if (linkedAppConfigFile != null)
+            {
+                return linkedAppConfigFile.ItemSpec;
+            }
+
             return null;
         }
 
