@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedOutDirProjectOne", "S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedOutDirProjectTwo", "SharedOutDirProjectTwo\SharedOutDirProjectTwo.csproj", "{C174238C-B87F-41D3-BCAA-325AB66F0A7F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SingleDnaFileAppConfigLinked", "SingleDnaFileAppConfigLinked\SingleDnaFileAppConfigLinked.csproj", "{0F73C988-703D-4812-AB59-675B25F55E1F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,8 +71,15 @@ Global
 		{C174238C-B87F-41D3-BCAA-325AB66F0A7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C174238C-B87F-41D3-BCAA-325AB66F0A7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C174238C-B87F-41D3-BCAA-325AB66F0A7F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0F73C988-703D-4812-AB59-675B25F55E1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F73C988-703D-4812-AB59-675B25F55E1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F73C988-703D-4812-AB59-675B25F55E1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F73C988-703D-4812-AB59-675B25F55E1F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5B32D89B-F6FC-4D5E-8156-2CBE3B014A1E}
 	EndGlobalSection
 EndGlobal
