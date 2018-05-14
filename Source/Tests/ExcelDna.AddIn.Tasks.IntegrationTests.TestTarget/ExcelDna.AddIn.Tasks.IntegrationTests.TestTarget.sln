@@ -25,6 +25,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedOutDirProjectTwo", "S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SingleDnaFileAppConfigLinked", "SingleDnaFileAppConfigLinked\SingleDnaFileAppConfigLinked.csproj", "{0F73C988-703D-4812-AB59-675B25F55E1F}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFolderForTesting", "SolutionFolderForTesting", "{6E01179F-5DE4-42C0-A270-2B87CF7DE14F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AddInInsideSolutionFolder", "AddInInsideSolutionFolder\AddInInsideSolutionFolder.csproj", "{502A14C5-C058-42BC-A70F-C899ECD58245}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,9 +79,16 @@ Global
 		{0F73C988-703D-4812-AB59-675B25F55E1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0F73C988-703D-4812-AB59-675B25F55E1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0F73C988-703D-4812-AB59-675B25F55E1F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{502A14C5-C058-42BC-A70F-C899ECD58245}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{502A14C5-C058-42BC-A70F-C899ECD58245}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{502A14C5-C058-42BC-A70F-C899ECD58245}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{502A14C5-C058-42BC-A70F-C899ECD58245}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{502A14C5-C058-42BC-A70F-C899ECD58245} = {6E01179F-5DE4-42C0-A270-2B87CF7DE14F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5B32D89B-F6FC-4D5E-8156-2CBE3B014A1E}
