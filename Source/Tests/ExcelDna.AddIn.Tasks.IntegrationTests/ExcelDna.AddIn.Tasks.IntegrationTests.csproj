@@ -54,6 +54,7 @@
     <Compile Include="SingleDnaFileCustomSuffix_x64IntegrationTests.cs" />
     <Compile Include="SingleDnaFileCustomSuffix_x86IntegrationTests.cs" />
     <Compile Include="SingleDnaFileDefaultSuffixIntegrationTests.cs" />
+    <Compile Include="SingleDnaFileAppConfigLinkedIntegrationTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

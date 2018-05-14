@@ -46,9 +46,6 @@
     <Compile Include="SetDebuggerOptions.cs" />
     <Compile Include="Utils\ExcelDnaProject.cs" />
     <Compile Include="Utils\IExcelDnaProject.cs" />
-    <None Include="..\..\Package\ExcelDna.AddIn\build\ExcelDna.AddIn.targets">
-      <Link>ExcelDna.AddIn.targets</Link>
-    </None>
     <None Include="Properties\ExcelDna.AddIn.Tasks.targets" />
     <Compile Include="CleanExcelAddIn.cs" />
     <Compile Include="BuildTaskCommon.cs" />
@@ -64,6 +61,10 @@
   <ItemGroup>
     <None Include="..\..\Package\ExcelDna.AddIn\content\ExcelDna.Build.props">
       <Link>ExcelDna.Build.props</Link>
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="..\..\Package\ExcelDna.AddIn\build\ExcelDna.AddIn.targets">
+      <Link>ExcelDna.AddIn.targets</Link>
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
