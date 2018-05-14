@@ -50,7 +50,7 @@ namespace ExcelDna.AddIn.Tasks
 
                 if (!_dte.TrySetDebuggerOptions(ProjectName, excelExePath, addInForDebugging, msg => LogDebugMessage(msg)))
                 {
-                    LogWarning("DNA" + "DTE".GetHashCode(), "Unable to set the debugger options within Visual Studio.");
+                    LogWarning("DNA" + "DTE".GetHashCode(), "Unable to set the debugger options within Visual Studio. Please restart Visual Studio and try again.");
                 }
             }
             catch (Exception ex)
