@@ -19,6 +19,8 @@ using DWORD = System.Int32;
 using HRESULT = System.Int32;
 using IID = System.Guid;
 
+// TODO: Review in the light of this info:
+// https://social.msdn.microsoft.com/Forums/vstudio/en-US/7313191a-10db-4a16-9cdd-de9fb80b378a/com-interop-base-class-properties-not-exposed-to-com?forum=csharpgeneral
 
 namespace ExcelDna.ComInterop.ComRegistration
 {
