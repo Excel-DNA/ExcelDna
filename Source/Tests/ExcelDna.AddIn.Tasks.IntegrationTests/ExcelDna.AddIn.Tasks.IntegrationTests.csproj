@@ -48,12 +48,14 @@
     <Compile Include="SeparateDnaFilesDefaultSuffixIntegrationTests.cs" />
     <Compile Include="MsBuildParametersOverrideTests.cs" />
     <Compile Include="PreAndPostBuildEventsIntegrationTests.cs" />
+    <Compile Include="ProjectWithNameEndingIn64IntegrationTests.cs" />
     <Compile Include="SingleDnaFileNoConfigDefaultSuffixIntegrationTests.cs" />
     <Compile Include="SingleDnaFileDefaultSuffixSubFolderTests.cs" />
     <Compile Include="Utils\SilentProcessRunner.cs" />
     <Compile Include="SingleDnaFileCustomSuffix_x64IntegrationTests.cs" />
     <Compile Include="SingleDnaFileCustomSuffix_x86IntegrationTests.cs" />
     <Compile Include="SingleDnaFileDefaultSuffixIntegrationTests.cs" />
+    <Compile Include="SingleDnaFileAppConfigLinkedIntegrationTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

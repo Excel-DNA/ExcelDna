@@ -47,7 +47,7 @@
     <None Include="AddIn-One-x64.dna" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(ProjectDir)..\..\.exceldna.addin\tools\ExcelDna.AddIn.targets" />
+  <Import Project="$(ProjectDir)..\..\.exceldna.addin\build\ExcelDna.AddIn.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

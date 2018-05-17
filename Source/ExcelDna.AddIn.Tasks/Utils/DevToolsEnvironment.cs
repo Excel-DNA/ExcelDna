@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Management;
@@ -32,6 +33,7 @@ namespace ExcelDna.AddIn.Tasks.Utils
                 .Solution
                 .Projects
                 .OfType<EnvDTE.Project>()
+                .SelectMany(GetProjectAndSubProjects)
                 .SingleOrDefault(p =>
                     string.Compare(p.Name, projectName, StringComparison.OrdinalIgnoreCase) == 0);
 
@@ -157,6 +159,23 @@ namespace ExcelDna.AddIn.Tasks.Utils
             return runningObject as EnvDTE.DTE;
         }
 
+        private static IEnumerable<EnvDTE.Project> GetProjectAndSubProjects(EnvDTE.Project project)
+        {
+            if (project.Kind == VsProjectKindSolutionFolder)
+            {
+                return project.ProjectItems
+                    .OfType<EnvDTE.ProjectItem>()
+                    .Select(p => p.SubProject)
+                    .Where(p => p != null)
+                    .SelectMany(GetProjectAndSubProjects);
+            }
+
+            return new[] { project };
+        }
+
+		// Copied from EnvDTE80, instead of referencing it just because of this one string
+		private const string VsProjectKindSolutionFolder = "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}";
+		
         [DllImport("ole32.dll")]
         private static extern int CreateBindCtx(uint reserved, out IBindCtx ppbc);
 
