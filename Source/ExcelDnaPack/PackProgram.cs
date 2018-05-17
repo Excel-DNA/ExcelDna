@@ -239,7 +239,13 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 			    bool copiedVersion = false;
 				foreach (ExternalLibrary ext in dna.ExternalLibraries)
 				{
-				    string path = dna.ResolvePath(ext.Path);
+					var path = dna.ResolvePath(ext.Path);
+					if (!File.Exists(path))
+					{
+						Console.WriteLine("!!! ExternalLibrary `{0}` not found. Aborting.", ext.Path);
+						Environment.Exit(1);
+					}
+
 					if (ext.Pack)
 					{
                         Console.WriteLine("  ~~> ExternalLibrary path {0} resolved to {1}.", ext.Path, path);
