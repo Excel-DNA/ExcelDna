@@ -83,7 +83,7 @@ namespace ExcelDna.AddIn.Tasks
         {
             var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName) ?? string.Empty;
 
-            if (!string.IsNullOrWhiteSpace(_fileSuffix32Bit))
+            if (!string.IsNullOrWhiteSpace(_fileSuffix32Bit) && fileNameWithoutExtension.EndsWith(_fileSuffix32Bit, StringComparison.OrdinalIgnoreCase))
             {
                 var indexOfSuffix = fileNameWithoutExtension.LastIndexOf(_fileSuffix32Bit, StringComparison.OrdinalIgnoreCase);
                 if (indexOfSuffix > 0)
@@ -92,7 +92,7 @@ namespace ExcelDna.AddIn.Tasks
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(_fileSuffix64Bit))
+            if (!string.IsNullOrWhiteSpace(_fileSuffix64Bit) && fileNameWithoutExtension.EndsWith(_fileSuffix64Bit, StringComparison.OrdinalIgnoreCase))
             {
                 var indexOfSuffix = fileNameWithoutExtension.LastIndexOf(_fileSuffix64Bit, StringComparison.OrdinalIgnoreCase);
                 if (indexOfSuffix > 0)

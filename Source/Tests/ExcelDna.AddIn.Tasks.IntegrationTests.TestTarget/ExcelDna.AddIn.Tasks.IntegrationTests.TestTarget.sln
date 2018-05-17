@@ -29,6 +29,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFolderForTesting", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AddInInsideSolutionFolder", "AddInInsideSolutionFolder\AddInInsideSolutionFolder.csproj", "{502A14C5-C058-42BC-A70F-C899ECD58245}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectWithNameEndingIn64", "ProjectWithNameEndingIn64\ProjectWithNameEndingIn64.csproj", "{D6A3CFD5-0608-480A-8900-765D4C2A5395}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,10 @@ Global
 		{502A14C5-C058-42BC-A70F-C899ECD58245}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{502A14C5-C058-42BC-A70F-C899ECD58245}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{502A14C5-C058-42BC-A70F-C899ECD58245}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D6A3CFD5-0608-480A-8900-765D4C2A5395}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6A3CFD5-0608-480A-8900-765D4C2A5395}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6A3CFD5-0608-480A-8900-765D4C2A5395}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6A3CFD5-0608-480A-8900-765D4C2A5395}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
