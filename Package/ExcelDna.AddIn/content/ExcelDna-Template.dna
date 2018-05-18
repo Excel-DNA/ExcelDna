@@ -1,4 +1,4 @@
-<DnaLibrary Name="%ProjectName% Add-In" RuntimeVersion="v4.0">
+<DnaLibrary Name="%ProjectName% Add-In" RuntimeVersion="v4.0" xmlns="http://schemas.excel-dna.net/addin/2018/05/dna.xsd">
   <ExternalLibrary Path="%OutputFileName%" ExplicitExports="false" LoadFromBytes="true" Pack="true" />
   
   <!-- 
