@@ -25,6 +25,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.IntegrationTests",
 		{A8D668E2-63C1-4F4E-A01E-E026C6E4D601} = {A8D668E2-63C1-4F4E-A01E-E026C6E4D601}
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Package", "Package", "{2A988F4A-6C24-49EB-950D-0984E2CAEE20}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExcelDna.AddIn", "ExcelDna.AddIn", "{42A3C1DE-5D65-4BC6-BA90-3FDEE42A77C9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "content", "content", "{D0B02D05-F536-4C32-9DC0-BA2B5EEAEAB7}"
+	ProjectSection(SolutionItems) = preProject
+		..\Package\ExcelDna.AddIn\content\ExcelDna-Template.dna = ..\Package\ExcelDna.AddIn\content\ExcelDna-Template.dna
+		..\Package\ExcelDna.AddIn\content\ExcelDna_dna_2018_05.xsd = ..\Package\ExcelDna.AddIn\content\ExcelDna_dna_2018_05.xsd
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -184,6 +194,8 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{C9CAD3E4-E6F1-4BD2-AF89-57950AB15388} = {511CE610-5E55-457F-B818-1522D1A96727}
 		{3AFD9408-48AC-43B4-8E55-4E7D73168FEA} = {511CE610-5E55-457F-B818-1522D1A96727}
+		{42A3C1DE-5D65-4BC6-BA90-3FDEE42A77C9} = {2A988F4A-6C24-49EB-950D-0984E2CAEE20}
+		{D0B02D05-F536-4C32-9DC0-BA2B5EEAEAB7} = {42A3C1DE-5D65-4BC6-BA90-3FDEE42A77C9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {69EF43B0-B903-4775-BC81-C7E7E012EDA3}
