@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata minClientVersion="2.5">
+    <id>ExcelDna.XmlSchemas</id>
+    <version>0.0.1-pre</version>
+    <title>Excel-DNA XML Schemas</title>
+    <authors>Excel-DNA Contributors</authors>
+    <owners>exceldna</owners>
+    <projectUrl>http://excel-dna.net</projectUrl>
+    <iconUrl>http://docs.excel-dna.net/NuGetIcon.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>This package contains XSD files that enables IntelliSense and validation when editing `.dna` files, for example, in Visual Studio.</description>
+    <summary>XSD files for IntelliSense and validation of `.dna` files.</summary>
+    <tags>excel exceldna intellisense xsd dna excel-dna</tags>
+  </metadata>
+  <files>
+    <file src="..\..\Distribution\XmlSchemas\ExcelDna.DnaLibrary.xsd" target="content\" />
+    <file src="..\..\Distribution\XmlSchemas\customUI.xsd" target="content\" />
+    <file src="..\..\Distribution\XmlSchemas\customui14.xsd" target="content\" />
+    <file src="Readme.txt" target="Readme.txt" />
+  </files>
+</package>

@@ -16,6 +16,9 @@ nuget.exe pack "%basePath%\ExcelDna.AddIn\ExcelDna.AddIn.nuspec" -BasePath "%bas
 nuget.exe pack "%basePath%\ExcelDna.Integration\ExcelDna.Integration.nuspec" -BasePath "%basePath%\ExcelDna.Integration" -OutputDirectory "%outputPath%" -Verbosity detailed -NonInteractive
 @if errorlevel 1 goto end
 
+nuget.exe pack "%basePath%\ExcelDna.XmlSchemas\ExcelDna.XmlSchemas.nuspec" -BasePath "%basePath%\ExcelDna.XmlSchemas" -OutputDirectory "%outputPath%" -Verbosity detailed -NonInteractive
+@if errorlevel 1 goto end
+
 nuget.exe pack "%basePath%\Excel-DNA\Excel-DNA.nuspec" -BasePath "%basePath%\Excel-DNA" -OutputDirectory "%outputPath%" -Verbosity detailed -NonInteractive
 @if errorlevel 1 goto end
 
