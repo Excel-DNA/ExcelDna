@@ -83,7 +83,7 @@ In the instructions below, `%ProgramFiles(x86)%` is used to refer to the `Progra
 
     For more detailed information about [Visual Studio's Schema Cache][vs-schema-cache], see the documentation on Microsoft's website: [https://docs.microsoft.com/en-us/visualstudio/xml-tools/schema-cache][vs-schema-cache]
 
-3. Restart any open instances of Visual Studio. IntelliSense and validation should now work for all `.dna` files you open, automatically, even if they don't have the XML namespace for `.dna` files (`http://schemas.excel-dna.net/addin/2018/05/dnalibrary`) declared (although it a good practice to always include the XML namespace on your files).
+3. IntelliSense and validation should now work for all `.dna` files you open, automatically, even if they don't have the XML namespace for `.dna` files (`http://schemas.excel-dna.net/addin/2018/05/dnalibrary`) declared (although it a good practice to always include the XML namespace on your files). If it doesn't work, try restarting any open instances of Visual Studio and try again.
 
 NOTE: Updates to Visual Studio may reset the global schema cache, undoing the changes made above. If that happens and you no longer see IntelliSense for `.dna` files, you'll need to repeat the steps above. Also, remember that other developers working on your project will not have IntelliSense or validation on their machines, unless they also perform the manual steps outlined above.
 
