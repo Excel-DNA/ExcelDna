@@ -236,12 +236,26 @@ namespace ExcelDna.Serialization
     }
 
     public class XmlSerializationReaderDnaLibrary : System.Xml.Serialization.XmlSerializationReader {
+        /*
+          ### IMPORTANT
+          This class is auto-generated via sgen, but have been manually edited
+          Make sure you apply the same edits if you re-generate the code again
+
+          More details in PR #194
+          https://github.com/Excel-DNA/ExcelDna/pull/194
+
+          Manual edit scope:
+            **All checks and references to id2_Item (which translates to xmlns) have been commented out**
+
+          This is the command line that we previously used to generate this file:
+          "sgen /a:bin\Debug\exceldna.integration.dll /t:ExcelDna.Integration.DnaLibrary /k /f /out:."
+        */
 
         public object Read8_DnaLibrary() {
             object o = null;
             Reader.MoveToContent();
             if (Reader.NodeType == System.Xml.XmlNodeType.Element) {
-                if (((object) Reader.LocalName == (object)id1_DnaLibrary)) {
+                if (((object) Reader.LocalName == (object)id1_DnaLibrary /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o = Read7_DnaLibrary(false, true);
                 }
                 else {
@@ -259,7 +273,7 @@ namespace ExcelDna.Serialization
             bool isNull = false;
             if (isNullable) isNull = ReadNull();
             if (checkType) {
-            if (xsiType == null) {
+            if (xsiType == null /* || ((object) ((System.Xml.XmlQualifiedName)xsiType).Name == (object)id2_Item && (object) ((System.Xml.XmlQualifiedName)xsiType).Namespace == (object)id2_Item) // see #194 above */) {
             }
             else
                 throw CreateUnknownTypeException((System.Xml.XmlQualifiedName)xsiType);
@@ -279,35 +293,35 @@ namespace ExcelDna.Serialization
             global::System.Collections.Generic.List<global::ExcelDna.Integration.Image> a_13 = (global::System.Collections.Generic.List<global::ExcelDna.Integration.Image>)o.@Images;
             bool[] paramsRead = new bool[14];
             while (Reader.MoveToNextAttribute()) {
-                if (!paramsRead[2] && ((object) Reader.LocalName == (object)id3_Name)) {
+                if (!paramsRead[2] && ((object) Reader.LocalName == (object)id3_Name /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@Name = Reader.Value;
                     paramsRead[2] = true;
                 }
-                else if (!paramsRead[3] && ((object) Reader.LocalName == (object)id4_RuntimeVersion)) {
+                else if (!paramsRead[3] && ((object) Reader.LocalName == (object)id4_RuntimeVersion /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@RuntimeVersion = Reader.Value;
                     paramsRead[3] = true;
                 }
-                else if (!paramsRead[4] && ((object) Reader.LocalName == (object)id5_ShadowCopyFiles)) {
+                else if (!paramsRead[4] && ((object) Reader.LocalName == (object)id5_ShadowCopyFiles /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@ShadowCopyFiles = System.Xml.XmlConvert.ToBoolean(Reader.Value);
                     paramsRead[4] = true;
                 }
-                else if (!paramsRead[5] && ((object) Reader.LocalName == (object)id6_CreateSandboxedAppDomain)) {
+                else if (!paramsRead[5] && ((object) Reader.LocalName == (object)id6_CreateSandboxedAppDomain /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@CreateSandboxedAppDomain = Reader.Value;
                     paramsRead[5] = true;
                 }
-                else if (!paramsRead[7] && ((object) Reader.LocalName == (object)id7_Language)) {
+                else if (!paramsRead[7] && ((object) Reader.LocalName == (object)id7_Language /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@Language = Reader.Value;
                     paramsRead[7] = true;
                 }
-                else if (!paramsRead[8] && ((object) Reader.LocalName == (object)id8_CompilerVersion)) {
+                else if (!paramsRead[8] && ((object) Reader.LocalName == (object)id8_CompilerVersion /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@CompilerVersion = Reader.Value;
                     paramsRead[8] = true;
                 }
-                else if (!paramsRead[9] && ((object) Reader.LocalName == (object)id9_DefaultReferences)) {
+                else if (!paramsRead[9] && ((object) Reader.LocalName == (object)id9_DefaultReferences /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@DefaultReferences = System.Xml.XmlConvert.ToBoolean(Reader.Value);
                     paramsRead[9] = true;
                 }
-                else if (!paramsRead[10] && ((object) Reader.LocalName == (object)id10_DefaultImports)) {
+                else if (!paramsRead[10] && ((object) Reader.LocalName == (object)id10_DefaultImports /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@DefaultImports = System.Xml.XmlConvert.ToBoolean(Reader.Value);
                     paramsRead[10] = true;
                 }
@@ -327,19 +341,19 @@ namespace ExcelDna.Serialization
             while (Reader.NodeType != System.Xml.XmlNodeType.EndElement && Reader.NodeType != System.Xml.XmlNodeType.None) {
                 string tmp = null;
                 if (Reader.NodeType == System.Xml.XmlNodeType.Element) {
-                    if (((object) Reader.LocalName == (object)id11_ExternalLibrary)) {
+                    if (((object) Reader.LocalName == (object)id11_ExternalLibrary /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                         if ((object)(a_0) == null) Reader.Skip(); else a_0.Add(Read2_ExternalLibrary(false, true));
                     }
-                    else if (((object) Reader.LocalName == (object)id12_Project)) {
+                    else if (((object) Reader.LocalName == (object)id12_Project /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                         if ((object)(a_1) == null) Reader.Skip(); else a_1.Add(Read5_Project(false, true));
                     }
-                    else if (((object) Reader.LocalName == (object)id13_Reference)) {
+                    else if (((object) Reader.LocalName == (object)id13_Reference /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                         if ((object)(a_6) == null) Reader.Skip(); else a_6.Add(Read3_Reference(false, true));
                     }
-                    else if (((object) Reader.LocalName == (object)id14_CustomUI)) {
+                    else if (((object) Reader.LocalName == (object)id14_CustomUI /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                         a_12.Add((global::System.Xml.XmlNode)ReadXmlNode(true));
                     }
-                    else if (((object) Reader.LocalName == (object)id15_Image)) {
+                    else if (((object) Reader.LocalName == (object)id15_Image /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                         if ((object)(a_13) == null) Reader.Skip(); else a_13.Add(Read6_Image(false, true));
                     }
                     else {
@@ -368,7 +382,7 @@ namespace ExcelDna.Serialization
             bool isNull = false;
             if (isNullable) isNull = ReadNull();
             if (checkType) {
-            if (xsiType == null) {
+            if (xsiType == null /* || ((object) ((System.Xml.XmlQualifiedName)xsiType).Name == (object)id2_Item && (object) ((System.Xml.XmlQualifiedName)xsiType).Namespace == (object)id2_Item) // see #194 above */) {
             }
             else
                 throw CreateUnknownTypeException((System.Xml.XmlQualifiedName)xsiType);
@@ -378,15 +392,15 @@ namespace ExcelDna.Serialization
             o = new global::ExcelDna.Integration.Image();
             bool[] paramsRead = new bool[3];
             while (Reader.MoveToNextAttribute()) {
-                if (!paramsRead[0] && ((object) Reader.LocalName == (object)id3_Name)) {
+                if (!paramsRead[0] && ((object) Reader.LocalName == (object)id3_Name /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@Name = Reader.Value;
                     paramsRead[0] = true;
                 }
-                else if (!paramsRead[1] && ((object) Reader.LocalName == (object)id16_Path)) {
+                else if (!paramsRead[1] && ((object) Reader.LocalName == (object)id16_Path /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@Path = Reader.Value;
                     paramsRead[1] = true;
                 }
-                else if (!paramsRead[2] && ((object) Reader.LocalName == (object)id17_Pack)) {
+                else if (!paramsRead[2] && ((object) Reader.LocalName == (object)id17_Pack /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@Pack = System.Xml.XmlConvert.ToBoolean(Reader.Value);
                     paramsRead[2] = true;
                 }
@@ -422,7 +436,7 @@ namespace ExcelDna.Serialization
             bool isNull = false;
             if (isNullable) isNull = ReadNull();
             if (checkType) {
-            if (xsiType == null) {
+            if (xsiType == null /* || ((object) ((System.Xml.XmlQualifiedName)xsiType).Name == (object)id2_Item && (object) ((System.Xml.XmlQualifiedName)xsiType).Namespace == (object)id2_Item) // see #194 above */) {
             }
             else
                 throw CreateUnknownTypeException((System.Xml.XmlQualifiedName)xsiType);
@@ -432,19 +446,19 @@ namespace ExcelDna.Serialization
             o = new global::ExcelDna.Integration.Reference();
             bool[] paramsRead = new bool[4];
             while (Reader.MoveToNextAttribute()) {
-                if (!paramsRead[0] && ((object) Reader.LocalName == (object)id3_Name)) {
+                if (!paramsRead[0] && ((object) Reader.LocalName == (object)id3_Name /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@Name = Reader.Value;
                     paramsRead[0] = true;
                 }
-                else if (!paramsRead[1] && ((object) Reader.LocalName == (object)id18_AssemblyPath)) {
+                else if (!paramsRead[1] && ((object) Reader.LocalName == (object)id18_AssemblyPath /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@AssemblyPath = Reader.Value;
                     paramsRead[1] = true;
                 }
-                else if (!paramsRead[2] && ((object) Reader.LocalName == (object)id17_Pack)) {
+                else if (!paramsRead[2] && ((object) Reader.LocalName == (object)id17_Pack /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@Pack = System.Xml.XmlConvert.ToBoolean(Reader.Value);
                     paramsRead[2] = true;
                 }
-                else if (!paramsRead[3] && ((object) Reader.LocalName == (object)id16_Path)) {
+                else if (!paramsRead[3] && ((object) Reader.LocalName == (object)id16_Path /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@Path = Reader.Value;
                     paramsRead[3] = true;
                 }
@@ -480,7 +494,7 @@ namespace ExcelDna.Serialization
             bool isNull = false;
             if (isNullable) isNull = ReadNull();
             if (checkType) {
-            if (xsiType == null) {
+            if (xsiType == null /* || ((object) ((System.Xml.XmlQualifiedName)xsiType).Name == (object)id2_Item && (object) ((System.Xml.XmlQualifiedName)xsiType).Namespace == (object)id2_Item) // see #194 above */) {
             }
             else
                 throw CreateUnknownTypeException((System.Xml.XmlQualifiedName)xsiType);
@@ -502,35 +516,35 @@ namespace ExcelDna.Serialization
             global::System.Collections.Generic.List<global::ExcelDna.Integration.SourceItem> a_9 = (global::System.Collections.Generic.List<global::ExcelDna.Integration.SourceItem>)o.@SourceItems;
             bool[] paramsRead = new bool[11];
             while (Reader.MoveToNextAttribute()) {
-                if (!paramsRead[0] && ((object) Reader.LocalName == (object)id3_Name)) {
+                if (!paramsRead[0] && ((object) Reader.LocalName == (object)id3_Name /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@Name = Reader.Value;
                     paramsRead[0] = true;
                 }
-                else if (!paramsRead[1] && ((object) Reader.LocalName == (object)id7_Language)) {
+                else if (!paramsRead[1] && ((object) Reader.LocalName == (object)id7_Language /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@Language = Reader.Value;
                     paramsRead[1] = true;
                 }
-                else if (!paramsRead[2] && ((object) Reader.LocalName == (object)id8_CompilerVersion)) {
+                else if (!paramsRead[2] && ((object) Reader.LocalName == (object)id8_CompilerVersion /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@CompilerVersion = Reader.Value;
                     paramsRead[2] = true;
                 }
-                else if (!paramsRead[4] && ((object) Reader.LocalName == (object)id9_DefaultReferences)) {
+                else if (!paramsRead[4] && ((object) Reader.LocalName == (object)id9_DefaultReferences /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@DefaultReferences = System.Xml.XmlConvert.ToBoolean(Reader.Value);
                     paramsRead[4] = true;
                 }
-                else if (!paramsRead[5] && ((object) Reader.LocalName == (object)id10_DefaultImports)) {
+                else if (!paramsRead[5] && ((object) Reader.LocalName == (object)id10_DefaultImports /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@DefaultImports = System.Xml.XmlConvert.ToBoolean(Reader.Value);
                     paramsRead[5] = true;
                 }
-                else if (!paramsRead[6] && ((object) Reader.LocalName == (object)id19_ExplicitExports)) {
+                else if (!paramsRead[6] && ((object) Reader.LocalName == (object)id19_ExplicitExports /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@ExplicitExports = System.Xml.XmlConvert.ToBoolean(Reader.Value);
                     paramsRead[6] = true;
                 }
-                else if (!paramsRead[7] && ((object) Reader.LocalName == (object)id20_ExplicitRegistration)) {
+                else if (!paramsRead[7] && ((object) Reader.LocalName == (object)id20_ExplicitRegistration /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@ExplicitRegistration = System.Xml.XmlConvert.ToBoolean(Reader.Value);
                     paramsRead[7] = true;
                 }
-                else if (!paramsRead[8] && ((object) Reader.LocalName == (object)id21_ComServer)) {
+                else if (!paramsRead[8] && ((object) Reader.LocalName == (object)id21_ComServer /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@ComServer = System.Xml.XmlConvert.ToBoolean(Reader.Value);
                     paramsRead[8] = true;
                 }
@@ -550,10 +564,10 @@ namespace ExcelDna.Serialization
             while (Reader.NodeType != System.Xml.XmlNodeType.EndElement && Reader.NodeType != System.Xml.XmlNodeType.None) {
                 string tmp = null;
                 if (Reader.NodeType == System.Xml.XmlNodeType.Element) {
-                    if (((object) Reader.LocalName == (object)id13_Reference)) {
+                    if (((object) Reader.LocalName == (object)id13_Reference /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                         if ((object)(a_3) == null) Reader.Skip(); else a_3.Add(Read3_Reference(false, true));
                     }
-                    else if (((object) Reader.LocalName == (object)id22_SourceItem)) {
+                    else if (((object) Reader.LocalName == (object)id22_SourceItem /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                         if ((object)(a_9) == null) Reader.Skip(); else a_9.Add(Read4_SourceItem(false, true));
                     }
                     else {
@@ -582,7 +596,7 @@ namespace ExcelDna.Serialization
             bool isNull = false;
             if (isNullable) isNull = ReadNull();
             if (checkType) {
-            if (xsiType == null) {
+            if (xsiType == null /* || ((object) ((System.Xml.XmlQualifiedName)xsiType).Name == (object)id2_Item && (object) ((System.Xml.XmlQualifiedName)xsiType).Namespace == (object)id2_Item) // see #194 above */) {
             }
             else
                 throw CreateUnknownTypeException((System.Xml.XmlQualifiedName)xsiType);
@@ -592,15 +606,15 @@ namespace ExcelDna.Serialization
             o = new global::ExcelDna.Integration.SourceItem();
             bool[] paramsRead = new bool[4];
             while (Reader.MoveToNextAttribute()) {
-                if (!paramsRead[0] && ((object) Reader.LocalName == (object)id17_Pack)) {
+                if (!paramsRead[0] && ((object) Reader.LocalName == (object)id17_Pack /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@Pack = System.Xml.XmlConvert.ToBoolean(Reader.Value);
                     paramsRead[0] = true;
                 }
-                else if (!paramsRead[1] && ((object) Reader.LocalName == (object)id3_Name)) {
+                else if (!paramsRead[1] && ((object) Reader.LocalName == (object)id3_Name /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@Name = Reader.Value;
                     paramsRead[1] = true;
                 }
-                else if (!paramsRead[3] && ((object) Reader.LocalName == (object)id16_Path)) {
+                else if (!paramsRead[3] && ((object) Reader.LocalName == (object)id16_Path /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@Path = Reader.Value;
                     paramsRead[3] = true;
                 }
@@ -644,7 +658,7 @@ namespace ExcelDna.Serialization
             bool isNull = false;
             if (isNullable) isNull = ReadNull();
             if (checkType) {
-            if (xsiType == null) {
+            if (xsiType == null /* || ((object) ((System.Xml.XmlQualifiedName)xsiType).Name == (object)id2_Item && (object) ((System.Xml.XmlQualifiedName)xsiType).Namespace == (object)id2_Item) // see #194 above */) {
             }
             else
                 throw CreateUnknownTypeException((System.Xml.XmlQualifiedName)xsiType);
@@ -654,35 +668,35 @@ namespace ExcelDna.Serialization
             o = new global::ExcelDna.Integration.ExternalLibrary();
             bool[] paramsRead = new bool[8];
             while (Reader.MoveToNextAttribute()) {
-                if (!paramsRead[0] && ((object) Reader.LocalName == (object)id16_Path)) {
+                if (!paramsRead[0] && ((object) Reader.LocalName == (object)id16_Path /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@Path = Reader.Value;
                     paramsRead[0] = true;
                 }
-                else if (!paramsRead[1] && ((object) Reader.LocalName == (object)id23_TypeLibPath)) {
+                else if (!paramsRead[1] && ((object) Reader.LocalName == (object)id23_TypeLibPath /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@TypeLibPath = Reader.Value;
                     paramsRead[1] = true;
                 }
-                else if (!paramsRead[2] && ((object) Reader.LocalName == (object)id21_ComServer)) {
+                else if (!paramsRead[2] && ((object) Reader.LocalName == (object)id21_ComServer /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@ComServer = System.Xml.XmlConvert.ToBoolean(Reader.Value);
                     paramsRead[2] = true;
                 }
-                else if (!paramsRead[3] && ((object) Reader.LocalName == (object)id17_Pack)) {
+                else if (!paramsRead[3] && ((object) Reader.LocalName == (object)id17_Pack /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@Pack = System.Xml.XmlConvert.ToBoolean(Reader.Value);
                     paramsRead[3] = true;
                 }
-                else if (!paramsRead[4] && ((object) Reader.LocalName == (object)id24_LoadFromBytes)) {
+                else if (!paramsRead[4] && ((object) Reader.LocalName == (object)id24_LoadFromBytes /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@LoadFromBytes = System.Xml.XmlConvert.ToBoolean(Reader.Value);
                     paramsRead[4] = true;
                 }
-                else if (!paramsRead[5] && ((object) Reader.LocalName == (object)id19_ExplicitExports)) {
+                else if (!paramsRead[5] && ((object) Reader.LocalName == (object)id19_ExplicitExports /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@ExplicitExports = System.Xml.XmlConvert.ToBoolean(Reader.Value);
                     paramsRead[5] = true;
                 }
-                else if (!paramsRead[6] && ((object) Reader.LocalName == (object)id20_ExplicitRegistration)) {
+                else if (!paramsRead[6] && ((object) Reader.LocalName == (object)id20_ExplicitRegistration /* && (object) Reader.NamespaceURI == (object)id2_Item // see #194 above */)) {
                     o.@ExplicitRegistration = System.Xml.XmlConvert.ToBoolean(Reader.Value);
                     paramsRead[6] = true;
                 }
-                else if (!paramsRead[7] && ((object) Reader.LocalName == (object)id25_UseVersionAsOutputVersion)) {
+                else if (!paramsRead[7] && ((object) Reader.LocalName == (object)id25_UseVersionAsOutputVersion /*&& (object) Reader.NamespaceURI == (object) id2_Item) // see #194 above */)) {
                     o.@UseVersionAsOutputVersion = System.Xml.XmlConvert.ToBoolean(Reader.Value);
                     paramsRead[7] = true;
                 }
@@ -716,6 +730,7 @@ namespace ExcelDna.Serialization
         protected override void InitCallbacks() {
         }
 
+        //string id2_Item; // see #194 above
         string id14_CustomUI;
         string id24_LoadFromBytes;
         string id16_Path;
@@ -742,6 +757,7 @@ namespace ExcelDna.Serialization
         string id25_UseVersionAsOutputVersion;
 
         protected override void InitIDs() {
+            //id2_Item = Reader.NameTable.Add(@""); // see #194 above
             id14_CustomUI = Reader.NameTable.Add(@"CustomUI");
             id24_LoadFromBytes = Reader.NameTable.Add(@"LoadFromBytes");
             id16_Path = Reader.NameTable.Add(@"Path");
