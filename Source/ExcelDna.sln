@@ -32,7 +32,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "content", "content", "{D0B02D05-F536-4C32-9DC0-BA2B5EEAEAB7}"
 	ProjectSection(SolutionItems) = preProject
 		..\Package\ExcelDna.AddIn\content\ExcelDna-Template.dna = ..\Package\ExcelDna.AddIn\content\ExcelDna-Template.dna
-		..\Package\ExcelDna.AddIn\content\ExcelDna_dna_2018_05.xsd = ..\Package\ExcelDna.AddIn\content\ExcelDna_dna_2018_05.xsd
 	EndProjectSection
 EndProject
 Global
