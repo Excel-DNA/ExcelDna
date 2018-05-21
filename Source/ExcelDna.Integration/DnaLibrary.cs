@@ -21,7 +21,7 @@ namespace ExcelDna.Integration
 {
     [Serializable]
     [XmlType(AnonymousType = true)]
-    [XmlRoot(Namespace = "", IsNullable = false)]
+    [XmlRoot(Namespace = "http://schemas.excel-dna.net/addin/2018/05/dnalibrary", IsNullable = false)]
     public class DnaLibrary
     {
         private List<ExternalLibrary> _ExternalLibraries;
