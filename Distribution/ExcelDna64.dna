@@ -1,11 +1,12 @@
-<DnaLibrary RuntimeVersion="v4.0" Language="VB">
+<?xml version="1.0" encoding="utf-8"?>
+<DnaLibrary RuntimeVersion="v4.0" Language="VB" xmlns="http://schemas.excel-dna.net/addin/2018/05/dnalibrary">
 <![CDATA[
 
-	Public Module Module1
-		Function AddThem(x, y)
-			AddThem = x + y
-		End Function	
-	End Module
+    Public Module Module1
+        Function AddThem(x, y)
+            AddThem = x + y
+        End Function    
+    End Module
 
 ]]>
 </DnaLibrary>
