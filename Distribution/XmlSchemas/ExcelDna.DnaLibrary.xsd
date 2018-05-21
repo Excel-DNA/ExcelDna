@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xs:schema id="dna"
-           targetNamespace="http://schemas.excel-dna.net/addin/2018/05/dna.xsd"
+           targetNamespace="http://schemas.excel-dna.net/addin/2018/05/dnalibrary"
            attributeFormDefault="unqualified"
            elementFormDefault="qualified"
-           xmlns="http://schemas.excel-dna.net/addin/2018/05/dna.xsd"
-           xmlns:mstns="http://schemas.excel-dna.net/addin/2018/05/dna.xsd"
+           xmlns="http://schemas.excel-dna.net/addin/2018/05/dnalibrary"
+           xmlns:mstns="http://schemas.excel-dna.net/addin/2018/05/dnalibrary"
            xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
   <xs:simpleType name="Boolean">
