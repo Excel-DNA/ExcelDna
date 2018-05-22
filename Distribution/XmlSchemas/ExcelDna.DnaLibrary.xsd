@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="dna"
+           targetNamespace="http://schemas.excel-dna.net/addin/2018/05/dnalibrary"
+           attributeFormDefault="unqualified"
+           elementFormDefault="qualified"
+           xmlns="http://schemas.excel-dna.net/addin/2018/05/dnalibrary"
+           xmlns:mstns="http://schemas.excel-dna.net/addin/2018/05/dnalibrary"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:simpleType name="Boolean">
+    <xs:union>
+      <xs:simpleType>
+        <!-- Intellisense suggestions -->
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="true" />
+          <xs:enumeration value="false" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType>
+        <!-- Other allowed values (but hidden from Intellisense) -->
+        <xs:restriction base="xs:string">
+          <xs:pattern value="[Tt]rue" />
+          <xs:pattern value="[Ff]alse" />
+          <xs:pattern value="0" />
+          <xs:pattern value="1" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:union>
+  </xs:simpleType>
+
+  <xs:simpleType name="RuntimeVersionType">
+    <xs:union>
+      <xs:simpleType>
+        <!-- Intellisense suggestions -->
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="v2.0" />
+          <xs:enumeration value="v4.0" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType>
+        <!-- Other allowed values (but hidden from Intellisense) -->
+        <xs:restriction base="xs:string">
+          <xs:pattern value="v2.0.50727" />
+          <xs:pattern value="v4.0.30319" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:union>
+  </xs:simpleType>
+
+  <xs:simpleType name="LanguageType">
+    <xs:union>
+      <xs:simpleType>
+        <!-- Intellisense suggestions -->
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="C#" />
+          <xs:enumeration value="VB" />
+          <xs:enumeration value="F#" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType>
+        <!-- Other allowed values (but hidden from Intellisense) -->
+        <xs:restriction base="xs:string">
+          <xs:pattern value="(CS|cs)" />
+          <xs:pattern value="(CSHARP|CSharp|csharp)" />
+          <xs:pattern value="(C#|c#)" />
+          <xs:pattern value="(VB|vb)" />
+          <xs:pattern value="(VISUAL BASIC|Visual Basic)" />
+          <xs:pattern value="(VISUALBASIC|VisualBasic)" />
+          <xs:pattern value="(FS|fs)" />
+          <xs:pattern value="(F#|f#)" />
+          <xs:pattern value="(FSHARP|FSharp|fsharp)" />
+          <xs:pattern value="(F SHARP|F Sharp|f sharp)" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:union>
+  </xs:simpleType>
+
+  <xs:complexType name="ExternalLibraryType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="Path"
+                      use="required"
+                      type="xs:string" />
+        <xs:attribute name="TypeLibPath"
+                      use="optional"
+                      type="xs:string" />
+        <xs:attribute name="ComServer"
+                      use="optional"
+                      type="Boolean" />
+        <xs:attribute name="Pack"
+                      use="optional"
+                      type="Boolean" />
+        <xs:attribute name="LoadFromBytes"
+                      use="optional"
+                      type="Boolean" />
+        <xs:attribute name="ExplicitExports"
+                      use="optional"
+                      type="Boolean" />
+        <xs:attribute name="ExplicitRegistration"
+                      use="optional"
+                      type="Boolean" />
+        <xs:attribute name="UseVersionAsOutputVersion"
+                      use="optional"
+                      type="Boolean" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:complexType name="SourceItemType"
+                  mixed="true">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="Name"
+                      use="optional"
+                      type="xs:string" />
+        <xs:attribute name="Path"
+                      use="optional"
+                      type="xs:string" />
+        <xs:attribute name="Pack"
+                      use="optional"
+                      type="Boolean" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:complexType name="ProjectType"
+                  mixed="true">
+    <xs:sequence>
+      <xs:choice
+        minOccurs="0"
+        maxOccurs="unbounded">
+        <xs:element name="Reference"
+                    maxOccurs="unbounded"
+                    minOccurs="0"
+                    type="ReferenceType">
+        </xs:element>
+        <xs:element name="SourceItem"
+                    maxOccurs="unbounded"
+                    minOccurs="0"
+                    type="SourceItemType">
+        </xs:element>
+      </xs:choice>
+    </xs:sequence>
+    <xs:attribute name="Name"
+                  use="optional"
+                  type="xs:string" />
+    <xs:attribute name="Language"
+                  use="optional"
+                  type="LanguageType" />
+    <xs:attribute name="CompilerVersion"
+                  use="optional"
+                  type="xs:string" />
+    <xs:attribute name="DefaultReferences"
+                  use="optional"
+                  type="Boolean" />
+    <xs:attribute name="DefaultImports"
+                  use="optional"
+                  type="Boolean" />
+    <xs:attribute name="ExplicitExports"
+                  use="optional"
+                  type="Boolean" />
+    <xs:attribute name="ExplicitRegistration"
+                  use="optional"
+                  type="Boolean" />
+    <xs:attribute name="ComServer"
+                  use="optional"
+                  type="Boolean" />
+  </xs:complexType>
+
+  <xs:complexType name="ReferenceType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="Name"
+                      use="optional"
+                      type="xs:string" />
+        <xs:attribute name="Path"
+                      use="optional"
+                      type="xs:string" />
+        <xs:attribute name="AssemblyPath"
+                      use="optional"
+                      type="xs:string" />
+        <xs:attribute name="Pack"
+                      use="optional"
+                      type="Boolean" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:complexType name="ImageType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="Name"
+                      use="required"
+                      type="xs:string" />
+        <xs:attribute name="Path"
+                      use="required"
+                      type="xs:string" />
+        <xs:attribute name="Pack"
+                      use="optional"
+                      type="Boolean" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:complexType name="CustomUIType">
+    <xs:sequence>
+      <xs:any maxOccurs="unbounded"
+              minOccurs="0"
+              processContents="lax" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DnaLibraryType"
+                  mixed="true">
+    <xs:sequence>
+      <xs:choice
+        minOccurs="0"
+        maxOccurs="unbounded">
+        <xs:element name="ExternalLibrary"
+                    maxOccurs="unbounded"
+                    minOccurs="0"
+                    type="ExternalLibraryType">
+        </xs:element>
+        <xs:element name="Project"
+                    maxOccurs="unbounded"
+                    minOccurs="0"
+                    type="ProjectType">
+        </xs:element>
+        <xs:element name="Reference"
+                    maxOccurs="unbounded"
+                    minOccurs="0"
+                    type="ReferenceType">
+        </xs:element>
+        <xs:element name="Image"
+                    maxOccurs="unbounded"
+                    minOccurs="0"
+                    type="ImageType">
+        </xs:element>
+        <xs:element name="CustomUI"
+                    maxOccurs="unbounded"
+                    minOccurs="0"
+                    type="CustomUIType">
+        </xs:element>
+      </xs:choice>
+    </xs:sequence>
+    <xs:attribute name="Name"
+                  use="optional"
+                  type="xs:string" />
+    <xs:attribute name="RuntimeVersion"
+                  use="optional"
+                  type="RuntimeVersionType" />
+    <xs:attribute name="ShadowCopyFiles"
+                  use="optional"
+                  type="Boolean" />
+    <xs:attribute name="CreateSandboxedAppDomain"
+                  use="optional"
+                  type="Boolean" />
+    <xs:attribute name="Language"
+                  use="optional"
+                  type="LanguageType" />
+    <xs:attribute name="CompilerVersion"
+                  use="optional"
+                  type="xs:string" />
+    <xs:attribute name="DefaultReferences"
+                  use="optional"
+                  type="Boolean" />
+    <xs:attribute name="DefaultImports"
+                  use="optional"
+                  type="Boolean" />
+  </xs:complexType>
+
+  <xs:element name="DnaLibrary"
+              type="DnaLibraryType" />
+
+</xs:schema>

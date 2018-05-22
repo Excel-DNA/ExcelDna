@@ -13,7 +13,7 @@ indent_size = 4
 [*.{proj,props,sln,targets}]
 indent_style = tab
 
-[*.{dna,config,nuspec,asm,csproj,vcxproj,vcproj,targets,ps1,resx}]
+[*.{dna,config,nuspec,xml,xsd,asm,csproj,vcxproj,vcproj,targets,ps1,resx}]
 indent_size = 2
 
 [*.{cpp,h,def}]

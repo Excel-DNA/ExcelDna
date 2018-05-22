@@ -1,0 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SchemaCatalog xmlns="http://schemas.microsoft.com/xsd/catalog">
+  <Association extension="dna" schema="%InstallRoot%/xml/schemas/ExcelDna.DnaLibrary.xsd" defaultNamespace="http://schemas.excel-dna.net/addin/2018/05/dnalibrary" enableValidation="true" />
+</SchemaCatalog>
