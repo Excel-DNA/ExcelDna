@@ -70,15 +70,15 @@
            Condition="'$(ExcelDna32BitAddInSuffix)' == '$(ExcelDna64BitAddInSuffix)'" />
 
     <ItemGroup>
-      <ExcelDnaFilesInProject Include="@(None)" />
-      <ExcelDnaFilesInProject Include="@(Content)" />
+      <ExcelDnaSetDebuggerOptionsFilesInProject Include="@(None)" />
+      <ExcelDnaSetDebuggerOptionsFilesInProject Include="@(Content)" />
     </ItemGroup>
 
     <SetDebuggerOptions
       ProjectName="$(MSBuildProjectName)"
       ExcelExePath="$(ExcelDnaExcelExePath)"
       AddInForDebugging="$(ExcelDnaAddInForDebugging)"
-      FilesInProject="@(ExcelDnaFilesInProject)"
+      FilesInProject="@(ExcelDnaSetDebuggerOptionsFilesInProject)"
       OutDirectory="$(OutDir)"
       FileSuffix32Bit="$(ExcelDna32BitAddInSuffix)"
       FileSuffix64Bit="$(ExcelDna64BitAddInSuffix)">
@@ -95,12 +95,12 @@
               Condition="'$(ExcelDna32BitAddInSuffix)' == '$(ExcelDna64BitAddInSuffix)'" />
 
     <ItemGroup>
-      <ExcelDnaFilesInProject Include="@(None)" />
-      <ExcelDnaFilesInProject Include="@(Content)" />
+      <ExcelDnaCleanFilesInProject Include="@(None)" />
+      <ExcelDnaCleanFilesInProject Include="@(Content)" />
     </ItemGroup>
 
     <CleanExcelAddIn
-      FilesInProject="@(ExcelDnaFilesInProject)"
+      FilesInProject="@(ExcelDnaCleanFilesInProject)"
       OutDirectory="$(OutDir)"
       Xll32FilePath="$(ExcelDnaToolsPath)ExcelDna.xll"
       Xll64FilePath="$(ExcelDnaToolsPath)ExcelDna64.xll"
@@ -124,12 +124,12 @@
              Condition="(!$(ExcelDnaCreate32BitAddIn)) AND (!$(ExcelDnaCreate64BitAddIn))" />
 
     <ItemGroup>
-      <ExcelDnaFilesInProject Include="@(None)" />
-      <ExcelDnaFilesInProject Include="@(Content)" />
+      <ExcelDnaBuildInProject Include="@(None)" />
+      <ExcelDnaBuildInProject Include="@(Content)" />
     </ItemGroup>
 
     <CreateExcelAddIn
-      FilesInProject="@(ExcelDnaFilesInProject)"
+      FilesInProject="@(ExcelDnaBuildFilesInProject)"
       OutDirectory="$(OutDir)"
       Xll32FilePath="$(ExcelDnaToolsPath)ExcelDna.xll"
       Xll64FilePath="$(ExcelDnaToolsPath)ExcelDna64.xll"

@@ -1,6 +1,6 @@
 ﻿namespace ExcelDna.AddIn.Tasks.Utils
 {
-    public interface IExcelDetector
+    internal interface IExcelDetector
     {
         bool TryFindLatestExcel(out string excelExePath);
 

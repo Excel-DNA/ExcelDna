@@ -7,25 +7,35 @@ using ExcelDna.AddIn.Tasks.Utils;
 
 namespace ExcelDna.AddIn.Tasks
 {
+    [RunInSTA]
     public class SetDebuggerOptions : AbstractTask
     {
         private readonly IBuildLogger _log;
-        private readonly IExcelDetector _excelDetector;
-        private readonly IExcelDnaProject _dte;
+        private readonly Lazy<IExcelDetector> _excelDetectorLazy;
+        private readonly Lazy<IExcelDnaProject> _projectLazy;
+        private IExcelDetector _excelDetector;
+        private IExcelDnaProject _project;
         private BuildTaskCommon _common;
+        private readonly TimeSpan _defaultSynchronizationTimeout = TimeSpan.FromMinutes(1);
 
         public SetDebuggerOptions()
         {
             _log = new BuildLogger(this, "ExcelDnaSetDebuggerOptions");
-            _excelDetector = new ExcelDetector();
-            _dte = new ExcelDnaProject(_log);
+
+            // We can only start logging when `Execute` runs... Until then, BuildEngine is `null`
+            // Which is why we're deferring creating instances of ExcelDetector and ExcelDnaProject
+            _excelDetectorLazy = new Lazy<IExcelDetector>(() => new ExcelDetector(_log));
+            _projectLazy = new Lazy<IExcelDnaProject>(() => new ExcelDnaProject(_log, new DevToolsEnvironment(_log)));
         }
 
-        public SetDebuggerOptions(IBuildLogger log, IExcelDetector excelDetector, IExcelDnaProject dte)
+        internal SetDebuggerOptions(IBuildLogger log, IExcelDetector excelDetector, IExcelDnaProject project)
         {
+            if (excelDetector == null) throw new ArgumentNullException(nameof(excelDetector));
+            if (project == null) throw new ArgumentNullException(nameof(project));
+
             _log = log ?? throw new ArgumentNullException(nameof(log));
-            _excelDetector = excelDetector ?? throw new ArgumentNullException(nameof(excelDetector));
-            _dte = dte ?? throw new ArgumentNullException(nameof(dte));
+            _excelDetectorLazy = new Lazy<IExcelDetector>(() => excelDetector);
+            _projectLazy = new Lazy<IExcelDnaProject>(() => project);
         }
 
         public override bool Execute()
@@ -33,6 +43,10 @@ namespace ExcelDna.AddIn.Tasks
             try
             {
                 _log.Debug("Running SetDebuggerOptions MSBuild Task");
+
+                // Create instances of ExcelDetector and ExcelDnaProject
+                _excelDetector = _excelDetectorLazy.Value;
+                _project = _projectLazy.Value;
 
                 FilesInProject = FilesInProject ?? new ITaskItem[0];
                 _log.Debug("Number of files in project: " + FilesInProject.Length);
@@ -42,9 +56,11 @@ namespace ExcelDna.AddIn.Tasks
 
                 LogDiagnostics();
 
-                if (!_dte.TrySetDebuggerOptions(ProjectName, excelExePath, addInForDebugging))
+                if (!_project.TrySetDebuggerOptions(ProjectName, excelExePath, addInForDebugging))
                 {
-                    _log.Warning("DNA" + "DTE".GetHashCode(), "Unable to set the debugger options within Visual Studio. Please restart Visual Studio and try again.");
+                    const string message = "Unable to set the debugger options within Visual Studio. " +
+                                           "Please restart Visual Studio and try again.";
+                    _log.Warning("DNA" + "PROJECT".GetHashCode(), message);
                 }
             }
             catch (Exception ex)
@@ -190,6 +206,15 @@ namespace ExcelDna.AddIn.Tasks
             _log.Debug("ExcelExePath: " + ExcelExePath);
             _log.Debug("AddInForDebugging: " + AddInForDebugging);
             _log.Debug("FilesInProject: " + (FilesInProject ?? new ITaskItem[0]).Length);
+
+            if (FilesInProject != null)
+            {
+                foreach (var f in FilesInProject)
+                {
+                    _log.Debug($"  {f.ItemSpec}");
+                }
+            }
+
             _log.Debug("OutDirectory: " + OutDirectory);
             _log.Debug("FileSuffix32Bit: " + FileSuffix32Bit);
             _log.Debug("FileSuffix64Bit: " + FileSuffix64Bit);

@@ -5,7 +5,7 @@ using Microsoft.Build.Framework;
 
 namespace ExcelDna.AddIn.Tasks
 {
-    public class BuildTaskCommon
+    internal class BuildTaskCommon
     {
         private readonly string _outDirectory;
         private readonly string _fileSuffix32Bit;
@@ -14,12 +14,7 @@ namespace ExcelDna.AddIn.Tasks
 
         public BuildTaskCommon(ITaskItem[] filesInProject, string outDirectory, string fileSuffix32Bit, string fileSuffix64Bit)
         {
-            if (filesInProject == null)
-            {
-                throw new ArgumentNullException("filesInProject");
-            }
-
-            _filesInProject = filesInProject;
+            _filesInProject = filesInProject ?? throw new ArgumentNullException(nameof(filesInProject));
             _outDirectory = outDirectory;
             _fileSuffix32Bit = fileSuffix32Bit;
             _fileSuffix64Bit = fileSuffix64Bit;

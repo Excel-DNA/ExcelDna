@@ -4,20 +4,24 @@ using ExcelDna.AddIn.Tasks.Logging;
 
 namespace ExcelDna.AddIn.Tasks.Utils
 {
-    public class ExcelDnaProject : IExcelDnaProject
+    internal sealed class ExcelDnaProject : IExcelDnaProject
     {
         private readonly IBuildLogger _log;
+        private readonly IDevToolsEnvironment _dte;
 
-        public ExcelDnaProject(IBuildLogger log)
+        public ExcelDnaProject(IBuildLogger log, IDevToolsEnvironment dte)
         {
             _log = log ?? throw new ArgumentNullException(nameof(log));
+            _dte = dte ?? throw new ArgumentNullException(nameof(dte));
         }
 
         public bool TrySetDebuggerOptions(string projectName, string excelExePath, string excelAddInToDebug)
         {
-            using (var dte = new DevToolsEnvironment(_log))
+            try
             {
-                var project = dte.GetProjectByName(projectName);
+                MessageFilter.Register();
+
+                var project = _dte.GetProjectByName(projectName);
                 if (project != null)
                 {
                     _log.Debug($"Found project: {project.Name}");
@@ -31,15 +35,19 @@ namespace ExcelDna.AddIn.Tasks.Utils
 
                     startAction.Value = 1; // Start external program
                     startProgram.Value = excelExePath;
-                    startArguments.Value = string.Format(@"""{0}""", Path.GetFileName(excelAddInToDebug));
+                    startArguments.Value = $@"""{Path.GetFileName(excelAddInToDebug)}""";
 
                     project.Save(string.Empty);
 
                     return true;
                 }
-            }
 
-            return false;
+                return false;
+            }
+            finally
+            {
+                MessageFilter.Revoke();
+            }
         }
     }
 }

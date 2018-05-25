@@ -46,7 +46,9 @@
     <Compile Include="Logging\BuildLogger.cs" />
     <Compile Include="Logging\IBuildLogger.cs" />
     <Compile Include="SetDebuggerOptions.cs" />
+    <Compile Include="Utils\MessageFilter.cs" />
     <Compile Include="Utils\ExcelDnaProject.cs" />
+    <Compile Include="Utils\IDevToolsEnvironment.cs" />
     <Compile Include="Utils\IExcelDnaProject.cs" />
     <None Include="Properties\ExcelDna.AddIn.Tasks.targets" />
     <Compile Include="CleanExcelAddIn.cs" />

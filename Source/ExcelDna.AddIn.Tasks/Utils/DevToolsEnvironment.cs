@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Management;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text.RegularExpressions;
 using ExcelDna.AddIn.Tasks.Logging;
+using Process = System.Diagnostics.Process;
 
 namespace ExcelDna.AddIn.Tasks.Utils
 {
-    internal class DevToolsEnvironment : IDisposable
+    internal class DevToolsEnvironment : IDevToolsEnvironment
     {
         private readonly IBuildLogger _log;
-        private bool _isMessageFilterRegistered;
+
+        private const string _visualStudioProcessName = "devenv";
 
         public DevToolsEnvironment(IBuildLogger log)
         {
@@ -24,85 +24,60 @@ namespace ExcelDna.AddIn.Tasks.Utils
         {
             _log.Debug("Starting GetProjectByName");
 
-            var vsProcessId = GetVisualStudioProcessId();
-            _log.Debug($"VS Process ID: {vsProcessId}");
-
-            var dte = GetDevToolsEnvironment(vsProcessId);
-            _log.Debug($"DevToolsEnvironment?: {dte}");
-
-            if (dte == null) return null;
-
-            if (!_isMessageFilterRegistered)
+            foreach (var dte in EnumerateDevToolsEnvironments())
             {
-                MessageFilter.Register();
-                _isMessageFilterRegistered = true;
-            }
-
-            var project = dte
-                .Solution
-                .Projects
-                .OfType<EnvDTE.Project>()
-                .SelectMany(GetProjectAndSubProjects)
-                .SingleOrDefault(p =>
-                    string.Compare(p.Name, projectName, StringComparison.OrdinalIgnoreCase) == 0);
-
-            if (project == null)
-            {
-                _log.Debug("Did not find project");
-                _log.Debug($"Looked for {projectName}");
-                _log.Debug("List of projects:");
-
-                foreach (var p in dte.Solution.Projects)
+                if (!TryFindCurrentProject(dte, projectName, out var project))
                 {
-                    _log.Debug($"    {p.GetType().Name}  -  Is EnvDTE? {p is EnvDTE.Project}  -  {(p as EnvDTE.Project)?.Name}");
+                    _log.Debug($"Project {projectName} was not inside instance of DTE {dte.Name}");
+                    continue;
                 }
+
+                _log.Debug($"Found project {projectName} inside DTE {dte.Name}");
+                return project;
             }
-            return project;
+
+            return null;
         }
 
-        public void Dispose()
+        private IEnumerable<Process> EnumerateVisualStudioProcesses()
         {
-            if (_isMessageFilterRegistered)
+            var process = Process.GetCurrentProcess();
+
+            if (process.ProcessName.ToLower().Contains(_visualStudioProcessName))
             {
-                MessageFilter.Revoke();
+                // We're being compiled directly by Visual Studio
+                yield return process;
+            }
+
+            // We're being compiled by other tool (e.g. MSBuild) called from a Visual Studio instance
+            // therefore, some Visual Studio instance is our parent process.
+
+            // Because of nodeReuse, we can't guarantee that the parent process of our current process is the "right" Visual Studio
+            // so we just have to go through them all, and try to find our project in one of the Visual Studio's that are open
+
+            foreach (var visualStudioProcess in Process.GetProcessesByName(_visualStudioProcessName))
+            {
+                yield return visualStudioProcess;
             }
         }
 
-        private int GetVisualStudioProcessId()
+        private IEnumerable<EnvDTE.DTE> EnumerateDevToolsEnvironments()
         {
-            try
+            foreach (var visualStudioProcess in EnumerateVisualStudioProcesses())
             {
-                var process = Process.GetCurrentProcess();
+                _log.Debug($"Getting DTE for VS Process ID: {visualStudioProcess.Id}");
 
-                if (process.ProcessName.ToLower().Contains("devenv"))
+                var dte = GetDevToolsEnvironment(visualStudioProcess.Id);
+                if (dte == null)
                 {
-                    // We're being compiled directly by Visual Studio
-                    return process.Id;
+                    _log.Debug($"Unable to get DTE for VS Process ID: {visualStudioProcess.Id}");
+                    continue;
                 }
 
-                // We're being compiled by other tool (e.g. MSBuild) called from Visual Studio
-                // therefore, Visual Studio is our parent process
+                _log.Debug($"Got DTE instance {dte.Name} for VS Process ID: {visualStudioProcess.Id}");
 
-                using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_Process WHERE ProcessId = " + process.Id))
-                {
-                    foreach (var obj in searcher.Get())
-                    {
-                        var parentId = Convert.ToInt32((uint)obj["ParentProcessId"]);
-                        var parentProcessName = Process.GetProcessById(parentId).ProcessName;
-
-                        if (parentProcessName.ToLower().Contains("devenv"))
-                        {
-                            return parentId;
-                        }
-                    }
-                }
+                yield return dte;
             }
-            catch (Exception)
-            {
-                // Do nothing
-            }
-
-            return -1;
         }
 
         private EnvDTE.DTE GetDevToolsEnvironment(int processId)
@@ -130,10 +105,7 @@ namespace ExcelDna.AddIn.Tasks.Utils
 
                     try
                     {
-                        if (runningObjectMoniker != null)
-                        {
-                            runningObjectMoniker.GetDisplayName(bindCtx, null, out name);
-                        }
+                        runningObjectMoniker?.GetDisplayName(bindCtx, null, out name);
                     }
                     catch (UnauthorizedAccessException)
                     {
@@ -169,9 +141,22 @@ namespace ExcelDna.AddIn.Tasks.Utils
             return runningObject as EnvDTE.DTE;
         }
 
+        private static bool TryFindCurrentProject(EnvDTE.DTE dte, string projectName, out EnvDTE.Project project)
+        {
+            project = dte
+                .Solution
+                .Projects
+                .OfType<EnvDTE.Project>()
+                .SelectMany(GetProjectAndSubProjects)
+                .SingleOrDefault(p =>
+                    string.Compare(p.Name, projectName, StringComparison.OrdinalIgnoreCase) == 0);
+
+            return project != null;
+        }
+
         private static IEnumerable<EnvDTE.Project> GetProjectAndSubProjects(EnvDTE.Project project)
         {
-            if (project.Kind == VsProjectKindSolutionFolder)
+            if (project.Kind == _vsProjectKindSolutionFolder)
             {
                 return project.ProjectItems
                     .OfType<EnvDTE.ProjectItem>()
@@ -184,79 +169,9 @@ namespace ExcelDna.AddIn.Tasks.Utils
         }
 
 		// Copied from EnvDTE80, instead of referencing it just because of this one string
-		private const string VsProjectKindSolutionFolder = "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}";
+		private const string _vsProjectKindSolutionFolder = "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}";
 		
         [DllImport("ole32.dll")]
         private static extern int CreateBindCtx(uint reserved, out IBindCtx ppbc);
-
-        // Implement the IOleMessageFilter interface
-        [DllImport("Ole32.dll")]
-        private static extern int CoRegisterMessageFilter(IOleMessageFilter newFilter, out IOleMessageFilter oldFilter);
-
-        /// <summary>
-        /// Contains the IOleMessageFilter thread error-handling functions
-        /// See https://msdn.microsoft.com/en-us/library/ms228772
-        /// </summary>
-        private class MessageFilter : IOleMessageFilter
-        {
-            public static void Register()
-            {
-                // Register the IOleMessageFilter to handle any threading errors
-                // See https://msdn.microsoft.com/en-us/library/ms228772
-
-                IOleMessageFilter newFilter = new MessageFilter();
-
-                IOleMessageFilter _;
-                CoRegisterMessageFilter(newFilter, out _);
-            }
-
-            public static void Revoke()
-            {
-                IOleMessageFilter _;
-
-                // Turn off the IOleMessageFilter
-                CoRegisterMessageFilter(null, out _);
-            }
-
-            // IOleMessageFilter functions
-            // Handle incoming thread requests
-            int IOleMessageFilter.HandleInComingCall(int dwCallType, IntPtr hTaskCaller, int dwTickCount, IntPtr lpInterfaceInfo)
-            {
-                // Return the flag SERVERCALL_ISHANDLED
-                return 0;
-            }
-
-            // Thread call was rejected, so try again
-            int IOleMessageFilter.RetryRejectedCall(IntPtr hTaskCallee, int dwTickCount, int dwRejectType)
-            {
-                if (dwRejectType == 2) // SERVERCALL_RETRYLATER
-                {
-                    // Retry the thread call immediately if return >= 0 & < 100.
-                    return 99;
-                }
-
-                // Too busy; cancel call
-                return -1;
-            }
-
-            int IOleMessageFilter.MessagePending(IntPtr hTaskCallee, int dwTickCount, int dwPendingType)
-            {
-                // Return the flag PENDINGMSG_WAITDEFPROCESS
-                return 2;
-            }
-        }
-
-        [ComImport, Guid("00000016-0000-0000-C000-000000000046"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        private interface IOleMessageFilter
-        {
-            [PreserveSig]
-            int HandleInComingCall(int dwCallType, IntPtr hTaskCaller, int dwTickCount, IntPtr lpInterfaceInfo);
-
-            [PreserveSig]
-            int RetryRejectedCall(IntPtr hTaskCallee, int dwTickCount, int dwRejectType);
-
-            [PreserveSig]
-            int MessagePending(IntPtr hTaskCallee, int dwTickCount, int dwPendingType);
-        }
     }
 }
