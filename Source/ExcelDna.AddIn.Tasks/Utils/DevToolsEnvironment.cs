@@ -6,21 +6,30 @@ using System.Management;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text.RegularExpressions;
+using ExcelDna.AddIn.Tasks.Logging;
 
 namespace ExcelDna.AddIn.Tasks.Utils
 {
     internal class DevToolsEnvironment : IDisposable
     {
+        private readonly IBuildLogger _log;
         private bool _isMessageFilterRegistered;
 
-        public EnvDTE.Project GetProjectByName(string projectName, Action<string> logDebugMessage)
+        public DevToolsEnvironment(IBuildLogger log)
         {
-            logDebugMessage("Start GetProjectByName");
+            _log = log ?? throw new ArgumentNullException(nameof(log));
+        }
+
+        public EnvDTE.Project GetProjectByName(string projectName)
+        {
+            _log.Debug("Starting GetProjectByName");
+
             var vsProcessId = GetVisualStudioProcessId();
-            logDebugMessage($"VS Process ID: {vsProcessId}");
+            _log.Debug($"VS Process ID: {vsProcessId}");
 
             var dte = GetDevToolsEnvironment(vsProcessId);
-            logDebugMessage($"DevToolsEnvironment?: {dte}");
+            _log.Debug($"DevToolsEnvironment?: {dte}");
+
             if (dte == null) return null;
 
             if (!_isMessageFilterRegistered)
@@ -39,12 +48,13 @@ namespace ExcelDna.AddIn.Tasks.Utils
 
             if (project == null)
             {
-                logDebugMessage($"Did not find project");
-                logDebugMessage($"Looked for {projectName}");
-                logDebugMessage($"List of projects:");
+                _log.Debug("Did not find project");
+                _log.Debug($"Looked for {projectName}");
+                _log.Debug("List of projects:");
+
                 foreach (var p in dte.Solution.Projects)
                 {
-                    logDebugMessage($"    {p.GetType().Name}  -  Is EnvDTE? {p is EnvDTE.Project}  -  {(p as EnvDTE.Project)?.Name}");
+                    _log.Debug($"    {p.GetType().Name}  -  Is EnvDTE? {p is EnvDTE.Project}  -  {(p as EnvDTE.Project)?.Name}");
                 }
             }
             return project;

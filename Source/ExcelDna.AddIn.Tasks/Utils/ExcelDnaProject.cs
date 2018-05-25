@@ -1,18 +1,26 @@
 ﻿using System;
 using System.IO;
+using ExcelDna.AddIn.Tasks.Logging;
 
 namespace ExcelDna.AddIn.Tasks.Utils
 {
     public class ExcelDnaProject : IExcelDnaProject
     {
-        public bool TrySetDebuggerOptions(string projectName, string excelExePath, string excelAddInToDebug, Action<string> logDebugMessage)
+        private readonly IBuildLogger _log;
+
+        public ExcelDnaProject(IBuildLogger log)
         {
-            using (var dte = new DevToolsEnvironment())
+            _log = log ?? throw new ArgumentNullException(nameof(log));
+        }
+
+        public bool TrySetDebuggerOptions(string projectName, string excelExePath, string excelAddInToDebug)
+        {
+            using (var dte = new DevToolsEnvironment(_log))
             {
-                var project = dte.GetProjectByName(projectName, logDebugMessage);
+                var project = dte.GetProjectByName(projectName);
                 if (project != null)
                 {
-                    logDebugMessage($"Found project: {project.Name}");
+                    _log.Debug($"Found project: {project.Name}");
                     var configuration = project
                         .ConfigurationManager
                         .ActiveConfiguration;

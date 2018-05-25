@@ -4,43 +4,41 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Build.Framework;
-using ExcelDna.AddIn.Tasks.Utils;
 using Microsoft.Build.Utilities;
+using ExcelDna.AddIn.Tasks.Logging;
+using ExcelDna.AddIn.Tasks.Utils;
 
 namespace ExcelDna.AddIn.Tasks
 {
     public class CleanExcelAddIn : AbstractTask
     {
+        private readonly IBuildLogger _log;
         private readonly IExcelDnaFileSystem _fileSystem;
         private List<ITaskItem> _packedFilesToDelete;
         private BuildTaskCommon _common;
 
         public CleanExcelAddIn()
-            : this(new ExcelDnaPhysicalFileSystem())
         {
+            _log = new BuildLogger(this, "ExcelDnaClean");
+            _fileSystem = new ExcelDnaPhysicalFileSystem();
         }
 
-        public CleanExcelAddIn(IExcelDnaFileSystem fileSystem)
-            : base("ExcelDnaClean")
+        public CleanExcelAddIn(IBuildLogger log, IExcelDnaFileSystem fileSystem)
         {
-            if (fileSystem == null)
-            {
-                throw new ArgumentNullException("fileSystem");
-            }
-
-            _fileSystem = fileSystem;
+            _log = log ?? throw new ArgumentNullException(nameof(log));
+            _fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         }
 
         public override bool Execute()
         {
             try
             {
-                LogDebugMessage("Running CleanExcelAddIn MSBuild Task");
+                _log.Debug("Running CleanExcelAddIn MSBuild Task");
 
                 LogDiagnostics();
 
                 FilesInProject = FilesInProject ?? new ITaskItem[0];
-                LogDebugMessage("Number of files in project: " + FilesInProject.Length);
+                _log.Debug("Number of files in project: " + FilesInProject.Length);
 
                 _common = new BuildTaskCommon(FilesInProject, OutDirectory, FileSuffix32Bit, FileSuffix64Bit);
 
@@ -55,22 +53,22 @@ namespace ExcelDna.AddIn.Tasks
             }
             catch (Exception ex)
             {
-                LogError("DNA" + ex.GetType().Name.GetHashCode(), ex.Message);
-                LogError("DNA" + ex.GetType().Name.GetHashCode(), ex.ToString());
+                _log.Error(ex, ex.Message);
+                _log.Error(ex, ex.ToString());
                 return false;
             }
         }
 
         private void LogDiagnostics()
         {
-            LogDebugMessage("----Arguments----");
-            LogDebugMessage("FilesInProject: " + (FilesInProject ?? new ITaskItem[0]).Length);
-            LogDebugMessage("OutDirectory: " + OutDirectory);
-            LogDebugMessage("Xll32FilePath: " + Xll32FilePath);
-            LogDebugMessage("Xll64FilePath: " + Xll64FilePath);
-            LogDebugMessage("FileSuffix32Bit: " + FileSuffix32Bit);
-            LogDebugMessage("FileSuffix64Bit: " + FileSuffix64Bit);
-            LogDebugMessage("-----------------");
+            _log.Debug("----Arguments----");
+            _log.Debug("FilesInProject: " + (FilesInProject ?? new ITaskItem[0]).Length);
+            _log.Debug("OutDirectory: " + OutDirectory);
+            _log.Debug("Xll32FilePath: " + Xll32FilePath);
+            _log.Debug("Xll64FilePath: " + Xll64FilePath);
+            _log.Debug("FileSuffix32Bit: " + FileSuffix32Bit);
+            _log.Debug("FileSuffix64Bit: " + FileSuffix64Bit);
+            _log.Debug("-----------------");
         }
 
         private List<ITaskItem> GetPackedFilesToDelete(BuildItemSpec[] existingBuiltFiles)
@@ -142,7 +140,7 @@ namespace ExcelDna.AddIn.Tasks
         {
             if (_fileSystem.FileExists(path))
             {
-                LogDebugMessage("Deleting file " + path);
+                _log.Debug("Deleting file " + path);
                 _fileSystem.DeleteFile(path);
             }
         }

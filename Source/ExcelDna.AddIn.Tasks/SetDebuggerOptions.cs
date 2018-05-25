@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using ExcelDna.AddIn.Tasks.Logging;
 using Microsoft.Build.Framework;
 using ExcelDna.AddIn.Tasks.Utils;
 
@@ -8,58 +9,51 @@ namespace ExcelDna.AddIn.Tasks
 {
     public class SetDebuggerOptions : AbstractTask
     {
+        private readonly IBuildLogger _log;
         private readonly IExcelDetector _excelDetector;
         private readonly IExcelDnaProject _dte;
         private BuildTaskCommon _common;
 
         public SetDebuggerOptions()
-            : this(new ExcelDetector(), new ExcelDnaProject())
         {
+            _log = new BuildLogger(this, "ExcelDnaSetDebuggerOptions");
+            _excelDetector = new ExcelDetector();
+            _dte = new ExcelDnaProject(_log);
         }
 
-        public SetDebuggerOptions(IExcelDetector excelDetector, IExcelDnaProject dte)
-            : base("ExcelDnaSetDebuggerOptions")
+        public SetDebuggerOptions(IBuildLogger log, IExcelDetector excelDetector, IExcelDnaProject dte)
         {
-            if (excelDetector == null)
-            {
-                throw new ArgumentNullException("excelDetector");
-            }
-
-            if (dte == null)
-            {
-                throw new ArgumentNullException("dte");
-            }
-
-            _excelDetector = excelDetector;
-            _dte = dte;
+            _log = log ?? throw new ArgumentNullException(nameof(log));
+            _excelDetector = excelDetector ?? throw new ArgumentNullException(nameof(excelDetector));
+            _dte = dte ?? throw new ArgumentNullException(nameof(dte));
         }
 
         public override bool Execute()
         {
             try
             {
-                LogDebugMessage("Running SetDebuggerOptions MSBuild Task");
+                _log.Debug("Running SetDebuggerOptions MSBuild Task");
 
                 FilesInProject = FilesInProject ?? new ITaskItem[0];
-                LogDebugMessage("Number of files in project: " + FilesInProject.Length);
+                _log.Debug("Number of files in project: " + FilesInProject.Length);
 
                 var excelExePath = GetExcelPath();
                 var addInForDebugging = GetAddInForDebugging(excelExePath);
 
                 LogDiagnostics();
 
-                if (!_dte.TrySetDebuggerOptions(ProjectName, excelExePath, addInForDebugging, msg => LogDebugMessage(msg)))
+                if (!_dte.TrySetDebuggerOptions(ProjectName, excelExePath, addInForDebugging))
                 {
-                    LogWarning("DNA" + "DTE".GetHashCode(), "Unable to set the debugger options within Visual Studio. Please restart Visual Studio and try again.");
+                    _log.Warning("DNA" + "DTE".GetHashCode(), "Unable to set the debugger options within Visual Studio. Please restart Visual Studio and try again.");
                 }
             }
             catch (Exception ex)
             {
-                LogWarning("DNA" + ex.GetType().Name.GetHashCode(), ex.Message);
+                _log.Warning(ex, ex.Message);
             }
 
             // Setting the debugger options is not essential to the build process, thus if anything
-            // goes wrong, we'll report errors and warnings, but will let the build continue
+            // goes wrong, we'll report errors and warnings, but will not fail the build because of that
             return true;
         }
 
@@ -73,20 +67,20 @@ namespace ExcelDna.AddIn.Tasks
                 {
                     if (!_excelDetector.TryFindLatestExcel(out excelExePath))
                     {
-                        LogWarning("DNA" + "EXCEL.EXE".GetHashCode(), "Unable to find path where EXCEL.EXE is located");
+                        _log.Warning("DNA" + "EXCEL.EXE".GetHashCode(), "Unable to find path where EXCEL.EXE is located");
                         return excelExePath;
                     }
                 }
 
                 if (!File.Exists(excelExePath))
                 {
-                    LogWarning("DNA" + "EXCEL.EXE".GetHashCode(),
+                    _log.Warning("DNA" + "EXCEL.EXE".GetHashCode(),
                         "EXCEL.EXE not found on disk at location " + excelExePath);
                 }
             }
             finally
             {
-                LogMessage("EXCEL.EXE path for debugging: " + excelExePath);
+                _log.Information("EXCEL.EXE path for debugging: " + excelExePath);
             }
 
             return excelExePath;
@@ -102,13 +96,13 @@ namespace ExcelDna.AddIn.Tasks
                 {
                     if (!TryGetExcelAddInForDebugging(excelExePath, out addInForDebugging))
                     {
-                        LogWarning("DNA" + "ADDIN".GetHashCode(), "Unable to find add-in to Debug");
+                        _log.Warning("DNA" + "ADDIN".GetHashCode(), "Unable to find add-in to Debug");
                     }
                 }
             }
             finally
             {
-                LogMessage("Add-In for debugging: " + addInForDebugging);
+                _log.Information("Add-In for debugging: " + addInForDebugging);
             }
 
             return addInForDebugging;
@@ -118,8 +112,7 @@ namespace ExcelDna.AddIn.Tasks
         {
             addinForDebugging = null;
 
-            Bitness excelBitness;
-            if (!_excelDetector.TryFindExcelBitness(excelExePath, out excelBitness))
+            if (!_excelDetector.TryFindExcelBitness(excelExePath, out var excelBitness))
             {
                 return false;
             }
@@ -192,15 +185,15 @@ namespace ExcelDna.AddIn.Tasks
 
         private void LogDiagnostics()
         {
-            LogDebugMessage("----Arguments----");
-            LogDebugMessage("ProjectName: " + ProjectName);
-            LogDebugMessage("ExcelExePath: " + ExcelExePath);
-            LogDebugMessage("AddInForDebugging: " + AddInForDebugging);
-            LogDebugMessage("FilesInProject: " + (FilesInProject ?? new ITaskItem[0]).Length);
-            LogDebugMessage("OutDirectory: " + OutDirectory);
-            LogDebugMessage("FileSuffix32Bit: " + FileSuffix32Bit);
-            LogDebugMessage("FileSuffix64Bit: " + FileSuffix64Bit);
-            LogDebugMessage("-----------------");
+            _log.Debug("----Arguments----");
+            _log.Debug("ProjectName: " + ProjectName);
+            _log.Debug("ExcelExePath: " + ExcelExePath);
+            _log.Debug("AddInForDebugging: " + AddInForDebugging);
+            _log.Debug("FilesInProject: " + (FilesInProject ?? new ITaskItem[0]).Length);
+            _log.Debug("OutDirectory: " + OutDirectory);
+            _log.Debug("FileSuffix32Bit: " + FileSuffix32Bit);
+            _log.Debug("FileSuffix64Bit: " + FileSuffix64Bit);
+            _log.Debug("-----------------");
         }
     }
 }

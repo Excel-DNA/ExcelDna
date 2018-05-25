@@ -43,6 +43,8 @@
   <ItemGroup>
     <Compile Include="AbstractTask.cs" />
     <Compile Include="BuildItemSpec.cs" />
+    <Compile Include="Logging\BuildLogger.cs" />
+    <Compile Include="Logging\IBuildLogger.cs" />
     <Compile Include="SetDebuggerOptions.cs" />
     <Compile Include="Utils\ExcelDnaProject.cs" />
     <Compile Include="Utils\IExcelDnaProject.cs" />
