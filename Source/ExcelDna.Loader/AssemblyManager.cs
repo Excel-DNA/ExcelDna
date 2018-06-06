@@ -1,4 +1,4 @@
-﻿//  Copyright (c) Govert van Drimmelen. All rights reserved.
+//  Copyright (c) Govert van Drimmelen. All rights reserved.
 //  Excel-DNA is licensed under the zlib license. See LICENSE.txt for details.
 
 using System;
@@ -101,11 +101,14 @@ namespace ExcelDna.Loader
 				return null;
 			}
 
-            Logger.Initialization.Info("Trying Assembly.Load for {0} (from {1} bytes).", name, assemblyBytes.Length);
+            byte[] pdbBytes = GetResourceBytes(name, 4);
+            if (pdbBytes != null)
+                Logger.Initialization.Info("Trying Assembly.Load for {0} (from {1} bytes, with {2} bytes of pdb).", name, assemblyBytes.Length, pdbBytes.Length);
+            else
+                Logger.Initialization.Info("Trying Assembly.Load for {0} (from {1} bytes, without pdb).", name, assemblyBytes.Length);
 			try
 			{
-				loadedAssembly = Assembly.Load(assemblyBytes);
-                Logger.Initialization.Info("Assembly Loaded from bytes. FullName: {0}", loadedAssembly.FullName);
+				loadedAssembly = pdbBytes == null ? Assembly.Load(assemblyBytes) : Assembly.Load(assemblyBytes, pdbBytes);
 				loadedAssemblies[name] = loadedAssembly;
 				return loadedAssembly;
 			}
@@ -137,6 +140,10 @@ namespace ExcelDna.Loader
             else if (type == 3)
             {
                 typeName = "SOURCE";
+            }
+            else if (type == 4)
+            {
+                typeName = "PDB";
             }
             else
             {

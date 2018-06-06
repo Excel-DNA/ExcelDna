@@ -1,4 +1,4 @@
-﻿//  Copyright (c) Govert van Drimmelen. All rights reserved.
+//  Copyright (c) Govert van Drimmelen. All rights reserved.
 //  Excel-DNA is licensed under the zlib license. See LICENSE.txt for details.
 
 using System;
@@ -21,6 +21,7 @@ internal unsafe static class ResourceHelper
         DNA = 1,
         IMAGE = 2,
         SOURCE = 3,
+        PDB = 4,
     }
 
     // TODO: Learn about locales
@@ -131,7 +132,7 @@ internal unsafe static class ResourceHelper
             return name;
         }
 
-        public string AddAssembly(string path, bool compress, bool multithreading)
+        public string AddAssembly(string path, bool compress, bool multithreading, bool includePdb)
 		{
 			try
 			{
@@ -149,7 +150,14 @@ internal unsafe static class ResourceHelper
                     name += "." + cultureInfo.Name.ToUpperInvariant();
                 }
 
-                AddFile(assemblyBytes, name, TypeName.ASSEMBLY, compress, multithreading);				
+                AddFile(assemblyBytes, name, TypeName.ASSEMBLY, compress, multithreading);
+
+                string pdbFile = Path.ChangeExtension(path, "pdb");
+                if (includePdb && File.Exists(pdbFile))
+                {
+                    byte[] pdbBytes = File.ReadAllBytes(pdbFile);
+                    AddFile(pdbBytes, name, TypeName.PDB, compress, multithreading);
+                }
 				return name;
 			}
 			catch (Exception e)

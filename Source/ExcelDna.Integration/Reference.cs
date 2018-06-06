@@ -42,6 +42,9 @@ namespace ExcelDna.Integration
 		[XmlAttribute]
 		public bool Pack;
 
+        [XmlAttribute]
+        public bool IncludePdb;
+
         public Reference()
         {
         }
