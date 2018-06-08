@@ -34,9 +34,9 @@ Next steps
 ----------
 * Insert a sample function for your language from the Sample Snippets list below.
   Then press F5 to run Excel and load the add-in, and type into a cell: =HelloDna("your name")
-* By default all Public Shared functions (and functions in a Public Module) will be registered with Excel.
+* By default all Public Shared (public static in C#) functions (and functions in a Public Module) will be registered with Excel.
 * Further configure packing for your library to add additional references by editing the <ProjectName>-Addin.dna file.
-* To get IntelliSense and validation in your .dna files, you can or install the NuGet package ExcelDna.XmlSchemas to add the .xml schema into the local project. Alternatively install the Visual Studio .vsix extension ExcelDna.XmlSchemas to add the schema file into Visual Studio. Further documentation here: https://github.com/Excel-DNA/ExcelDna/tree/master/Distribution/XmlSchemas/
+* To get IntelliSense and validation in your .dna files, you can install the NuGet package ExcelDna.XmlSchemas to add the .xml schema into the local project. Alternatively install the Visual Studio .vsix extension ExcelDna.XmlSchemas to add the schema file into Visual Studio. Further documentation here: https://github.com/Excel-DNA/ExcelDna/tree/master/Distribution/XmlSchemas/
 * Source code, related projects and samples can be found on GitHub at https://github.com/Excel-DNA.
 * Support questions at all levels are welcome at https://groups.google.com/forum/#!forum/exceldna.
 
@@ -50,12 +50,12 @@ Press F5 (Start Debugging) to compile the project, open the .xll add-in in Excel
   Any option is fine _except_ "Disable all macros without notification."
 * If Excel starts but you get a message saying "The file you are trying to open, [...], is in a different format than
   specified by the file extension.", then there is a mismatch between the bitness of Excel and the add-in being loaded.
-* For any other problems, please post to the Excel-DNA group at https://groups.google.com/group/exceldna.
+* For any other problems, please post to the Excel-DNA group at https://groups.google.com/forum/#!forum/exceldna.
 
 Uninstalling
 ------------
-* If the ExcelDna.AddIn NuGet package is uninstalled, the <ProjectName>-AddIn.dna file will be renamed to
-  "_UNINSTALLED_<ProjectName>-AddIn.dna" (to preserve any changes you've made). If the project won't be used as an Excel add-in and may be deleted.
+* When the ExcelDna.AddIn NuGet package is uninstalled, the <ProjectName>-AddIn.dna file will be renamed to
+  "_UNINSTALLED_<ProjectName>-AddIn.dna" (to preserve any changes you've made). If the project won't be used as an Excel add-in this file may be deleted.
 
 ===============
 Sample snippets
