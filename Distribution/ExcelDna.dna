@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<DnaLibrary RuntimeVersion="v4.0" Language="VB" xmlns="http://schemas.excel-dna.net/addin/2018/05/dnalibrary">
+<DnaLibrary RuntimeVersion="v4.0" Language="VB" >
 <![CDATA[
 
     Public Module Module1
