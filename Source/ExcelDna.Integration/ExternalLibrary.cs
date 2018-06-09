@@ -84,6 +84,14 @@ namespace ExcelDna.Integration
             set { _UseVersionAsOutputVersion = value; }
 	    }
 
+        private bool _IncludePdb = false;
+        [XmlAttribute]
+        public bool IncludePdb
+        {
+            get { return _IncludePdb; }
+            set { _IncludePdb = value; }
+        }
+
 		internal List<ExportedAssembly> GetAssemblies(string pathResolveRoot, DnaLibrary dnaLibrary)
 		{
 			List<ExportedAssembly> list = new List<ExportedAssembly>();
@@ -127,7 +135,8 @@ namespace ExcelDna.Integration
                         // Under these assumptions we should not have assemblies loaded more than once, 
                         // even if not checking here.
                         byte[] rawAssembly = ExcelIntegration.GetAssemblyBytes(resourceName);
-					    Assembly assembly = Assembly.Load(rawAssembly);
+                        byte[] rawPdb = ExcelIntegration.GetPdbBytes(resourceName);
+					    Assembly assembly = rawPdb == null ? Assembly.Load(rawAssembly) : Assembly.Load(rawAssembly, rawPdb);
 						list.Add(new ExportedAssembly(assembly, ExplicitExports, ExplicitRegistration, ComServer, false, typeLibPath, dnaLibrary));
 						return list;
 					}

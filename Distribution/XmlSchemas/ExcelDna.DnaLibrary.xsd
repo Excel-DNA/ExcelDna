@@ -102,6 +102,9 @@
         <xs:attribute name="UseVersionAsOutputVersion"
                       use="optional"
                       type="Boolean" />
+        <xs:attribute name="IncludePdb"
+                      use="optional"
+                      type="Boolean" />
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
@@ -180,6 +183,9 @@
                       use="optional"
                       type="xs:string" />
         <xs:attribute name="Pack"
+                      use="optional"
+                      type="Boolean" />
+        <xs:attribute name="IncludePdb"
                       use="optional"
                       type="Boolean" />
       </xs:extension>

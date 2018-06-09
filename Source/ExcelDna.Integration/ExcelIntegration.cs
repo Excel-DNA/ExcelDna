@@ -189,6 +189,11 @@ namespace ExcelDna.Integration
 			return getResourceBytesDelegate(assemblyName, 0);
 		}
 
+		internal static byte[] GetPdbBytes(string assemblyName)
+		{
+			return getResourceBytesDelegate(assemblyName, 4);
+		}
+
 		internal static byte[] GetDnaFileBytes(string dnaFileName)
 		{
 			return getResourceBytesDelegate(dnaFileName, 1);
