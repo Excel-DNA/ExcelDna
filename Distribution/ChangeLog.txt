@@ -1,10 +1,12 @@
 Version 0.35 (???)
 ------------------
-* Improve build tasks - more reliable clean-up and debugger detection.
+* Improve build tasks - more reliable clean-up and debugger detection
 * Improve RTD and async QueueAsMacro reliability
-* Improve install process of ExcelDna.AddIn NuGet package (now requires NuGet 2.5)
+* Improve install process of ExcelDna.AddIn NuGet package (now requires NuGet 2.5) (thanks to @caioproiete)
 * Change how ExcelDnaUtil.Application works in Protected View - try harder but don't cache
 * Call UnhandledExceptionHandler for macros (ExcelCommands) too
+* Add XML schema for .dna file (thanks to @caioproiete)
+* Add option to pack .pdb files (thanks to @lanfeust69)
 
 Version 0.34 (18 June 2017)
 ---------------------------
