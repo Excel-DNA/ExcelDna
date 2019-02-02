@@ -3,21 +3,33 @@ using System.IO;
 using System.Linq;
 using System.Security.AccessControl;
 using Microsoft.Win32;
+using ExcelDna.AddIn.Tasks.Logging;
 
 namespace ExcelDna.AddIn.Tasks.Utils
 {
     internal class ExcelDetector : IExcelDetector
     {
+        private readonly IBuildLogger _log;
+
+        public ExcelDetector(IBuildLogger log)
+        {
+            _log = log ?? throw new ArgumentNullException(nameof(log));
+        }
+
         public bool TryFindLatestExcel(out string excelExePath)
         {
             excelExePath = null;
+
+            _log.Debug("Trying to find latest version of Excel");
 
             var versions = (ExcelVersions[])Enum.GetValues(typeof(ExcelVersions));
             var versionsNumbersDescending = versions.Select(v => (int)v).OrderByDescending(vn => vn);
 
             foreach (var versionNumber in versionsNumbersDescending)
             {
-                var keyPath = string.Format(@"Software\Microsoft\Office\{0}.0\Excel\InstallRoot", versionNumber);
+                _log.Debug($"Trying to find {versionNumber} installed");
+
+                var keyPath = $@"Software\Microsoft\Office\{versionNumber}.0\Excel\InstallRoot";
 
                 if (!TryGetExcelExePathFromRegistry(keyPath, out excelExePath)) continue;
 
@@ -83,8 +95,20 @@ namespace ExcelDna.AddIn.Tasks.Utils
 
         private bool TryGetExcelExePathFromRegistry(string keyPath, out string excelExePath)
         {
-            return TryGetExcelExePathFromRegistry(keyPath, RegistryView.Registry64, out excelExePath) ||
-                   TryGetExcelExePathFromRegistry(keyPath, RegistryView.Registry32, out excelExePath);
+            if (TryGetExcelExePathFromRegistry(keyPath, RegistryView.Registry64, out excelExePath))
+            {
+                _log.Debug($"Found Excel path on {RegistryView.Registry64}: {excelExePath}");
+                return true;
+            }
+
+            if (TryGetExcelExePathFromRegistry(keyPath, RegistryView.Registry32, out excelExePath))
+            {
+                _log.Debug($"Found Excel path on {RegistryView.Registry32}: {excelExePath}");
+                return true;
+            }
+
+            _log.Debug("Unable to find Excel installation path");
+            return false;
         }
 
         private bool TryGetExcelExePathFromRegistry(string keyPath, RegistryView registryView, out string excelExePath)

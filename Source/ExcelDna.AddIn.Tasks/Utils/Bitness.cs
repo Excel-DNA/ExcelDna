@@ -1,6 +1,6 @@
 ﻿namespace ExcelDna.AddIn.Tasks.Utils
 {
-    public enum Bitness
+    internal enum Bitness
     {
         Unknown = 0,
         Bit32 = 32,

@@ -1,6 +1,6 @@
 ﻿namespace ExcelDna.AddIn.Tasks.Utils
 {
-    public interface IExcelDnaFileSystem
+    internal interface IExcelDnaFileSystem
     {
         bool DirectoryExists(string path);
         bool FileExists(string path);

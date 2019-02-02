@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace ExcelDna.AddIn.Tasks.Utils
+﻿namespace ExcelDna.AddIn.Tasks.Utils
 {
-    public interface IExcelDnaProject
+    internal interface IExcelDnaProject
     {
         bool TrySetDebuggerOptions(string projectName, string excelExePath, string excelAddInToDebug);
     }

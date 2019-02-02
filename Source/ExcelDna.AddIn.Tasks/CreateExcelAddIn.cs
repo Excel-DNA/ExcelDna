@@ -24,7 +24,7 @@ namespace ExcelDna.AddIn.Tasks
             _fileSystem = new ExcelDnaPhysicalFileSystem();
         }
 
-        public CreateExcelAddIn(IBuildLogger log, IExcelDnaFileSystem fileSystem)
+        internal CreateExcelAddIn(IBuildLogger log, IExcelDnaFileSystem fileSystem)
         {
             _log = log ?? throw new ArgumentNullException(nameof(log));
             _fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
@@ -73,6 +73,15 @@ namespace ExcelDna.AddIn.Tasks
         {
             _log.Debug("----Arguments----");
             _log.Debug("FilesInProject: " + (FilesInProject ?? new ITaskItem[0]).Length);
+
+            if (FilesInProject != null)
+            {
+                foreach (var f in FilesInProject)
+                {
+                    _log.Debug($"  {f.ItemSpec}");
+                }
+            }
+
             _log.Debug("OutDirectory: " + OutDirectory);
             _log.Debug("Xll32FilePath: " + Xll32FilePath);
             _log.Debug("Xll64FilePath: " + Xll64FilePath);
