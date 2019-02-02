@@ -124,8 +124,8 @@
              Condition="(!$(ExcelDnaCreate32BitAddIn)) AND (!$(ExcelDnaCreate64BitAddIn))" />
 
     <ItemGroup>
-      <ExcelDnaBuildInProject Include="@(None)" />
-      <ExcelDnaBuildInProject Include="@(Content)" />
+      <ExcelDnaBuildFilesInProject Include="@(None)" />
+      <ExcelDnaBuildFilesInProject Include="@(Content)" />
     </ItemGroup>
 
     <CreateExcelAddIn
