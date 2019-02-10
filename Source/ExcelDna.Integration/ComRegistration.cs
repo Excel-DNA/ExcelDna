@@ -49,41 +49,53 @@ namespace ExcelDna.ComInterop.ComRegistration
 
         public HRESULT CreateInstance([In] IntPtr pUnkOuter, [In] ref IID riid, [Out] out IntPtr ppvObject)
         {
-            // Suspend the C API (helps to prevent some Excel-crashing scenarios)
-            using (XlCall.Suspend())
+            Logger.RtdServer.Info("Creating the RTD server COM object");
+
+            try
             {
-                ppvObject = IntPtr.Zero;
-                object instance = Activator.CreateInstance(_comClass.Type);
+                // Suspend the C API (helps to prevent some Excel-crashing scenarios)
+                using (XlCall.Suspend())
+                {
+                    ppvObject = IntPtr.Zero;
+                    object instance = Activator.CreateInstance(_comClass.Type);
 
-                // If not an ExcelRtdServer, create safe wrapper that also maps types.
-                if (_comClass.IsRtdServer && !instance.GetType().IsSubclassOf(typeof(ExcelRtdServer)))
-                {
-                    // wrap instance in RtdWrapper
-                    RtdServerWrapper rtdServerWrapper = new RtdServerWrapper(instance, _comClass.ProgId);
-                    instance = rtdServerWrapper;
-                }
-
-                if (pUnkOuter != IntPtr.Zero)
-                {
-                    // For now no aggregation support - could do Marshal.CreateAggregatedObject?
-                    return ComAPI.CLASS_E_NOAGGREGATION;
-                }
-                if (riid == ComAPI.guidIUnknown)
-                {
-                    ppvObject = Marshal.GetIUnknownForObject(instance);
-                }
-                else
-                {
-                    ppvObject = Marshal.GetIUnknownForObject(instance);
-                    HRESULT hrQI = Marshal.QueryInterface(ppvObject, ref riid, out ppvObject);
-                    Marshal.Release(ppvObject);
-                    if (hrQI != ComAPI.S_OK)
+                    // If not an ExcelRtdServer, create safe wrapper that also maps types.
+                    if (_comClass.IsRtdServer && !instance.GetType().IsSubclassOf(typeof(ExcelRtdServer)))
                     {
-                        return ComAPI.E_NOINTERFACE;
+                        // wrap instance in RtdWrapper
+                        RtdServerWrapper rtdServerWrapper = new RtdServerWrapper(instance, _comClass.ProgId);
+                        instance = rtdServerWrapper;
                     }
+
+                    if (pUnkOuter != IntPtr.Zero)
+                    {
+                        // For now no aggregation support - could do Marshal.CreateAggregatedObject?
+                        return ComAPI.CLASS_E_NOAGGREGATION;
+                    }
+                    if (riid == ComAPI.guidIUnknown)
+                    {
+                        ppvObject = Marshal.GetIUnknownForObject(instance);
+                    }
+                    else
+                    {
+                        ppvObject = Marshal.GetIUnknownForObject(instance);
+                        HRESULT hrQI = Marshal.QueryInterface(ppvObject, ref riid, out ppvObject);
+                        Marshal.Release(ppvObject);
+                        if (hrQI != ComAPI.S_OK)
+                        {
+                            return ComAPI.E_NOINTERFACE;
+                        }
+                    }
+                    return ComAPI.S_OK;
                 }
-                return ComAPI.S_OK;
             }
+            catch (Exception exc)
+            {
+                Logger.RtdServer.Error(exc, "RTD server COM object - init error");
+            }
+
+            ppvObject = IntPtr.Zero;
+            return ComAPI.E_UNEXPECTED;
         }
 
         public int LockServer(bool fLock)
