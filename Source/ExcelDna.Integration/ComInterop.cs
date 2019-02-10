@@ -350,7 +350,7 @@ namespace ExcelDna.Integration.CustomUI
                     if (count > 0)
                     {
                         _CustomTaskPaneEvents_SinkHelper customTaskPaneEvents_SinkHelper;
-                        for (int i = count - 1; i <= 0; i--)
+                        for (int i = count - 1; i >= 0; i--)
                         {
                             customTaskPaneEvents_SinkHelper = (_CustomTaskPaneEvents_SinkHelper)m_aEventSinkHelpers[i];
                             if (customTaskPaneEvents_SinkHelper.m_DockPositionStateChangeDelegate != null && customTaskPaneEvents_SinkHelper.m_DockPositionStateChangeDelegate.Equals((object)value))
@@ -406,7 +406,7 @@ namespace ExcelDna.Integration.CustomUI
                     if (count > 0)
                     {
                         _CustomTaskPaneEvents_SinkHelper customTaskPaneEvents_SinkHelper;
-                        for (int i = count - 1; i <= 0; i--)
+                        for (int i = count - 1; i >= 0; i--)
                         {
                             customTaskPaneEvents_SinkHelper = (_CustomTaskPaneEvents_SinkHelper)m_aEventSinkHelpers[i];
                             if (customTaskPaneEvents_SinkHelper.m_VisibleStateChangeDelegate != null && customTaskPaneEvents_SinkHelper.m_VisibleStateChangeDelegate.Equals((object)value))
