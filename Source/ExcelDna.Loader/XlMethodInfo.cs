@@ -398,6 +398,9 @@ namespace ExcelDna.Loader
                              delegate(XlParameterInfo pi) { return pi.BoxedValueType == typeof(DateTime) ||
                                                                    pi.BoxedValueType == typeof(bool); });
 
+            if (emitExceptionHandler && IsExceptionSafe && HasReturnType && ReturnType.DelegateParamType != typeof(object))
+                throw new DnaMarshalException("DateTime and bool input parameters are incompatible with IsExceptionSafe attribute");
+
             // Now we create a dynamic wrapper
             Type[] paramTypes = Array.ConvertAll<XlParameterInfo, Type>(Parameters,
                                                                         delegate(XlParameterInfo pi)
@@ -429,6 +432,7 @@ namespace ExcelDna.Loader
             Label endOfMethod = wrapIL.DefineLabel();
 
             LocalBuilder retobj = null;
+            LocalBuilder except = null;
             if (HasReturnType)
             {
                 // Make a local to contain the return value
@@ -437,6 +441,7 @@ namespace ExcelDna.Loader
             if (emitExceptionHandler)
             {
                 // Start the Try block
+                except = wrapIL.DeclareLocal(typeof(Exception));
                 wrapIL.BeginExceptionBlock();
             }
 
@@ -481,6 +486,17 @@ namespace ExcelDna.Loader
             {
                 wrapIL.Emit(OpCodes.Leave_S, endOfMethod);
                 wrapIL.BeginCatchBlock(typeof (object));
+                if (IsExcelAsyncFunction) {
+                    wrapIL.Emit(OpCodes.Stloc_S, except);
+                    int idx = Parameters.Length - (isInstanceMethod ? 0 : 1);
+                    if (idx < 256)
+                        wrapIL.Emit(OpCodes.Ldarg_S, (byte)idx);
+                    else
+                        wrapIL.Emit(OpCodes.Ldarg, (short)idx);
+                    wrapIL.Emit(OpCodes.Ldloc_S, except);
+                    wrapIL.Emit(OpCodes.Callvirt, IntegrationMarshalHelpers.ExcelAsyncHandleType.GetMethod("SetException"));
+                    wrapIL.Emit(OpCodes.Pop);
+                } else
                 if (!HasReturnType || ReturnType.DelegateParamType == typeof (object))
                 {
                     // Call Integration.HandleUnhandledException - Exception object is on the stack.
