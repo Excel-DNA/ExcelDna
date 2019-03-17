@@ -92,9 +92,9 @@ namespace ExcelDna.Loader
         public void SetTypeInfo(Type type, bool isReturnType, bool isExceptionSafe)
         {
             if ((XlAddIn.XlCallVersion < 12)
-#if DEBUG // on debug-32bit we want to keep exercising the Excel4 APIs
-                || (IntPtr.Size == 4)
-#endif
+//#if DEBUG // on debug-32bit we want to keep exercising the Excel4 APIs
+//                || (IntPtr.Size == 4)
+//#endif
             )
             {
                 SetTypeInfo4(type, isReturnType, isExceptionSafe);
