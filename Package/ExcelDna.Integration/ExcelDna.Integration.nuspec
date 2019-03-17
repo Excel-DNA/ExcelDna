@@ -7,6 +7,7 @@
         <authors>Govert van Drimmelen</authors>
         <owners>Govert van Drimmelen</owners>
         <projectUrl>http://excel-dna.net</projectUrl>
+        <repository type="git" url="https://github.com/Excel-DNA/ExcelDna" />
         <iconUrl>http://docs.excel-dna.net/NuGetIcon.png</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>Reference library package for Excel-DNA. Use the package "ExcelDna.AddIn" to create a new add-in.</description>
