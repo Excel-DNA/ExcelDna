@@ -640,7 +640,7 @@ namespace ExcelDna.Loader
             {
                 XlType = "X"; // Async Handle in XLOPER12's BigData
                 MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlAsyncHandleParameter12Marshaler));
-                DelegateParamType = typeof(object);
+                DelegateParamType = IntegrationMarshalHelpers.ExcelAsyncHandleType;
             }
             else
             {
