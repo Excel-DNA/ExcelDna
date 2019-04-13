@@ -500,7 +500,6 @@ namespace ExcelDna.Loader
                 else
                     XlType = "Q"; // OPER
                 MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObject12Marshaler));
-                DelegateParamType = typeof(object);
             }
             else if (type == typeof(object[]))
             {
@@ -640,7 +639,6 @@ namespace ExcelDna.Loader
             {
                 XlType = "X"; // Async Handle in XLOPER12's BigData
                 MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlAsyncHandleParameter12Marshaler));
-                DelegateParamType = IntegrationMarshalHelpers.ExcelAsyncHandleType;
             }
             else
             {

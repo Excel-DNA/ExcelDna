@@ -399,7 +399,7 @@ namespace ExcelDna.Loader
                                                                    pi.BoxedValueType == typeof(bool); });
 
             if (emitExceptionHandler && IsExceptionSafe && HasReturnType && ReturnType.DelegateParamType != typeof(object))
-                throw new DnaMarshalException("DateTime and bool input parameters are incompatible with IsExceptionSafe attribute");
+                throw new DnaMarshalException("DateTime and bool input parameters are incompatible with IsExceptionSafe attribute if return type is not object");
 
             // Now we create a dynamic wrapper
             Type[] paramTypes = Array.ConvertAll<XlParameterInfo, Type>(Parameters,
