@@ -1,4 +1,4 @@
-Version 1.0 (March 2019)
+Version 1.0 (April 2019)
 ------------------------
 * Improve build tasks - more reliable clean-up and debugger detection
 * Improve RTD and async QueueAsMacro reliability
