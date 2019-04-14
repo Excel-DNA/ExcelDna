@@ -1,4 +1,4 @@
-﻿//  Copyright (c) Govert van Drimmelen. All rights reserved.
+//  Copyright (c) Govert van Drimmelen. All rights reserved.
 //  Excel-DNA is licensed under the zlib license. See LICENSE.txt for details.
 
 using System;
@@ -96,7 +96,7 @@ namespace ExcelDna.Loader
 
             // Sort by name in reverse order before registering - this is inspired by the article http://www.benf.org/excel/regcost/
             // Makes a small but measurable difference in the Excel registration calls
-            xlMethods.Sort(delegate (XlMethodInfo mi1, XlMethodInfo mi2) { return -string.Compare(mi1.Name, mi2.Name, StringComparison.OrdinalIgnoreCase); });
+            xlMethods.Sort(delegate (XlMethodInfo mi1, XlMethodInfo mi2) { return -string.CompareOrdinal(mi1.Name.ToLower(), mi2.Name.ToLower()); });
             xlMethods.ForEach(RegisterXlMethod);
             // Increment the registration version (safe to call a few times)
             registrationInfoVersion += 1.0;
