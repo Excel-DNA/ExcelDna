@@ -10,9 +10,8 @@ See the GettingStarted.txt file for help in making your first Excel-DNA add-in.
 
 More details can be found at:
 * http://excel-dna.net
-* https://exceldna.codeplex.com
 * https://groups.google.com/forum/#!forum/exceldna
 
 Govert van Drimmelen
 govert@icon.co.za
-9 September 2015
+27 April 2019
