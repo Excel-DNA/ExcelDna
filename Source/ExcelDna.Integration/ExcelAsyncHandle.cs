@@ -60,10 +60,28 @@ namespace ExcelDna.Integration
         }
 
         // We could do something like this:
-        //public static bool SetResults(object[] asyncHandles, object[] results)
-        //{
-        //XlCall.XlReturn callReturn = XlCall.TryExcel(XlCall.xlAsyncReturn, out unusedResult, asyncHandles, results);
-        //}
+        public static bool SetResults(object[] asyncHandles, object[] results)
+        {
+            object unusedResult;
+            XlCall.XlReturn callReturn = XlCall.TryExcel(XlCall.xlAsyncReturn, out unusedResult, asyncHandles, results);
+            if (callReturn == XlCall.XlReturn.XlReturnSuccess)
+            {
+                // The normal case - value has been accepted
+                return true;
+            }
+
+            if (callReturn == XlCall.XlReturn.XlReturnInvAsynchronousContext)
+            {
+                // This is expected sometimes (e.g. calculation was cancelled)
+                // Excel will show #VALUE
+                Debug.WriteLine("Warning: InvalidAsyncContext returned from xlAsyncReturn []");
+                return false;
+            }
+
+            // This is never unexpected
+            Debug.WriteLine("Error: Unexpected error from xlAsyncReturn []");
+            return false;
+        }
     }
 
     internal class ExcelAsyncHandleObservable : ExcelAsyncHandle, IExcelObservable
