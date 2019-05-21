@@ -213,6 +213,12 @@ namespace ExcelDna.Integration
             //       So internal classes that implement IExcelAddIn are also loaded.
             try
             {
+                if (!t.IsClass || t.IsAbstract)
+                {
+                    Logger.Registration.Verbose("GetExcelAddIns - Skipped add-in object of type: {0}", t.FullName);
+                    return;
+                }
+
                 Type addInType = t.GetInterface("ExcelDna.Integration.IExcelAddIn");
                 bool isRibbon = IsRibbonType(t);
                 if (addInType != null || (isRibbon && loadRibbons) )
