@@ -5,6 +5,7 @@
 [![Downloads](https://img.shields.io/nuget/dt/ExcelDna.AddIn.svg)](https://www.nuget.org/packages/ExcelDna.AddIn)
 [![GitHub contributors](https://img.shields.io/github/contributors/Excel-DNA/ExcelDna.svg)](https://github.com/Excel-DNA/ExcelDna/graphs/contributors)
 [![License](https://img.shields.io/github/license/Excel-DNA/ExcelDna.svg)](https://github.com/Excel-DNA/ExcelDna/blob/master/LICENSE.txt)
+[![Stack Overflow](https://img.shields.io/badge/stack%20overflow-excel--dna-orange.svg)](http://stackoverflow.com/questions/tagged/excel-dna)
 
 This repository contains the core Excel-DNA library.
 
