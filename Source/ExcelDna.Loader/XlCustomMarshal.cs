@@ -296,13 +296,24 @@ namespace ExcelDna.Loader
 			return instance;
 		}
 
-		unsafe public IntPtr MarshalManagedToNative(object ManagedObj)
-		{
-			*(double*)pNative = ((DateTime)ManagedObj).ToOADate();
-			return pNative;
-		}
+        unsafe public IntPtr MarshalManagedToNative(object ManagedObj)
+        {
+            try
+            {
+                *(double*)pNative = ((DateTime)ManagedObj).ToOADate();
+                return pNative;
+            }
+            catch
+            {
+                // This case is where the range of the OADate is exceeded, e.g. a year before 0100.
+                // We'd like to return #VALUE, but we're registered as a double
+                // returning NaN will at least give us #NUM in Excel (IntPtr.Zero does the same)
+                *(double*)pNative = double.NaN;
+                return pNative;
+            }
+        }
 
-		unsafe public object MarshalNativeToManaged(IntPtr pNativeData)
+        unsafe public object MarshalNativeToManaged(IntPtr pNativeData)
 		{
 			try
 			{
@@ -589,8 +600,19 @@ namespace ExcelDna.Loader
 			else if (ManagedObj is DateTime)
 			{
 				XlOper* pOper = (XlOper*)pNative;
-				pOper->numValue = ((DateTime)ManagedObj).ToOADate();
-				pOper->xlType = XlType.XlTypeNumber;
+                try
+                {
+                    pOper->numValue = ((DateTime)ManagedObj).ToOADate();
+                    pOper->xlType = XlType.XlTypeNumber;
+                }
+                catch
+                {
+                    // This is a case where we have a date that cannot be converted to an OleAutomation date, e.g. year < 0100
+                    // Certainly it is not a valid date in Excel (no dates before 1900 are valid)
+                    // But we must not crash - return #VALUE instead
+                    pOper->errValue = IntegrationMarshalHelpers.ExcelError_ExcelErrorValue;
+                    pOper->xlType = XlType.XlTypeError;
+                }
 				return pNative;
 			}
 			else if (ManagedObj is bool)
@@ -1055,8 +1077,19 @@ namespace ExcelDna.Loader
                 }
                 else if (obj is DateTime)
                 {
-                    pOper->numValue = ((DateTime)obj).ToOADate();
-                    pOper->xlType = XlType.XlTypeNumber;
+                    try
+                    {
+                        pOper->numValue = ((DateTime)obj).ToOADate();
+                        pOper->xlType = XlType.XlTypeNumber;
+                    }
+                    catch
+                    {
+                        // This is a case where we have a date that cannot be converted to an OleAutomation date, e.g. year < 0100
+                        // Certainly it is not a valid date in Excel (no dates before 1900 are valid)
+                        // But we must not crash - return #VALUE instead
+                        pOper->errValue = IntegrationMarshalHelpers.ExcelError_ExcelErrorValue;
+                        pOper->xlType = XlType.XlTypeError;
+                    }
                 }
                 else if (IntegrationMarshalHelpers.IsExcelErrorObject(obj))
                 {
