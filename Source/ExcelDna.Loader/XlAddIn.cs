@@ -219,6 +219,15 @@ namespace ExcelDna.Loader
         {
             // Get the assembly and ExcelIntegration type - will be loaded from file or from packed resources via AssemblyManager.AssemblyResolve.
             Assembly integrationAssembly = Assembly.Load("ExcelDna.Integration");
+
+            // Check if ExcelDna.Integration was loaded from the Global Assembly Cache
+            if (integrationAssembly.GlobalAssemblyCache)
+            {
+                // Prevent using the version in the GAC to avoid add-ins using the wrong version and breaking
+                // https://github.com/Excel-DNA/ExcelDna/pull/250#issuecomment-508642133
+                throw new InvalidOperationException("ExcelDna.Integration was loaded from Global Assembly Cache, and that's not allowed.");
+            }
+
             Type integrationType = integrationAssembly.GetType("ExcelDna.Integration.ExcelIntegration");
 
             // Check the version declared in the ExcelIntegration class
