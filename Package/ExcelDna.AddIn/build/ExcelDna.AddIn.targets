@@ -61,6 +61,14 @@
   </PropertyGroup>
 
   <!--
+    Target that checks if the project is not compatible with Excel-DNA
+  -->
+  <Target Name="ExcelDnaCheckPackageProjectStyle" BeforeTargets="CoreCompile">
+    <Error Text="Excel-DNA is not compatible with projects that use NuGet `PackageReference`. Make sure you create a .NET Framework (Class Library) project and configure Visual Studio to use `packages.config`"
+           Condition=" '$(PackageReferenceCompatibleProjectStyle)' == 'true' OR '$(RestoreProjectStyle)' == 'ProjectJson' OR '$(NuGetProjectStyle)' == 'PackageReference' " />
+  </Target>
+
+  <!--
     Configure debugger options (Path for EXCEL.EXE, add-in to open, etc).
   -->
   <Target Name="ExcelDnaSetDebuggerOptions" BeforeTargets="PreBuildEvent" Condition="$(RunExcelDnaSetDebuggerOptions) AND '$(BuildingInsideVisualStudio)' == 'true'">
