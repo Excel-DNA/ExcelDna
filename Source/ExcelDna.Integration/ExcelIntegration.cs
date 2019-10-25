@@ -33,6 +33,8 @@ namespace ExcelDna.Integration
 
         private static TryExcelImplDelegate tryExcelImpl;
 
+        private static readonly object _syncLock = new object();
+
         [UsedImplicitly] // called by reflection
         internal static void SetTryExcelImpl(TryExcelImplDelegate d)
         {
@@ -116,11 +118,42 @@ namespace ExcelDna.Integration
             }
         }
 
-		private static UnhandledExceptionHandler unhandledExceptionHandler;
-		public static void RegisterUnhandledExceptionHandler(UnhandledExceptionHandler h)
-		{
-			unhandledExceptionHandler = h;
-		}
+        private static UnhandledExceptionHandler unhandledExceptionHandler;
+
+        public static event UnhandledExceptionHandler UnhandledException
+        {
+            add
+            {
+                if (value == null)
+                {
+                    return;
+                }
+
+                lock (_syncLock)
+                {
+                    unhandledExceptionHandler += value;
+                }
+            }
+
+            remove
+            {
+                if (value == null)
+                {
+                    return;
+                }
+
+                lock (_syncLock)
+                {
+                    unhandledExceptionHandler -= value;
+                }
+            }
+        }
+
+        [Obsolete("This method is obsolete. Use the `UnhandledException` event instead.")]
+        public static void RegisterUnhandledExceptionHandler(UnhandledExceptionHandler h)
+        {
+            UnhandledException += h;
+        }
 
         public static UnhandledExceptionHandler GetRegisterUnhandledExceptionHandler()
         {
