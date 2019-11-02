@@ -229,9 +229,12 @@ namespace ExcelDna.Integration
                             "Cross-thread operation not valid: Application accessed from a thread other than the thread it was created on.");
                     }
 
-                    // Nothing cached - possibly being called on a different thread
-                    // Just get from window and return
-                    return GetApplicationFromWindows(true, out isProtected);
+                    if (_application == null)
+                    {
+                        // Nothing cached - possibly being called on a different thread
+                        // Just get from window and return
+                        return GetApplicationFromWindows(true, out isProtected);
+                    }
                 }
 
                 // Check whether we have a cached App and it is valid
