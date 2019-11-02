@@ -48,6 +48,8 @@ namespace ExcelDna.Integration
         static int _mainManagedThreadId;
         static IntPtr _mainWindowHandle;
 
+        private static bool checkForIllegalCrossThreadCalls;
+
         internal static void Initialize()
         {
             // NOTE: Sequence here is important - Getting the Window Handle sometimes uses the _mainNativeThreadId
@@ -60,6 +62,8 @@ namespace ExcelDna.Integration
             // Extra attempt via window enumeration if the Api approach failed.
             if (_mainWindowHandle == IntPtr.Zero)
                 _mainWindowHandle = GetWindowHandleThread();
+
+            checkForIllegalCrossThreadCalls = Debugger.IsAttached;
         }
 
         internal static bool IsMainThread
@@ -219,6 +223,12 @@ namespace ExcelDna.Integration
 
                 if (!IsMainThread)
                 {
+                    if (checkForIllegalCrossThreadCalls)
+                    {
+                        throw new InvalidOperationException(
+                            "Cross-thread operation not valid: Application accessed from a thread other than the thread it was created on.");
+                    }
+
                     // Nothing cached - possibly being called on a different thread
                     // Just get from window and return
                     return GetApplicationFromWindows(true, out isProtected);
