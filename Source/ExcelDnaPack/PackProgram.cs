@@ -334,6 +334,24 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 				if (!refs.Contains(rf))
 					refs.Add(rf);
 			}
+
+			// Expand asterisk in filename of reference path, e.g. "./*.dll"
+			List<Reference> expandedReferences = new List<Reference>();
+			for (int i = refs.Count - 1; i >= 0; i--)
+			{
+				string path = refs[i].Path; 
+				if (path != null && path.Contains("*"))
+				{
+					var files = Directory.GetFiles(Path.GetDirectoryName(path), Path.GetFileName(path));
+					foreach (var file in files)
+					{
+						expandedReferences.Add(new Reference(Path.GetFullPath(file)) {Pack = true});
+					}
+					refs.RemoveAt(i);
+				}
+			}
+			refs.AddRange(expandedReferences);
+
 			// Now pack the references
 			foreach (Reference rf in refs)
 			{
