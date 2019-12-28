@@ -122,8 +122,43 @@ namespace ExcelDna.Integration
             }
         }
 
-		// THROWS: OverFlowException if the arguments exceed the allowed size
-		// or if the number of Inner References exceeds 65000
+        public ExcelReference(IEnumerable<ExcelReference> references, IntPtr sheetId)
+        {
+            int refCount = 0;
+            Dictionary<int, int[]> rectangles = new Dictionary<int, int[]>();
+            foreach (ExcelReference reference in references)
+            {
+                rectangles[refCount] = new[]
+                {
+                    reference.RowFirst,
+                    reference.RowLast,
+                    reference.ColumnFirst,
+                    reference.ColumnLast
+                };
+
+                refCount++;
+            }
+
+            this.sheetId = sheetId;
+            int rectCount = rectangles.Count;
+            int[] rect = rectangles[0];
+            rectangle = new ExcelRectangle(rect[0], rect[1], rect[2], rect[3]);
+
+            int furtherRectangleCount = rectCount - 1;
+            if (furtherRectangleCount > 0)
+            {
+                furtherRectangles = new ExcelRectangle[furtherRectangleCount];
+                for (int i = 0; i < furtherRectangleCount; i++)
+                {
+                    rect = rectangles[i + 1];
+                    Debug.Assert(rect.Length == 4);
+                    furtherRectangles[i] = new ExcelRectangle(rect[0], rect[1], rect[2], rect[3]);
+                }
+            }
+        }
+
+        // THROWS: OverFlowException if the arguments exceed the allowed size
+        // or if the number of Inner References exceeds 65000
         [Obsolete("An ExcelReference should never be modified.")]
 		public void AddReference(int rowFirst, int rowLast, int columnFirst, int columnLast)
 		{
