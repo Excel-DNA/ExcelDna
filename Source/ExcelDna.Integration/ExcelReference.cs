@@ -122,12 +122,24 @@ namespace ExcelDna.Integration
             }
         }
 
-        public ExcelReference(IEnumerable<ExcelReference> references, IntPtr sheetId)
+        public ExcelReference(IEnumerable<ExcelReference> references)
         {
             int refCount = 0;
+            IntPtr sheetId = IntPtr.Zero;
             Dictionary<int, int[]> rectangles = new Dictionary<int, int[]>();
+
             foreach (ExcelReference reference in references)
             {
+                if (sheetId == IntPtr.Zero)
+                {
+                    sheetId = reference.SheetId;
+                }
+
+                if (sheetId != reference.SheetId)
+                {
+                    throw new ArgumentException("Not all references correspond to a single sheet.");
+                }
+
                 rectangles[refCount] = new[]
                 {
                     reference.RowFirst,
