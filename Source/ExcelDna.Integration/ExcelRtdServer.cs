@@ -244,7 +244,7 @@ namespace ExcelDna.Integration.Rtd
                 _updateSync.RegisterUpdateNotify(_callbackObject);
                 using (XlCall.Suspend())
                 {
-                    RtdRegistration.MarkRtdServerAsStarted(this.RegisteredProgId);
+                    RtdRegistration.MarkRtdServerAsStarted(RegisteredProgId);
                     return ServerStart() ? 1 : 0;
                 }
             }

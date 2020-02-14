@@ -37,8 +37,8 @@ namespace ExcelDna.Integration.Rtd
         // but will make separate instances for the different names...?
         static readonly Dictionary<string, Type> registeredRtdServerTypes = new Dictionary<string, Type>();
         // Map names of loaded Rtd servers to a registered ProgId - "RtdSrv.A1B2C3...."
+        static readonly Dictionary<string, string> loadingRtdServers = new Dictionary<string, string>();
         static readonly Dictionary<string, string> loadedRtdServers = new Dictionary<string, string>();
-        static readonly List<string> startedRtdServers = new List<string>();
 
         public static void RegisterRtdServerTypes(IEnumerable<Type> rtdServerTypes)
         {
@@ -62,7 +62,11 @@ namespace ExcelDna.Integration.Rtd
 
         public static void MarkRtdServerAsStarted(string progId)
         {
-            startedRtdServers.Add(progId);
+            string loadedProgId;
+            if (loadingRtdServers.TryGetValue(progId, out loadedProgId)) {
+                loadedRtdServers.Add(progId, loadedProgId);
+                loadingRtdServers.Remove(progId);
+            }
         }
 
         // Forwarded from XlCall
@@ -89,20 +93,12 @@ namespace ExcelDna.Integration.Rtd
             string loadedProgId;
             if (loadedRtdServers.TryGetValue(progId, out loadedProgId))
             {
-                if (!startedRtdServers.Contains(loadedProgId))
+                if (ExcelRtd2010BugHelper.ExcelVersionHasRtdBug && rtdServerType.IsSubclassOf(typeof(ExcelRtdServer)))
                 {
-                    Debug.Print("### Prog ID didnt get started:" + progId);
-                    
+                    ExcelRtd2010BugHelper.RecordRtdCall(progId, topics);
                 }
-                else
-                {
-                    if (ExcelRtd2010BugHelper.ExcelVersionHasRtdBug && rtdServerType.IsSubclassOf(typeof(ExcelRtdServer)))
-                    {
-                        ExcelRtd2010BugHelper.RecordRtdCall(progId, topics);
-                    }
-                    // Call Excel using the synthetic RtdSrv.xxx (or actual from attribute) ProgId
-                    return TryCallRTD(out result, loadedProgId, null, topics);
-                }
+                // Call Excel using the synthetic RtdSrv.xxx (or actual from attribute) ProgId
+                return TryCallRTD(out result, loadedProgId, null, topics);
             }
 
             // Not loaded already - need to get the Rtd server loaded
@@ -155,8 +151,8 @@ namespace ExcelDna.Integration.Rtd
                     Debug.Print("### About to call TryCallRTD " + progId);
                     if (TryCallRTD(out result, progIdRegistered, null, topics))
                     {
-                        // Mark as loaded - ServerTerminate in the wrapper will remove.
-                        loadedRtdServers[progId] = progIdRegistered;
+                        // Mark as loading - ServerTerminate in the wrapper will remove.
+                        loadingRtdServers[progId] = progIdRegistered;
                         Debug.Print("### Added to loadedRtdServers " + progId);
                         return true;
                     }
@@ -212,6 +208,7 @@ namespace ExcelDna.Integration.Rtd
             if (progId != null)
             {
                 loadedRtdServers.Remove(progId);
+                loadingRtdServers.Remove(progId);
             }
         }
     }
