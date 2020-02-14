@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="ExcelDnaProps">
+<!--
+  If you change properties in this file, they may not come into effect until you:
+     * Rebuild the solution/project
+
+     or
+
+     * Close Visual Studio
+     * Delete .vs folder, if exists
+     * Delete ProjectName.csproj.user (or equivalent for VB, F#, etc.), if exists
+     * Delete SolutionName.suo, if exists
+     * Open your solution/project again in Visual Studio
+  -->
+
+  <!--
+    Configuration properties for debugging Excel-DNA add-ins
+  -->
+  <PropertyGroup>
+    <!--
+      Enable/Disable setting the debug options when building the project
+    -->
+    <RunExcelDnaSetDebuggerOptions Condition="'$(RunExcelDnaSetDebuggerOptions)' == ''">true</RunExcelDnaSetDebuggerOptions>
+
+    <!--
+      Override the path of EXCEL.EXE used for debugging the project, if you need
+      By default, it will use the latest version of Excel it can find on the machine
+    -->
+    <ExcelDnaExcelExePath Condition="'$(ExcelDnaExcelExePath)' == ''"></ExcelDnaExcelExePath>
+
+    <!--
+      Override the name of the .XLL add-in to use when debugging the project, if you need
+      By default, it will use the first unpacked .xll add-in that matches the bitness of EXCEL.EXE
+    -->
+    <ExcelDnaAddInForDebugging Condition="'$(ExcelDnaAddInForDebugging)' == ''"></ExcelDnaAddInForDebugging>
+  </PropertyGroup>
+
+  <!--
+    Configuration properties for building .dna files
+  -->
+  <PropertyGroup>
+    <!--
+      Enable/Disable automatic generation of platform-specific versions of .dna files
+    -->
+    <ExcelDnaCreate32BitAddIn Condition="'$(ExcelDnaCreate32BitAddIn)' == ''">true</ExcelDnaCreate32BitAddIn>
+    <ExcelDnaCreate64BitAddIn Condition="'$(ExcelDnaCreate64BitAddIn)' == ''">true</ExcelDnaCreate64BitAddIn>
+
+    <!--
+      Define the suffix used for each platform-specific file e.g. MyAddIn64.dna
+    -->
+    <ExcelDna32BitAddInSuffix Condition="'$(ExcelDna32BitAddInSuffix)' == ''"></ExcelDna32BitAddInSuffix>
+    <ExcelDna64BitAddInSuffix Condition="'$(ExcelDna64BitAddInSuffix)' == ''">64</ExcelDna64BitAddInSuffix>
+  </PropertyGroup>
+
+  <!--
+    Configuration properties for packing .dna files
+  -->
+  <PropertyGroup>
+    <!--
+      Enable/Disable packing of .dna files
+    -->
+    <RunExcelDnaPack Condition="'$(RunExcelDnaPack)' == ''">true</RunExcelDnaPack>
+
+    <!--
+      Suffix used for packed .xll files e.g. MyAddIn-packed.xll
+    -->
+    <ExcelDnaPackXllSuffix Condition="'$(ExcelDnaPackXllSuffix)' == ''">-packed</ExcelDnaPackXllSuffix>
+  </PropertyGroup>
+</Project>
+
