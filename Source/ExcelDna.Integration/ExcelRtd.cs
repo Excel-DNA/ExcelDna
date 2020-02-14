@@ -38,6 +38,7 @@ namespace ExcelDna.Integration.Rtd
         static readonly Dictionary<string, Type> registeredRtdServerTypes = new Dictionary<string, Type>();
         // Map names of loaded Rtd servers to a registered ProgId - "RtdSrv.A1B2C3...."
         static readonly Dictionary<string, string> loadedRtdServers = new Dictionary<string, string>();
+        static readonly List<string> startedRtdServers = new List<string>();
 
         public static void RegisterRtdServerTypes(IEnumerable<Type> rtdServerTypes)
         {
@@ -57,6 +58,11 @@ namespace ExcelDna.Integration.Rtd
                     Logger.Initialization.Verbose("RTD Server found - Type {0} (No ProgId)", rtdType.FullName);
                 }
             }
+        }
+
+        public static void MarkRtdServerAsStarted(string progId)
+        {
+            startedRtdServers.Add(progId);
         }
 
         // Forwarded from XlCall
@@ -83,12 +89,20 @@ namespace ExcelDna.Integration.Rtd
             string loadedProgId;
             if (loadedRtdServers.TryGetValue(progId, out loadedProgId))
             {
-                if (ExcelRtd2010BugHelper.ExcelVersionHasRtdBug && rtdServerType.IsSubclassOf(typeof(ExcelRtdServer)))
+                if (!startedRtdServers.Contains(loadedProgId))
                 {
-                    ExcelRtd2010BugHelper.RecordRtdCall(progId, topics);
+                    Debug.Print("### Prog ID didnt get started:" + progId);
+                    
                 }
-                // Call Excel using the synthetic RtdSrv.xxx (or actual from attribute) ProgId
-                return TryCallRTD(out result, loadedProgId, null, topics);
+                else
+                {
+                    if (ExcelRtd2010BugHelper.ExcelVersionHasRtdBug && rtdServerType.IsSubclassOf(typeof(ExcelRtdServer)))
+                    {
+                        ExcelRtd2010BugHelper.RecordRtdCall(progId, topics);
+                    }
+                    // Call Excel using the synthetic RtdSrv.xxx (or actual from attribute) ProgId
+                    return TryCallRTD(out result, loadedProgId, null, topics);
+                }
             }
 
             // Not loaded already - need to get the Rtd server loaded
