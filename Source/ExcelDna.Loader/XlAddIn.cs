@@ -25,7 +25,7 @@ namespace ExcelDna.Loader
     internal struct XlAddInExportInfo
     {
         #pragma warning disable 0649 // Field 'field' is never assigned to, and will always have its default value 'value'
-        internal Int32 ExportInfoVersion; // Must be 8 for this version
+        internal Int32 ExportInfoVersion; // Must be 9 for this version
         internal Int32 AppDomainId; // Id of the Sandbox AppDomain where the add-in runs.
         internal IntPtr /* PFN_SHORT_VOID */            pXlAutoOpen;
         internal IntPtr /* PFN_SHORT_VOID */            pXlAutoClose;
@@ -50,7 +50,7 @@ namespace ExcelDna.Loader
     public unsafe static class XlAddIn
     {
         // This version must match the version declared in ExcelDna.Integration.ExcelIntegration
-        const int ExcelIntegrationVersion = 8;
+        const int ExcelIntegrationVersion = 9;
 
         static int thunkTableLength;
         static IntPtr thunkTable;
@@ -258,6 +258,11 @@ namespace ExcelDna.Loader
             Type registerDelAttDelegateType = integrationAssembly.GetType("ExcelDna.Integration.RegisterDelegatesWithAttributesDelegate");
             Delegate registerDelAttDelegate = Delegate.CreateDelegate(registerDelAttDelegateType, registerDelAttMethod);
             integrationType.InvokeMember("SetRegisterDelegatesWithAttributes", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] { registerDelAttDelegate });
+
+            MethodInfo registerRtdWrapperMethod = typeof(XlRegistration).GetMethod("RegisterRtdWrapper", BindingFlags.Static | BindingFlags.Public);
+            Type registerRtdWrapperDelegateType = integrationAssembly.GetType("ExcelDna.Integration.RegisterRtdWrapperDelegate");
+            Delegate registerRtdWrapperDelegate = Delegate.CreateDelegate(registerRtdWrapperDelegateType, registerRtdWrapperMethod);
+            integrationType.InvokeMember("SetRegisterRtdWrapper", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] { registerRtdWrapperDelegate });
 
             MethodInfo getResourceBytesMethod = typeof(AssemblyManager).GetMethod("GetResourceBytes", BindingFlags.Static | BindingFlags.NonPublic);
             Type getResourceBytesDelegateType = integrationAssembly.GetType("ExcelDna.Integration.GetResourceBytesDelegate");

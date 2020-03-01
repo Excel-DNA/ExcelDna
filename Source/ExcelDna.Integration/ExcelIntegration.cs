@@ -22,6 +22,7 @@ namespace ExcelDna.Integration
     internal delegate void RegisterMethodsDelegate(List<MethodInfo> methods);
     internal delegate void RegisterMethodsWithAttributesDelegate(List<MethodInfo> methods, List<object> functionAttributes, List<List<object>> argumentAttributes);
     internal delegate void RegisterDelegatesWithAttributesDelegate(List<Delegate> delegates, List<object> functionAttributes, List<List<object>> argumentAttributes);
+    internal delegate void RegisterRtdWrapperDelegate(string progId, object rtdWrapperOptions, object functionAttribute, List<object> argumentAttributes);
     internal delegate byte[] GetResourceBytesDelegate(string resourceName, int type); // types: 0 - Assembly, 1 - Dna file, 2 - Image
     internal delegate void SyncMacroDelegate(double dValue);
 	public delegate object UnhandledExceptionHandler(object exceptionObject);
@@ -29,7 +30,7 @@ namespace ExcelDna.Integration
     public static class ExcelIntegration
     {
         // This version must match the version declared in ExcelDna.Loader.XlAddIn.
-        const int ExcelIntegrationVersion = 8;
+        const int ExcelIntegrationVersion = 9;
 
         private static TryExcelImplDelegate tryExcelImpl;
 
@@ -67,6 +68,12 @@ namespace ExcelDna.Integration
             registerDelegatesWithAttributes = d;
         }
 
+        private static RegisterRtdWrapperDelegate registerRtdWrapper;
+        internal static void SetRegisterRtdWrapper(RegisterRtdWrapperDelegate d)
+        {
+            registerRtdWrapper = d;
+        }
+
         // These are the public 'externally' exposed members.
 
         // Get the assemblies that were considered for registration - both ExternalLibraries and Projects or code from the .dna file.
@@ -95,6 +102,11 @@ namespace ExcelDna.Integration
         {
             ClearExplicitRegistration(methodAttributes);
             registerDelegatesWithAttributes(delegates, methodAttributes, argumentAttributes);
+        }
+
+        public static void RegisterRtdWrapper(string progId, object rtdWrapperOptions, object functionAttribute, List<object> argumentAttributes)
+        {
+            registerRtdWrapper(progId, rtdWrapperOptions, functionAttribute, argumentAttributes);
         }
 
         // Fix up the ExplicitRegistration, since we _are_ now explicitly registering

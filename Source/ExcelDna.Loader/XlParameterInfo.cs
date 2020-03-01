@@ -640,6 +640,15 @@ namespace ExcelDna.Loader
                 XlType = "X"; // Async Handle in XLOPER12's BigData
                 MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlAsyncHandleParameter12Marshaler));
             }
+            else if (type == typeof(XlOper12*))
+            {
+                // Internal use only - the memory management rules are a mess to support generally
+                // Direct pointer passthrough, no marshalling
+                if (AllowReference)
+                    XlType = "U"; // XLOPER
+                else
+                    XlType = "Q"; // OPER
+            }
             else
             {
                 // The function is bad and cannot be marshaled to Excel

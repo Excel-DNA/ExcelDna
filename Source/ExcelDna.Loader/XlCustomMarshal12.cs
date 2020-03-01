@@ -65,7 +65,7 @@ namespace ExcelDna.Loader
         XlTypeSReference = 0x0400,
         XlTypeInt = 0x0800,     // int16 in XlOper, int32 in XlOper12, never passed into UDF
 
-        XlBitXLFree = 0x1000,	// Unused so far
+        XlBitXLFree = 0x1000,
         XlBitDLLFree = 0x4000,
 
         XlTypeBigData = XlTypeString | XlTypeInt	// Used only for marshaling the async handle for Excel 2010+ native async.

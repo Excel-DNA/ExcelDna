@@ -52,6 +52,27 @@ namespace ExcelDna.Loader
             Register(methods, targets, methodAttributes, argumentAttributes);
         }
 
+        // To keep everything alive ???
+        static List<RtdWrapperHelper> _rtdWrapperHelpers;
+        public static void RegisterRtdWrapper(string progId, object rtdWrapperOptions, object functionAttribute, List<object> argumentAttributes)
+        {
+            if (_rtdWrapperHelpers == null)
+                _rtdWrapperHelpers = new List<RtdWrapperHelper>();
+
+            var helper = new RtdWrapperHelper(progId, rtdWrapperOptions);
+            _rtdWrapperHelpers.Add(helper);
+
+            // var del = Delegate.CreateDelegate(typeof(RtdWrapperHelper.RtdWrapperDelegate, helper, "RtdWrapperHelper");
+
+            // TODO: Need to check that we are not marked as IsTreadSafe (for now)
+
+            var rtdWrapperMethod = RtdWrapperHelper.GetRtdWrapperMethod();
+            Register(new List<MethodInfo> { rtdWrapperMethod },
+                     new List<object> { helper },
+                     new List<object> { functionAttribute },
+                     new List<List<object>> { argumentAttributes }); 
+        }
+
         // This function provides access to the registration info from an IntelliSense provider.
         // To allow polling, we return as the first row a (double) version which can be passed to short-circuit the call if nothing has changed.
         // The signature and behaviour should be flexible enough to allow future non-breaking extension.

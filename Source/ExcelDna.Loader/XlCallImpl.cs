@@ -4,16 +4,17 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Security;
 
 namespace ExcelDna.Loader
 {
-	internal class XlCallImpl
+    internal class XlCallImpl
 	{
         [DllImport("XLCALL32.DLL")]
         internal static extern int XLCallVer();
 
 		[DllImport("XLCALL32.DLL")]
-		private static extern unsafe int Excel4v(int xlfn, XlOper* pOperRes, int count, XlOper** ppOpers);
+		internal static extern unsafe int Excel4v(int xlfn, XlOper* pOperRes, int count, XlOper** ppOpers);
 
 		[DllImport("kernel32.dll")]
         public static extern IntPtr GetModuleHandle(string moduleName);
@@ -21,9 +22,10 @@ namespace ExcelDna.Loader
 		[DllImport("kernel32.dll")]
         public static extern IntPtr GetProcAddress(IntPtr hModule, string procedureName);
 
-		[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        private unsafe delegate int Excel12vDelegate(int xlfn, int count, XlOper12** ppOpers, XlOper12* pOperRes);
-		private static Excel12vDelegate Excel12v;
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        [SuppressUnmanagedCodeSecurity]
+        internal unsafe delegate int Excel12vDelegate(int xlfn, int count, XlOper12** ppOpers, XlOper12* pOperRes);
+		internal static Excel12vDelegate Excel12v;
 
         /*
         ** Function number bits
@@ -58,6 +60,7 @@ namespace ExcelDna.Loader
         public static readonly int xlfCaller = 89;
         public static readonly int xlfRegister = 149;
         public static readonly int xlfUnregister = 201;
+        public static readonly int xlfRtd = 379;
 
         public unsafe static int TryExcelImpl(int xlFunction, out object result, params object[] parameters)
         {

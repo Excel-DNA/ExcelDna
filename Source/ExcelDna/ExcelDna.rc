@@ -56,8 +56,8 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,2
- PRODUCTVERSION 1,0,0,2
+ FILEVERSION 1,1,0,2
+ PRODUCTVERSION 1,1,0,2
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -75,12 +75,12 @@ BEGIN
             VALUE "Comments", "Unmanaged loader shim for Excel-DNA Add-Ins"
             VALUE "CompanyName", "Govert van Drimmelen"
             VALUE "FileDescription", "Excel-DNA Dynamic Link Library"
-            VALUE "FileVersion", "1.0.0.2"
+            VALUE "FileVersion", "1.1.0.1"
             VALUE "InternalName", "ExcelDna"
-            VALUE "LegalCopyright", "Copyright (C) 2005-2019 Govert van Drimmelen"
+            VALUE "LegalCopyright", "Copyright (C) 2005-2020 Govert van Drimmelen"
             VALUE "OriginalFilename", "ExcelDna.xll"
             VALUE "ProductName", "Excel-DNA Add-In Framework for Microsoft Excel"
-            VALUE "ProductVersion", "1.0"
+            VALUE "ProductVersion", "1.1"
         END
     END
     BLOCK "VarFileInfo"
