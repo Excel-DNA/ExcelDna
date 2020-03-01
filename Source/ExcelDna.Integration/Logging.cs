@@ -20,6 +20,13 @@ namespace ExcelDna.Logging
     // We consolidate the two assemblies against a single TraceSource, since ExcelDna.Integration is the only public contract,
     // and we expect to move more of the registration into the ExcelDna.Integration assembly in future.
 
+    // If there is no configuration, we want the default logging to display serious errors in the LogDisplay pop-up.
+    // However, the tracing classes do not make it easy to intervene with such defaults.
+    // So we have the following workaround:
+    // * If there is no configuration, or no "LogDisplay" listener in the configuration, we add the LogDisplay listener.
+    // * If there is a "LogDisplay" listener that is configured with an EventTypeFilter with SourceLevel "Off", we remove it.
+    // * Otherwise the "LogDisplay" listener is left as configured.
+
     // DOCUMENT: Info on custom TraceSources etc: https://msdn.microsoft.com/en-us/magazine/cc300790.aspx
     //           and http://blogs.msdn.com/b/kcwalina/archive/2005/09/20/tracingapis.aspx
 
@@ -86,12 +93,22 @@ namespace ExcelDna.Logging
                 IntegrationTraceSource = new TraceSource(TraceSourceName, SourceLevels.Warning);
 
                 bool logDisplayTraceListenerIsConfigured = false;
+                TraceListener logDisplayTraceListenerToRemove = null; // The one we want to remove if configured as "Off"
+
                 Debug.Print("{0} TraceSource created. Listeners:", TraceSourceName);
                 foreach (TraceListener tl in IntegrationTraceSource.Listeners)
                 {
                     Debug.Print("    {0} - {1}", tl.Name, tl.TraceOutputOptions);
                     if (tl.Name == "LogDisplay")
+                    {
+                        if (tl.Filter is EventTypeFilter && ((EventTypeFilter)tl.Filter).EventType == SourceLevels.Off)
+                        {
+                            // Special case where we actually want to remove the TraceListener
+                            // But we don't want to interfere with the Listerners collection while enumerating it
+                            logDisplayTraceListenerToRemove = tl;
+                        }
                         logDisplayTraceListenerIsConfigured = true;
+                    }
                 }
 
                 try
@@ -107,7 +124,14 @@ namespace ExcelDna.Logging
                 }
                 if (loggingEnabled)
                 {
-                    if (!logDisplayTraceListenerIsConfigured)
+                    if (logDisplayTraceListenerIsConfigured)
+                    {
+                        if (logDisplayTraceListenerToRemove != null)
+                        {
+                            IntegrationTraceSource.Listeners.Remove(logDisplayTraceListenerToRemove);
+                        }
+                    }
+                    else
                     {
                         // No explicit configuration for this default listener, so we add it
                         IntegrationTraceSource.Listeners.Add(new LogDisplayTraceListener("LogDisplay"));
