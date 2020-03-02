@@ -190,7 +190,13 @@ namespace ExcelDna.Integration.Rtd
 
             // 2016-11-04: ExcelRtdServer.ConnectData was changed so that this call, 
             //             if it happens during the ConnectData, will have no effect (saving an extra function call).
-            _topic.UpdateNotify();
+
+            // 2020-03-02: Now Excel's behaviour seems ot have changed, and without an updated value the topic does not seem to update even if present in RefreshData
+            //             Previously we just added the topic to RefreshData:
+            //                  _topic.UpdateNotify();
+            //             Now we really update again, but with something more careful than before to not have the millisecond problem
+            //             Ticks should be fine?
+            _topic.UpdateValue(DateTime.UtcNow.Ticks);
         }
     }
 
@@ -203,6 +209,10 @@ namespace ExcelDna.Integration.Rtd
         // If it is the default #N/A error value, then the topic is not restarted when re-opening the sheet.
         // So we never want to be in the #N/A state.
         // CONSIDER: What do we do use for the alternative values - something more obviously invalid?
+
+        // 2020-03-02: It seems Excel no longer updates if the RefreshData returns the same value.
+        //             So for regular updates we will set the internal topic value to a new value on every update
+
         internal static readonly object TopicValueActive = -1.0;
         internal static readonly object TopicValueActiveNA = ExcelErrorUtil.ToComError(ExcelError.ExcelErrorNA);
         internal static readonly object TopicValueCompleted = -2.0;

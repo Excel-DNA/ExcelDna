@@ -3,6 +3,7 @@ Version 1.1 (???)
 * Sign the ExcelDna.Integration assembly
 * Add wildcard support for .dna file References Path, e.g. "./*.dll"
 * Add optimised RTD wrapper registration
+* Add workaround for IExcelObservable updates failing with recent Excel versions
 
 Version 1.0 (27 April 2019)
 ------------------------

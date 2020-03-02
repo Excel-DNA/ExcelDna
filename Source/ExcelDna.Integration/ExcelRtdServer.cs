@@ -56,6 +56,8 @@ namespace ExcelDna.Integration.Rtd
             /// Calls UpdateNotify on the RTD server to refresh.
             /// Does not normally need to be called if UpdateValue(newValue) has been called,
             /// but can be used to force a recalculation of the RTD cell even if the value has not changed.
+            /// NOTE: It seems around Feb 2020 this stopped working, and Excel no longer updates a cell just because RefreshData contains the topic
+            ///       If this is true, we should obsolete this as a public member, since it no longer implements the intended meaning
             /// </summary>
             public void UpdateNotify()
             {
