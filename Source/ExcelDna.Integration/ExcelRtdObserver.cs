@@ -16,7 +16,7 @@ namespace ExcelDna.Integration.Rtd
 
         // This is the most general RTD registration
         // This should not be called from a ThreadSafe function.
-        public static object ProcessObservable(string functionName, object parameters, ExcelObservableOptions options, ExcelObservableSource getObservable)
+        public static object ProcessObservable(string functionName, object parameters, ExcelObservableSource getObservable)
         {
             if (!SynchronizationManager.IsInstalled)
             {
@@ -47,19 +47,19 @@ namespace ExcelDna.Integration.Rtd
 
             // Not registered before - actually register as a new Observable
             IExcelObservable observable = getObservable();
-            return RegisterObservable(callInfo, options, observable);
+            return RegisterObservable(callInfo, observable);
         }
 
         // Make a one-shot 'Observable' from the func
         public static object ProcessFunc(string functionName, object parameters, ExcelFunc func)
         {
-            return ProcessObservable(functionName, parameters, ExcelObservableOptions.None,
+            return ProcessObservable(functionName, parameters, 
                 delegate { return new ThreadPoolDelegateObservable(func); });
         }
 
         public static object ProcessFuncAsyncHandle(string functionName, object parameters, ExcelFuncAsyncHandle func)
         {
-            return ProcessObservable(functionName, parameters, ExcelObservableOptions.None,
+            return ProcessObservable(functionName, parameters, 
                 delegate
                 {
                     ExcelAsyncHandleObservable asyncHandleObservable = new ExcelAsyncHandleObservable();
@@ -70,7 +70,7 @@ namespace ExcelDna.Integration.Rtd
 
         // Register a new observable
         // Returns null if it failed (due to RTD array-caller first call)
-        static object RegisterObservable(AsyncCallInfo callInfo, ExcelObservableOptions options, IExcelObservable observable)
+        static object RegisterObservable(AsyncCallInfo callInfo, IExcelObservable observable)
         {
             // Check it's not registered already
             Debug.Assert(!_asyncCallIds.ContainsKey(callInfo));
@@ -81,7 +81,7 @@ namespace ExcelDna.Integration.Rtd
             Guid id = Guid.NewGuid();
             Debug.Print("AsyncObservableImpl.RegisterObservable - Id: {0}", id);
             _asyncCallIds[callInfo] = id;
-            AsyncObservableState state = new AsyncObservableState(id, callInfo, caller, options, observable);
+            AsyncObservableState state = new AsyncObservableState(id, callInfo, caller, observable);
             _observableStates[id] = state;
 
             // Will spin up RTD server and topic if required, causing us to be called again...
@@ -142,6 +142,9 @@ namespace ExcelDna.Integration.Rtd
     {
         readonly ExcelRtdServer.Topic _topic;
 
+        // 2^52 -1 - we'll roll over the TopicValue here, so that the double representation of the incrementing integer is always unique
+        const long MaxTopicValue = 4503599627370495;
+
         // Indicates whether the RTD Topic should be shut down
         // Set to true if the work is completed or if an error is signalled.
         public bool IsCompleted { get; private set; }
@@ -177,7 +180,11 @@ namespace ExcelDna.Integration.Rtd
         public void OnNext(object value)
         {
             Value = value;
-            // Not actually setting the topic value, just poking it
+
+            // This code has had  alot of churn
+            // Old versions set the Topic Value, then many versions did not
+            // From v1.1 (2020-03-02) we set it again to a dummy value
+
             // TODO: Using the 'fake' RTD value should be optional - to give us a way to deal with 'newValues' one day.
             //       But then we'd need to be really careful with error values (which prevent restart).
             // BUGBUG: The ToOADate truncates, things might happy in the same millisecond etc.
@@ -191,12 +198,13 @@ namespace ExcelDna.Integration.Rtd
             // 2016-11-04: ExcelRtdServer.ConnectData was changed so that this call, 
             //             if it happens during the ConnectData, will have no effect (saving an extra function call).
 
-            // 2020-03-02: Now Excel's behaviour seems ot have changed, and without an updated value the topic does not seem to update even if present in RefreshData
+            // 2020-03-02: Now Excel's behaviour seems to have changed, and without an updated value the topic does not seem to update even if present in RefreshData
             //             Previously we just added the topic to RefreshData:
             //                  _topic.UpdateNotify();
             //             Now we really update again, but with something more careful than before to not have the millisecond problem
-            //             Ticks should be fine?
-            _topic.UpdateValue(DateTime.UtcNow.Ticks);
+            //             We're not worried about a race condition here - multiple thread might update at once, but we just need one to succeed in setting a new value
+
+            _topic.UpdateValue((((double)_topic.Value) + 1) % MaxTopicValue);
         }
     }
 
@@ -213,9 +221,8 @@ namespace ExcelDna.Integration.Rtd
         // 2020-03-02: It seems Excel no longer updates if the RefreshData returns the same value.
         //             So for regular updates we will set the internal topic value to a new value on every update
 
-        internal static readonly object TopicValueActive = -1.0;
-        internal static readonly object TopicValueActiveNA = ExcelErrorUtil.ToComError(ExcelError.ExcelErrorNA);
-        internal static readonly object TopicValueCompleted = -2.0;
+        internal static readonly object TopicValueInitial = 1.0;    // We'll increment from here with every new value
+        internal static readonly object TopicValueCompleted = -2.0; // We park here after OnCompleted
 
         class ObserverRtdTopic : Topic
         {
@@ -231,31 +238,18 @@ namespace ExcelDna.Integration.Rtd
             }
         }
 
-        object ValueActiveFromTopicInfo(IList<string> topicInfo)
-        {
-            if (topicInfo.Count > 1 && topicInfo[1] == "1") // If ExcelObservableOptions expand, we might need to be more careful here.
-            {
-                // Special case - use #N/A to implement ExcelObservableOptions.NoAutoStartOnOpen
-                return TopicValueActiveNA;
-            }
-            return TopicValueActive;
-        }
-
         protected override Topic CreateTopic(int topicId, IList<string> topicInfo)
         {
             Guid id = new Guid(topicInfo[0]);
-            object valueActive = ValueActiveFromTopicInfo(topicInfo);
-            return new ObserverRtdTopic(this, topicId, id, valueActive);
+            return new ObserverRtdTopic(this, topicId, id, TopicValueInitial);
         }
 
         protected override object ConnectData(Topic topic, IList<string> topicInfo, ref bool newValues)
         {
             Debug.Print("ExcelObserverRtdServer.ConnectData: ProgId: {0}, TopicId: {1}, TopicInfo: {2}, NewValues: {3}", RegisteredProgId, topic.TopicId, topicInfo[0], newValues);
 
-            // The topic might be "completed" on a separate thread, so we need to return the initial, intended active value
-            // Mostly this is TopicValueActive, but sometimes TopicValueActiveNA
-            // Rather than store this for every topic, we just recalculate it here
-            object valueActive = ValueActiveFromTopicInfo(topicInfo);
+            // The topic might be "completed" or incremented on a separate thread, so we need to return the initial, intended active value
+            object initialValue = TopicValueInitial;
 
             if (newValues == false)
             {
@@ -265,7 +259,7 @@ namespace ExcelDna.Integration.Rtd
                 // Result should be a Disconnect followed by a proper Connect via the wrapper.
 
                 newValues = true;
-                return valueActive;
+                return initialValue;
             }
             // Retrieve and store the GUID from the topic's first info string - used to hook up to the Async state
             Guid id = ((ObserverRtdTopic)topic).Id;
@@ -284,8 +278,6 @@ namespace ExcelDna.Integration.Rtd
             // So for the ObserverRtdTopic we ensure the internal value is not an error,
             // (it is initialized to TopicValueActive)
             // which we return from here.
-            // 2017-03-19: Except if the topic is configured as ExcelObservableOptions.NoAutoStartOnOpen, in which case we _do_ want
-            //             the internal value to be #N/A. We return whichever ective value was set in the CreateTopic according to the topic info.
 
             // 2016-11-04: We are no longer returning the current value of topic.Value here.
             //             Since calls to UpdateValue inside the ConnectData no longer raise an
@@ -294,7 +286,7 @@ namespace ExcelDna.Integration.Rtd
             //             to raise an extra UpdateNotify, for the Disconnect of the already completed topic
             //             (I.e. if the completion happened during the ConnectData call).
 
-            return valueActive;
+            return initialValue;
         }
 
         protected override void DisconnectData(Topic topic)
@@ -643,13 +635,10 @@ namespace ExcelDna.Integration.Rtd
         IDisposable _currentSubscription;
 
         // caller may be null when not called as a worksheet function.
-        public AsyncObservableState(Guid id, AsyncCallInfo callInfo, ExcelReference caller, ExcelObservableOptions options, IExcelObservable observable)
+        public AsyncObservableState(Guid id, AsyncCallInfo callInfo, ExcelReference caller, IExcelObservable observable)
         {
             _callInfo = callInfo;
-            if (options == ExcelObservableOptions.None)
-                _topics = new string[] { id.ToString() };
-            else
-                _topics = new string[] { id.ToString(), ((int)options).ToString() } ;
+            _topics = new string[] { id.ToString() };
             _observable = observable;
             _callerState = AsyncCallerState.GetCallerState(caller); // caller might be null, _callerState should not be
         }

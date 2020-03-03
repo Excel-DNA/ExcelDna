@@ -38,11 +38,12 @@ namespace ExcelDna.Integration
         void OnNext(object value);
     }
 
+    [Obsolete("Can't support the NoAutoStartOnOpen option anymore")]
     [Flags]
     public enum ExcelObservableOptions
     {
         None = 0,
-        NoAutoStartOnOpen = 1
+        NoAutoStartOnOpen = 1   
     }
 
     public static class ExcelAsyncUtil
@@ -56,12 +57,13 @@ namespace ExcelDna.Integration
         // This is the most general RTD registration
         public static object Observe(string callerFunctionName, object callerParameters, ExcelObservableSource observableSource)
         {
-            return Observe(callerFunctionName, callerParameters, ExcelObservableOptions.None, observableSource);
+            return AsyncObservableImpl.ProcessObservable(callerFunctionName, callerParameters, observableSource);
         }
 
+        [Obsolete("Can't support the NoAutoStartOnOpen option anymore - call without ExcelObservableOptions")]
         public static object Observe(string callerFunctionName, object callerParameters, ExcelObservableOptions options, ExcelObservableSource observableSource)
         {
-            return AsyncObservableImpl.ProcessObservable(callerFunctionName, callerParameters, options, observableSource);
+            return Observe(callerFunctionName, callerParameters, observableSource);
         }
 
         // Async function support

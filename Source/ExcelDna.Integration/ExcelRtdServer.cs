@@ -47,7 +47,7 @@ namespace ExcelDna.Integration.Rtd
                     if (!object.Equals(_value, fixedValue))
                     {
                         _value = fixedValue;
-                        UpdateNotify();
+                        _server.SetDirty(this);
                     }
                 }
             }
@@ -59,6 +59,7 @@ namespace ExcelDna.Integration.Rtd
             /// NOTE: It seems around Feb 2020 this stopped working, and Excel no longer updates a cell just because RefreshData contains the topic
             ///       If this is true, we should obsolete this as a public member, since it no longer implements the intended meaning
             /// </summary>
+            [Obsolete("Due to recent Excel updates, can no longer cause Topic update without changing value")]
             public void UpdateNotify()
             {
                 _server.SetDirty(this);
@@ -313,7 +314,12 @@ namespace ExcelDna.Integration.Rtd
                 // If there's a difference, we do force the update.
                 if (!object.Equals(value, topic.Value))
                 {
-                    topic.UpdateNotify();
+                    // 2020-03-03 v1.1
+                    // Changing from topic.UpdateNotify, which no longer (in recent Excel) seems to work on its own.
+                    // NOTE: In the unusual case that the FixValue inside Topic makes value == topic.Value, we won't get an update here
+                    //       E.g. for long strings that are truncated
+                    // 
+                    topic.UpdateValue(value);
                 }
                 return value;
             }
@@ -379,7 +385,7 @@ namespace ExcelDna.Integration.Rtd
 
         // Called by Excel is more that HeartbeatInterval millseconds have elapsed since the last UpdateNotify call
         // HeartbeatInterval cannot be less than 15000, but Heartbeat support can be switched off (-1)
-        // So our redundant UpdateNotify call should not ahppenin often
+        // So our redundant UpdateNotify call should not happenin often
         // We use the Heartbeat to retry any outstanding UpdateNotify call
         // (though this should not be needed according to the RTD interface contract)
         int IRtdServer.Heartbeat()
@@ -388,7 +394,7 @@ namespace ExcelDna.Integration.Rtd
             {
                 // Re-post the notify in case something went wrong on the Excel side or our sync window
                 // This should not be necessary but should not be harmful either
-                // There has been a report f the RTD server ptopping, perhaps due to sync window PostMessage failing
+                // There has been a report of the RTD server stopping, perhaps due to sync window PostMessage failing
                 // This is just an extra safety measure
                 lock (_updateLock)
                 {
