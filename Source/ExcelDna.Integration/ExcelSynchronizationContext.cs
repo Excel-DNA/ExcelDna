@@ -37,7 +37,7 @@ namespace ExcelDna.Integration
         static SynchronizationWindow _syncWindow;
 
         // Called from the Initialize (loading COM /RTD server) and/or from AutoOpen
-        internal static void Install()
+        internal static void Install(bool isAutoOpen)
         {
             if (!ExcelDnaUtil.IsMainThread)
             {
@@ -48,6 +48,11 @@ namespace ExcelDna.Integration
             {
                 Logger.Initialization.Info("SynchronizationManager - Install");
                 _syncWindow = new SynchronizationWindow();
+            }
+            if (isAutoOpen)
+            {
+                // Safe to call more than once
+                _syncWindow.Register();
             }
         }
 
@@ -196,7 +201,6 @@ namespace ExcelDna.Integration
         public RunMacroSynchronization(SynchronizationWindow syncWindow)
         {
             _syncWindow = syncWindow;
-            Register();
         }
 
         // Called from outside on any thread to enqueue work.
@@ -316,7 +320,7 @@ namespace ExcelDna.Integration
         }
 
         // Register the helper macro with Excel, so that Application.Run can call it.
-        void Register()
+        public void Register()
         {
             // CONSIDER: Can this be cleaned up by calling ExcelDna.Loader?
             // We must not be in a function when this is run, nor in an RTD method call.
@@ -581,6 +585,16 @@ namespace ExcelDna.Integration
             CreateHandle(cp);
             RtdUpdateSynchronization = new RtdUpdateSynchronization(this);
             RunMacroSynchronization = new RunMacroSynchronization(this);
+        }
+
+        // Complete the initialization when we are called in AutoOpen, and can try to install the macro
+        public void Register()
+        {
+            // This might fail under some expected circumstances - e.g. when called from Cluster host of RegSvr32 - exception thrown in thoses cases
+            if (!RunMacroSynchronization.IsRegistered)
+            {
+                RunMacroSynchronization.Register();
+            }
         }
 
         internal void PostUpdateNotify()
