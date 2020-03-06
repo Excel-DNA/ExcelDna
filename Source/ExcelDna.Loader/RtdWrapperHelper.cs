@@ -90,7 +90,7 @@ namespace ExcelDna.Loader
 
             callParamIndex = 9;
 
-            int countParams = LastNonMissingIndex(_callParams, callParamIndex) - 1;
+            int countParams = LastNonMissingIndex(_callParams, callParamIndex) + 1;
 
             int xlReturn = XlCallImpl.Excel12v(XlCallImpl.xlfRtd, countParams, _callParams, _resultXloper12);
             if (xlReturn == 0) // xlReturnSuccess)
