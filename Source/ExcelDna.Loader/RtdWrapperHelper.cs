@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using ExcelDna.Loader.Logging;
 
 namespace ExcelDna.Loader
 {
@@ -92,16 +93,20 @@ namespace ExcelDna.Loader
 
             int countParams = LastNonMissingIndex(_callParams, callParamIndex) + 1;
 
-            int xlReturn = XlCallImpl.Excel12v(XlCallImpl.xlfRtd, countParams, _callParams, _resultXloper12);
-            if (xlReturn == 0) // xlReturnSuccess)
+            try
             {
-                _resultXloper12->xlType |= XlType12.XlBitXLFree;
-                return _resultXloper12;
+                int xlReturn = XlCallImpl.Excel12v(XlCallImpl.xlfRtd, countParams, _callParams, _resultXloper12);
+                if (xlReturn == 0) // xlReturnSuccess)
+                {
+                    _resultXloper12->xlType |= XlType12.XlBitXLFree;
+                    return _resultXloper12;
+                }
             }
-            else
+            catch (Exception e)
             {
-                return _errorValueXloper12;
+                Logger.Initialization.Error(e, "RTD call from wrapper failed with Exception");
             }
+            return _errorValueXloper12;
         }
 
         int LastNonMissingIndex(XlOper12** callParams, int lastIndex)
