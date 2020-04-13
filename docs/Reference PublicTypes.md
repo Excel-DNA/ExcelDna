@@ -30,3 +30,4 @@ Intended for use within user code (all in the namepace ExcelDna.Integration) are
 	IsHidden
 * ExcelComClassAttribute
 
+**should we rather generate this from source code comments (XML, docfx)?**
