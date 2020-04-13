@@ -40,7 +40,6 @@ Otherwise, browse through the list of other resources and examples on the [Docum
 * [Async macro example - formatting the calling cell from a UDF](Async macro example - formatting the calling cell from a UDF)
 * [Enumerating Excel COM Automation collections in VB.NET](Enumerating Excel COM Automation collections in VB.NET)
 * [Modal dialog on new thread](Modal dialog on new thread)
-* Showing a WPF form on a new thread [https://exceldna.codeplex.com/discussions/266302](https://exceldna.codeplex.com/discussions/266302)
 
 ### Reference
 **Disclaimer:** The Reference section is still sparse and far from complete. Similar to above, there is an ongoing effort to complete the documentation.
@@ -64,6 +63,6 @@ There is a searchable record of more than 3460 messages on the Google group: [ht
 
 **Please don't hesitate to ask.** If you are stuck or need some help using Excel-DNA your questions really are very welcome - whether you are just getting started, or an Excel-DNA expert.
 
-And if you could help put together some proper documentation, please contact me. I'd be happy to add you as an editor on the CodePlex project.
+And if you could help put together some proper documentation, please contact me. I'd be happy to add you as an editor on the Github project.
 
 _-Govert_
