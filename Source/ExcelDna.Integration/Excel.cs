@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Reflection;
 
 namespace ExcelDna.Integration
@@ -679,6 +680,14 @@ namespace ExcelDna.Integration
             get
             {
                 return DnaLibrary.XllPath;
+            }
+        }
+
+        public static FileInfo XllPathInfo
+        {
+            get
+            {
+                return DnaLibrary.XllPathInfo;
             }
         }
 
