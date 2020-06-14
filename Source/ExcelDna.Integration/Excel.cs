@@ -732,6 +732,24 @@ namespace ExcelDna.Integration
             }
         }
         #endregion
+
+        #region SupportsDynamicArrays
+        static bool? _supportsDynamicArrays;
+        public static bool SupportsDynamicArrays
+        {
+            get
+            {
+                if (!_supportsDynamicArrays.HasValue)
+                {
+                    object result;
+                    var returnValue = XlCall.TryExcel(614 , out result, new object[] { 1 }, new object[] { true }); // 614 means FILTER
+                    // Now examine returnValue, which should be of type XlReturn – it will presumably be XlReturn.XlReturnSuccess for Dynamic Array Excel, otherwise XlReturn.XlReturnFailed or similar for non-DA Excel.
+                    _supportsDynamicArrays = (returnValue == XlCall.XlReturn.XlReturnSuccess);
+                }
+                return _supportsDynamicArrays.Value;
+            }
+        }
+        #endregion
     }
 
     public class ExcelLimits
