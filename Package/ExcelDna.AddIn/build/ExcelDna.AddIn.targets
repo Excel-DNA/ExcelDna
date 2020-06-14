@@ -69,6 +69,17 @@
   </Target>
 
   <!--
+    Target that ensures ExcelDna.Integration.dll is not copied to the output folder
+    https://github.com/Excel-DNA/ExcelDna/issues/188
+  -->
+  <Target Name="ExcelDnaPreventIntegrationCopyLocal" AfterTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+                               Condition="'%(ReferenceCopyLocalPaths.Filename)%(ReferenceCopyLocalPaths.Extension)' == 'ExcelDna.Integration.dll'" />
+    </ItemGroup>
+  </Target>
+
+  <!--
     Configure debugger options (Path for EXCEL.EXE, add-in to open, etc).
   -->
   <Target Name="ExcelDnaSetDebuggerOptions" BeforeTargets="PreBuildEvent" Condition="$(RunExcelDnaSetDebuggerOptions) AND '$(BuildingInsideVisualStudio)' == 'true'">
