@@ -50,6 +50,16 @@ namespace ExcelDna.Integration
             }
         }
 
+        private static FileInfo _xllPathPathInfo;
+        [XmlIgnore]
+        internal static FileInfo XllPathInfo
+        {
+            get
+            {
+                return _xllPathPathInfo;
+            }
+        }
+
         private string _Name;
         [XmlAttribute]
         public string Name
@@ -408,6 +418,7 @@ namespace ExcelDna.Integration
 
             // CAREFUL: Sequence here is fragile - this is the first place where we start logging
             _XllPath = xllPath;
+            _xllPathPathInfo = new FileInfo(xllPath);
             Logging.LogDisplay.CreateInstance();
             Logger.Initialization.Verbose("Enter DnaLibrary.InitializeRootLibrary");
             byte[] dnaBytes = ExcelIntegration.GetDnaFileBytes("__MAIN__");
