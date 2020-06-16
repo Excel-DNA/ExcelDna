@@ -40,6 +40,14 @@ Otherwise, browse through the list of other resources and examples on the [Docum
 * [Async macro example - formatting the calling cell from a UDF](Async macro example - formatting the calling cell from a UDF)
 * [Enumerating Excel COM Automation collections in VB.NET](Enumerating Excel COM Automation collections in VB.NET)
 * [Modal dialog on new thread](Modal dialog on new thread)
+* [Getting started with F and Excel-dna in finance](getting-started-with-f-and-excel-dna-in-finance)
+* [Resizing Excel UDF result arrays](resizing-excel-udf-result-arrays)
+* [Streaming real time data to Excel](streaming-real-time-data-to-excel)
+* [Tutorial on com server support for VBA integration](tutorial-com-server-support-for-vba-integration)
+* [Cluster UDF support](cluster-udf-support)
+* [Async and event streaming Excel UDFs with F](async-and-event-streaming-excel-udfs-with-f)
+* [Caching and asynchronous Excel UDFs](caching-and-asynchronous-excel-udfs)
+* [Excel UDF intellisense for Excel-dna and VBA](excel-udf-intellisense-for-excel-dna-and-vba)
 
 ### Reference
 **Disclaimer:** The Reference section is still sparse and far from complete. Similar to above, there is an ongoing effort to complete the documentation.

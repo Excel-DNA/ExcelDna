@@ -87,6 +87,21 @@ If you are a VBA developer interested in moving to .NET, you should start with [
 * [Jon Nyman's FxToExcel add-in](https://github.com/jon49/FxToExcel) brings financial program data into Excel.
 * [Stock Quote Add-In for Excel](https://github.com/jbaurle/PMStockQuote) provides access to the Yahoo financial data through an Excel-DNA add-in.
 * [DB-Addin for Excel](https://rkapl123.github.io/DBAddin/) is an MS Excel Addin for retrieving Database data via userdefined functions into Excel and writing Data (DBMapper), executing generic DML (DBAction) and doing all this in Sequences (DBSequence).
+* Alex Chirokov's **ACQ** add-in provides a library of interpolation routines for Excel. The add-in includes 1D and 2D interpolators, scatter plot smoothing and a Mersenne Twister random number generator. To have a closer look:
+	* Find the current release on GitHub: [https://github.com/ratesquant/ACQ/releases][acq-releases]
+	* With the main repository on GitHub at [https://github.com/ratesquant/ACQ][acq-repo]
+	* A very clear introduction to the library, including some of it's advanced features, is posted on Code Project: [http://www.codeproject.com/Articles/1097174/Interpolation-in-Excel-using-Excel-DNA][interpolation-article]
+Features I like about the add-in (apart from it using Excel-DNA) include:
+	* A liberal open-source license
+	* A clear and authoritative implementation of a particular domain
+	* Very nice example of using object handles - an interpolator is build from the data, and then used to interpolate many values. ACQ has a clean implementation and great example of this technique.
+	* All the functions have a common prefix ("`=acq`..."), making them easy to find in the function list, and use with the Excel-DNA IntelliSense extension.
+	* PS: ACQ has a bonus feature that implements a Sudoku solver (and generator)! See the write-up here: [Sudoku Solver in Excel using C# and Excel-DNA][sudoku-solver-article].
+* I noticed a very nice add-in developed by [Bryan McKelvey][bryan-mckelvey] called [FinAnSu][finansu]. The whole add-in is generously available under the MIT open source license, and is a fantastic example of what can be built with Excel-DNA.
+	* [FinAnSu][finansu] uses a ribbon interface to make the various functions and macros easy to find. The RTD server support is used to implement asynchronous data update functions, providing a live quote feed from Bloomberg, Google or Yahoo! And then there is a bunch of useful-looking financial functions. Here's a little preview:
+![FinAnSu Quote Animated][finansu-quote-img]
+	* Find the project on Google code: [http://code.google.com/p/finansu/][finansu], with detailed documentation on the wiki: [http://code.google.com/p/finansu/wiki/Introduction][finansu-docs].
+	* You can browse through the [source code][finansu-source] online, and you can also download a copy of the whole project.
 
 ### Support
 And if you get stuck or have any questions, don't hesitate to ask on the [google groups mail list](https://groups.google.com/group/exceldna).
@@ -131,3 +146,12 @@ The current version is [Excel-DNA 1.00](https://excel-dna.net/2019/03/17/excel-d
 
 [paypal-link]: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&amp;business=92N99RV5NQ29C&amp;lc=US&amp;item_name=Govert%20van%20Drimmelen&amp;item_number=ExcelDna&amp;currency_code=USD&amp;bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted
 [paypal-image]: https://www.paypal.com/en_GB/i/btn/btn_donateCC_LG.gif "Donate via PayPal"
+[acq-releases]: https://github.com/ratesquant/ACQ/releases
+[acq-repo]: https://github.com/ratesquant/ACQ
+[interpolation-article]: http://www.codeproject.com/Articles/1097174/Interpolation-in-Excel-using-Excel-DNA
+[sudoku-solver-article]: http://www.codeproject.com/Articles/1098156/Sudoku-Solver-in-Excel-using-Csharp-and-Excel-DNA
+[bryan-mckelvey]: https://github.com/brymck
+[finansu]: http://code.google.com/p/finansu/
+[finansu-quote-img]: /images/finansu-quote-animated.gif "FinAnSu Quote Animated"
+[finansu-docs]: http://code.google.com/p/finansu/wiki/Introduction
+[finansu-source]: http://code.google.com/p/finansu/source/browse/
