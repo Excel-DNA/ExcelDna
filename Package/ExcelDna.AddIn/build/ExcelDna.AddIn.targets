@@ -82,7 +82,9 @@
   <!--
     Configure debugger options (Path for EXCEL.EXE, add-in to open, etc).
   -->
-  <Target Name="ExcelDnaSetDebuggerOptions" BeforeTargets="PreBuildEvent" Condition="$(RunExcelDnaSetDebuggerOptions) AND '$(BuildingInsideVisualStudio)' == 'true'">
+  <Target Name="ExcelDnaSetDebuggerOptions"
+          BeforeTargets="PreBuildEvent"
+          Condition="'$(RunExcelDnaSetDebuggerOptions)'== 'true' AND '$(BuildingInsideVisualStudio)' == 'true'">
     <Message Text="---" Importance="High" />
 
     <Error Text="ExcelDna32BitAddInSuffix and ExcelDna64BitAddInSuffix cannot be identical. Fix your ExcelDna.Build.props file"
@@ -107,7 +109,8 @@
   <!--
     Target that removes .dna, .xll, and .xll.config from the build output folder
   -->
-  <Target Name="ExcelDnaClean" Condition="$(RunExcelDnaClean)">
+  <Target Name="ExcelDnaClean"
+          Condition="'$(RunExcelDnaClean)' == 'true'">
     <Message Text="---" Importance="High" />
 
     <Error Text="ExcelDna32BitAddInSuffix and ExcelDna64BitAddInSuffix cannot be identical. Fix your ExcelDna.Build.props file"
@@ -133,14 +136,14 @@
   <!--
     Target that copies .dna, .xll, and .xll.config to the build output folder, for each platform
   -->
-  <Target Name="ExcelDnaBuild" BeforeTargets="PostBuildEvent" Condition="$(RunExcelDnaBuild)">
+  <Target Name="ExcelDnaBuild" BeforeTargets="PostBuildEvent" Condition="'$(RunExcelDnaBuild)' == 'true'">
     <Message Text="---" Importance="High" />
 
     <Error Text="ExcelDna32BitAddInSuffix and ExcelDna64BitAddInSuffix cannot be identical. Fix your ExcelDna.Build.props file"
               Condition="'$(ExcelDna32BitAddInSuffix)' == '$(ExcelDna64BitAddInSuffix)'" />
 
     <Warning Text="ExcelDnaCreate32BitAddIn and ExcelDnaCreate64BitAddIn are both 'false'. Nothing to do"
-             Condition="(!$(ExcelDnaCreate32BitAddIn)) AND (!$(ExcelDnaCreate64BitAddIn))" />
+             Condition="('$(ExcelDnaCreate32BitAddIn)' == 'false') AND ('$(ExcelDnaCreate64BitAddIn)' == 'false')" />
 
     <ItemGroup>
       <ExcelDnaBuildFilesInProject Include="@(None)" />
@@ -161,13 +164,13 @@
       <Output TaskParameter="DnaFilesToPack" ItemName="ExcelDnaFilesToPack" />
     </CreateExcelAddIn>
 
-    <Message Text="---" Condition="$(RunExcelDnaPack)" Importance="High" />
+    <Message Text="---" Condition="'$(RunExcelDnaPack)' == 'true'" Importance="High" />
   </Target>
 
   <!--
     Target that runs ExcelDnaPack.exe for each .dna copied to the build output folder
   -->
-  <Target Name="ExcelDnaPack" DependsOnTargets="ExcelDnaBuild" BeforeTargets="PostBuildEvent" Condition="($(RunExcelDnaPack)) AND ('@(ExcelDnaFilesToPack->Count())' &gt; 0)" Outputs="%(ExcelDnaFilesToPack.Identity)">
+  <Target Name="ExcelDnaPack" DependsOnTargets="ExcelDnaBuild" BeforeTargets="PostBuildEvent" Condition="('$(RunExcelDnaPack)' == 'true') AND ('@(ExcelDnaFilesToPack->Count())' &gt; 0)" Outputs="%(ExcelDnaFilesToPack.Identity)">
     <Error Text="ExcelDnaPack: ExcelDnaPack.exe not found: $(ExcelDnaPackExePath)" Condition="!Exists('$(ExcelDnaPackExePath)')" />
 
     <!-- Run ExcelDnaPack.exe -->
