@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata minClientVersion="2.5">
         <id>ExcelDna.AddIn</id>
-        <version>1.1.0-beta2</version>
+        <version>1.1.0-beta3</version>
         <title>Excel-DNA Add-In</title>
         <authors>Govert van Drimmelen</authors>
         <owners>Govert van Drimmelen</owners>
@@ -13,7 +13,7 @@
         <description>Excel-DNA eases the development of Excel add-ins using .NET. 
     Add-ins created with Excel-DNA can export high-performance user-defined functions and macros, and can be packed into a single file for easy distribution and installation.
  
-    Excel versions 97 through 2016 can be targeted with a single add-in.
+    Excel versions 97 through 2019 / Office 365 can be targeted with a single add-in.
     Advanced Excel features are supported, including multi-threaded recalculation (Excel 2007 and later), registration-free RTD servers (Excel 2002 and later) and customized Ribbon and Task Pane interfaces (Excel 2007 and later) and asynchronous functions (Excel 2002 and later).
 
     Excel-DNA supports the .NET runtime version 2.0 (which is used by .NET versions 2.0, 3.0 and 3.5) and version 4.0 (the version number used by .NET 4, 4.5 and 4.6). 
@@ -23,7 +23,7 @@
         <tags>excel exceldna udf excel-dna</tags>
         <developmentDependency>true</developmentDependency>
         <dependencies>
-          <dependency id="ExcelDna.Integration" version="[1.1.0-beta2]" />
+          <dependency id="ExcelDna.Integration" version="[1.1.0-beta3]" />
         </dependencies>
     </metadata>
     <files>
