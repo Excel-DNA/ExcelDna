@@ -180,9 +180,9 @@ namespace ExcelDna.ComInterop.ComRegistration
                     // 3/22/2016: We use the intended hard coded reference of the HKCU hive to address the issue: https://groups.google.com/forum/#!topic/exceldna/CF_aNXTmV2Y
                     if (CanWriteMachineHive())
                     {
-                        var subkey = @"Software\Classes";
-                        Logger.ComAddIn.Verbose(@"RegistrationUtil.ClassesRootKey - Using HKLM\Software\Classes");
-                        _classesRootKey = Registry.LocalMachine.CreateSubKey(subkey, RegistryKeyPermissionCheck.ReadWriteSubTree);
+                        // GvD 2020/06/24 - Changed here from HKLM\Software\Classes to deal with DeleteKey error - see comments in CanWriteMachineHive
+                        Logger.ComAddIn.Verbose(@"RegistrationUtil.ClassesRootKey - Using HKCR");
+                        _classesRootKey = Registry.ClassesRoot; // .LocalMachine.CreateSubKey(subkey, RegistryKeyPermissionCheck.ReadWriteSubTree);
                     }
                     else if (CanWriteUserHive())
                     {
@@ -218,16 +218,24 @@ namespace ExcelDna.ComInterop.ComRegistration
             // This is not an easy question to answer, due to Registry Virtualization: http://msdn.microsoft.com/en-us/library/aa965884(v=vs.85).aspx
             // So if registry virtualization is active, the machine writes will redirect to a special user key.
             // I don't know how to detect that case, so we'll just write to the virtualized location.
-            string machineClassesRoot = @"Software\Classes";
-            const string testKeyName = "_ExcelDna.PermissionsTest";
+
+            // GvD 2020/06/24
+            // Some (possibly recent) changes broke this test, by causing the DeleteSubKey call to fail with an UnauthorizedAccessException (ACCESS DENIED)
+            // This is after the create and a write succeeds !?
+            // NOTE: Under ClickToRun installations of Office, the registry gets virtualized elsewhere
+            // For an elevated (as-admin) process, it seems to write here:
+            //  HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Office\ClickToRun\REGISTRY\MACHINE\Software\Classes\_ExcelDna.PermissionsTest
+            // Changing the key we use from HKLM\Software\Classes back to HKCR seems to work around this problem
+            // (I changed from HKCR to HKLM\Software\Classes in 2017 when adding logging and other clean-up - not sure whether it was otherwise motivated at the time)
+            // Weirdly, writing throug the Click-To-Run redirection seems to add higher order bits to the registry type, adding 0x40000, and deletes then change this to 0x50000 while leaving the key there
+
+            // Some notes about Click-To-Run "Passthrough paths" (not something we use at the moment):
+            // https://social.technet.microsoft.com/Forums/en-US/b352d803-a358-42e3-94b7-d40285bb43e2/office-clicktorun-and-passthroughpaths?forum=mdopappv
+
+            const string testKeyName = "_ExcelDna.PermissionsTest.Machine";
             try
             {
-                RegistryKey classesKey = Registry.LocalMachine.CreateSubKey(machineClassesRoot, RegistryKeyPermissionCheck.ReadWriteSubTree);
-                if (classesKey == null)
-                {
-                    Logger.ComAddIn.Verbose("RegistrationUtil.CanWriteMachineHive - Opening LocalMachineClassesRoot as ReadWrite failed - returning False");
-                    return false;
-                }
+                RegistryKey classesKey = Registry.ClassesRoot; // GvD 2020/06/24 we used to open HKLM\Software\Classes here - see comments above
 
                 RegistryKey testKey = classesKey.CreateSubKey(testKeyName, RegistryKeyPermissionCheck.ReadWriteSubTree);
                 if (testKey == null)
@@ -236,7 +244,7 @@ namespace ExcelDna.ComInterop.ComRegistration
                     return false;
                 }
 
-                classesKey.DeleteSubKeyTree(testKeyName);
+                classesKey.DeleteSubKey(testKeyName); // GvD 2020/06/24 Started failing here with UnauthorizedAccess when elevated !?
                 Logger.ComAddIn.Verbose("RegistrationUtil.CanWriteMachineHive - returning True");
 
                 // Looks fine, even though it might well be virtualized to some part of the user hive.
@@ -263,7 +271,7 @@ namespace ExcelDna.ComInterop.ComRegistration
         static bool CanWriteUserHive()
         {
             string userClassesRoot = WindowsIdentity.GetCurrent().User.ToString() + @"_CLASSES";
-            const string testKeyName = "_ExcelDna.PermissionsTest";
+            const string testKeyName = "_ExcelDna.PermissionsTest.User";
             try
             {
                 RegistryKey classesKey = Registry.Users.CreateSubKey(userClassesRoot, RegistryKeyPermissionCheck.ReadWriteSubTree);
@@ -384,10 +392,11 @@ namespace ExcelDna.ComInterop.ComRegistration
                 {
                     Deregister();
                 }
-                catch
+                catch (Exception ex)
                 {
                     // Ignore exception here - we've tried our best to clean up.
-                    // CONSIDER: Might be useful to log this error?
+                    // GvD 2020/06/24 Adding logging here because we were getting Delete errors when elevated
+                    Logger.ComAddIn.Verbose("Deregister error: " + ex.ToString());
                 }
                 _disposed = true;
             }
