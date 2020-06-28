@@ -1,5 +1,5 @@
-Version 1.1 (???)
------------------
+Version 1.1 (28 June 2020)
+--------------------------
 * Sign the ExcelDna.Integration assembly
 * Add wildcard support for .dna file References Path, e.g. "./*.dll"
 * Add optimised RTD wrapper registration
