@@ -54,6 +54,8 @@
     <ExcelDna32BitAddInSuffix Condition="'$(ExcelDna32BitAddInSuffix)' == ''"></ExcelDna32BitAddInSuffix>
     <ExcelDna64BitAddInSuffix Condition="'$(ExcelDna64BitAddInSuffix)' == ''">64</ExcelDna64BitAddInSuffix>
 
+    <ExcelDnaAllowPackageReferenceProjectStyle Condition="'$(ExcelDnaAllowPackageReferenceProjectStyle)' == ''">false</ExcelDnaAllowPackageReferenceProjectStyle>
+
     <ExcelDnaPackExePath Condition="'$(ExcelDnaPackExePath)' == ''">$(ExcelDnaToolsPath)ExcelDnaPack.exe</ExcelDnaPackExePath>
     <ExcelDnaPackXllSuffix Condition="'$(ExcelDnaPackXllSuffix)' == ''">-packed</ExcelDnaPackXllSuffix>
     <ExcelDnaPackCompressResources Condition="'$(ExcelDnaPackCompressResources)' == ''">true</ExcelDnaPackCompressResources>
@@ -64,9 +66,9 @@
     Target that checks if the project is not compatible with Excel-DNA
   -->
   <Target Name="ExcelDnaCheckPackageProjectStyle" BeforeTargets="CoreCompile">
-    <Warning Code="DNA1546"
-             Text="Excel-DNA is not compatible with projects that use NuGet `PackageReference`. Make sure you create a .NET Framework (Class Library) project and configure Visual Studio to use `packages.config`"
-             Condition=" '$(PackageReferenceCompatibleProjectStyle)' == 'true' OR '$(RestoreProjectStyle)' == 'ProjectJson' OR '$(NuGetProjectStyle)' == 'PackageReference' " />
+    <Error Code="DNA1546"
+           Text="Excel-DNA is not compatible with projects that use NuGet `PackageReference`. Make sure you create a .NET Framework (Class Library) project and configure Visual Studio to use `packages.config`"
+           Condition=" '$(ExcelDnaAllowPackageReferenceProjectStyle)' != 'true' AND ('$(PackageReferenceCompatibleProjectStyle)' == 'true' OR '$(RestoreProjectStyle)' == 'ProjectJson' OR '$(NuGetProjectStyle)' == 'PackageReference') " />
   </Target>
 
   <!--
