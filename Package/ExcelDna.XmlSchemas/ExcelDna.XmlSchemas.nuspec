@@ -6,9 +6,9 @@
     <title>Excel-DNA XML Schemas</title>
     <authors>Excel-DNA Contributors</authors>
     <owners>exceldna</owners>
-    <projectUrl>http://excel-dna.net</projectUrl>
+    <projectUrl>https://excel-dna.net</projectUrl>
     <repository type="git" url="https://github.com/Excel-DNA/ExcelDna" />
-    <iconUrl>http://docs.excel-dna.net/NuGetIcon.png</iconUrl>
+    <iconUrl>https://docs.excel-dna.net/NuGetIcon.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>This package contains XSD files that enables IntelliSense and validation when editing `.dna` files, for example, in Visual Studio.</description>
     <summary>XSD files for IntelliSense and validation of `.dna` files.</summary>
