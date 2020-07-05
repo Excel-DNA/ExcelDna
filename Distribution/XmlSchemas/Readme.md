@@ -35,11 +35,11 @@ There are different ways you can get IntelliSense and validation for Excel-DNA A
 
     This package will add the 3 (three) XML Schema Definition files described above ([`ExcelDna.DnaLibrary.xsd`][dna-xsd], [`customUI.xsd`][cui-2007-xsd], and [`customui14.xsd`][cui-2010-xsd]) which Visual Studio will use to validate and provide IntelliSense to your `.dna` files and `.xml` files for Office Custom UI Ribbons, CTPs, etc.
 
-2. Add the XML namespace `http://schemas.excel-dna.net/addin/2018/05/dnalibrary` to your `.dna` file(s). E.g.:
+2. Add the XML namespace `http://schemas.excel-dna.net/addin/2020/07/dnalibrary` to your `.dna` file(s). E.g.:
 
     ```xml
     <?xml version="1.0" encoding="utf-8"?>
-    <DnaLibrary Name="Your Add-In" RuntimeVersion="v4.0" xmlns="http://schemas.excel-dna.net/addin/2018/05/dnalibrary">
+    <DnaLibrary Name="Your Add-In" RuntimeVersion="v4.0" xmlns="http://schemas.excel-dna.net/addin/2020/07/dnalibrary">
       <!-- (...) -->
     </DnaLibrary>
     ```
@@ -54,11 +54,11 @@ There are different ways you can get IntelliSense and validation for Excel-DNA A
 
 2. Add these files to your Excel-DNA Add-In project or solution, so that Visual Studio can detect them to perform validation and provide IntelliSense to your `.dna` files and `.xml` files for Office Custom UI Ribbons, CTPs, etc.
 
-3. Add the XML namespace `http://schemas.excel-dna.net/addin/2018/05/dnalibrary` to your `.dna` file(s). E.g.:
+3. Add the XML namespace `http://schemas.excel-dna.net/addin/2020/07/dnalibrary` to your `.dna` file(s). E.g.:
 
     ```xml
     <?xml version="1.0" encoding="utf-8"?>
-    <DnaLibrary Name="Your Add-In" RuntimeVersion="v4.0" xmlns="http://schemas.excel-dna.net/addin/2018/05/dnalibrary">
+    <DnaLibrary Name="Your Add-In" RuntimeVersion="v4.0" xmlns="http://schemas.excel-dna.net/addin/2020/07/dnalibrary">
       <!-- (...) -->
     </DnaLibrary>
     ```
@@ -83,7 +83,7 @@ In the instructions below, `%ProgramFiles(x86)%` is used to refer to the `Progra
 
     For more detailed information about [Visual Studio's Schema Cache][vs-schema-cache], see the documentation on Microsoft's website: [https://docs.microsoft.com/en-us/visualstudio/xml-tools/schema-cache][vs-schema-cache]
 
-3. IntelliSense and validation should now work for all `.dna` files you open, automatically, even if they don't have the XML namespace for `.dna` files (`http://schemas.excel-dna.net/addin/2018/05/dnalibrary`) declared (although it a good practice to always include the XML namespace on your files). If it doesn't work, try restarting any open instances of Visual Studio and try again.
+3. IntelliSense and validation should now work for all `.dna` files you open, automatically, even if they don't have the XML namespace for `.dna` files (`http://schemas.excel-dna.net/addin/2020/07/dnalibrary`) declared (although it a good practice to always include the XML namespace on your files). If it doesn't work, try restarting any open instances of Visual Studio and try again.
 
 NOTE: Updates to Visual Studio may reset the global schema cache, undoing the changes made above. If that happens and you no longer see IntelliSense for `.dna` files, you'll need to repeat the steps above. Also, remember that other developers working on your project will not have IntelliSense or validation on their machines, unless they also perform the manual steps outlined above.
 
