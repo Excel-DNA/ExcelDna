@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<DnaLibrary Name="%ProjectName% Add-In" RuntimeVersion="v4.0" xmlns="http://schemas.excel-dna.net/addin/2018/05/dnalibrary">
+<DnaLibrary Name="%ProjectName% Add-In" RuntimeVersion="v4.0" xmlns="http://schemas.excel-dna.net/addin/2020/07/dnalibrary">
   <ExternalLibrary Path="%OutputFileName%" ExplicitExports="false" LoadFromBytes="true" Pack="true" IncludePdb="false" />
 
   <!--
-       The RuntimeVersion attribute above allows two settings:
-       * RuntimeVersion="v4.0" - for .NET 4 and 4.5
-       * RuntimeVersion="v2.0" - for .NET 2.0, 3.0 and 3.5
+       The RuntimeVersion attribute above allows only the following setting:
+       * RuntimeVersion="v4.0" - for .NET 4.5 or higher
 
        You can have IntelliSense (autocomplete) and validation for this file.
        See https://github.com/Excel-DNA/ExcelDna/tree/master/Distribution/XmlSchemas/
@@ -18,6 +17,6 @@
        <Reference Path="Another.Library.dll" Pack="true" />
 
        Excel-DNA also allows the XML for ribbon UI extensions to be specified in the .dna file.
-       See the main Excel-DNA site at http://excel-dna.net for downloads of the full distribution.
+       See the main Excel-DNA site at https://excel-dna.net for downloads of the full distribution.
   -->
 </DnaLibrary>

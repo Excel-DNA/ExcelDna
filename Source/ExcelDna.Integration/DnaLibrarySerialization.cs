@@ -12,11 +12,11 @@ namespace ExcelDna.Serialization
         public void Write8_DnaLibrary(object o) {
             WriteStartDocument();
             if (o == null) {
-                WriteEmptyTag(@"DnaLibrary", @"http://schemas.excel-dna.net/addin/2018/05/dnalibrary");
+                WriteEmptyTag(@"DnaLibrary", @"http://schemas.excel-dna.net/addin/2020/07/dnalibrary");
                 return;
             }
             TopLevelElement();
-            Write7_DnaLibrary(@"DnaLibrary", @"http://schemas.excel-dna.net/addin/2018/05/dnalibrary", ((global::ExcelDna.Integration.DnaLibrary)o), false, false);
+            Write7_DnaLibrary(@"DnaLibrary", @"http://schemas.excel-dna.net/addin/2020/07/dnalibrary", ((global::ExcelDna.Integration.DnaLibrary)o), false, false);
         }
 
         void Write7_DnaLibrary(string n, string ns, global::ExcelDna.Integration.DnaLibrary o, bool isNullable, bool needType) {
@@ -33,7 +33,7 @@ namespace ExcelDna.Serialization
                 }
             }
             WriteStartElement(n, ns, o, false, null);
-            if (needType) WriteXsiType(null, @"http://schemas.excel-dna.net/addin/2018/05/dnalibrary");
+            if (needType) WriteXsiType(null, @"http://schemas.excel-dna.net/addin/2020/07/dnalibrary");
             WriteAttribute(@"Name", @"", ((global::System.String)o.@Name));
             WriteAttribute(@"RuntimeVersion", @"", ((global::System.String)o.@RuntimeVersion));
             WriteAttribute(@"ShadowCopyFiles", @"", System.Xml.XmlConvert.ToString((global::System.Boolean)((global::System.Boolean)o.@ShadowCopyFiles)));
@@ -46,7 +46,7 @@ namespace ExcelDna.Serialization
                 global::System.Collections.Generic.List<global::ExcelDna.Integration.ExternalLibrary> a = (global::System.Collections.Generic.List<global::ExcelDna.Integration.ExternalLibrary>)o.@ExternalLibraries;
                 if (a != null) {
                     for (int ia = 0; ia < ((System.Collections.ICollection)a).Count; ia++) {
-                        Write2_ExternalLibrary(@"ExternalLibrary", @"http://schemas.excel-dna.net/addin/2018/05/dnalibrary", ((global::ExcelDna.Integration.ExternalLibrary)a[ia]), false, false);
+                        Write2_ExternalLibrary(@"ExternalLibrary", @"http://schemas.excel-dna.net/addin/2020/07/dnalibrary", ((global::ExcelDna.Integration.ExternalLibrary)a[ia]), false, false);
                     }
                 }
             }
@@ -54,7 +54,7 @@ namespace ExcelDna.Serialization
                 global::System.Collections.Generic.List<global::ExcelDna.Integration.Project> a = (global::System.Collections.Generic.List<global::ExcelDna.Integration.Project>)o.@Projects;
                 if (a != null) {
                     for (int ia = 0; ia < ((System.Collections.ICollection)a).Count; ia++) {
-                        Write5_Project(@"Project", @"http://schemas.excel-dna.net/addin/2018/05/dnalibrary", ((global::ExcelDna.Integration.Project)a[ia]), false, false);
+                        Write5_Project(@"Project", @"http://schemas.excel-dna.net/addin/2020/07/dnalibrary", ((global::ExcelDna.Integration.Project)a[ia]), false, false);
                     }
                 }
             }
@@ -62,7 +62,7 @@ namespace ExcelDna.Serialization
                 global::System.Collections.Generic.List<global::ExcelDna.Integration.Reference> a = (global::System.Collections.Generic.List<global::ExcelDna.Integration.Reference>)o.@References;
                 if (a != null) {
                     for (int ia = 0; ia < ((System.Collections.ICollection)a).Count; ia++) {
-                        Write3_Reference(@"Reference", @"http://schemas.excel-dna.net/addin/2018/05/dnalibrary", ((global::ExcelDna.Integration.Reference)a[ia]), false, false);
+                        Write3_Reference(@"Reference", @"http://schemas.excel-dna.net/addin/2020/07/dnalibrary", ((global::ExcelDna.Integration.Reference)a[ia]), false, false);
                     }
                 }
             }
@@ -74,7 +74,7 @@ namespace ExcelDna.Serialization
                 if (a != null) {
                     for (int ia = 0; ia < ((System.Collections.ICollection)a).Count; ia++) {
                         if ((((global::System.Xml.XmlNode)a[ia])) is System.Xml.XmlNode || ((global::System.Xml.XmlNode)a[ia]) == null) {
-                            WriteElementLiteral((System.Xml.XmlNode)((global::System.Xml.XmlNode)a[ia]), @"CustomUI", @"http://schemas.excel-dna.net/addin/2018/05/dnalibrary", false, false);
+                            WriteElementLiteral((System.Xml.XmlNode)((global::System.Xml.XmlNode)a[ia]), @"CustomUI", @"http://schemas.excel-dna.net/addin/2020/07/dnalibrary", false, false);
                         }
                         else {
                             throw CreateInvalidAnyTypeException(((global::System.Xml.XmlNode)a[ia]));
@@ -86,7 +86,7 @@ namespace ExcelDna.Serialization
                 global::System.Collections.Generic.List<global::ExcelDna.Integration.Image> a = (global::System.Collections.Generic.List<global::ExcelDna.Integration.Image>)o.@Images;
                 if (a != null) {
                     for (int ia = 0; ia < ((System.Collections.ICollection)a).Count; ia++) {
-                        Write6_Image(@"Image", @"http://schemas.excel-dna.net/addin/2018/05/dnalibrary", ((global::ExcelDna.Integration.Image)a[ia]), false, false);
+                        Write6_Image(@"Image", @"http://schemas.excel-dna.net/addin/2020/07/dnalibrary", ((global::ExcelDna.Integration.Image)a[ia]), false, false);
                     }
                 }
             }
@@ -107,7 +107,7 @@ namespace ExcelDna.Serialization
                 }
             }
             WriteStartElement(n, ns, o, false, null);
-            if (needType) WriteXsiType(null, @"http://schemas.excel-dna.net/addin/2018/05/dnalibrary");
+            if (needType) WriteXsiType(null, @"http://schemas.excel-dna.net/addin/2020/07/dnalibrary");
             WriteAttribute(@"Name", @"", ((global::System.String)o.@Name));
             WriteAttribute(@"Path", @"", ((global::System.String)o.@Path));
             WriteAttribute(@"Pack", @"", System.Xml.XmlConvert.ToString((global::System.Boolean)((global::System.Boolean)o.@Pack)));
@@ -128,7 +128,7 @@ namespace ExcelDna.Serialization
                 }
             }
             WriteStartElement(n, ns, o, false, null);
-            if (needType) WriteXsiType(null, @"http://schemas.excel-dna.net/addin/2018/05/dnalibrary");
+            if (needType) WriteXsiType(null, @"http://schemas.excel-dna.net/addin/2020/07/dnalibrary");
             WriteAttribute(@"Name", @"", ((global::System.String)o.@Name));
             WriteAttribute(@"AssemblyPath", @"", ((global::System.String)o.@AssemblyPath));
             WriteAttribute(@"Pack", @"", System.Xml.XmlConvert.ToString((global::System.Boolean)((global::System.Boolean)o.@Pack)));
@@ -151,7 +151,7 @@ namespace ExcelDna.Serialization
                 }
             }
             WriteStartElement(n, ns, o, false, null);
-            if (needType) WriteXsiType(null, @"http://schemas.excel-dna.net/addin/2018/05/dnalibrary");
+            if (needType) WriteXsiType(null, @"http://schemas.excel-dna.net/addin/2020/07/dnalibrary");
             WriteAttribute(@"Name", @"", ((global::System.String)o.@Name));
             WriteAttribute(@"Language", @"", ((global::System.String)o.@Language));
             WriteAttribute(@"CompilerVersion", @"", ((global::System.String)o.@CompilerVersion));
@@ -164,7 +164,7 @@ namespace ExcelDna.Serialization
                 global::System.Collections.Generic.List<global::ExcelDna.Integration.Reference> a = (global::System.Collections.Generic.List<global::ExcelDna.Integration.Reference>)o.@References;
                 if (a != null) {
                     for (int ia = 0; ia < ((System.Collections.ICollection)a).Count; ia++) {
-                        Write3_Reference(@"Reference", @"http://schemas.excel-dna.net/addin/2018/05/dnalibrary", ((global::ExcelDna.Integration.Reference)a[ia]), false, false);
+                        Write3_Reference(@"Reference", @"http://schemas.excel-dna.net/addin/2020/07/dnalibrary", ((global::ExcelDna.Integration.Reference)a[ia]), false, false);
                     }
                 }
             }
@@ -172,7 +172,7 @@ namespace ExcelDna.Serialization
                 global::System.Collections.Generic.List<global::ExcelDna.Integration.SourceItem> a = (global::System.Collections.Generic.List<global::ExcelDna.Integration.SourceItem>)o.@SourceItems;
                 if (a != null) {
                     for (int ia = 0; ia < ((System.Collections.ICollection)a).Count; ia++) {
-                        Write4_SourceItem(@"SourceItem", @"http://schemas.excel-dna.net/addin/2018/05/dnalibrary", ((global::ExcelDna.Integration.SourceItem)a[ia]), false, false);
+                        Write4_SourceItem(@"SourceItem", @"http://schemas.excel-dna.net/addin/2020/07/dnalibrary", ((global::ExcelDna.Integration.SourceItem)a[ia]), false, false);
                     }
                 }
             }
@@ -196,7 +196,7 @@ namespace ExcelDna.Serialization
                 }
             }
             WriteStartElement(n, ns, o, false, null);
-            if (needType) WriteXsiType(null, @"http://schemas.excel-dna.net/addin/2018/05/dnalibrary");
+            if (needType) WriteXsiType(null, @"http://schemas.excel-dna.net/addin/2020/07/dnalibrary");
             WriteAttribute(@"Pack", @"", System.Xml.XmlConvert.ToString((global::System.Boolean)((global::System.Boolean)o.@Pack)));
             WriteAttribute(@"Name", @"", ((global::System.String)o.@Name));
             WriteAttribute(@"Path", @"", ((global::System.String)o.@Path));
@@ -220,7 +220,7 @@ namespace ExcelDna.Serialization
                 }
             }
             WriteStartElement(n, ns, o, false, null);
-            if (needType) WriteXsiType(null, @"http://schemas.excel-dna.net/addin/2018/05/dnalibrary");
+            if (needType) WriteXsiType(null, @"http://schemas.excel-dna.net/addin/2020/07/dnalibrary");
             WriteAttribute(@"Path", @"", ((global::System.String)o.@Path));
             WriteAttribute(@"TypeLibPath", @"", ((global::System.String)o.@TypeLibPath));
             WriteAttribute(@"ComServer", @"", System.Xml.XmlConvert.ToString((global::System.Boolean)((global::System.Boolean)o.@ComServer)));
@@ -265,7 +265,7 @@ namespace ExcelDna.Serialization
                 }
             }
             else {
-                UnknownNode(null, @"http://schemas.excel-dna.net/addin/2018/05/dnalibrary:DnaLibrary");
+                UnknownNode(null, @"http://schemas.excel-dna.net/addin/2020/07/dnalibrary:DnaLibrary");
             }
             return (object)o;
         }
@@ -359,7 +359,7 @@ namespace ExcelDna.Serialization
                         if ((object)(a_13) == null) Reader.Skip(); else a_13.Add(Read6_Image(false, true));
                     }
                     else {
-                        UnknownNode((object)o, @"http://schemas.excel-dna.net/addin/2018/05/dnalibrary:ExternalLibrary, http://schemas.excel-dna.net/addin/2018/05/dnalibrary:Project, http://schemas.excel-dna.net/addin/2018/05/dnalibrary:Reference, http://schemas.excel-dna.net/addin/2018/05/dnalibrary:CustomUI, http://schemas.excel-dna.net/addin/2018/05/dnalibrary:Image");
+                        UnknownNode((object)o, @"http://schemas.excel-dna.net/addin/2020/07/dnalibrary:ExternalLibrary, http://schemas.excel-dna.net/addin/2020/07/dnalibrary:Project, http://schemas.excel-dna.net/addin/2020/07/dnalibrary:Reference, http://schemas.excel-dna.net/addin/2020/07/dnalibrary:CustomUI, http://schemas.excel-dna.net/addin/2020/07/dnalibrary:Image");
                     }
                 }
                 else if (Reader.NodeType == System.Xml.XmlNodeType.Text || 
@@ -370,7 +370,7 @@ namespace ExcelDna.Serialization
                     o.@Code = tmp;
                 }
                 else {
-                    UnknownNode((object)o, @"http://schemas.excel-dna.net/addin/2018/05/dnalibrary:ExternalLibrary, http://schemas.excel-dna.net/addin/2018/05/dnalibrary:Project, http://schemas.excel-dna.net/addin/2018/05/dnalibrary:Reference, http://schemas.excel-dna.net/addin/2018/05/dnalibrary:CustomUI, http://schemas.excel-dna.net/addin/2018/05/dnalibrary:Image");
+                    UnknownNode((object)o, @"http://schemas.excel-dna.net/addin/2020/07/dnalibrary:ExternalLibrary, http://schemas.excel-dna.net/addin/2020/07/dnalibrary:Project, http://schemas.excel-dna.net/addin/2020/07/dnalibrary:Reference, http://schemas.excel-dna.net/addin/2020/07/dnalibrary:CustomUI, http://schemas.excel-dna.net/addin/2020/07/dnalibrary:Image");
                 }
                 Reader.MoveToContent();
                 CheckReaderCount(ref whileIterations0, ref readerCount0);
@@ -577,7 +577,7 @@ namespace ExcelDna.Serialization
                         if ((object)(a_9) == null) Reader.Skip(); else a_9.Add(Read4_SourceItem(false, true));
                     }
                     else {
-                        UnknownNode((object)o, @"http://schemas.excel-dna.net/addin/2018/05/dnalibrary:Reference, http://schemas.excel-dna.net/addin/2018/05/dnalibrary:SourceItem");
+                        UnknownNode((object)o, @"http://schemas.excel-dna.net/addin/2020/07/dnalibrary:Reference, http://schemas.excel-dna.net/addin/2020/07/dnalibrary:SourceItem");
                     }
                 }
                 else if (Reader.NodeType == System.Xml.XmlNodeType.Text || 
@@ -588,7 +588,7 @@ namespace ExcelDna.Serialization
                     o.@Code = tmp;
                 }
                 else {
-                    UnknownNode((object)o, @"http://schemas.excel-dna.net/addin/2018/05/dnalibrary:Reference, http://schemas.excel-dna.net/addin/2018/05/dnalibrary:SourceItem");
+                    UnknownNode((object)o, @"http://schemas.excel-dna.net/addin/2020/07/dnalibrary:Reference, http://schemas.excel-dna.net/addin/2020/07/dnalibrary:SourceItem");
                 }
                 Reader.MoveToContent();
                 CheckReaderCount(ref whileIterations3, ref readerCount3);
@@ -778,7 +778,7 @@ namespace ExcelDna.Serialization
             id16_Image = Reader.NameTable.Add(@"Image");
             id27_UseVersionAsOutputVersion = Reader.NameTable.Add(@"UseVersionAsOutputVersion");
             id11_DefaultImports = Reader.NameTable.Add(@"DefaultImports");
-            id2_Item = Reader.NameTable.Add(@"http://schemas.excel-dna.net/addin/2018/05/dnalibrary");
+            id2_Item = Reader.NameTable.Add(@"http://schemas.excel-dna.net/addin/2020/07/dnalibrary");
             id17_Path = Reader.NameTable.Add(@"Path");
             id10_DefaultReferences = Reader.NameTable.Add(@"DefaultReferences");
             id6_ShadowCopyFiles = Reader.NameTable.Add(@"ShadowCopyFiles");
@@ -811,7 +811,7 @@ namespace ExcelDna.Serialization
     public sealed class DnaLibrarySerializer : XmlSerializer1 {
 
         public override System.Boolean CanDeserialize(System.Xml.XmlReader xmlReader) {
-            return xmlReader.IsStartElement(@"DnaLibrary", @"http://schemas.excel-dna.net/addin/2018/05/dnalibrary");
+            return xmlReader.IsStartElement(@"DnaLibrary", @"http://schemas.excel-dna.net/addin/2020/07/dnalibrary");
         }
 
         protected override void Serialize(object objectToSerialize, System.Xml.Serialization.XmlSerializationWriter writer) {
@@ -831,7 +831,7 @@ namespace ExcelDna.Serialization
             get {
                 if (readMethods == null) {
                     System.Collections.Hashtable _tmp = new System.Collections.Hashtable();
-                    _tmp[@"ExcelDna.Integration.DnaLibrary:http://schemas.excel-dna.net/addin/2018/05/dnalibrary::False:"] = @"Read8_DnaLibrary";
+                    _tmp[@"ExcelDna.Integration.DnaLibrary:http://schemas.excel-dna.net/addin/2020/07/dnalibrary::False:"] = @"Read8_DnaLibrary";
                     if (readMethods == null) readMethods = _tmp;
                 }
                 return readMethods;
@@ -842,7 +842,7 @@ namespace ExcelDna.Serialization
             get {
                 if (writeMethods == null) {
                     System.Collections.Hashtable _tmp = new System.Collections.Hashtable();
-                    _tmp[@"ExcelDna.Integration.DnaLibrary:http://schemas.excel-dna.net/addin/2018/05/dnalibrary::False:"] = @"Write8_DnaLibrary";
+                    _tmp[@"ExcelDna.Integration.DnaLibrary:http://schemas.excel-dna.net/addin/2020/07/dnalibrary::False:"] = @"Write8_DnaLibrary";
                     if (writeMethods == null) writeMethods = _tmp;
                 }
                 return writeMethods;
@@ -853,7 +853,7 @@ namespace ExcelDna.Serialization
             get {
                 if (typedSerializers == null) {
                     System.Collections.Hashtable _tmp = new System.Collections.Hashtable();
-                    _tmp.Add(@"ExcelDna.Integration.DnaLibrary:http://schemas.excel-dna.net/addin/2018/05/dnalibrary::False:", new DnaLibrarySerializer());
+                    _tmp.Add(@"ExcelDna.Integration.DnaLibrary:http://schemas.excel-dna.net/addin/2020/07/dnalibrary::False:", new DnaLibrarySerializer());
                     if (typedSerializers == null) typedSerializers = _tmp;
                 }
                 return typedSerializers;
