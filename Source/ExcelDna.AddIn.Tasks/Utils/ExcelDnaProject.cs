@@ -35,7 +35,7 @@ namespace ExcelDna.AddIn.Tasks.Utils
 
                     startAction.Value = 1; // Start external program
                     startProgram.Value = excelExePath;
-                    startArguments.Value = $@"""{Path.GetFileName(excelAddInToDebug)}""";
+                    startArguments.Value = $@"/x ""{Path.GetFileName(excelAddInToDebug)}""";
 
                     project.Save(string.Empty);
 
