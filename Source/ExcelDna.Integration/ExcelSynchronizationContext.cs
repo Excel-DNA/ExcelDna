@@ -532,6 +532,13 @@ namespace ExcelDna.Integration
                     // Succeeded
                     return fmlaInfo.wPointMode != XlCall.xlModeReady;
                 }
+                else
+                {
+                    // Log and return true (the safer option) ???
+                    // Error for now, but maybe Warn is safe too.
+                    Logger.Registration.Error("IsInFormulaEditMode - PenHelper failed, result " + result);
+                    return true;
+                }
             }
 
             // Otherwise try Focus windows check, else menu check.
