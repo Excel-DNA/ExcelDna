@@ -8,8 +8,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 
 // WARNING: We use IntPtrs for pointers, but often really mean int.
-// On 64-bit platform, I don't know what would be appropriate. Probably won't work. 
-// Packing and the like might be very different! 
 
 // NOTE: Check http://blogs.msdn.com/b/oldnewthing/archive/2009/08/13/9867383.aspx for 64-bit packing.
 //       and http://msdn.microsoft.com/en-us/library/ms973190.aspx for general guidance.
