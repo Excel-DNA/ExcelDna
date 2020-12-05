@@ -197,6 +197,7 @@ namespace ExcelDna.Loader
 
         internal static object GetExcelEmptyValue()
         {
+            Debug.Assert(excelEmptyValue != null);
             return excelEmptyValue;
         }
         #endregion

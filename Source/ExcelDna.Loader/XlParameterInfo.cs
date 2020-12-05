@@ -491,8 +491,13 @@ namespace ExcelDna.Loader
                 //}
                 //else
                 //{
-                XlType = "K%"; // FP14*
+                XlType = "K%"; // FP12*
                 MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlDoubleArray12Marshaler), "1");
+                DirectMarshalXlType = XlDirectMarshal.XlTypeDoubleArray;
+                if (isReturnType)
+                    DirectMarshalConvert = XlDirectConversions.DoubleArray1Return;
+                else
+                    DirectMarshalConvert = XlDirectConversions.DoubleArray1Param;
                 //}
             }
             else if (type == typeof(double[,]))
@@ -507,6 +512,11 @@ namespace ExcelDna.Loader
                 //{
                 XlType = "K%"; // FP12*
                 MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlDoubleArray12Marshaler), "2");
+                DirectMarshalXlType = XlDirectMarshal.XlTypeDoubleArray;
+                if (isReturnType)
+                    DirectMarshalConvert = XlDirectConversions.DoubleArray2Return;
+                else
+                    DirectMarshalConvert = XlDirectConversions.DoubleArray2Param;
                 //}
             }
             else if (type == typeof(object))
@@ -518,12 +528,23 @@ namespace ExcelDna.Loader
                 // This does not work in HPC setting, and seems to have been a mistake anyway 
                 // - returning a reference always gives #VALUE
                 // 2020: Not true - it now seems fine (and useful) to return an ExcelReference, and that works even if we declared the return value as Q
-            
+
                 if (AllowReference)
+                {
                     XlType = "U"; // XLOPER
+                    DirectMarshalXlType = XlDirectMarshal.XlTypeXloperAllowRef;
+                }
                 else
+                {
                     XlType = "Q"; // OPER
+                    DirectMarshalXlType = XlDirectMarshal.XlTypeXloper;
+                }
+
                 MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObject12Marshaler));
+                if (isReturnType)
+                    DirectMarshalConvert = XlDirectConversions.ObjectToXloperReturn;
+                else
+                    DirectMarshalConvert = XlDirectConversions.XloperToObjectParam;
             }
             else if (type == typeof(object[]))
             {
@@ -538,6 +559,12 @@ namespace ExcelDna.Loader
                     XlType = "Q"; // OPER
                     MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObjectArray12Marshaler), "1");
                 }
+
+                DirectMarshalXlType = XlDirectMarshal.XlTypeXloper;
+                if (isReturnType)
+                    DirectMarshalConvert = XlDirectConversions.ObjectArray1Return;
+                else
+                    DirectMarshalConvert = XlDirectConversions.ObjectArray1Param;
             }
             else if (type == typeof(object[,]))
             {
@@ -552,6 +579,12 @@ namespace ExcelDna.Loader
                     XlType = "Q"; // OPER
                     MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObjectArray12Marshaler), "2");
                 }
+
+                DirectMarshalXlType = XlDirectMarshal.XlTypeXloper;
+                if (isReturnType)
+                    DirectMarshalConvert = XlDirectConversions.ObjectArray2Return;
+                else
+                    DirectMarshalConvert = XlDirectConversions.ObjectArray2Param;
             }
             else if (type == typeof(bool))
             {
