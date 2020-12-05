@@ -228,6 +228,16 @@ namespace ExcelDna.Loader
             return _rank2OperArrayContext.ObjectArrayReturn(objects);
         }
 
+        public IntPtr DoubleArray1Return(double[] doubles)
+        {
+            return _rank1DoubleArrayContext.DoubleArrayReturn(doubles);
+        }
+
+        public IntPtr DoubleArray2Return(double[,] doubles)
+        {
+            return _rank2DoubleArrayContext.DoubleArrayReturn(doubles);
+        }
+
         public IntPtr DoubleToXloperReturn(double d)
         {
             _pXloperReturn->numValue = d;
@@ -238,6 +248,41 @@ namespace ExcelDna.Loader
         public IntPtr BoolToXloperReturn(bool b)
         {
             _pXloperReturn->numValue = b ? 1 : 0;
+            _pXloperReturn->xlType = XlType12.XlTypeNumber;
+            return (IntPtr)_pXloperReturn;
+        }
+
+        public IntPtr Int16ToXloperReturn(short i)
+        {
+            _pXloperReturn->numValue = i;
+            _pXloperReturn->xlType = XlType12.XlTypeNumber;
+            return (IntPtr)_pXloperReturn;
+        }
+
+        public IntPtr UInt16ToXloperReturn(ushort i)
+        {
+            _pXloperReturn->numValue = i;
+            _pXloperReturn->xlType = XlType12.XlTypeNumber;
+            return (IntPtr)_pXloperReturn;
+        }
+
+        public IntPtr Int32ToXloperReturn(int i)
+        {
+            _pXloperReturn->numValue = i;
+            _pXloperReturn->xlType = XlType12.XlTypeNumber;
+            return (IntPtr)_pXloperReturn;
+        }
+
+        public IntPtr Int64ToXloperReturn(long i)
+        {
+            _pXloperReturn->numValue = i;
+            _pXloperReturn->xlType = XlType12.XlTypeNumber;
+            return (IntPtr)_pXloperReturn;
+        }
+
+        public IntPtr DecimalToXloperReturn(decimal d)
+        {
+            _pXloperReturn->numValue = (double)d;
             _pXloperReturn->xlType = XlType12.XlTypeNumber;
             return (IntPtr)_pXloperReturn;
         }
@@ -312,14 +357,10 @@ namespace ExcelDna.Loader
             return (IntPtr)_pXloperReturn;
         }
 
-        public IntPtr DoubleArray1Return(double[] doubles)
+        public IntPtr BoolPtrReturn(bool b)
         {
-            return _rank1DoubleArrayContext.DoubleArrayReturn(doubles);
-        }
-
-        public IntPtr DoubleArray2Return(double[,] doubles)
-        {
-            return _rank2DoubleArrayContext.DoubleArrayReturn(doubles);
+            *_pBoolReturn = b ? (short)1 : (short)0;
+            return (IntPtr)_pBoolReturn;
         }
 
         // Input parameter conversions (also for XlCall.Excel return values) - static, no context
@@ -494,6 +535,44 @@ namespace ExcelDna.Loader
             return DateTime.FromOADate(dateSerial);
         }
 
+        public static object BoolPtrParam(IntPtr pb)
+        {
+            return *(double*)pb;
+        }
+
+        public static short DoublePtrToInt16Param(IntPtr pNativeData)
+        {
+            // TODO/DM: Check what happens when we're outside the Int16 range
+            //          This code will raise an exception and we have to handle it or return immediately or something
+            return checked((short)(Math.Round(*(double*)pNativeData, MidpointRounding.ToEven)));
+        }
+
+        public static ushort DoublePtrToUInt16Param(IntPtr pNativeData)
+        {
+            // TODO/DM: Check what happens when we're outside the Int16 range
+            //          This code will raise an exception and we have to handle it or return immediately or something
+            return checked((ushort)(Math.Round(*(double*)pNativeData, MidpointRounding.ToEven)));
+        }
+
+        public static int DoublePtrToInt32Param(IntPtr pNativeData)
+        {
+            // TODO/DM: Check what happens when we're outside the Int32 range
+            //          This code will raise an exception and we have to handle it or return immediately or something
+            return checked((int)(Math.Round(*(double*)pNativeData, MidpointRounding.ToEven)));
+        }
+
+        public static long DoublePtrToInt64Param(IntPtr pNativeData)
+        {
+            // TODO/DM: Check what happens when we're outside the Int64 range
+            //          This code will raise an exception and we have to handle it or return immediately or something
+            return checked((long)(Math.Round(*(double*)pNativeData, MidpointRounding.ToEven)));
+        }
+        public static decimal DoublePtrToDecimalParam(IntPtr pNativeData)
+        {
+            // TODO/DM: Check what happens when we're outside the Decimal range
+            //          This code will raise an exception and we have to handle it or return immediately or something
+            return (decimal)*((double*)pNativeData);
+        }
     }
 
     unsafe class XlMarshalDoubleArrayContext
@@ -1357,6 +1436,7 @@ namespace ExcelDna.Loader
         public static readonly string XlTypeDoublePtr = "E";        // double*
         public static readonly string XlTypeString = "D%";          // XLSTRING12
         public static readonly string XlTypeDoubleArray = "K%";     // FP12*
+        public static readonly string XlTypeBoolPtr = "L";          // short*
     }
 
 
@@ -1406,6 +1486,13 @@ namespace ExcelDna.Loader
         public static MethodInfo StringReturn = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.StringReturn));
         public static MethodInfo DateTimeToDoublePtrReturn = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.DateTimeToDoublePtrReturn));
         public static MethodInfo DateTimeToXloperReturn = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.DateTimeToXloperReturn));
+        public static MethodInfo BoolPtrReturn = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.BoolPtrReturn));
+        public static MethodInfo BoolToXloperReturn = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.BoolToXloperReturn));
+        public static MethodInfo Int16ToXloperReturn = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.Int16ToXloperReturn));
+        public static MethodInfo UInt16ToXloperReturn = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.UInt16ToXloperReturn));
+        public static MethodInfo Int32ToXloperReturn = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.Int32ToXloperReturn));
+        public static MethodInfo Int64ToXloperReturn = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.Int64ToXloperReturn));
+        public static MethodInfo DecimalToXloperReturn = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.DecimalToXloperReturn));
 
         // Param conversions are static - don't need context.
         public static MethodInfo ObjectParam = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.ObjectParam));
@@ -1416,6 +1503,12 @@ namespace ExcelDna.Loader
         public static MethodInfo DoublePtrParam = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.DoublePtrParam));
         public static MethodInfo StringParam = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.StringParam));
         public static MethodInfo DateTimeFromDoublePtrParam = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.DateTimeFromDoublePtrParam));
+        public static MethodInfo BoolPtrParam = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.BoolPtrParam));
+        public static MethodInfo DoublePtrToInt16Param = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.DoublePtrToInt16Param));
+        public static MethodInfo DoublePtrToUInt16Param = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.DoublePtrToUInt16Param));
+        public static MethodInfo DoublePtrToInt32Param = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.DoublePtrToInt32Param));
+        public static MethodInfo DoublePtrToInt64Param = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.DoublePtrToInt64Param));
+        public static MethodInfo DoublePtrToDecimalParam = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.DoublePtrToDecimalParam));
     }
 
 
