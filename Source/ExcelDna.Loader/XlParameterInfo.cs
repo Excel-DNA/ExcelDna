@@ -428,17 +428,23 @@ namespace ExcelDna.Loader
                         XlType = "Q"; // OPER
                         MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObject12Marshaler));
                         DelegateParamType = typeof(object);
+                        DirectMarshalXlType = XlDirectMarshal.XlTypeXloper;
+                        DirectMarshalConvert = XlDirectConversions.ObjectToXloperReturn;
                     }
                     else
                     {
                         XlType = "D%"; // XlString12
                         MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlString12ReturnMarshaler));
+                        DirectMarshalXlType = XlDirectMarshal.XlTypeString;
+                        DirectMarshalConvert = XlDirectConversions.StringReturn;
                     }
                 }
                 else
                 {
                     XlType = "C%"; // LPWSTR
                     MarshalAsAttribute = GetMarshalAsAttribute(UnmanagedType.LPWStr);
+                    DirectMarshalXlType = XlDirectMarshal.XlTypeString;
+                    DirectMarshalConvert = XlDirectConversions.StringParam;
                 }
             }
             else if (type == typeof(DateTime))
@@ -451,6 +457,8 @@ namespace ExcelDna.Loader
                         MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObject12Marshaler));
                         DelegateParamType = typeof(object);
                         BoxedValueType = typeof(DateTime);
+                        DirectMarshalXlType = XlDirectMarshal.XlTypeXloper;
+                        DirectMarshalConvert = XlDirectConversions.DateTimeToXloperReturn;
                     }
                     else
                     {
@@ -459,6 +467,8 @@ namespace ExcelDna.Loader
 						MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlDateTime12Marshaler));
                         DelegateParamType = typeof(object);
                         BoxedValueType = typeof(DateTime);
+                        DirectMarshalXlType = XlDirectMarshal.XlTypeDoublePtr;
+                        DirectMarshalConvert = XlDirectConversions.DateTimeToDoublePtrReturn;
                     }
                 }
                 else
@@ -467,6 +477,8 @@ namespace ExcelDna.Loader
 					MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlDateTime12Marshaler));
 					DelegateParamType = typeof(object);
 					BoxedValueType = typeof(DateTime);
+                    DirectMarshalXlType = XlDirectMarshal.XlTypeDoublePtr;
+                    DirectMarshalConvert = XlDirectConversions.DateTimeFromDoublePtrParam;
                 }
             }
             else if (type == typeof(double[]))

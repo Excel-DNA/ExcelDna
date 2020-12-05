@@ -86,6 +86,7 @@
     <Compile Include="XlAddIn.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="XlDirectMarshal12.cs" />
+    <Compile Include="XlDirectMarshalTypes.cs" />
     <Compile Include="XlMethodInfo.cs" />
     <Compile Include="XlParameterInfo.cs" />
     <Compile Include="XlRegistration.cs" />

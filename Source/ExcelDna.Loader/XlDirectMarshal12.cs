@@ -61,6 +61,9 @@ namespace ExcelDna.Loader
             _rank2OperArrayContext = new XlMarshalOperArrayContext(2, false);
         }
 
+        // RULE: Return conversions must not throw exceptions (they might run in the exception handler)
+        // RULE: Param conversions can throw exceptions
+
         public IntPtr DoubleToXloperReturn(double d)
         {
             _pXloperReturn->numValue = d;
@@ -68,17 +71,106 @@ namespace ExcelDna.Loader
             return (IntPtr)_pXloperReturn;
         }
 
-        public unsafe IntPtr DoublePtrReturn(double d)
+        public IntPtr DoublePtrReturn(double d)
         {
             *_pDoubleReturn = d;
             return (IntPtr)_pDoubleReturn;
         }
 
-        public unsafe double DoublePtrParam(IntPtr pd)
+        public IntPtr StringReturn(string str)
+        {
+            // We maintain compatible behaviour with the CustomMarhsalling, which would return null pointers directly (without calling marshalling)
+            // DOCUMENT: A null pointer is immediately returned to Excel, resulting in #NUM!
+            if (str == null)
+                return IntPtr.Zero;
+
+            XlString12* pdest = _pStringBufferReturn;
+            ushort charCount = (ushort)Math.Min(str.Length, XlString12.MaxLength);
+
+            // TODO/DM Try to remember why we did this instead of Marshal.Copy
+            fixed (char* psrc = str)
+            {
+                char* ps = psrc;
+                char* pd = pdest->Data;
+                for (int k = 0; k < charCount; k++)
+                {
+                    *(pd++) = *(ps++);
+                }
+            }
+            pdest->Length = charCount;
+
+            return (IntPtr)_pStringBufferReturn;
+        }
+
+        public IntPtr DateTimeToDoublePtrReturn(DateTime dateTime)
+        {
+            try
+            {
+                *_pDoubleReturn = dateTime.ToOADate();
+                return (IntPtr)_pDoubleReturn;
+            }
+            catch
+            {
+                // This case is where the range of the OADate is exceeded, e.g. a year before 0100.
+                // We'd like to return #VALUE, but we're registered as a double*
+                // returning IntPtr.Zero will give us #NUM in Excel
+                return IntPtr.Zero;
+            }
+        }
+
+        public IntPtr DateTimeToXloperReturn(DateTime dateTime)
+        {
+            // TODO/DM DOCUMENT: 
+            // In the case where we have a date that cannot be converted to an OleAutomation date, e.g. year < 0100
+            // it is not a valid date in Excel (no dates before 1900 are valid)
+            // We return #VALUE without calling our internal Exception handler
+
+            try
+            {
+                _pXloperReturn->numValue = dateTime.ToOADate();
+                _pXloperReturn->xlType = XlType12.XlTypeNumber;
+            }
+            catch
+            {
+                // This is a case where we have a date that cannot be converted to an OleAutomation date, e.g. year < 0100
+                // Certainly it is not a valid date in Excel (no dates before 1900 are valid)
+                // But we must not crash - return #VALUE instead
+                _pXloperReturn->errValue = IntegrationMarshalHelpers.ExcelError_ExcelErrorValue;
+                _pXloperReturn->xlType = XlType12.XlTypeError;
+            }
+            return (IntPtr)_pXloperReturn;
+        }
+
+        public IntPtr ObjectToXloperReturn(object str)
+        {
+            // We maintain compatible behaviour with the CustomMarhsalling, which would return null pointers directly (without calling marshalling)
+            // DOCUMENT: A null pointer is immediately returned to Excel, resulting in #NUM!
+            if (str == null)
+                return IntPtr.Zero;
+
+            throw new NotImplementedException();
+        }
+
+        // Input parameter conversions (also for XlCall.Excel return values) - static, no context
+        public static double DoublePtrParam(IntPtr pd)
         {
             return *(double*)pd;
         }
 
+        public static string StringParam(IntPtr pstrValue)
+        {
+            XlString12* pString = (XlString12*)pstrValue;
+            return new string(pString->Data, 0, pString->Length);
+        }
+
+        public static DateTime DateTimeFromDoublePtrParam(IntPtr pNativeData)
+        {
+            // TODO/DM: Check what happens when we're outside the OADate range
+            //          This code will raise an exception and we have to handle it or return immediately or something
+
+            double dateSerial = *(double*)pNativeData;
+            return DateTime.FromOADate(dateSerial);
+        }
     }
 
     unsafe class XlMarshalDoubleArrayContext
@@ -138,25 +230,56 @@ namespace ExcelDna.Loader
 
         static Delegate GetNativeDelegate(XlMethodInfo methodInfo, Type delegateType)
         {
-            // TODO/DM: Shortcut conversion if there are no conversions
+            // We convert
+            //
+            // double MyFancyFunc(object input1, string input2) { ... }
+            //
+            // To
+            //
+            // IntPtr MyFancyFuncWrapped(IntPtr<XlOper12> xlinput0, IntPtr<XlString12 xlinput1)
+            // {
+            //
+            //    XlMarshalContext ctx = GetContextForThisThread();
+            //    try
+            //    {
+            //  
+            //      input0 = Convert1(xlinput0);
+            //      input1 = Convert2(xlinput1);
+            //
+            //      result = MyFancyFunc(input0, input1);
+            //      xlresult = ctx.ConvertRet(ctx, result),
+            //      return xlresult;
+            //    }
+            //    catch(Exception ex)
+            //    {
+            //       resultx = HandleEx(ex);
+            //       xlresultx = ctx.ConvertRet(resultex);
+            //    }
+            //
+            //    return resultx
+            //
+            //
+            // }
 
             // Create the new parameters and return value for the wrapper
+            // TODO/DM: Consolidate to a single select
             var outerParams = methodInfo.Parameters.Select(p => Expression.Parameter(typeof(IntPtr), p.Name)).ToArray();
             var innerParamExprs = outerParams.Cast<Expression>().ToArray();  // clone as default - overwrite with conversions where applicable 
-
-            // variable to hold XlMarshalContext
-            var ctx = Expression.Variable(typeof(XlMarshalContext), "xlMarshalContext");
-            var getCtx = Expression.Call(typeof(XlDirectMarshal), nameof(XlDirectMarshal.GetMarshalContext), null);
-            var assignCtx = Expression.Assign(ctx, getCtx);
 
             for (int i = 0; i < methodInfo.Parameters.Length; i++)
             {
                 var pi = methodInfo.Parameters[i];
                 if (pi.DirectMarshalConvert != null)
                 {
-                    innerParamExprs[i] = Expression.Call(ctx, pi.DirectMarshalConvert, innerParamExprs[i]);
+                    innerParamExprs[i] = Expression.Call(pi.DirectMarshalConvert, innerParamExprs[i]);
                 }
             }
+
+
+            // variable to hold XlMarshalContext
+            var ctx = Expression.Variable(typeof(XlMarshalContext), "xlMarshalContext");
+            var getCtx = Expression.Call(typeof(XlDirectMarshal), nameof(XlDirectMarshal.GetMarshalContext), null);
+            var assignCtx = Expression.Assign(ctx, getCtx);
             var wrappingCall = Expression.Call(methodInfo.GetMethodInfo(), innerParamExprs);  // Maybe make more flexible options for XlMethodInfo to be created, e.g. Expressions
             if (methodInfo.ReturnType != null)
             {
@@ -189,13 +312,12 @@ namespace ExcelDna.Loader
             return lambda.Compile();
         }
 
-
         static Type GetNativeDelegateType(XlMethodInfo methodInfo)
         {
             if (methodInfo.ReturnType == null)
-                return XlActs[methodInfo.Parameters.Length];
+                return XlDirectMarshalTypes.XlActs[methodInfo.Parameters.Length];
             else
-                return XlFuncs[methodInfo.Parameters.Length];
+                return XlDirectMarshalTypes.XlFuncs[methodInfo.Parameters.Length];
 
             //var types = methodInfo.Parameters.Select(pi => pi.DirectMarshalNativeType).ToList();
             //Type returnType = methodInfo.ReturnType?.DirectMarshalNativeType ?? typeof(void);
@@ -224,35 +346,13 @@ namespace ExcelDna.Loader
         //    }
         //}
 
-        delegate void XlAct0();
-        delegate void XlAct1(IntPtr p0);
-        delegate void XlAct2(IntPtr p0, IntPtr p1);
-        delegate void XlAct3(IntPtr p0, IntPtr p1, IntPtr p2);
-
-        delegate IntPtr XlFunc0();
-        delegate IntPtr XlFunc1(IntPtr p0);
-        delegate IntPtr XlFunc2(IntPtr p0, IntPtr p1);
-        delegate IntPtr XlFunc3(IntPtr p0, IntPtr p1, IntPtr p2);
-        delegate IntPtr XlFunc4(IntPtr p0, IntPtr p1, IntPtr p2, IntPtr p3);
-        delegate IntPtr XlFunc5(IntPtr p0, IntPtr p1, IntPtr p2, IntPtr p3, IntPtr p4);
-        delegate IntPtr XlFunc6(IntPtr p0, IntPtr p1, IntPtr p2, IntPtr p3, IntPtr p4, IntPtr p5);
-
-        static readonly Type[] XlActs = new Type[]
-            {
-                typeof(XlAct0), typeof(XlAct1), typeof(XlAct2), typeof(XlAct3)
-            };
-
-        static readonly Type[] XlFuncs = new Type[]
-            {
-                typeof(XlFunc0), typeof(XlFunc1), typeof(XlFunc2), typeof(XlFunc3)
-            };
-
-        // These are identifiers for the 
+        // These are identifiers for xlfRegister types used in the pointer-only direct marshalling 
         public static readonly string XlTypeDoublePtr = "E";  // double*
         public static readonly string XlTypeXloper = "Q";
 
-
+        public static readonly string XlTypeString = "D%";
     }
+
 
     //////////// TODO: Track registration string here?
     //////////class ConversionInfo
@@ -292,44 +392,23 @@ namespace ExcelDna.Loader
     {
         public static MethodInfo DoubleToXloperReturn = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.DoubleToXloperReturn));
         public static MethodInfo DoublePtrReturn = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.DoublePtrReturn));
+        public static MethodInfo StringReturn = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.StringReturn));
+        public static MethodInfo ObjectToXloperReturn = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.ObjectToXloperReturn));
+        public static MethodInfo DateTimeToDoublePtrReturn = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.DateTimeToDoublePtrReturn));
+
+        // Param conversions are static - don't need context.
         public static MethodInfo DoublePtrParam = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.DoublePtrParam));
+        public static MethodInfo StringParam = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.StringParam));
+
+        public static MethodInfo DateTimeToXloperReturn = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.DateTimeToXloperReturn));
+        public static MethodInfo DateTimeFromDoublePtrParam = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.DateTimeFromDoublePtrParam));
 
         public static string Convert(char* value) => new string(value);
 
 
     }
 
-    // We convert
-    //
-    // double MyFancyFunc(object input1, string input2) { ... }
-    //
-    // To
-    //
-    // IntPtr MyFancyFuncWrapped(IntPtr<XlOper12> xinput1, IntPtr<XlString12 xinput2)
-    // {
-    //    XlMarshalContext ctx = GetContextForThisThread();
-    // ??   input1 = Convert1.Invoke(ctx, xinput1); // Calling  ctx.ConvertXloperToObject // open instance delegate???
-    // ??   input2 = Convert2.Invoke(.ConvertXlStringToString(xinput2);
-    //
-    //    ??? OR
-    //    input1 = Convert1(ctx, xinput1);
-    //    input2 = Convert2(ctx, xinput2);
-    //
-    //    try
-    //    {
-    //      result = MyFancyFunc(input1, input2);
-    //      resultx = ConvertRet(ctx, result),
-    //    }
-    //    catch(Exception ex)
-    //    {
-    //       HandleEx(ex);
-    //       resultx = ctx.ConvertEx(ex);
-    //    }
-    //
-    //    return resultx
-    //
-    //
-    // }
+
     //
     //
     // NOTE: We also need to take care of the XlCall.Excel(...) call
