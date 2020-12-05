@@ -17,10 +17,14 @@ namespace ExcelDna.Loader
 		public bool AllowReference; // Ignored for return 'parameter'
 		public CustomAttributeBuilder MarshalAsAttribute;
 		public Type DelegateParamType;
-		public Type BoxedValueType; 	// Causes a wrapper to be created that boxes the return type from the user method,
-											// allowing Custom Marshaling to be injected
+		public Type BoxedValueType;     // Causes a wrapper to be created that boxes the return type from the user method,
+                                        // allowing Custom Marshaling to be injected
 
-		public XlParameterInfo(ParameterInfo paramInfo, object attrib)
+        // Added for DirectMarshal
+        public string DirectMarshalXlType;      // Identifier for Excel Type
+        public MethodInfo DirectMarshalConvert; // Method on XlMarshalContext w/ 1 param and return value: Native -> Managed for parameters, and Managed -> Native for Return
+
+        public XlParameterInfo(ParameterInfo paramInfo, object attrib)
 		{
 			// Add Name and Description
 			// CONSIDER: Override Marshaler for row/column arrays according to some attribute
@@ -401,10 +405,17 @@ namespace ExcelDna.Loader
                     MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObject12Marshaler));
                     DelegateParamType = typeof(object);
                     BoxedValueType = typeof(double);
+                    DirectMarshalXlType = XlDirectMarshal.XlTypeXloper;
+                    DirectMarshalConvert = XlDirectConversions.DoubleToXloperReturn;
                 }
                 else
                 {
                     XlType = "B";
+                    DirectMarshalXlType = XlDirectMarshal.XlTypeDoublePtr;
+                    if (isReturnType)
+                        DirectMarshalConvert = XlDirectConversions.DoublePtrReturn;
+                    else
+                        DirectMarshalConvert = XlDirectConversions.DoublePtrParam;
                 }
             }
             else if (type == typeof(string))
@@ -494,6 +505,7 @@ namespace ExcelDna.Loader
                 // and thus registered as U in most cases. 
                 // This does not work in HPC setting, and seems to have been a mistake anyway 
                 // - returning a reference always gives #VALUE
+                // 2020: Not true - it now seems fine (and useful) to return an ExcelReference, and that works even if we declared the return value as Q
             
                 if (AllowReference)
                     XlType = "U"; // XLOPER

@@ -581,6 +581,20 @@ namespace ExcelDna.Loader
         // targets may be null - the typical case
         public static List<XlMethodInfo> ConvertToXlMethodInfos(List<MethodInfo> methods, List<object> targets, List<object> methodAttributes, List<List<object>> argumentAttributes)
         {
+#if DEBUG
+            var xlmis = ConvertToXlMethodInfosDirectMarshal(methods, targets, methodAttributes, argumentAttributes);
+            // TODO/DM: To keep DirectMarshalDecision in one place, I do the XlType switch there
+            foreach (var xlmi in xlmis)
+            {
+                if (xlmi.HasReturnType)
+                    xlmi.ReturnType.XlType = xlmi.ReturnType.DirectMarshalXlType;
+
+                foreach (var xlpi in xlmi.Parameters)
+                    xlpi.XlType = xlpi.DirectMarshalXlType;
+            }
+            return xlmis;
+#endif
+
             List<XlMethodInfo> xlMethodInfos = new List<XlMethodInfo>();
 
             // Set up assembly
@@ -632,6 +646,50 @@ namespace ExcelDna.Loader
 
             //			assemblyBuilder.Save(@"ExcelDna.DynamicDelegateAssembly.dll");
             return xlMethodInfos;
+        }
+
+        public static List<XlMethodInfo> ConvertToXlMethodInfosDirectMarshal(List<MethodInfo> methods, List<object> targets, List<object> methodAttributes, List<List<object>> argumentAttributes)
+        {
+            List<XlMethodInfo> xlMethodInfos = new List<XlMethodInfo>();
+
+            for (int i = 0; i < methods.Count; i++)
+            {
+                MethodInfo mi = methods[i];
+                object target = (targets == null) ? null : targets[i];
+                object methodAttrib = (methodAttributes != null && i < methodAttributes.Count) ? methodAttributes[i] : null;
+                List<object> argAttribs = (argumentAttributes != null && i < argumentAttributes.Count) ? argumentAttributes[i] : null;
+                try
+                {
+                    XlMethodInfo xlmi = new XlMethodInfo(mi, target, methodAttrib, argAttribs);
+                    // Skip if suppressed
+                    if (xlmi.ExplicitRegistration)
+                    {
+                        Logger.Registration.Info("Suppressing due to ExplictRegistration attribute: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
+                        continue;
+                    }
+                    // otherwise continue with delegate type and method building
+                    xlmi._methodInfo = mi;
+                    xlmi._target = target;
+                    XlDirectMarshal.SetDelegateAndFunctionPointer(xlmi);
+
+                    // ... and add to list for further processing and registration
+                    xlMethodInfos.Add(xlmi);
+                }
+                catch (DnaMarshalException e)
+                {
+                    Logger.Registration.Error(e, "Method not registered due to unsupported signature: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
+                }
+            }
+
+            return xlMethodInfos;
+        }
+
+        //        public Expression GetInvocableExpression()
+        public MethodInfo GetMethodInfo()
+        {
+            if (_target != null)
+                throw new InvalidOperationException("Target not supported");
+            return _methodInfo;
         }
 
         public static void GetMethodAttributes(List<MethodInfo> methodInfos, out List<object> methodAttributes, out List<List<object>> argumentAttributes)
