@@ -429,7 +429,7 @@ namespace ExcelDna.Loader
                         MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObject12Marshaler));
                         DelegateParamType = typeof(object);
                         DirectMarshalXlType = XlDirectMarshal.XlTypeXloper;
-                        DirectMarshalConvert = XlDirectConversions.ObjectToXloperReturn;
+                        DirectMarshalConvert = XlDirectConversions.ObjectReturn;
                     }
                     else
                     {
@@ -542,9 +542,9 @@ namespace ExcelDna.Loader
 
                 MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObject12Marshaler));
                 if (isReturnType)
-                    DirectMarshalConvert = XlDirectConversions.ObjectToXloperReturn;
+                    DirectMarshalConvert = XlDirectConversions.ObjectReturn;
                 else
-                    DirectMarshalConvert = XlDirectConversions.XloperToObjectParam;
+                    DirectMarshalConvert = XlDirectConversions.ObjectParam;
             }
             else if (type == typeof(object[]))
             {

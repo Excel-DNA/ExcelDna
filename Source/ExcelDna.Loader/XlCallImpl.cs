@@ -149,6 +149,20 @@ namespace ExcelDna.Loader
             resultOper.xlType = XlType12.XlTypeEmpty;
             XlOper12* pResultOper = &resultOper;  // No need to pin for local struct
 
+#if DEBUG
+            // Special kind of ObjectArrayMarshaler for the parameters (rank 1)
+            using (XlMarshalXlOperArrayContext paramMarshaler
+                        = new XlMarshalXlOperArrayContext(1, true))
+            {
+                XlOper12** ppOperParameters = (XlOper12**)paramMarshaler.ObjectArrayReturn(parameters);
+                xlReturn = Excel12v(xlFunction, parameters.Length, ppOperParameters, pResultOper);
+            }
+
+
+            // pResultOper now holds the result of the evaluated function
+            // Get ObjectMarshaler for the return value
+            result = XlMarshalContext.ObjectParam((IntPtr)pResultOper);
+#else
             // Special kind of ObjectArrayMarshaler for the parameters (rank 1)
             using (XlObjectArray12Marshaler.XlObjectArray12MarshalerImpl paramMarshaler 
                         = new XlObjectArray12Marshaler.XlObjectArray12MarshalerImpl(1, true))
@@ -157,10 +171,12 @@ namespace ExcelDna.Loader
                 xlReturn = Excel12v(xlFunction, parameters.Length, ppOperParameters, pResultOper);
             }
 
+
             // pResultOper now holds the result of the evaluated function
             // Get ObjectMarshaler for the return value
             ICustomMarshaler m = XlObject12Marshaler.GetInstance("");
             result = m.MarshalNativeToManaged((IntPtr)pResultOper);
+#endif
             // And free any memory allocated by Excel
             Excel12v(xlFree, 1, &pResultOper, (XlOper12*)IntPtr.Zero);
 
