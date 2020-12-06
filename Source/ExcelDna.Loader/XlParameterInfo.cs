@@ -720,15 +720,25 @@ namespace ExcelDna.Loader
             {
                 XlType = "X"; // Async Handle in XLOPER12's BigData
                 MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlAsyncHandleParameter12Marshaler));
+                DirectMarshalXlType = XlDirectMarshal.XlTypeAsyncHandle;
+                DirectMarshalConvert = XlDirectConversions.AsyncHandleParam;    // TODO/DM We need a cast here ????
             }
             else if (type == typeof(XlOper12*))
             {
                 // Internal use only - the memory management rules are a mess to support generally
                 // Direct pointer passthrough, no marshalling
                 if (AllowReference)
+                {
                     XlType = "U"; // XLOPER
+                    DirectMarshalXlType = XlDirectMarshal.XlTypeXloperAllowRef;
+                    DirectMarshalConvert = null;
+                }
                 else
+                {
                     XlType = "Q"; // OPER
+                    DirectMarshalXlType = XlDirectMarshal.XlTypeXloper;
+                    DirectMarshalConvert = null;
+                }
             }
             else
             {

@@ -573,6 +573,22 @@ namespace ExcelDna.Loader
             //          This code will raise an exception and we have to handle it or return immediately or something
             return (decimal)*((double*)pNativeData);
         }
+
+        // NOTE: We need a cast for this to work - can't declare return type here
+        public static object AsyncHandleParam(IntPtr pNativeData)
+        {
+            // Make a nice object from the native OPER
+            XlOper12* pOper = (XlOper12*)pNativeData;
+            // Ignore any Free flags
+            XlType12 type = pOper->xlType & ~XlType12.XlBitXLFree & ~XlType12.XlBitDLLFree;
+            if (type == XlType12.XlTypeBigData)
+            {
+                XlOper12.XlBigData bigData = pOper->bigData;
+                return IntegrationMarshalHelpers.CreateExcelAsyncHandleNative(bigData.hData);
+            }
+
+            throw new ArgumentException("Unexpected XlOper type for AsyncHandle: " + type, nameof(pNativeData));
+        }
     }
 
     unsafe class XlMarshalDoubleArrayContext
@@ -1299,7 +1315,6 @@ namespace ExcelDna.Loader
             GetMarshalContext().FreeMemory();
         }
 
-
         // Given a delegate and information about the intended export, we instantiate and return the exportable delegate
         // The delegate captures this (singleton) object and then reads the MarshalContext.Value from the ThreadLocal
 
@@ -1356,9 +1371,14 @@ namespace ExcelDna.Loader
                 if (pi.DirectMarshalConvert != null)
                 {
                     innerParamExprs[i] = Expression.Call(pi.DirectMarshalConvert, innerParamExprs[i]);
+                    if (pi.DirectMarshalXlType == XlDirectMarshal.XlTypeAsyncHandle)
+                    {
+                        // We insert an additional cast from the conversion's object return type to the ExcelAsyncHandle type
+                        // - we don't have the handle type (defined in ExcelDna.Integration) available when we build ExcelDna.Loader
+                        innerParamExprs[i] = Expression.TypeAs(innerParamExprs[i], IntegrationMarshalHelpers.ExcelAsyncHandleType);
+                    }
                 }
             }
-
 
             // variable to hold XlMarshalContext
             var ctx = Expression.Variable(typeof(XlMarshalContext), "xlMarshalContext");
@@ -1437,6 +1457,7 @@ namespace ExcelDna.Loader
         public static readonly string XlTypeString = "D%";          // XLSTRING12
         public static readonly string XlTypeDoubleArray = "K%";     // FP12*
         public static readonly string XlTypeBoolPtr = "L";          // short*
+        public static readonly string XlTypeAsyncHandle = "X";
     }
 
 
@@ -1509,6 +1530,7 @@ namespace ExcelDna.Loader
         public static MethodInfo DoublePtrToInt32Param = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.DoublePtrToInt32Param));
         public static MethodInfo DoublePtrToInt64Param = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.DoublePtrToInt64Param));
         public static MethodInfo DoublePtrToDecimalParam = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.DoublePtrToDecimalParam));
+        public static MethodInfo AsyncHandleParam = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.AsyncHandleParam));
     }
 
 
