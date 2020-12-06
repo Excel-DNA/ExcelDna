@@ -28,7 +28,6 @@ static TempFileHolder tempConfig;
 // Forward declarations for functions defined in this file.
 HRESULT LoadClr(std::wstring clrVersion, ICorRuntimeHost **ppHost);
 HRESULT LoadClrMeta(std::wstring clrVersion, ICLRMetaHost* pMetaHost, ICorRuntimeHost **ppHost);
-HRESULT LoadClr20(ICorRuntimeHost **ppHost);
 
 _COM_SMARTPTR_TYPEDEF(ICorRuntimeHost, IID_ICorRuntimeHost);
 EXTERN_GUID(IID__Assembly,	0x17156360, 0x2f1a, 0x384a, 0xbc, 0x52, 0xfd, 0xe9, 0x3c, 0x21, 0x5c, 0x5b);
@@ -96,17 +95,17 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 		// Perhaps remember that we are not loaded?
 		return 0;
 	}
-#ifdef _M_X64
+
 	bool allowedVersion = CompareNoCase(clrVersion, L"v4.0") >= 0;
 	if (!allowedVersion)
 	{
-		ShowMessage(IDS_MSG_HEADER_64NET4, 
-					IDS_MSG_BODY_64NET4,
+		ShowMessage(IDS_MSG_HEADER_NET4, 
+					IDS_MSG_BODY_NET4,
 					IDS_MSG_FOOTER_ENSUREVERSION,
 					hr);
 		return 0;
 	}
-#endif
+
 	hr = LoadClr(clrVersion, &pHost);
 	if (FAILED(hr) || pHost == NULL)
 	{
@@ -119,7 +118,7 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 	hr = pHost->Start();
 	if (FAILED(hr))
 	{
-		ShowMessage(IDS_MSG_HEADER_NEEDCLR20, 
+		ShowMessage(IDS_MSG_HEADER_NEEDCLR45, 
 					IDS_MSG_BODY_HOSTSTART,
 					IDS_MSG_FOOTER_UNEXPECTED,
 					hr);
@@ -245,18 +244,10 @@ HRESULT LoadClr(std::wstring clrVersion, ICorRuntimeHost **ppHost)
 	{
 		// No .Net installed
 		// CONSIDER: Doing explicit checking according to http://support.microsoft.com/kb/318785
-		if (needNet40)
-		{
-				ShowMessage(IDS_MSG_HEADER_NEEDCLR40, 
-					IDS_MSG_BODY_LOADMSCOREE, 
-					IDS_MSG_FOOTER_ENSURECLR40 );
-		}
-		else
-		{
-				ShowMessage(IDS_MSG_HEADER_NEEDCLR20, 
-					IDS_MSG_BODY_LOADMSCOREE, 
-					IDS_MSG_FOOTER_ENSURECLR20 );
-		}
+		
+		ShowMessage(IDS_MSG_HEADER_NEEDCLR45, 
+			IDS_MSG_BODY_LOADMSCOREE, 
+			IDS_MSG_FOOTER_ENSURECLR45 );
 		hr = E_FAIL;
 	}
 	else
@@ -264,44 +255,23 @@ HRESULT LoadClr(std::wstring clrVersion, ICorRuntimeHost **ppHost)
 		pfnCLRCreateInstance CLRCreateInstance = (pfnCLRCreateInstance)GetProcAddress(hMscoree, "CLRCreateInstance");
 		if (CLRCreateInstance == 0)
 		{
-			// Certainly no .Net 4 installed
-			if (needMetaHost)
-			{
-				// We need .Net 4.0 but it is not installed
-				ShowMessage(IDS_MSG_HEADER_NEEDCLR40, 
-							IDS_MSG_BODY_NOCLRCREATEINSTANCE, 
-							IDS_MSG_FOOTER_ENSURECLR40 );
-				hr = E_FAIL;
-			}
-			else
-			{
-				// We need only .Net 2.0 runtime and cannot MetaHost.
-				// Load .Net 2.0 with old code path
-				hr = LoadClr20(ppHost);
-			}
+			// We need .Net 4.0 but it is not installed
+			ShowMessage(IDS_MSG_HEADER_NEEDCLR45, 
+						IDS_MSG_BODY_NOCLRCREATEINSTANCE, 
+						IDS_MSG_FOOTER_ENSURECLR45 );
+			hr = E_FAIL;
 		}
 		else
 		{
 			hr = CLRCreateInstance(CLSID_CLRMetaHost, IID_ICLRMetaHost, (LPVOID*)&pMetaHost);
 			if (FAILED(hr))
 			{
-				// MetaHost is not available, even though we have a new version of MSCorEE.dll
-				// Certainly no .Net 4 installed
-				if (needMetaHost)
-				{
-					// We need .Net 4.0 but it is not installed
-					ShowMessage(IDS_MSG_HEADER_NEEDCLR40, 
-								IDS_MSG_BODY_CLRCREATEINSTANCEFAILED, 
-								IDS_MSG_FOOTER_ENSURECLR40, 
-								hr );
-					hr = E_FAIL;
-				}
-				else
-				{
-					// We need only .Net 2.0 runtime and cannot MetaHost.
-					// Load .Net 2.0 with old code path
-					hr = LoadClr20(ppHost);
-				}
+				// We need .Net 4.0 but it is not installed
+				ShowMessage(IDS_MSG_HEADER_NEEDCLR45, 
+							IDS_MSG_BODY_CLRCREATEINSTANCEFAILED, 
+							IDS_MSG_FOOTER_ENSURECLR45, 
+							hr );
+				hr = E_FAIL;
 			}
 			else
 			{
@@ -344,7 +314,7 @@ HRESULT LoadClrMeta(std::wstring clrVersion, ICLRMetaHost* pMetaHost, ICorRuntim
 		if (FAILED(hr))
 		{
 			// Not sure why this would happen???
-			ShowMessage( needNet40 ? IDS_MSG_HEADER_NEEDCLR40 : IDS_MSG_HEADER_NEEDCLR20, 
+			ShowMessage( IDS_MSG_HEADER_NEEDCLR45,
 						IDS_MSG_BODY_RUNTIMEGETINTERFACEFAILED, 
 						IDS_MSG_FOOTER_UNEXPECTED,
 						hr);
@@ -356,120 +326,6 @@ HRESULT LoadClrMeta(std::wstring clrVersion, ICLRMetaHost* pMetaHost, ICorRuntim
 			hr = S_OK;
 		
 		}
-	}
-	return hr;
-}
-
-// Try to get the CLR 2.0 running - .Net 4+ MetaHost stuff not present.
-HRESULT LoadClr20(ICorRuntimeHost **ppHost)
-{
-	HRESULT hr = E_FAIL;
-	HMODULE hMscoree = NULL;
-
-	hMscoree = LoadLibrary(L"mscoree.dll");
-	if (hMscoree == 0)
-	{
-		ShowMessage(IDS_MSG_HEADER_NEEDCLR20, 
-					IDS_MSG_BODY_LOADMSCOREE, 
-					IDS_MSG_FOOTER_ENSURECLR20 );
-		hr = E_FAIL;
-	}
-	else
-	{
-		// Load the runtime
-		pfnCorBindToRuntimeEx CorBindToRuntimeEx = (pfnCorBindToRuntimeEx)GetProcAddress(hMscoree, "CorBindToRuntimeEx");
-		if (CorBindToRuntimeEx == 0)
-		{
-			ShowMessage(IDS_MSG_HEADER_NEEDCLR20, 
-						IDS_MSG_BODY_NOCORBIND, 
-						IDS_MSG_FOOTER_UNEXPECTED );
-			hr = E_FAIL;
-		}
-		else
-		{
-			// Attempt to load a runtime that is compatible with the release version of .Net 2.0.
-			hr = CorBindToRuntimeEx(L"v2.0.50727", L"wks", NULL, CLSID_CorRuntimeHost, IID_ICorRuntimeHost, (LPVOID*)ppHost);
-			if (FAILED(hr))
-			{
-				// Could not load the right version
-				// Check whether version 2 is installed
-				if (!DetectFxIsNet20Installed())
-				{
-					ShowMessage(IDS_MSG_HEADER_NEEDCLR20, 
-								IDS_MSG_BODY_NONET20,
-								IDS_MSG_FOOTER_ENSURECLR20,
-								hr);
-					hr = E_FAIL;
-				}
-				else
-				{
-					// Check whether a version is already running
-					if (GetModuleHandle(L"mscorwks") != NULL)
-					{
-						ShowMessage(IDS_MSG_HEADER_NEEDCLR20, 
-									IDS_MSG_BODY_OLDVERSION,
-									IDS_MSG_FOOTER_OLDVERSION);
-						hr = E_FAIL;
-					}
-					else
-					{
-						ShowMessage(IDS_MSG_HEADER_NEEDCLR20, 
-							IDS_MSG_BODY_CORBINDFAILED, 
-							IDS_MSG_FOOTER_ENSURECLR20ANDLOAD, 
-							hr);						
-						//// Unknown load failure
-						//ShowMessage(IDS_MSG_HEADER_NEEDCLR20, 
-						//			IDS_MSG_BODY_UNKNOWNLOADFAIL,
-						//			IDS_MSG_FOOTER_UNEXPECTED);
-						hr = E_FAIL;
-					}
-				}
-				//hr = E_FAIL;
-			}
-			else
-			{
-				// Check the version that is now loaded ...
-				pfnGetCORVersion GetCORVersion = (pfnGetCORVersion)GetProcAddress(hMscoree, "GetCORVersion");
-				if (GetCORVersion == 0)
-				{
-					ShowMessage(IDS_MSG_HEADER_NEEDCLR20, 
-								IDS_MSG_BODY_NOCORVERSION, 
-								IDS_MSG_FOOTER_UNEXPECTED );
-					hr = E_FAIL;
-				}
-				else
-				{
-					// Display current runtime loaded
-					WCHAR szVersion[MAX_PATH + 1];
-					DWORD dwLength = MAX_PATH;
-					hr = GetCORVersion(szVersion, dwLength, &dwLength);
-					if (FAILED(hr))
-					{
-						ShowMessage(IDS_MSG_HEADER_NEEDCLR20, 
-									IDS_MSG_BODY_CORVERSIONFAILED, 
-									IDS_MSG_FOOTER_UNEXPECTED,
-									hr);
-						hr = E_FAIL;
-					}
-					else
-					{
-						if ( DetectFxReadMajorVersion(szVersion) < 2 )
-						{
-							// The version is no good.
-							ShowMessage(IDS_MSG_HEADER_NEEDCLR20, 
-										IDS_MSG_BODY_WRONGVERSIONLOADED, 
-										IDS_MSG_FOOTER_REVIEWADDINS);
-							hr = E_FAIL;
-						}
-						else
-						{
-							hr = S_OK;
-						}
-					}
-				}
-			}
-		}
-		FreeLibrary(hMscoree);
 	}
 	return hr;
 }

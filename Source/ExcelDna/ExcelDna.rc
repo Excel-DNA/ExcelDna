@@ -56,8 +56,8 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,1,0,3
- PRODUCTVERSION 1,1,0,3
+ FILEVERSION 1,2,0,3
+ PRODUCTVERSION 1,2,0,3
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -75,12 +75,12 @@ BEGIN
             VALUE "Comments", "Unmanaged loader shim for Excel-DNA Add-Ins"
             VALUE "CompanyName", "Govert van Drimmelen"
             VALUE "FileDescription", "Excel-DNA Dynamic Link Library"
-            VALUE "FileVersion", "1.1.0.3"
+            VALUE "FileVersion", "1.2.0.0"
             VALUE "InternalName", "ExcelDna"
             VALUE "LegalCopyright", "Copyright (C) 2005-2020 Govert van Drimmelen"
             VALUE "OriginalFilename", "ExcelDna.xll"
             VALUE "ProductName", "Excel-DNA Add-In Framework for Microsoft Excel"
-            VALUE "ProductVersion", "1.1"
+            VALUE "ProductVersion", "1.2"
         END
     END
     BLOCK "VarFileInfo"
@@ -103,23 +103,19 @@ END
 STRINGTABLE
 BEGIN
     IDS_MSG_TEMPLATE        "%1\r\n%2\r\n%3\r\n%4\r\nThis add-in is built with Excel-DNA and is being loaded from the following location:\r\n\t%5."
-    IDS_MSG_HEADER_NEEDCLR20 
-                            "This Excel add-in requires the Microsoft .NET Framework 2.0, 3.0 or 3.5.\r\n\r\nA problem occurred while attempting to load the .NET runtime:"
     IDS_MSG_BODY_LOADMSCOREE 
                             "\tExcelClrLoader - Could not load library mscoree.dll.\r\nThis error can occur if the .NET framework is not installed."
-    IDS_MSG_FOOTER_ENSURECLR20 
-                            "\r\nPlease ensure that the Microsoft .NET Framework 2.0 or later is installed before loading the add-in."
     IDS_MSG_BODY_CORBINDFAILED 
                             "\tExcelClrLoader - CorBindToRuntimeEx failed.\r\nThis error can occur if the .NET runtime is not installed, if version 2.0 or later is not installed, if the AppPatch registry entries are incorrect, or if there is an excel.exe.config configuration file restricting the versions of the .NET runtime that can be loaded by Excel."
-    IDS_MSG_FOOTER_ENSURECLR20ANDLOAD 
-                            "\r\nPlease ensure that the Microsoft .NET Framework Version 2.0 or later is installed, and will be loaded correctly by Excel, before reloading the add-in."
+    IDS_MSG_FOOTER_ENSURECLR45ANDLOAD 
+                            "\r\nPlease ensure that the Microsoft .NET Framework Version 4.5 or later is installed, and will be loaded correctly by Excel, before reloading the add-in."
     IDS_MSG_FOOTER_UNEXPECTED 
                             "\r\nThis is an unexpected error. Please report this error to the add-in developer."
     IDS_MSG_BODY_HOSTSTART  "The .NET runtime was loaded but could not be started:\r\n\tExcelClrLoad - Host->Start failed."
     IDS_MSG_BODY_OLDVERSION "Although the required runtime is installed, an older version has been loaded by Excel (only one version of the runtime can be loaded).\r\nThis is possible if another managed add-in caused the runtime to load, using the incorrectly installed AppPatch policy."
     IDS_MSG_FOOTER_OLDVERSION 
-                            "Review the other managed Excel add-ins that are loaded, or ensure that the .NET 2.0 runtime loads by setting an appropriate 'supportedRuntime' entry in a configuration file for Excel (Excel.exe.config)."
-    IDS_MSG_BODY_NONET20    "The Microsoft .NET Framework 2.0, 3.0 or 3.5 was not detected on this machine."
+                            "Review the other managed Excel add-ins that are loaded, or ensure that the .NET Framework 4.5 or later loads by setting an appropriate 'supportedRuntime' entry in a configuration file for Excel (Excel.exe.config)."
+    IDS_MSG_BODY_NONET45    "The Microsoft .NET Framework 4.5 or later was not detected on this machine."
     IDS_MSG_BODY_NOCORBIND  "\tExcelClrLoader - Could not get proc address for CorBindToRuntimeEx."
     IDS_MSG_BODY_NOCORVERSION 
                             "\tExcelClrLoader - Could not get proc address for GetCORVersion."
@@ -133,7 +129,7 @@ END
 STRINGTABLE
 BEGIN
     IDS_MSG_FOOTER_REVIEWADDINS 
-                            "Review the other add-ins that are loaded, or ensure that the .Net 2.0 runtime loads by setting an approriate 'supportedRuntime' entry in a configuration file (Excel.exe.config).\r\nYou will need to restart Excel to load the correct version of the runtime."
+                            "Review the other add-ins that are loaded, or ensure that the .NET Framework 4.5 or later loads by setting an approriate 'supportedRuntime' entry in a configuration file (Excel.exe.config).\r\nYou will need to restart Excel to load the correct version of the runtime."
     IDS_MSG_BODY_WRONGVERSIONLOADED 
                             "Although the required runtime is installed, it could not be loaded successfully.\r\nThis is possible if a configuration file or another managed add-in forces an older version of the runtime to load (only one version of the runtime can be loaded into the process).\r\n\r\n"
     IDS_MSG_HEADER_APPDOMAIN 
@@ -150,22 +146,22 @@ BEGIN
     IDS_MSG_BODY_XLADDIN    "The type ExcelDna.Loader.XlAddIn could not be found."
     IDS_MSG_BODY_XLADDININIT 
                             "The ExcelDna.Loader.XlAddIn.Initialize call failed."
-    IDS_MSG_HEADER_NEEDCLR40 
-                            "This Excel add-in requires the Microsoft .NET Framework 4.\r\n\r\nA problem occurred while attempting to load the .NET runtime:"
-    IDS_MSG_FOOTER_ENSURECLR40 
-                            "\r\nPlease ensure that the Microsoft .NET Framework 4 is installed before loading the add-in."
+    IDS_MSG_HEADER_NEEDCLR45 
+                            "This Excel add-in requires the Microsoft .NET Framework 4.5 or later.\r\n\r\nA problem occurred while attempting to load the .NET runtime:"
+    IDS_MSG_FOOTER_ENSURECLR45 
+                            "\r\nPlease ensure that the Microsoft .NET Framework 4.5 or later is installed before loading the add-in."
     IDS_MSG_BODY_NOCLRCREATEINSTANCE 
-                            "\tExcelClrLoader - Could not get proc address for CLRCreateInstance.\r\nThis problem usually indicates that the Microsoft .NET Framework 4 is not installed on this computer."
+                            "\tExcelClrLoader - Could not get proc address for CLRCreateInstance.\r\nThis problem usually indicates that the Microsoft .NET Framework 4.5 or later is not installed on this computer."
     IDS_MSG_BODY_CLRCREATEINSTANCEFAILED 
                             "\tExcelClrLoader - CLRCreateInstance failed."
     IDS_MSG_HEADER_VERSIONLOADFAILED 
-                            "This Excel add-in requires the Microsoft .NET Framework.\r\n\r\nA problem occurred while attempting to load the requested version of the Microsoft .NET runtime:"
+                            "This Excel add-in requires the Microsoft .NET Framework 4.5 or later.\r\n\r\nA problem occurred while attempting to load the requested version of the Microsoft .NET runtime:"
 END
 
 STRINGTABLE
 BEGIN
     IDS_MSG_BODY_METAHOSTGETRUNTIMEFAILED 
-                            "\tMetaHost could not load the requested version of the .NET runtime.\r\n\r\nIf no version is specified in the <addin>.dna file, the host will attempt to load .NET version 2.0.\r\nTo load version 4, add a RuntimeVersion='v4.0' attribute to the DnaLibrary tag in the <addin>.dna file."
+                            "\tMetaHost could not load the requested version of the .NET runtime.\r\n\r\nIf no version is specified in the <addin>.dna file, add a RuntimeVersion='v4.0' attribute to the DnaLibrary tag in the <addin>.dna file."
     IDS_MSG_BODY_RUNTIMEGETINTERFACEFAILED 
                             "\tThe .Net runtime interface could not be retrieved."
     IDS_MSG_BODY_SHADOWCOPYFILES "ShadowCopyFiles could not be set."
@@ -183,8 +179,8 @@ BEGIN
     IDS_MSG_BODY_DNAPARSEFAILED 
                             "\tThe xml content of the file was not valid. Error in parsing <DnaLibrary ...> tag."
     IDS_MSG_BODY_DNAREADFAILED "\tThe file could not be read."
-    IDS_MSG_HEADER_64NET4   "To load under the 64-bit version of Excel, this add-in must specify that version 4 of the Microsoft .NET Framework should be used."
-    IDS_MSG_BODY_64NET4     "Add a RuntimeVersion='v4.0' attribute to the DnaLibrary tag in the <addin>.dna file to indicate that .NET 4 must be loaded."
+    IDS_MSG_HEADER_NET4   "This version of the add-in loader requires that version 4.5 or later of the Microsoft .NET Framework be used."
+    IDS_MSG_BODY_NET4     "Add a RuntimeVersion='v4.0' attribute to the DnaLibrary tag in the <addin>.dna file to indicate that .NET Framework 4 must be loaded."
     IDS_MSG_FOOTER_CHECKINTEGRATION 
                             "\r\nCheck that there is no obsolete version of ExcelDna.Integration.dll present. This file can be safely deleted."
 END
