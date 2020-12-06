@@ -92,29 +92,6 @@ namespace ExcelDna.Loader
             return excelReferenceConstructorRects.Invoke(new object[] { areas, sheetId });
         }
 
-        internal unsafe static void SetExcelReference(XlOper* pOper, XlOper.XlMultiRef* pMultiRef, object /*ExcelReference*/ r)
-        {
-            IntPtr sheetId = ExcelReferenceGetSheetId(r);
-            int[][] rects = ExcelReferenceGetRectangles(r);
-            int rectCount = rects.GetLength(0);
-
-            pOper->xlType = XlType.XlTypeReference;
-            pOper->refValue.SheetId = sheetId;
-
-            pOper->refValue.pMultiRef = pMultiRef;
-            pOper->refValue.pMultiRef->Count = (ushort)rectCount;
-
-            XlOper.XlRectangle* pRectangles = (XlOper.XlRectangle*)(&pOper->refValue.pMultiRef->Rectangles);
-
-            for (int i = 0; i < rectCount; i++)
-            {
-                pRectangles[i].RowFirst = (ushort)rects[i][0];
-                pRectangles[i].RowLast = (ushort)rects[i][1];
-                pRectangles[i].ColumnFirst = (byte)rects[i][2];
-                pRectangles[i].ColumnLast = (byte)rects[i][3];
-            }
-        }
-
         internal unsafe static void SetExcelReference12(XlOper12* pOper, XlOper12.XlMultiRef12* pMultiRef, object /*ExcelReference*/ r)
         {
             IntPtr sheetId = ExcelReferenceGetSheetId(r);

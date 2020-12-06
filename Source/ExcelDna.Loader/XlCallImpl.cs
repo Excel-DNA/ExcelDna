@@ -13,9 +13,6 @@ namespace ExcelDna.Loader
         [DllImport("XLCALL32.DLL")]
         internal static extern int XLCallVer();
 
-		[DllImport("XLCALL32.DLL")]
-		internal static extern unsafe int Excel4v(int xlfn, XlOper* pOperRes, int count, XlOper** ppOpers);
-
 		[DllImport("kernel32.dll")]
         public static extern IntPtr GetModuleHandle(string moduleName);
 
@@ -64,12 +61,6 @@ namespace ExcelDna.Loader
 
         public unsafe static int TryExcelImpl(int xlFunction, out object result, params object[] parameters)
         {
-            if (XlAddIn.XlCallVersion < 12)
-            {
-                return TryExcelImpl4(xlFunction, out result, parameters);
-            }
-
-            // Else Excel 12+
             if (Excel12v == null )
             {
                 FetchExcel12EntryPt();
@@ -114,32 +105,6 @@ namespace ExcelDna.Loader
             }
         }
 
-        private unsafe static int TryExcelImpl4(int xlFunction, out object result, params object[] parameters)
-		{
-            int xlReturn;
-
-            // Set up the memory to hold the result from the call
-            XlOper resultOper = new XlOper();
-            resultOper.xlType = XlType.XlTypeEmpty;
-            XlOper* pResultOper = &resultOper;  // No need to pin for local struct
-
-            // Special kind of ObjectArrayMarshaler for the parameters (rank 1)
-            using (XlObjectArrayMarshaler paramMarshaler = new XlObjectArrayMarshaler(1, true))
-            {
-                XlOper** ppOperParameters = (XlOper**)paramMarshaler.MarshalManagedToNative(parameters);
-                xlReturn = Excel4v(xlFunction, pResultOper, parameters.Length, ppOperParameters);
-            }
-
-            // pResultOper now holds the result of the evaluated function
-            // Get ObjectMarshaler for the return value
-            ICustomMarshaler m = XlObjectMarshaler.GetInstance("");
-            result = m.MarshalNativeToManaged((IntPtr)pResultOper);
-            // And free any memory allocated by Excel
-            Excel4v(xlFree, (XlOper*)IntPtr.Zero, 1, &pResultOper);
-        
-            return xlReturn;
-        }
-
         private unsafe static int TryExcelImpl12(int xlFunction, out object result, params object[] parameters)
         {
             int xlReturn;
@@ -149,7 +114,6 @@ namespace ExcelDna.Loader
             resultOper.xlType = XlType12.XlTypeEmpty;
             XlOper12* pResultOper = &resultOper;  // No need to pin for local struct
 
-#if DEBUG
             // Special kind of ObjectArrayMarshaler for the parameters (rank 1)
             using (XlMarshalXlOperArrayContext paramMarshaler
                         = new XlMarshalXlOperArrayContext(1, true))
@@ -158,75 +122,14 @@ namespace ExcelDna.Loader
                 xlReturn = Excel12v(xlFunction, parameters.Length, ppOperParameters, pResultOper);
             }
 
-
             // pResultOper now holds the result of the evaluated function
             // Get ObjectMarshaler for the return value
             result = XlMarshalContext.ObjectParam((IntPtr)pResultOper);
-#else
-            // Special kind of ObjectArrayMarshaler for the parameters (rank 1)
-            using (XlObjectArray12Marshaler.XlObjectArray12MarshalerImpl paramMarshaler 
-                        = new XlObjectArray12Marshaler.XlObjectArray12MarshalerImpl(1, true))
-            {
-                XlOper12** ppOperParameters = (XlOper12**)paramMarshaler.MarshalManagedToNative(parameters);
-                xlReturn = Excel12v(xlFunction, parameters.Length, ppOperParameters, pResultOper);
-            }
 
-
-            // pResultOper now holds the result of the evaluated function
-            // Get ObjectMarshaler for the return value
-            ICustomMarshaler m = XlObject12Marshaler.GetInstance("");
-            result = m.MarshalNativeToManaged((IntPtr)pResultOper);
-#endif
             // And free any memory allocated by Excel
             Excel12v(xlFree, 1, &pResultOper, (XlOper12*)IntPtr.Zero);
 
             return xlReturn;
-        }
-
-        public unsafe static IntPtr GetCurrentSheetId4()
-        {
-            // In a macro type function, xlSheetNm seems to return the Active sheet instead of the Current sheet.
-            // So we first try to get the Current sheet from the caller.
-            IntPtr retval = GetCallerSheetId4();
-            if (retval != IntPtr.Zero)
-                return retval;
-
-            // Else we try the old way.
-            XlOper SRef = new XlOper();
-            SRef.xlType = XlType.XlTypeSReference;
-            //SRef.srefValue.Count = 1;
-            //SRef.srefValue.Reference.RowFirst = 1;
-            //SRef.srefValue.Reference.RowLast = 1;
-            //SRef.srefValue.Reference.ColumnFirst = 1;
-            //SRef.srefValue.Reference.ColumnLast = 1;
-
-            XlOper resultOper = new XlOper();
-            XlOper* pResultOper = &resultOper;
-
-            XlOper* pSRef = &SRef;
-            XlOper** ppSRef = &(pSRef);
-            int xlReturn;
-            xlReturn = Excel4v(xlSheetNm, pResultOper, 1, ppSRef);
-            if (xlReturn == 0)
-            {
-                XlOper resultRef = new XlOper();
-                XlOper* pResultRef = &resultRef;
-                xlReturn = Excel4v(xlSheetId, pResultRef, 1, (XlOper**)&(pResultOper));
-
-                // Done with pResultOper - Free
-                Excel4v(xlFree, (XlOper*)IntPtr.Zero, 1, &pResultOper);
-
-                if (xlReturn == 0)
-                {
-                    if (resultRef.xlType == XlType.XlTypeReference)
-                    {
-                        return resultRef.refValue.SheetId;
-                    }
-                    // Done with ResultRef - Free it too
-                    Excel4v(xlFree, (XlOper*)IntPtr.Zero, 1, &pResultRef);
-                }
-            }
-            return retval;
         }
 
         public unsafe static IntPtr GetCurrentSheetId12()
@@ -272,24 +175,6 @@ namespace ExcelDna.Loader
                     Excel12v(xlFree, 1, &pResultRef, (XlOper12*)IntPtr.Zero);
                 }
                 // CONSIDER: As a small optimisation, we could combine the two calls the xlFree. But then we'd have to manage an array here.
-            }
-            return retval;
-        }
-
-        public unsafe static IntPtr GetCallerSheetId4()
-        {
-            IntPtr retval = IntPtr.Zero;
-            XlOper resultOper = new XlOper();
-            XlOper* pResultOper = &resultOper;
-            int xlReturn;
-            xlReturn = Excel4v(xlfCaller, pResultOper, 0, (XlOper**)IntPtr.Zero);
-            if (xlReturn == 0)
-            {
-                if (resultOper.xlType == XlType.XlTypeReference)
-                {
-                    retval = resultOper.refValue.SheetId;
-                    Excel4v(xlFree, (XlOper*)IntPtr.Zero, 1, &pResultOper);
-                }
             }
             return retval;
         }

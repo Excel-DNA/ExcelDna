@@ -6,7 +6,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Linq.Expressions;
 using System.Linq;
-using System.Diagnostics;
 
 namespace ExcelDna.Loader
 {
@@ -77,14 +76,14 @@ namespace ExcelDna.Loader
             for (int i = 0; i < methodInfo.Parameters.Length; i++)
             {
                 var pi = methodInfo.Parameters[i];
-                if (pi.DirectMarshalConvert == null)
+                if (pi.XlMarshalConvert == null)
                 {
                     innerParamExprs[i] = outerParams[i];
                 }
                 else
                 {
-                    innerParamExprs[i] = Expression.Call(pi.DirectMarshalConvert, outerParams[i]);
-                    if (pi.DirectMarshalXlType == XlTypes.AsyncHandle)
+                    innerParamExprs[i] = Expression.Call(pi.XlMarshalConvert, outerParams[i]);
+                    if (pi.XlType == XlTypes.AsyncHandle)
                     {
                         // We insert an additional cast from the conversion's object return type to the ExcelAsyncHandle type
                         // - we don't have the handle type (defined in ExcelDna.Integration) available when we build ExcelDna.Loader
@@ -110,21 +109,20 @@ namespace ExcelDna.Loader
             {
                 var result = Expression.Variable(typeof(IntPtr), "returnValue");
                 var resultExpr = result; // Overwrite with conversion if applicable
-                if (methodInfo.ReturnType.DirectMarshalConvert != null)
+                if (methodInfo.ReturnType.XlMarshalConvert != null)
                 {
-                    wrappingCall = Expression.Call(ctx, methodInfo.ReturnType.DirectMarshalConvert, wrappingCall);
+                    wrappingCall = Expression.Call(ctx, methodInfo.ReturnType.XlMarshalConvert, wrappingCall);
                 }
             }
 
             // Prepare the ex(ception) local variable (TODO/DM why a parameter?)
-            var ex = Expression.Parameter(typeof(Exception), "ex");
+            var ex = Expression.Variable(typeof(Exception), "ex");
             Expression catchExpression;
             if (methodInfo.IsExcelAsyncFunction)
             {
                 // HandleUnhandledException is called by ExcelAsyncHandle.SetException
                 var setExceptionMethod = IntegrationMarshalHelpers.ExcelAsyncHandleType.GetMethod("SetException");
                 // Need to get instance from parameter list
-                Debug.Assert(asyncHandle != null);
                 catchExpression = Expression.Block(
                             Expression.Call(asyncHandle, setExceptionMethod, ex), // Ignore bool return !?
                             Expression.Empty());
@@ -134,7 +132,7 @@ namespace ExcelDna.Loader
                 var exHandler = Expression.Call(typeof(IntegrationHelpers).GetMethod("HandleUnhandledException"), ex);
                 if (methodInfo.HasReturnType)
                 {
-                    if (methodInfo.IsExceptionSafe && methodInfo.ReturnType.DirectMarshalXlType != XlTypes.Xloper)
+                    if (methodInfo.IsExceptionSafe && methodInfo.ReturnType.XlType != XlTypes.Xloper)
                     {
                         // We return #NUM!, which is better than crashing
                         catchExpression = Expression.Block(
@@ -153,9 +151,11 @@ namespace ExcelDna.Loader
                 }
             }
 
+            Type delegateType;
             Expression body;
             if (methodInfo.HasReturnType)
             {
+                delegateType = XlDirectMarshalTypes.XlFuncs[methodInfo.Parameters.Length];
                 body = Expression.Block(
                     typeof(IntPtr),
                     new ParameterExpression[] { ctx },
@@ -166,6 +166,7 @@ namespace ExcelDna.Loader
             }
             else
             {
+                delegateType = XlDirectMarshalTypes.XlActs[methodInfo.Parameters.Length];
                 body = Expression.Block(
                     new ParameterExpression[] { asyncHandle },
                     Expression.TryCatch(
@@ -173,17 +174,7 @@ namespace ExcelDna.Loader
                         Expression.Catch(ex, catchExpression)));
             }
 
-            var delegateType = GetNativeDelegateType(methodInfo);
-            var lambda = Expression.Lambda(delegateType, body, methodInfo.Name, outerParams);
-            return lambda.Compile();
-        }
-
-        static Type GetNativeDelegateType(XlMethodInfo methodInfo)
-        {
-            if (methodInfo.ReturnType == null)
-                return XlDirectMarshalTypes.XlActs[methodInfo.Parameters.Length];
-            else
-                return XlDirectMarshalTypes.XlFuncs[methodInfo.Parameters.Length];
+            return Expression.Lambda(delegateType, body, methodInfo.Name, outerParams).Compile();
         }
     }
 }

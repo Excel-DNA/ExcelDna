@@ -3,10 +3,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using System.Reflection.Emit;
 using System.Runtime.InteropServices;
 using ExcelDna.Loader.Logging;
 
@@ -20,7 +18,6 @@ namespace ExcelDna.Loader
         public object Target;   // Mostly null - can / should we get rid of it? It only lets us use constant objects to invoke against, which is not so useful. Rather allow open delegates?
 
         // Set and used during contruction and registration
-        Type _delegateType;
         public GCHandle DelegateHandle; // TODO: What with this - when to clean up? 
         // For cleanup should call DelegateHandle.Free()
         public IntPtr FunctionPointer;
@@ -117,7 +114,6 @@ namespace ExcelDna.Loader
                 IsCommand = false;
             }
         }
-
 
         // Native async functions have a final parameter that is an ExcelAsyncHandle.
         public bool IsExcelAsyncFunction 
@@ -321,338 +317,9 @@ namespace ExcelDna.Loader
             }
         }
 
-        // Delegate type created here ignores firstArgument (if we have one)
-        Type CreateDelegateType(ModuleBuilder modBuilder)
-        {
-            TypeBuilder typeBuilder;
-            MethodBuilder methodBuilder;
-            XlParameterInfo[] paramInfos = Parameters;
-            Type[] paramTypes = Array.ConvertAll<XlParameterInfo, Type>(paramInfos,
-                                                                        delegate(XlParameterInfo pi)
-                                                                            { return pi.DelegateParamType; });
-
-            // Create a delegate that has the same signature as the method we would like to hook up to
-            typeBuilder = modBuilder.DefineType("f" + Index++ + "Delegate",
-                                                TypeAttributes.Class | TypeAttributes.Public |
-                                                TypeAttributes.Sealed,
-                                                typeof (System.MulticastDelegate));
-            ConstructorBuilder constructorBuilder = typeBuilder.DefineConstructor(
-                MethodAttributes.RTSpecialName | MethodAttributes.HideBySig |
-                MethodAttributes.Public, CallingConventions.Standard,
-                new Type[] {typeof (object), typeof (int)});
-            constructorBuilder.SetImplementationFlags(MethodImplAttributes.Runtime |
-                                                      MethodImplAttributes.Managed);
-
-            // Build up the delegate
-            // Define the Invoke method for the delegate
-            methodBuilder = typeBuilder.DefineMethod("Invoke",
-                                                     MethodAttributes.Public | MethodAttributes.HideBySig |
-                                                     MethodAttributes.NewSlot | MethodAttributes.Virtual,
-                                                     HasReturnType ? ReturnType.DelegateParamType : typeof(void),
-                                                     // What here for macro? null or Void ?
-                                                     paramTypes);
-            methodBuilder.SetImplementationFlags(MethodImplAttributes.Runtime |
-                                                 MethodImplAttributes.Managed);
-
-            // Set Marshal Attributes for return type
-            if (HasReturnType && ReturnType.MarshalAsAttribute != null)
-            {
-                ParameterBuilder pb = methodBuilder.DefineParameter(0, ParameterAttributes.None, null);
-                pb.SetCustomAttribute(ReturnType.MarshalAsAttribute);
-            }
-
-            // ... and the parameters
-            for (int i = 1; i <= paramInfos.Length; i++)
-            {
-                CustomAttributeBuilder b = paramInfos[i - 1].MarshalAsAttribute;
-                if (b != null)
-                {
-                    ParameterBuilder pb = methodBuilder.DefineParameter(i, ParameterAttributes.None, null);
-                    pb.SetCustomAttribute(b);
-                }
-            }
-
-            // Bake the type and get the delegate
-            return typeBuilder.CreateType();
-        }
-
-        MethodInfo CreateMethodInfo(TypeBuilder wrapperType, Type delegateType, MethodInfo targetMethod, object target)
-        {
-            bool isInstanceMethod = !targetMethod.IsStatic;
-            // We expect static methods to have target null
-            Debug.Assert(isInstanceMethod || target == null);
-
-            // Check whether we can skip wrapper completely
-            // TODO: Change this - we should always wrap in an exception handler, but for double return values
-            //       we let IsExceptionSafe mean we do a 1/0 in the exception handler, which Excel will catch and handle as #NUM!
-            //       For other types it shouldn't matter...
-            if (IsExceptionSafe
-                && Array.TrueForAll(Parameters,
-                                    delegate(XlParameterInfo pi) { return pi.BoxedValueType == null; })
-                && (!HasReturnType || ReturnType.BoxedValueType == null))
-            {
-                return targetMethod;
-            }
-
-            // DateTime and boolean input parameters are never exception safe - we need to be able to fail out of the 
-            // marshaler when the passed-in argument is an invalid date or bool.
-            bool emitExceptionHandler = 
-                !IsExceptionSafe || 
-                Array.Exists(Parameters, 
-                             delegate(XlParameterInfo pi) { return pi.BoxedValueType == typeof(DateTime) ||
-                                                                   pi.BoxedValueType == typeof(bool); });
-
-            if (emitExceptionHandler && IsExceptionSafe && HasReturnType && ReturnType.DelegateParamType != typeof(object))
-                throw new DnaMarshalException("DateTime and bool input parameters are incompatible with IsExceptionSafe attribute if return type is not object");
-
-            // Now we create a dynamic wrapper
-            Type[] paramTypes = Array.ConvertAll<XlParameterInfo, Type>(Parameters,
-                                                                        delegate(XlParameterInfo pi)
-                                                                            { return pi.DelegateParamType; });
-            if (isInstanceMethod)
-            {
-                Type[] allParams = new Type[paramTypes.Length + 1];
-                allParams[0] = typeof(object);
-                Array.Copy(paramTypes, 0, allParams, 1, paramTypes.Length);
-                paramTypes = allParams;
-            }
-
-            MethodBuilder wrapper =  wrapperType.DefineMethod(
-                string.Format("Wrapped_f{0}_{1}", Index, targetMethod.Name),
-                MethodAttributes.Public | MethodAttributes.Static, 
-                HasReturnType ? ReturnType.DelegateParamType : typeof(void),
-                paramTypes);
-
-            // Add [HandleCorruptProcessExceptions] to wrapper method, if we're running on .NET 4.0
-            if (Environment.Version.Major >= 4 && emitExceptionHandler)
-            {
-                Type hcpeType = Type.GetType("System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute");
-                ConstructorInfo hcpeCtorInfo = hcpeType.GetConstructor(Type.EmptyTypes);
-                CustomAttributeBuilder hcpeBuilder = new CustomAttributeBuilder(hcpeCtorInfo, Type.EmptyTypes);
-                wrapper.SetCustomAttribute(hcpeBuilder);
-            }
-
-            ILGenerator wrapIL = wrapper.GetILGenerator();
-            Label endOfMethod = wrapIL.DefineLabel();
-
-            LocalBuilder retobj = null;
-            LocalBuilder except = null;
-            if (HasReturnType)
-            {
-                // Make a local to contain the return value
-                retobj = wrapIL.DeclareLocal(ReturnType.DelegateParamType);
-            }
-            if (emitExceptionHandler)
-            {
-                // Start the Try block
-                except = wrapIL.DeclareLocal(typeof(Exception));
-                wrapIL.BeginExceptionBlock();
-            }
-
-            // Generate the body - push all the arguments, including the target for instance methods
-            if (isInstanceMethod)
-            {
-                // First is the target of the delegate
-                wrapIL.Emit(OpCodes.Ldarg_S, 0);
-            }
-            for (byte i = 0; i < Parameters.Length; i++)
-            {
-                if (i < 255)
-                {
-                    byte argIndex = isInstanceMethod ? (byte)(i + 1) : i;
-                    wrapIL.Emit(OpCodes.Ldarg_S, argIndex);
-                }
-                else
-                {
-                    short argIndex = isInstanceMethod ? (short)(i + 1) : i;
-                    wrapIL.Emit(OpCodes.Ldarg, argIndex);
-                }
-                XlParameterInfo pi = Parameters[i];
-                if (pi.BoxedValueType != null)
-                {
-                    wrapIL.Emit(OpCodes.Unbox_Any, pi.BoxedValueType);
-                }
-            }
-            // Call the real method
-            wrapIL.EmitCall(OpCodes.Call, targetMethod, null);
-            if (HasReturnType)
-            {
-                if (ReturnType.BoxedValueType != null)
-                {
-                    // Box the return value (which is on the stack)
-                    wrapIL.Emit(OpCodes.Box, ReturnType.BoxedValueType);
-                }
-                // Store the return value into the local variable
-                wrapIL.Emit(OpCodes.Stloc_S, retobj);
-            }
-
-            if (emitExceptionHandler)
-            {
-                wrapIL.Emit(OpCodes.Leave_S, endOfMethod);
-                wrapIL.BeginCatchBlock(typeof (object));
-                if (IsExcelAsyncFunction) {
-                    wrapIL.Emit(OpCodes.Stloc_S, except);
-                    int idx = Parameters.Length - (isInstanceMethod ? 0 : 1);
-                    if (idx < 256)
-                        wrapIL.Emit(OpCodes.Ldarg_S, (byte)idx);
-                    else
-                        wrapIL.Emit(OpCodes.Ldarg, (short)idx);
-                    wrapIL.Emit(OpCodes.Ldloc_S, except);
-                    wrapIL.Emit(OpCodes.Callvirt, IntegrationMarshalHelpers.ExcelAsyncHandleType.GetMethod("SetException"));
-                    wrapIL.Emit(OpCodes.Pop);
-                } else
-                if (!HasReturnType || ReturnType.DelegateParamType == typeof (object))
-                {
-                    // Call Integration.HandleUnhandledException - Exception object is on the stack.
-                    wrapIL.Emit(OpCodes.Call, typeof(IntegrationHelpers).GetMethod("HandleUnhandledException"));
-
-                    if (HasReturnType)
-                    {
-                        // Stack now has return value from the ExceptionHandler - Store to local if we have a return type
-                        wrapIL.Emit(OpCodes.Stloc_S, retobj);
-
-                        //// Create a boxed Excel error value, and set the return object to it
-                        //wrapIL.Emit(OpCodes.Ldc_I4, IntegrationMarshalHelpers.ExcelError_ExcelErrorValue);
-                        //wrapIL.Emit(OpCodes.Box, IntegrationMarshalHelpers.GetExcelErrorType());
-                        //wrapIL.Emit(OpCodes.Stloc_S, retobj);
-                    }
-                    else
-                    {
-                        // Pop result from ExceptionHandler off the stack
-                        wrapIL.Emit(OpCodes.Pop);
-                    }
-                }
-                else
-                {
-                    // Just ignore the Exception.
-                    wrapIL.Emit(OpCodes.Pop);
-                }
-                wrapIL.EndExceptionBlock();
-            }
-            wrapIL.MarkLabel(endOfMethod);
-            if (HasReturnType)
-            {
-                // Push the return value
-                wrapIL.Emit(OpCodes.Ldloc_S, retobj);
-            }
-            wrapIL.Emit(OpCodes.Ret);
-            // End of Wrapper
-
-            return wrapper;
-        }
-        
-        void CreateDelegateTypeAndMethodInfo(ModuleBuilder moduleBuilder, TypeBuilder wrapperTypeBuilder, MethodInfo targetMethod, object target)
-        {
-            // Create the delegate type, wrap the targetMethod and create the delegate
-
-            // CONSIDER: Currently we need a special delegate type here so that we can hook on the marshaling attributes.
-            //           Future version might do straight-forward marshaling, so we can get rid of these types (just use generic methods)
-            
-            // FirstArgument (if received) is not used in the delegate type created ...
-            _delegateType = CreateDelegateType(moduleBuilder);
-            // ... but is baked into the delegate itself.
-            MethodInfo = CreateMethodInfo(wrapperTypeBuilder, _delegateType, targetMethod, target);
-            Target = target;
-        }
-
-        void CreateDelegateAndFunctionPointer(Type wrapperType)
-        {
-            // Get compiled method if we need to
-            if (MethodInfo is MethodBuilder)
-                MethodInfo = wrapperType.GetMethod(MethodInfo.Name);
-
-            Delegate xlDelegate;
-            if (Target != null)
-                xlDelegate = Delegate.CreateDelegate(_delegateType, Target, MethodInfo);
-            else
-                xlDelegate = Delegate.CreateDelegate(_delegateType, MethodInfo);
-            
-            // Need to add a reference to prevent garbage collection of our delegate
-            // Don't need to pin, according to 
-            // "How to: Marshal Callbacks and Delegates Using C++ Interop"
-            // Currently this delegate is never released
-            // TODO: Clean up properly
-            DelegateHandle = GCHandle.Alloc(xlDelegate);
-            FunctionPointer = Marshal.GetFunctionPointerForDelegate(xlDelegate);
-
-            // Clean up instance fields no longer needed.
-            _delegateType = null;
-            MethodInfo = null;
-            Target = null;
-        }
-
         // This is the main conversion function called from XlLibrary.RegisterMethods
         // targets may be null - the typical case
         public static List<XlMethodInfo> ConvertToXlMethodInfos(List<MethodInfo> methods, List<object> targets, List<object> methodAttributes, List<List<object>> argumentAttributes)
-        {
-#if DEBUG
-            var xlmis = ConvertToXlMethodInfosDirectMarshal(methods, targets, methodAttributes, argumentAttributes);
-            // TODO/DM: To keep DirectMarshalDecision in one place, I do the XlType switch there
-            foreach (var xlmi in xlmis)
-            {
-                if (xlmi.HasReturnType)
-                    xlmi.ReturnType.XlType = xlmi.ReturnType.DirectMarshalXlType;
-
-                foreach (var xlpi in xlmi.Parameters)
-                    xlpi.XlType = xlpi.DirectMarshalXlType;
-            }
-            return xlmis;
-#endif
-
-            List<XlMethodInfo> xlMethodInfos = new List<XlMethodInfo>();
-
-            // Set up assembly
-            // Examine the methods, built the types and infos
-            // Bake the assembly and export the function pointers
-
-            AssemblyBuilder assemblyBuilder;
-            ModuleBuilder moduleBuilder;
-            TypeBuilder wrapperTypeBuilder;
-
-            assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(
-                new AssemblyName("ExcelDna.DynamicDelegateAssembly"),
-                AssemblyBuilderAccess.Run /*AndSave*/);
-            moduleBuilder = assemblyBuilder.DefineDynamicModule("DynamicDelegates");
-            wrapperTypeBuilder = moduleBuilder.DefineType("WrapperType");
-
-            for (int i = 0; i < methods.Count; i++)
-            {
-                MethodInfo mi  = methods[i];
-                object target = (targets == null) ? null : targets[i];
-                object methodAttrib = (methodAttributes != null && i < methodAttributes.Count) ? methodAttributes[i] : null;
-                List<object> argAttribs = (argumentAttributes != null && i < argumentAttributes.Count) ? argumentAttributes[i] : null;
-                try
-                {
-                    XlMethodInfo xlmi = new XlMethodInfo(mi, target, methodAttrib, argAttribs);
-                    // Skip if suppressed
-                    if (xlmi.ExplicitRegistration)
-                    {
-                        Logger.Registration.Info("Suppressing due to ExplictRegistration attribute: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
-                        continue;
-                    }
-                    // otherwise continue with delegate type and method building
-                    xlmi.CreateDelegateTypeAndMethodInfo(moduleBuilder, wrapperTypeBuilder, mi, target);
-
-                    // ... and add to list for further processing and registration
-                    xlMethodInfos.Add(xlmi);
-                }
-                catch (DnaMarshalException e)
-                {
-                    Logger.Registration.Error(e, "Method not registered due to unsupported signature: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
-                }
-            }
-
-            Type wrapperType = wrapperTypeBuilder.CreateType();
-            foreach (XlMethodInfo xlmi in xlMethodInfos)
-            {
-                xlmi.CreateDelegateAndFunctionPointer(wrapperType);
-            }
-
-            //			assemblyBuilder.Save(@"ExcelDna.DynamicDelegateAssembly.dll");
-            return xlMethodInfos;
-        }
-
-        public static List<XlMethodInfo> ConvertToXlMethodInfosDirectMarshal(List<MethodInfo> methods, List<object> targets, List<object> methodAttributes, List<List<object>> argumentAttributes)
         {
             List<XlMethodInfo> xlMethodInfos = new List<XlMethodInfo>();
 
@@ -743,7 +410,6 @@ namespace ExcelDna.Loader
         }
 
         public bool HasReturnType => ReturnType != null;
-
     }
 
     internal static class TypeHelper

@@ -106,10 +106,6 @@ namespace ExcelDna.Loader
             GCHandle.Alloc(fnXlAutoRemove);
             pXlAddInExportInfo->pXlAutoRemove = Marshal.GetFunctionPointerForDelegate(fnXlAutoRemove);
 
-            fn_void_intptr fnXlAutoFree = (fn_void_intptr)XlAutoFree;
-            GCHandle.Alloc(fnXlAutoFree);
-            pXlAddInExportInfo->pXlAutoFree = Marshal.GetFunctionPointerForDelegate(fnXlAutoFree);
-
             fn_void_intptr fnXlAutoFree12 = (fn_void_intptr)XlAutoFree12;
             GCHandle.Alloc(fnXlAutoFree12);
             pXlAddInExportInfo->pXlAutoFree12 = Marshal.GetFunctionPointerForDelegate(fnXlAutoFree12);
@@ -398,17 +394,6 @@ namespace ExcelDna.Loader
             return result;
         }
 
-		internal static void XlAutoFree(IntPtr pXloper)
-        {
-            // CONSIDER: This might be improved....
-            // Another option would be to have the Com memory allocator run in unmanaged code.
-            // Right now I think this is OK, and easiest from where I'm coming.
-            // This function can only be called after a return from a user function.
-            // I just free all the possibly big memory allocations.
-
-            XlObjectArrayMarshaler.FreeMemory();
-        }
-
 		internal static void XlAutoFree12(IntPtr pXloper12)
         {
             // CONSIDER: This might be improved....
@@ -503,16 +488,15 @@ namespace ExcelDna.Loader
                 return IntPtr.Zero;
             }
 
-            // CONSIDER: This might not be the right place for this.
-            ICustomMarshaler m = XlObject12Marshaler.GetInstance("");
-            object param = m.MarshalNativeToManaged(pParam);
+            object param = XlMarshalContext.ObjectParam(pParam);
             object regInfo = XlRegistration.GetRegistrationInfo(param);
             if (regInfo == null)
             {
                 return IntPtr.Zero; // Converted to #NUM
             }
 
-            return m.MarshalManagedToNative(regInfo);
+            var ctx = XlDirectMarshal.GetMarshalContext();
+            return ctx.ObjectReturn(regInfo);
         }
 
         internal static void CalculationCanceled()

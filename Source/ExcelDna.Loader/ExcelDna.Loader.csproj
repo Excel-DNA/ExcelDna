@@ -79,10 +79,8 @@
     <Compile Include="LoaderHelpers.cs" />
     <Compile Include="LoaderLogging.cs" />
     <Compile Include="RtdWrapperHelper.cs" />
-    <Compile Include="XlCustomMarshal12.cs" />
     <Compile Include="IntegrationHelpers.cs" />
     <Compile Include="XlCallImpl.cs" />
-    <Compile Include="XlCustomMarshal.cs" />
     <Compile Include="XlAddIn.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="XlDirectMarshal.cs" />
