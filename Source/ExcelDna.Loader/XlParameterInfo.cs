@@ -405,17 +405,17 @@ namespace ExcelDna.Loader
                     MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObject12Marshaler));
                     DelegateParamType = typeof(object);
                     BoxedValueType = typeof(double);
-                    DirectMarshalXlType = XlDirectMarshal.XlTypeXloper;
-                    DirectMarshalConvert = XlDirectConversions.DoubleToXloperReturn;
+                    DirectMarshalXlType = XlTypes.Xloper;
+                    DirectMarshalConvert = XlMarshalConversions.DoubleToXloperReturn;
                 }
                 else
                 {
                     XlType = "B";
-                    DirectMarshalXlType = XlDirectMarshal.XlTypeDoublePtr;
+                    DirectMarshalXlType = XlTypes.DoublePtr;
                     if (isReturnType)
-                        DirectMarshalConvert = XlDirectConversions.DoublePtrReturn;
+                        DirectMarshalConvert = XlMarshalConversions.DoublePtrReturn;
                     else
-                        DirectMarshalConvert = XlDirectConversions.DoublePtrParam;
+                        DirectMarshalConvert = XlMarshalConversions.DoublePtrParam;
                 }
             }
             else if (type == typeof(string))
@@ -428,23 +428,23 @@ namespace ExcelDna.Loader
                         XlType = "Q"; // OPER
                         MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObject12Marshaler));
                         DelegateParamType = typeof(object);
-                        DirectMarshalXlType = XlDirectMarshal.XlTypeXloper;
-                        DirectMarshalConvert = XlDirectConversions.ObjectReturn;
+                        DirectMarshalXlType = XlTypes.Xloper;
+                        DirectMarshalConvert = XlMarshalConversions.ObjectReturn;
                     }
                     else
                     {
                         XlType = "D%"; // XlString12
                         MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlString12ReturnMarshaler));
-                        DirectMarshalXlType = XlDirectMarshal.XlTypeString;
-                        DirectMarshalConvert = XlDirectConversions.StringReturn;
+                        DirectMarshalXlType = XlTypes.String;
+                        DirectMarshalConvert = XlMarshalConversions.StringReturn;
                     }
                 }
                 else
                 {
                     XlType = "C%"; // LPWSTR
                     MarshalAsAttribute = GetMarshalAsAttribute(UnmanagedType.LPWStr);
-                    DirectMarshalXlType = XlDirectMarshal.XlTypeString;
-                    DirectMarshalConvert = XlDirectConversions.StringParam;
+                    DirectMarshalXlType = XlTypes.String;
+                    DirectMarshalConvert = XlMarshalConversions.StringParam;
                 }
             }
             else if (type == typeof(DateTime))
@@ -457,8 +457,8 @@ namespace ExcelDna.Loader
                         MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObject12Marshaler));
                         DelegateParamType = typeof(object);
                         BoxedValueType = typeof(DateTime);
-                        DirectMarshalXlType = XlDirectMarshal.XlTypeXloper;
-                        DirectMarshalConvert = XlDirectConversions.DateTimeToXloperReturn;
+                        DirectMarshalXlType = XlTypes.Xloper;
+                        DirectMarshalConvert = XlMarshalConversions.DateTimeToXloperReturn;
                     }
                     else
                     {
@@ -467,8 +467,8 @@ namespace ExcelDna.Loader
 						MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlDateTime12Marshaler));
                         DelegateParamType = typeof(object);
                         BoxedValueType = typeof(DateTime);
-                        DirectMarshalXlType = XlDirectMarshal.XlTypeDoublePtr;
-                        DirectMarshalConvert = XlDirectConversions.DateTimeToDoublePtrReturn;
+                        DirectMarshalXlType = XlTypes.DoublePtr;
+                        DirectMarshalConvert = XlMarshalConversions.DateTimeToDoublePtrReturn;
                     }
                 }
                 else
@@ -477,8 +477,8 @@ namespace ExcelDna.Loader
 					MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlDateTime12Marshaler));
 					DelegateParamType = typeof(object);
 					BoxedValueType = typeof(DateTime);
-                    DirectMarshalXlType = XlDirectMarshal.XlTypeDoublePtr;
-                    DirectMarshalConvert = XlDirectConversions.DateTimeFromDoublePtrParam;
+                    DirectMarshalXlType = XlTypes.DoublePtr;
+                    DirectMarshalConvert = XlMarshalConversions.DateTimeFromDoublePtrParam;
                 }
             }
             else if (type == typeof(double[]))
@@ -493,11 +493,11 @@ namespace ExcelDna.Loader
                 //{
                 XlType = "K%"; // FP12*
                 MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlDoubleArray12Marshaler), "1");
-                DirectMarshalXlType = XlDirectMarshal.XlTypeDoubleArray;
+                DirectMarshalXlType = XlTypes.DoubleArray;
                 if (isReturnType)
-                    DirectMarshalConvert = XlDirectConversions.DoubleArray1Return;
+                    DirectMarshalConvert = XlMarshalConversions.DoubleArray1Return;
                 else
-                    DirectMarshalConvert = XlDirectConversions.DoubleArray1Param;
+                    DirectMarshalConvert = XlMarshalConversions.DoubleArray1Param;
                 //}
             }
             else if (type == typeof(double[,]))
@@ -512,11 +512,11 @@ namespace ExcelDna.Loader
                 //{
                 XlType = "K%"; // FP12*
                 MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlDoubleArray12Marshaler), "2");
-                DirectMarshalXlType = XlDirectMarshal.XlTypeDoubleArray;
+                DirectMarshalXlType = XlTypes.DoubleArray;
                 if (isReturnType)
-                    DirectMarshalConvert = XlDirectConversions.DoubleArray2Return;
+                    DirectMarshalConvert = XlMarshalConversions.DoubleArray2Return;
                 else
-                    DirectMarshalConvert = XlDirectConversions.DoubleArray2Param;
+                    DirectMarshalConvert = XlMarshalConversions.DoubleArray2Param;
                 //}
             }
             else if (type == typeof(object))
@@ -532,19 +532,19 @@ namespace ExcelDna.Loader
                 if (AllowReference)
                 {
                     XlType = "U"; // XLOPER
-                    DirectMarshalXlType = XlDirectMarshal.XlTypeXloperAllowRef;
+                    DirectMarshalXlType = XlTypes.XloperAllowRef;
                 }
                 else
                 {
                     XlType = "Q"; // OPER
-                    DirectMarshalXlType = XlDirectMarshal.XlTypeXloper;
+                    DirectMarshalXlType = XlTypes.Xloper;
                 }
 
                 MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObject12Marshaler));
                 if (isReturnType)
-                    DirectMarshalConvert = XlDirectConversions.ObjectReturn;
+                    DirectMarshalConvert = XlMarshalConversions.ObjectReturn;
                 else
-                    DirectMarshalConvert = XlDirectConversions.ObjectParam;
+                    DirectMarshalConvert = XlMarshalConversions.ObjectParam;
             }
             else if (type == typeof(object[]))
             {
@@ -560,11 +560,11 @@ namespace ExcelDna.Loader
                     MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObjectArray12Marshaler), "1");
                 }
 
-                DirectMarshalXlType = XlDirectMarshal.XlTypeXloper;
+                DirectMarshalXlType = XlTypes.Xloper;
                 if (isReturnType)
-                    DirectMarshalConvert = XlDirectConversions.ObjectArray1Return;
+                    DirectMarshalConvert = XlMarshalConversions.ObjectArray1Return;
                 else
-                    DirectMarshalConvert = XlDirectConversions.ObjectArray1Param;
+                    DirectMarshalConvert = XlMarshalConversions.ObjectArray1Param;
             }
             else if (type == typeof(object[,]))
             {
@@ -580,11 +580,11 @@ namespace ExcelDna.Loader
                     MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObjectArray12Marshaler), "2");
                 }
 
-                DirectMarshalXlType = XlDirectMarshal.XlTypeXloper;
+                DirectMarshalXlType = XlTypes.Xloper;
                 if (isReturnType)
-                    DirectMarshalConvert = XlDirectConversions.ObjectArray2Return;
+                    DirectMarshalConvert = XlMarshalConversions.ObjectArray2Return;
                 else
-                    DirectMarshalConvert = XlDirectConversions.ObjectArray2Param;
+                    DirectMarshalConvert = XlMarshalConversions.ObjectArray2Param;
             }
             else if (type == typeof(bool))
             {
@@ -594,8 +594,8 @@ namespace ExcelDna.Loader
                     MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObject12Marshaler));
                     DelegateParamType = typeof(object);
                     BoxedValueType = typeof(bool);
-                    DirectMarshalXlType = XlDirectMarshal.XlTypeXloper;
-                    DirectMarshalConvert = XlDirectConversions.BoolToXloperReturn;
+                    DirectMarshalXlType = XlTypes.Xloper;
+                    DirectMarshalConvert = XlMarshalConversions.BoolToXloperReturn;
                 }
                 else
                 {
@@ -604,8 +604,8 @@ namespace ExcelDna.Loader
                     MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlBoolean12Marshaler));
                     DelegateParamType = typeof(object);
                     BoxedValueType = typeof(bool);
-                    DirectMarshalXlType = XlDirectMarshal.XlTypeBoolPtr;
-                    DirectMarshalConvert = XlDirectConversions.BoolPtrParam;
+                    DirectMarshalXlType = XlTypes.BoolPtr;
+                    DirectMarshalConvert = XlMarshalConversions.BoolPtrParam;
                 }
             }
             else if (type == typeof(int))
@@ -616,8 +616,8 @@ namespace ExcelDna.Loader
                     MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObject12Marshaler));
                     DelegateParamType = typeof(object);
                     BoxedValueType = typeof(int);
-                    DirectMarshalXlType = XlDirectMarshal.XlTypeXloper;
-                    DirectMarshalConvert = XlDirectConversions.Int32ToXloperReturn;
+                    DirectMarshalXlType = XlTypes.Xloper;
+                    DirectMarshalConvert = XlMarshalConversions.Int32ToXloperReturn;
                 }
                 else
                 {
@@ -626,8 +626,8 @@ namespace ExcelDna.Loader
                     MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlInt32Parameter12Marshaler));
                     DelegateParamType = typeof(object);
                     BoxedValueType = typeof(int);
-                    DirectMarshalXlType = XlDirectMarshal.XlTypeDoublePtr;
-                    DirectMarshalConvert = XlDirectConversions.DoublePtrToInt32Param;
+                    DirectMarshalXlType = XlTypes.DoublePtr;
+                    DirectMarshalConvert = XlMarshalConversions.DoublePtrToInt32Param;
                 }
             }
             else if (type == typeof(short))
@@ -638,8 +638,8 @@ namespace ExcelDna.Loader
                     MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObject12Marshaler));
                     DelegateParamType = typeof(object);
                     BoxedValueType = typeof(short);
-                    DirectMarshalXlType = XlDirectMarshal.XlTypeXloper;
-                    DirectMarshalConvert = XlDirectConversions.Int16ToXloperReturn;
+                    DirectMarshalXlType = XlTypes.Xloper;
+                    DirectMarshalConvert = XlMarshalConversions.Int16ToXloperReturn;
                 }
                 else
                 {
@@ -648,8 +648,8 @@ namespace ExcelDna.Loader
                     MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlInt16Parameter12Marshaler));
                     DelegateParamType = typeof(object);
                     BoxedValueType = typeof(short);
-                    DirectMarshalXlType = XlDirectMarshal.XlTypeDoublePtr;
-                    DirectMarshalConvert = XlDirectConversions.DoublePtrToInt16Param;
+                    DirectMarshalXlType = XlTypes.DoublePtr;
+                    DirectMarshalConvert = XlMarshalConversions.DoublePtrToInt16Param;
                 }
             }
             else if (type == typeof(ushort))
@@ -660,8 +660,8 @@ namespace ExcelDna.Loader
                     MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObject12Marshaler));
                     DelegateParamType = typeof(object);
                     BoxedValueType = typeof(ushort);
-                    DirectMarshalXlType = XlDirectMarshal.XlTypeXloper;
-                    DirectMarshalConvert = XlDirectConversions.UInt16ToXloperReturn;
+                    DirectMarshalXlType = XlTypes.Xloper;
+                    DirectMarshalConvert = XlMarshalConversions.UInt16ToXloperReturn;
                 }
                 else
                 {
@@ -670,8 +670,8 @@ namespace ExcelDna.Loader
                     MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlUInt16Parameter12Marshaler));
                     DelegateParamType = typeof(object);
                     BoxedValueType = typeof(ushort);
-                    DirectMarshalXlType = XlDirectMarshal.XlTypeDoublePtr;
-                    DirectMarshalConvert = XlDirectConversions.DoublePtrToUInt16Param;
+                    DirectMarshalXlType = XlTypes.DoublePtr;
+                    DirectMarshalConvert = XlMarshalConversions.DoublePtrToUInt16Param;
                 }
             }
             else if (type == typeof(decimal))
@@ -682,8 +682,8 @@ namespace ExcelDna.Loader
                     MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObject12Marshaler));
                     DelegateParamType = typeof(object);
                     BoxedValueType = typeof(decimal);
-                    DirectMarshalXlType = XlDirectMarshal.XlTypeXloper;
-                    DirectMarshalConvert = XlDirectConversions.DecimalToXloperReturn;
+                    DirectMarshalXlType = XlTypes.Xloper;
+                    DirectMarshalConvert = XlMarshalConversions.DecimalToXloperReturn;
                 }
                 else
                 {
@@ -691,8 +691,8 @@ namespace ExcelDna.Loader
                     MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlDecimalParameter12Marshaler));
                     DelegateParamType = typeof(object);
                     BoxedValueType = typeof(decimal);
-                    DirectMarshalXlType = XlDirectMarshal.XlTypeDoublePtr;
-                    DirectMarshalConvert = XlDirectConversions.DoublePtrToDecimalParam;
+                    DirectMarshalXlType = XlTypes.DoublePtr;
+                    DirectMarshalConvert = XlMarshalConversions.DoublePtrToDecimalParam;
                 }
             }
             else if (type == typeof(long))
@@ -703,8 +703,8 @@ namespace ExcelDna.Loader
                     MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlObject12Marshaler));
                     DelegateParamType = typeof(object);
                     BoxedValueType = typeof(long);
-                    DirectMarshalXlType = XlDirectMarshal.XlTypeXloper;
-                    DirectMarshalConvert = XlDirectConversions.Int64ToXloperReturn;
+                    DirectMarshalXlType = XlTypes.Xloper;
+                    DirectMarshalConvert = XlMarshalConversions.Int64ToXloperReturn;
                 }
                 else
                 {
@@ -712,16 +712,16 @@ namespace ExcelDna.Loader
                     MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlInt64Parameter12Marshaler));
                     DelegateParamType = typeof(object);
                     BoxedValueType = typeof(long);
-                    DirectMarshalXlType = XlDirectMarshal.XlTypeDoublePtr;
-                    DirectMarshalConvert = XlDirectConversions.DoublePtrToInt64Param;
+                    DirectMarshalXlType = XlTypes.DoublePtr;
+                    DirectMarshalConvert = XlMarshalConversions.DoublePtrToInt64Param;
                 }
             }
             else if (type == IntegrationMarshalHelpers.ExcelAsyncHandleType && !isReturnType)
             {
                 XlType = "X"; // Async Handle in XLOPER12's BigData
                 MarshalAsAttribute = GetMarshalAsAttribute(typeof(XlAsyncHandleParameter12Marshaler));
-                DirectMarshalXlType = XlDirectMarshal.XlTypeAsyncHandle;
-                DirectMarshalConvert = XlDirectConversions.AsyncHandleParam;    // TODO/DM We need a cast here ????
+                DirectMarshalXlType = XlTypes.AsyncHandle;
+                DirectMarshalConvert = XlMarshalConversions.AsyncHandleParam;    // TODO/DM We need a cast here ????
             }
             else if (type == typeof(XlOper12*))
             {
@@ -730,13 +730,13 @@ namespace ExcelDna.Loader
                 if (AllowReference)
                 {
                     XlType = "U"; // XLOPER
-                    DirectMarshalXlType = XlDirectMarshal.XlTypeXloperAllowRef;
+                    DirectMarshalXlType = XlTypes.XloperAllowRef;
                     DirectMarshalConvert = null;
                 }
                 else
                 {
                     XlType = "Q"; // OPER
-                    DirectMarshalXlType = XlDirectMarshal.XlTypeXloper;
+                    DirectMarshalXlType = XlTypes.Xloper;
                     DirectMarshalConvert = null;
                 }
             }

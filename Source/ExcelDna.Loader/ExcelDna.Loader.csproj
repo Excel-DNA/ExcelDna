@@ -87,9 +87,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="XlDirectMarshal.cs" />
     <Compile Include="XlDirectMarshalTypes.cs" />
+    <Compile Include="XlMarshalContext.cs" />
     <Compile Include="XlMethodInfo.cs" />
     <Compile Include="XlParameterInfo.cs" />
     <Compile Include="XlRegistration.cs" />
+    <Compile Include="XlTypes.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

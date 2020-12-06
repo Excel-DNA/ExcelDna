@@ -1,4 +1,7 @@
-﻿using System;
+﻿//  Copyright (c) Govert van Drimmelen. All rights reserved.
+//  Excel-DNA is licensed under the zlib license. See LICENSE.txt for details.
+
+using System;
 namespace ExcelDna.Loader
 {
     class XlDirectMarshalTypes
