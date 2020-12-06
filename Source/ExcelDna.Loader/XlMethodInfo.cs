@@ -742,7 +742,7 @@ namespace ExcelDna.Loader
             }
         }
 
-        bool HasReturnType { get { return ReturnType != null; } }
+        public bool HasReturnType => ReturnType != null;
 
     }
 
