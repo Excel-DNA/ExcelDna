@@ -132,22 +132,20 @@ namespace ExcelDna.Loader
                 var exHandler = Expression.Call(typeof(IntegrationHelpers).GetMethod("HandleUnhandledException"), ex);
                 if (methodInfo.HasReturnType)
                 {
-                    if (methodInfo.IsExceptionSafe && methodInfo.ReturnType.XlType != XlTypes.Xloper)
-                    {
-                        // We return #NUM!, which is better than crashing
-                        catchExpression = Expression.Block(
-                            exHandler,
-                            Expression.Constant(IntPtr.Zero));
-                    }
-                    else
+                    if (methodInfo.ReturnType.XlType == XlTypes.Xloper)
                     {
                         // We return whatever the result is from the unhandled exception handler
                         catchExpression = Expression.Call(ctx, XlMarshalConversions.ObjectReturn, exHandler);
                     }
+                    else
+                    {
+                        // We return #NUM!, which is better than crashing
+                        catchExpression = Expression.Block(exHandler, Expression.Constant(IntPtr.Zero));
+                    }
                 }
                 else
                 {
-                    catchExpression = Expression.Call(ctx, XlMarshalConversions.ObjectReturn, exHandler);
+                    catchExpression = Expression.Block(exHandler, Expression.Empty());
                 }
             }
 
@@ -167,11 +165,20 @@ namespace ExcelDna.Loader
             else
             {
                 delegateType = XlDirectMarshalTypes.XlActs[methodInfo.Parameters.Length];
-                body = Expression.Block(
-                    new ParameterExpression[] { asyncHandle },
-                    Expression.TryCatch(
-                        wrappingCall,
-                        Expression.Catch(ex, catchExpression)));
+                if (methodInfo.IsExcelAsyncFunction)
+                {
+                    body = Expression.Block(
+                        new ParameterExpression[] { asyncHandle },
+                        Expression.TryCatch(
+                            wrappingCall,
+                            Expression.Catch(ex, catchExpression)));
+                }
+                else
+                {
+                    body = Expression.TryCatch(
+                            wrappingCall,
+                            Expression.Catch(ex, catchExpression));
+                }
             }
 
             return Expression.Lambda(delegateType, body, methodInfo.Name, outerParams).Compile();
