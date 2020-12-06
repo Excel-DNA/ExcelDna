@@ -16,6 +16,11 @@ namespace ExcelDna.Loader
     {
         public static int Index = 0;
 
+        public MethodInfo MethodInfo;
+        public object Target;   // Mostly null - can / should we get rid of it? It only lets us use constant objects to invoke against, which is not so useful. Rather allow open delegates?
+
+        // Set and used during contruction and registration
+        Type _delegateType;
         public GCHandle DelegateHandle; // TODO: What with this - when to clean up? 
         // For cleanup should call DelegateHandle.Free()
         public IntPtr FunctionPointer;
@@ -42,15 +47,14 @@ namespace ExcelDna.Loader
         public XlParameterInfo[] Parameters;
         public XlParameterInfo ReturnType; // Macro will have ReturnType null (as will native async functions)
 
-        // Temporary during construction...
-        Type _delegateType;
-        object _target;
-        MethodInfo _methodInfo;
 
         // THROWS: Throws a DnaMarshalException if the method cannot be turned into an XlMethodInfo
         // TODO: Manage errors if things go wrong
         XlMethodInfo(MethodInfo targetMethod, object target, object methodAttribute, List<object> argumentAttributes)
         {
+            MethodInfo = targetMethod;
+            Target = target;
+
             // Default Name, Description and Category
             Name = targetMethod.Name;
             Description = "";
@@ -547,21 +551,21 @@ namespace ExcelDna.Loader
             // FirstArgument (if received) is not used in the delegate type created ...
             _delegateType = CreateDelegateType(moduleBuilder);
             // ... but is baked into the delegate itself.
-            _methodInfo = CreateMethodInfo(wrapperTypeBuilder, _delegateType, targetMethod, target);
-            _target = target;
+            MethodInfo = CreateMethodInfo(wrapperTypeBuilder, _delegateType, targetMethod, target);
+            Target = target;
         }
 
         void CreateDelegateAndFunctionPointer(Type wrapperType)
         {
             // Get compiled method if we need to
-            if (_methodInfo is MethodBuilder)
-                _methodInfo = wrapperType.GetMethod(_methodInfo.Name);
+            if (MethodInfo is MethodBuilder)
+                MethodInfo = wrapperType.GetMethod(MethodInfo.Name);
 
             Delegate xlDelegate;
-            if (_target != null)
-                xlDelegate = Delegate.CreateDelegate(_delegateType, _target, _methodInfo);
+            if (Target != null)
+                xlDelegate = Delegate.CreateDelegate(_delegateType, Target, MethodInfo);
             else
-                xlDelegate = Delegate.CreateDelegate(_delegateType, _methodInfo);
+                xlDelegate = Delegate.CreateDelegate(_delegateType, MethodInfo);
             
             // Need to add a reference to prevent garbage collection of our delegate
             // Don't need to pin, according to 
@@ -573,8 +577,8 @@ namespace ExcelDna.Loader
 
             // Clean up instance fields no longer needed.
             _delegateType = null;
-            _methodInfo = null;
-            _target = null;
+            MethodInfo = null;
+            Target = null;
         }
 
         // This is the main conversion function called from XlLibrary.RegisterMethods
@@ -668,8 +672,8 @@ namespace ExcelDna.Loader
                         continue;
                     }
                     // otherwise continue with delegate type and method building
-                    xlmi._methodInfo = mi;
-                    xlmi._target = target;
+                    xlmi.MethodInfo = mi;
+                    xlmi.Target = target;
                     XlDirectMarshal.SetDelegateAndFunctionPointer(xlmi);
 
                     // ... and add to list for further processing and registration
@@ -682,14 +686,6 @@ namespace ExcelDna.Loader
             }
 
             return xlMethodInfos;
-        }
-
-        //        public Expression GetInvocableExpression()
-        public MethodInfo GetMethodInfo()
-        {
-            if (_target != null)
-                throw new InvalidOperationException("Target not supported");
-            return _methodInfo;
         }
 
         public static void GetMethodAttributes(List<MethodInfo> methodInfos, out List<object> methodAttributes, out List<List<object>> argumentAttributes)

@@ -28,13 +28,12 @@ namespace ExcelDna.Loader
         // This is an alternative path to XlMethodInfo.CreateDelegateAndFunctionPointer
         public static void SetDelegateAndFunctionPointer(XlMethodInfo methodInfo)
         {
-            var delegateType = GetNativeDelegateType(methodInfo);
-            var xlDelegate = GetNativeDelegate(methodInfo, delegateType); // Remember _target? ?????
+            var xlDelegate = GetNativeDelegate(methodInfo);
             methodInfo.DelegateHandle = GCHandle.Alloc(xlDelegate);
             methodInfo.FunctionPointer = Marshal.GetFunctionPointerForDelegate(xlDelegate);
         }
 
-        static Delegate GetNativeDelegate(XlMethodInfo methodInfo, Type delegateType)
+        static Delegate GetNativeDelegate(XlMethodInfo methodInfo)
         {
             // We convert
             //
@@ -91,7 +90,7 @@ namespace ExcelDna.Loader
             var ctx = Expression.Variable(typeof(XlMarshalContext), "xlMarshalContext");
             var getCtx = Expression.Call(typeof(XlDirectMarshal), nameof(XlDirectMarshal.GetMarshalContext), null);
             var assignCtx = Expression.Assign(ctx, getCtx);
-            var wrappingCall = Expression.Call(methodInfo.GetMethodInfo(), innerParamExprs);  // Maybe make more flexible options for XlMethodInfo to be created, e.g. Expressions
+            var wrappingCall = Expression.Call(methodInfo.Target == null ? null : Expression.Constant(methodInfo.Target), methodInfo.MethodInfo, innerParamExprs);  // Maybe make more flexible options for XlMethodInfo to be created, e.g. Expressions
             if (methodInfo.ReturnType != null)
             {
                 var result = Expression.Variable(typeof(IntPtr), "returnValue");
@@ -119,6 +118,7 @@ namespace ExcelDna.Loader
                     wrappingCall);
             }
 
+            var delegateType = GetNativeDelegateType(methodInfo);
             var lambda = Expression.Lambda(delegateType, block, methodInfo.Name, outerParams);
             return lambda.Compile();
         }
