@@ -534,9 +534,9 @@ namespace ExcelDna.Loader
             return DateTime.FromOADate(dateSerial);
         }
 
-        public static object BoolPtrParam(IntPtr pb)
+        public static bool BoolPtrParam(IntPtr pb)
         {
-            return *(double*)pb;
+            return *(short*)pb == 1;
         }
 
         public static short DoublePtrToInt16Param(IntPtr pNativeData)
