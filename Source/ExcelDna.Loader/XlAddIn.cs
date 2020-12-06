@@ -402,11 +402,7 @@ namespace ExcelDna.Loader
             // This function can only be called after a return from a user function.
             // I just free all the possibly big memory allocations.
 
-#if DEBUG
             XlDirectMarshal.FreeMemory();
-#else
-            XlObjectArray12Marshaler.FreeMemory();
-#endif
         }
 
         // Note: XlAddInManagerInfo is now implemented in the unmanaged side (for performance in the add-in dialog).
