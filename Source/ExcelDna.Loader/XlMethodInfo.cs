@@ -64,7 +64,7 @@ namespace ExcelDna.Loader
             LambdaExpression = lambdaExpression;
 
             // Default Name, Description and Category
-            Name = targetMethod.Name;
+            Name = targetMethod?.Name ?? lambdaExpression.Name;
             Description = "";
             Category = IntegrationHelpers.DnaLibraryGetName();
             HelpTopic = "";
@@ -352,8 +352,9 @@ namespace ExcelDna.Loader
         public static List<XlMethodInfo> ConvertToXlMethodInfos(List<MethodInfo> methods, List<object> targets, List<LambdaExpression> lambdaExpressions, List<object> methodAttributes, List<List<object>> argumentAttributes)
         {
             List<XlMethodInfo> xlMethodInfos = new List<XlMethodInfo>();
+            var count = methods?.Count ?? lambdaExpressions.Count;
 
-            for (int i = 0; i < methods.Count; i++)
+            for (int i = 0; i < count; i++)
             {
                 MethodInfo mi = methods?[i]; // List might be null
                 object target = targets?[i]; // List might be null
