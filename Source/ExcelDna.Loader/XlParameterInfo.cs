@@ -16,22 +16,22 @@ namespace ExcelDna.Loader
         public string XlType;       // Identifier for Excel Type
         public MethodInfo XlMarshalConvert; // Method on XlMarshalContext w/ 1 param and return value: Native -> Managed for parameters, and Managed -> Native for Return
 
-        public XlParameterInfo(ParameterInfo paramInfo, object attrib)
+        public XlParameterInfo(string paramName, Type paramType, object attrib)
 		{
 			// Add Name and Description
 			// CONSIDER: Override Marshaler for row/column arrays according to some attribute
 
 			// Some pre-checks
-			if (paramInfo.ParameterType.IsByRef)
-				throw new DnaMarshalException("Parameter is ByRef: " + paramInfo.Name);
+			if (paramType.IsByRef)
+				throw new DnaMarshalException("Parameter is ByRef: " + paramName);
 			
 			// Default Name and Description
-			Name = paramInfo.Name;
+			Name = paramName;
 			Description = "";
 			AllowReference = false;
 
             SetAttributeInfo(attrib);
-			SetTypeInfo(paramInfo.ParameterType, false, false);
+			SetTypeInfo(paramType, false, false);
 		}
 
         public XlParameterInfo(Type type, bool isReturnType, bool isExceptionSafe)

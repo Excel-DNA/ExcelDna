@@ -4,23 +4,27 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using ExcelDna.Loader.Logging;
 
 namespace ExcelDna.Loader
 {
     internal class XlMethodInfo
     {
-        public static int Index = 0;
-
+        // These three fields are used during construction
+        // Either MethodInfo or LambdaExpression must be set, not both
         public MethodInfo MethodInfo;
-        public object Target;   // Mostly null - can / should we get rid of it? It only lets us use constant objects to invoke against, which is not so useful. Rather allow open delegates?
+        public object Target;   // Only used with MethodInfo. Mostly null - can / should we get rid of it? It only lets us use constant objects to invoke against, which is not so useful. Rather allow open delegates?
+        public LambdaExpression LambdaExpression;
 
         // Set and used during contruction and registration
         public GCHandle DelegateHandle; // TODO: What with this - when to clean up? 
         // For cleanup should call DelegateHandle.Free()
         public IntPtr FunctionPointer;
+        // TODO: Add Index in JmpTable
 
         // Info for Excel Registration
         public bool IsCommand;
@@ -39,18 +43,25 @@ namespace ExcelDna.Loader
         public string HelpTopic;
         public bool ExplicitRegistration;
         public bool SuppressOverwriteError;
-        public double RegisterId;
+        public double RegisterId;   // Set when we register
 
         public XlParameterInfo[] Parameters;
         public XlParameterInfo ReturnType; // Macro will have ReturnType null (as will native async functions)
 
-
         // THROWS: Throws a DnaMarshalException if the method cannot be turned into an XlMethodInfo
         // TODO: Manage errors if things go wrong
-        XlMethodInfo(MethodInfo targetMethod, object target, object methodAttribute, List<object> argumentAttributes)
+        XlMethodInfo(MethodInfo targetMethod, object target, LambdaExpression lambdaExpression, object methodAttribute, List<object> argumentAttributes)
         {
+            if ((targetMethod == null && lambdaExpression == null) ||
+                (targetMethod != null && lambdaExpression != null) ||
+                (target != null && targetMethod == null))
+            {
+                throw new ArgumentException("Invalid arguments for XlMarshalInfo");
+            }
+
             MethodInfo = targetMethod;
             Target = target;
+            LambdaExpression = lambdaExpression;
 
             // Default Name, Description and Category
             Name = targetMethod.Name;
@@ -71,10 +82,11 @@ namespace ExcelDna.Loader
             MenuName = IntegrationHelpers.DnaLibraryGetName();
             MenuText = null; // Menu is only 
 
-            // Set default IsCommand - overridden by having an [ExcelCommand] attribute,
+            // Set default IsCommand - overridden by having an [ExcelCommand] or [ExcelFunction] attribute,
             // or by being a native async function.
             // (Must be done before SetAttributeInfo)
-            IsCommand = (targetMethod.ReturnType == typeof(void));
+            var returnType = targetMethod?.ReturnType ?? lambdaExpression.ReturnType;
+            IsCommand = (returnType == typeof(void));
 
             SetAttributeInfo(methodAttribute);
             // We shortcut the rest of the registration
@@ -84,25 +96,41 @@ namespace ExcelDna.Loader
 
             // Return type conversion
             // Careful here - native async functions also return void
-            if (targetMethod.ReturnType == typeof(void))
-            {
+            if (returnType == typeof(void))
                 ReturnType = null;
+            else
+                ReturnType = new XlParameterInfo(returnType, true, IsExceptionSafe);
+
+            if (targetMethod != null)
+            {
+                ParameterInfo[] parameters = targetMethod.GetParameters();
+
+                // Parameters - meta-data and type conversion
+                Parameters = new XlParameterInfo[parameters.Length];
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    object argAttrib = null;
+                    if (argumentAttributes != null && i < argumentAttributes.Count)
+                        argAttrib = argumentAttributes[i];
+
+                    var param = parameters[i];
+                    Parameters[i] = new XlParameterInfo(param.Name, param.ParameterType, argAttrib);
+                }
             }
             else
             {
-                ReturnType = new XlParameterInfo(targetMethod.ReturnType, true, IsExceptionSafe);
-            }
+                var parameters = lambdaExpression.Parameters;
+                // Parameters - meta-data and type conversion
+                Parameters = new XlParameterInfo[parameters.Count];
+                for (int i = 0; i < parameters.Count; i++)
+                {
+                    object argAttrib = null;
+                    if (argumentAttributes != null && i < argumentAttributes.Count)
+                        argAttrib = argumentAttributes[i];
 
-            ParameterInfo[] parameters = targetMethod.GetParameters();
-            
-            // Parameters - meta-data and type conversion
-            Parameters = new XlParameterInfo[parameters.Length];
-            for (int i = 0; i < parameters.Length; i++)
-            {
-                object argAttrib = null;
-                if ( argumentAttributes != null && i < argumentAttributes.Count)
-                    argAttrib = argumentAttributes[i];
-                 Parameters[i] = new XlParameterInfo(parameters[i], argAttrib);
+                    var param = parameters[i];
+                    Parameters[i] = new XlParameterInfo(param.Name, param.Type, argAttrib);
+                }
             }
 
             // A native async function might still be marked as a command - check and fix.
@@ -319,31 +347,28 @@ namespace ExcelDna.Loader
 
         // This is the main conversion function called from XlLibrary.RegisterMethods
         // targets may be null - the typical case
-        public static List<XlMethodInfo> ConvertToXlMethodInfos(List<MethodInfo> methods, List<object> targets, List<object> methodAttributes, List<List<object>> argumentAttributes)
+        // Either methods or lambdaExpressions may be null
+        // If they are both supplied, then the corresponding entries in the lists must be null in one of the lists
+        public static List<XlMethodInfo> ConvertToXlMethodInfos(List<MethodInfo> methods, List<object> targets, List<LambdaExpression> lambdaExpressions, List<object> methodAttributes, List<List<object>> argumentAttributes)
         {
             List<XlMethodInfo> xlMethodInfos = new List<XlMethodInfo>();
 
             for (int i = 0; i < methods.Count; i++)
             {
-                MethodInfo mi = methods[i];
-                object target = (targets == null) ? null : targets[i];
+                MethodInfo mi = methods?[i]; // List might be null
+                object target = targets?[i]; // List might be null
+                LambdaExpression lambda = lambdaExpressions?[i]; // List might be null
                 object methodAttrib = (methodAttributes != null && i < methodAttributes.Count) ? methodAttributes[i] : null;
                 List<object> argAttribs = (argumentAttributes != null && i < argumentAttributes.Count) ? argumentAttributes[i] : null;
                 try
                 {
-                    XlMethodInfo xlmi = new XlMethodInfo(mi, target, methodAttrib, argAttribs);
+                    XlMethodInfo xlmi = new XlMethodInfo(mi, target, lambda, methodAttrib, argAttribs);
                     // Skip if suppressed
                     if (xlmi.ExplicitRegistration)
                     {
                         Logger.Registration.Info("Suppressing due to ExplictRegistration attribute: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
                         continue;
                     }
-                    // otherwise continue with delegate type and method building
-                    xlmi.MethodInfo = mi;
-                    xlmi.Target = target;
-                    XlDirectMarshal.SetDelegateAndFunctionPointer(xlmi);
-
-                    // ... and add to list for further processing and registration
                     xlMethodInfos.Add(xlmi);
                 }
                 catch (DnaMarshalException e)
@@ -351,6 +376,8 @@ namespace ExcelDna.Loader
                     Logger.Registration.Error(e, "Method not registered due to unsupported signature: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
                 }
             }
+
+            Parallel.ForEach(xlMethodInfos, xlmi => XlDirectMarshal.SetDelegateAndFunctionPointer(xlmi));
 
             return xlMethodInfos;
         }

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
 
@@ -22,6 +23,7 @@ namespace ExcelDna.Integration
     internal delegate void RegisterMethodsDelegate(List<MethodInfo> methods);
     internal delegate void RegisterMethodsWithAttributesDelegate(List<MethodInfo> methods, List<object> functionAttributes, List<List<object>> argumentAttributes);
     internal delegate void RegisterDelegatesWithAttributesDelegate(List<Delegate> delegates, List<object> functionAttributes, List<List<object>> argumentAttributes);
+    internal delegate void RegisterLambdaExpressionsWithAttributesDelegate(List<LambdaExpression> delegates, List<object> functionAttributes, List<List<object>> argumentAttributes);
     internal delegate void RegisterRtdWrapperDelegate(string progId, object rtdWrapperOptions, object functionAttribute, List<object> argumentAttributes);
     internal delegate byte[] GetResourceBytesDelegate(string resourceName, int type); // types: 0 - Assembly, 1 - Dna file, 2 - Image
     internal delegate void SyncMacroDelegate(double dValue);
@@ -30,7 +32,7 @@ namespace ExcelDna.Integration
     public static class ExcelIntegration
     {
         // This version must match the version declared in ExcelDna.Loader.XlAddIn.
-        const int ExcelIntegrationVersion = 9;
+        const int ExcelIntegrationVersion = 10;
 
         private static TryExcelImplDelegate tryExcelImpl;
 
@@ -68,6 +70,12 @@ namespace ExcelDna.Integration
             registerDelegatesWithAttributes = d;
         }
 
+        private static RegisterLambdaExpressionsWithAttributesDelegate registerLambdaExpressionsWithAttributes;
+        internal static void SetRegisterLambdaExpressionsWithAttributes(RegisterLambdaExpressionsWithAttributesDelegate d)
+        {
+            registerLambdaExpressionsWithAttributes = d;
+        }
+
         private static RegisterRtdWrapperDelegate registerRtdWrapper;
         internal static void SetRegisterRtdWrapper(RegisterRtdWrapperDelegate d)
         {
@@ -102,6 +110,14 @@ namespace ExcelDna.Integration
         {
             ClearExplicitRegistration(methodAttributes);
             registerDelegatesWithAttributes(delegates, methodAttributes, argumentAttributes);
+        }
+
+        public static void RegisterLambdaExpressions(List<LambdaExpression> lambdaExpressions,
+                                     List<object> methodAttributes,
+                                     List<List<object>> argumentAttributes)
+        {
+            ClearExplicitRegistration(methodAttributes);
+            registerLambdaExpressionsWithAttributes(lambdaExpressions, methodAttributes, argumentAttributes);
         }
 
         public static void RegisterRtdWrapper(string progId, object rtdWrapperOptions, object functionAttribute, List<object> argumentAttributes)

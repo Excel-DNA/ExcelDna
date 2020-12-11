@@ -12,7 +12,7 @@ namespace ExcelDna.Loader
     {
         public static MethodInfo GetRtdWrapperMethod()
         {
-            return typeof(RtdWrapperHelper).GetMethod("RtdWrapper");
+            return typeof(RtdWrapperHelper).GetMethod(nameof(RtdWrapperHelper.RtdWrapper));
         }
 
         readonly string _progId;
@@ -22,7 +22,7 @@ namespace ExcelDna.Loader
         readonly XlOper12* _errorValueXloper12;
         
         const int MaxCallParams = 22;
-        // TODO: Need a .NET 2.0 equivalent of ThreadLocal to make this thread-safe
+        // TODO: Sort out ThreadLocal to make this thread-safe when we support thread-safe RTD
         readonly XlOper12* _resultXloper12;  // Not Thread-Safe !?
         readonly XlOper12** _callParams;         // Array with MaxCallParams Xloper12s
 //        readonly XlString12** _callParamStrings; // Array with MaxCallParams XlString12s Only used for spill-over strings from long parameters

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq.Expressions;
 using System.Reflection;
 using ExcelDna.Loader.Logging;
 
@@ -31,7 +32,8 @@ namespace ExcelDna.Loader
 
         public static void RegisterMethodsWithAttributes(List<MethodInfo> methods, List<object> methodAttributes, List<List<object>> argumentAttributes)
         {
-            Register(methods, null,  methodAttributes, argumentAttributes);
+            List<XlMethodInfo> xlMethods = XlMethodInfo.ConvertToXlMethodInfos(methods, null, null, methodAttributes, argumentAttributes);
+            RegisterXlMethods(xlMethods);
         }
 
         public static void RegisterDelegatesWithAttributes(List<Delegate> delegates, List<object> methodAttributes, List<List<object>> argumentAttributes)
@@ -49,7 +51,14 @@ namespace ExcelDna.Loader
                 methods.Add(del.GetType().GetMethod("Invoke"));
                 targets.Add(del);
             }
-            Register(methods, targets, methodAttributes, argumentAttributes);
+            List<XlMethodInfo> xlMethods = XlMethodInfo.ConvertToXlMethodInfos(methods, targets, null, methodAttributes, argumentAttributes);
+            RegisterXlMethods(xlMethods);
+        }
+
+        public static void RegisterLambdaExpressionsWithAttributes(List<LambdaExpression> lambdaExpressions, List<object> methodAttributes, List<List<object>> argumentAttributes)
+        {
+            List<XlMethodInfo> xlMethods = XlMethodInfo.ConvertToXlMethodInfos(null, null, lambdaExpressions, methodAttributes, argumentAttributes);
+            RegisterXlMethods(xlMethods);
         }
 
         // To keep everything alive ???
@@ -67,10 +76,13 @@ namespace ExcelDna.Loader
             // TODO: Need to check that we are not marked as IsTreadSafe (for now)
 
             var rtdWrapperMethod = RtdWrapperHelper.GetRtdWrapperMethod();
-            Register(new List<MethodInfo> { rtdWrapperMethod },
+            var xlMethods = XlMethodInfo.ConvertToXlMethodInfos(
+                     new List<MethodInfo> { rtdWrapperMethod },
                      new List<object> { helper },
+                     null,
                      new List<object> { functionAttribute },
-                     new List<List<object>> { argumentAttributes }); 
+                     new List<List<object>> { argumentAttributes });
+            RegisterXlMethods(xlMethods); 
         }
 
         // This function provides access to the registration info from an IntelliSense provider.
@@ -109,11 +121,9 @@ namespace ExcelDna.Loader
             return result;
         }
 
-        static void Register(List<MethodInfo> methods, List<object> targets, List<object> methodAttributes, List<List<object>> argumentAttributes)
+        static void RegisterXlMethods(List<XlMethodInfo> xlMethods)
         {
-            Debug.Assert(targets == null || targets.Count == methods.Count);
-            Logger.Registration.Verbose("Registering {0} methods", methods.Count);
-            List<XlMethodInfo> xlMethods = XlMethodInfo.ConvertToXlMethodInfos(methods, targets, methodAttributes, argumentAttributes);
+            Logger.Registration.Verbose("Registering {0} methods", xlMethods.Count);
 
             // Sort by name in reverse order before registering - this is inspired by the article http://www.benf.org/excel/regcost/
             // Makes a small but measurable difference in the Excel registration calls

@@ -50,7 +50,7 @@ namespace ExcelDna.Loader
     public unsafe static class XlAddIn
     {
         // This version must match the version declared in ExcelDna.Integration.ExcelIntegration
-        const int ExcelIntegrationVersion = 9;
+        const int ExcelIntegrationVersion = 10;
 
         static int thunkTableLength;
         static IntPtr thunkTable;
@@ -254,6 +254,11 @@ namespace ExcelDna.Loader
             Type registerDelAttDelegateType = integrationAssembly.GetType("ExcelDna.Integration.RegisterDelegatesWithAttributesDelegate");
             Delegate registerDelAttDelegate = Delegate.CreateDelegate(registerDelAttDelegateType, registerDelAttMethod);
             integrationType.InvokeMember("SetRegisterDelegatesWithAttributes", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] { registerDelAttDelegate });
+
+            MethodInfo registerLbdAttMethod = typeof(XlRegistration).GetMethod("RegisterLambdaExpressionsWithAttributes", BindingFlags.Static | BindingFlags.Public);
+            Type registerLbdAttDelegateType = integrationAssembly.GetType("ExcelDna.Integration.RegisterLambdaExpressionsWithAttributesDelegate");
+            Delegate registerLbdAttDelegate = Delegate.CreateDelegate(registerLbdAttDelegateType, registerLbdAttMethod);
+            integrationType.InvokeMember("SetRegisterLambdaExpressionsWithAttributes", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] { registerLbdAttDelegate });
 
             MethodInfo registerRtdWrapperMethod = typeof(XlRegistration).GetMethod("RegisterRtdWrapper", BindingFlags.Static | BindingFlags.Public);
             Type registerRtdWrapperDelegateType = integrationAssembly.GetType("ExcelDna.Integration.RegisterRtdWrapperDelegate");
