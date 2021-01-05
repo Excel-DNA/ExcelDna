@@ -21,7 +21,6 @@
     The Excel-Dna Runtime is free for all use, and distributed under a permissive open-source license that also allows commercial use.</description>
         <summary>Excel-DNA is an independent project to integrate .NET into Excel.</summary>
         <tags>excel exceldna udf excel-dna</tags>
-        <developmentDependency>true</developmentDependency>
         <dependencies>
           <dependency id="ExcelDna.Integration" version="[1.2.0-preview1]" />
         </dependencies>
