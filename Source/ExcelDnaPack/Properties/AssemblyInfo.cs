@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Govert van Drimmelen")]
 [assembly: AssemblyProduct("Excel-DNA Add-In Framework for Microsoft Excel")]
-[assembly: AssemblyCopyright("Copyright © 2005-2020 Govert van Drimmelen")]
+[assembly: AssemblyCopyright("Copyright © 2005-2021 Govert van Drimmelen")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -33,5 +33,5 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 
 [assembly: AssemblyVersion("1.1.0.0")]
-[assembly: AssemblyFileVersion("1.2.0.0")]
-[assembly: AssemblyInformationalVersion("1.2.0")]
+[assembly: AssemblyFileVersion("1.2.1.0")]
+[assembly: AssemblyInformationalVersion("1.2.1")]
