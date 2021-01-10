@@ -1299,9 +1299,9 @@ namespace ExcelDna.Loader
         }
     }
 
-    // These conversions for return values run with a MarshalContext for the thread in flight
     static class XlMarshalConversions
     {
+        // These conversions for return values run with a MarshalContext for the thread in flight
         public static MethodInfo ObjectReturn = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.ObjectReturn));
         public static MethodInfo ObjectArray1Return = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.ObjectArray1Return));
         public static MethodInfo ObjectArray2Return = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.ObjectArray2Return));
@@ -1335,6 +1335,7 @@ namespace ExcelDna.Loader
         public static MethodInfo DoublePtrToInt32Param = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.DoublePtrToInt32Param));
         public static MethodInfo DoublePtrToInt64Param = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.DoublePtrToInt64Param));
         public static MethodInfo DoublePtrToDecimalParam = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.DoublePtrToDecimalParam));
+        // Special case - doesn't have the sginature we want, so maybe get from ExcelDna.Integration somehow
         public static MethodInfo AsyncHandleParam = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.AsyncHandleParam));
     }
 }

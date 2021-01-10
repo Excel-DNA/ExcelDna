@@ -25,7 +25,8 @@ namespace ExcelDna.Loader
         // NOTE: This is called in parallel, from a ThreadPool thread
         public static void SetDelegateAndFunctionPointer(XlMethodInfo methodInfo)
         {
-            var xlDelegate = GetNativeDelegate(methodInfo);
+            //var xlDelegate = GetNativeDelegate(methodInfo);
+            var xlDelegate = GetLazyDelegate(methodInfo);
             methodInfo.DelegateHandle = GCHandle.Alloc(xlDelegate);
             methodInfo.FunctionPointer = Marshal.GetFunctionPointerForDelegate(xlDelegate);
         }
@@ -188,6 +189,25 @@ namespace ExcelDna.Loader
             }
 
             return Expression.Lambda(delegateType, body, methodInfo.Name, outerParams).Compile();
+        }
+
+        static Delegate GetLazyDelegate(XlMethodInfo methodInfo)
+        {
+            var lazyLambda = new XlDirectMarshalLazy(() => GetNativeDelegate(methodInfo));
+
+            // now we need to return the right method from lazyLambda, to be sure it can be assigned to the intended delegate type
+            if (methodInfo.HasReturnType)
+            {
+                var delegateType = XlDirectMarshalTypes.XlFuncs[methodInfo.Parameters.Length];
+                var method = typeof(XlDirectMarshalLazy).GetMethod($"Func{methodInfo.Parameters.Length}");
+                return Delegate.CreateDelegate(delegateType, lazyLambda, method);
+            }
+            else
+            {
+                var delegateType = XlDirectMarshalTypes.XlActs[methodInfo.Parameters.Length];
+                var method = typeof(XlDirectMarshalLazy).GetMethod($"Act{methodInfo.Parameters.Length}");
+                return Delegate.CreateDelegate(delegateType, lazyLambda, method);
+            }
         }
     }
 }
