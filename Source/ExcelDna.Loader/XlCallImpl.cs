@@ -97,7 +97,7 @@ namespace ExcelDna.Loader
         {
             Debug.Print("SetExcel12EntryPt called.");
             FetchExcel12EntryPt();
-            if (Excel12v == null && pfnExcel12v != null)
+            if (Excel12v == null && pfnExcel12v != IntPtr.Zero)
             {
                 Debug.Print("SetExcel12EntryPt - setting delegate.");
                 Excel12v = (Excel12vDelegate)Marshal.GetDelegateForFunctionPointer(pfnExcel12v, typeof(Excel12vDelegate));
