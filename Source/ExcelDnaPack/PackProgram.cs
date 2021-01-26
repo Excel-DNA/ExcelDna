@@ -89,7 +89,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 
 			if (!File.Exists(dnaPath))
 			{
-				Console.Write("Add-in .dna file " + dnaPath + " not found.\r\n\r\n" + usageInfo);
+				Console.Write("ERROR: Add-in .dna file " + dnaPath + " not found.\r\n\r\n" + usageInfo);
 				return;
 			}
 
@@ -144,7 +144,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 				}
 				catch
 				{
-					Console.Write("Existing output .xll file " + xllOutputPath + "could not be deleted. (Perhaps loaded in Excel?)\r\n\r\nExiting ExcelDnaPack.");
+					Console.Write("ERROR: Existing output .xll file " + xllOutputPath + "could not be deleted. (Perhaps loaded in Excel?)\r\n\r\nExiting ExcelDnaPack.");
 					return;
 				}
 			}
@@ -163,7 +163,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                 }
                 catch (Exception ex)
                 {
-                    Console.Write("Output directory " + outputDirectory + "could not be created. Error: " + ex.Message + "\r\n\r\nExiting ExcelDnaPack.");
+                    Console.Write("ERROR: Output directory " + outputDirectory + "could not be created. Error: " + ex.Message + "\r\n\r\nExiting ExcelDnaPack.");
                     return;
                 }
             }
@@ -181,7 +181,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                     xllInputPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ExcelDna.xll");
                     if (!File.Exists(xllInputPath))
                     {
-                        Console.WriteLine("Base add-in not found.\r\n\r\n" + usageInfo);
+                        Console.WriteLine("ERROR: Base add-in not found.\r\n\r\n" + usageInfo);
                         return;
                     }
                 }
@@ -202,7 +202,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 			}
 			if (packedName == null)
 			{
-				Console.WriteLine("ExcelDna.Integration assembly could not be packed. Aborting.");
+				Console.WriteLine("ERROR: ExcelDna.Integration assembly could not be packed. ABORTING.");
 				ru.EndUpdate();
 				File.Delete(xllOutputPath);
 				return;
@@ -232,7 +232,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
             if (dna == null)
             {
                 // TODO: Better error handling here.
-                Console.WriteLine(".dna file could not be loaded. Possibly malformed xml content? Aborting.");
+                Console.WriteLine("ERROR: .dna file could not be loaded. Possibly malformed xml content? ABORTING.");
                 Environment.Exit(1);
             }
 			if (dna.ExternalLibraries != null)
@@ -243,7 +243,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 					var path = dna.ResolvePath(ext.Path);
 					if (!File.Exists(path))
 					{
-						Console.WriteLine("!!! ExternalLibrary `{0}` not found. Aborting.", ext.Path);
+						Console.WriteLine("!!! ERROR: ExternalLibrary `{0}` not found. ABORTING.", ext.Path);
 						Environment.Exit(1);
 					}
 
@@ -279,7 +279,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                                     resolvedTypeLibPath = DnaLibrary.ResolvePath(ext.TypeLibPath, System.IO.Path.GetDirectoryName(path) ); // null is unresolved
                                     if (resolvedTypeLibPath == null)
                                     {
-                                        Console.WriteLine("!!! ExternalLibrary TypeLib path {0} could not be resolved.", ext.TypeLibPath);
+                                        Console.WriteLine("!!! WARNING: ExternalLibrary TypeLib path {0} could not be resolved.", ext.TypeLibPath);
                                     }
                                 }
                             }
@@ -314,7 +314,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 				        }
 				        catch (Exception e)
 				        {
-				            Console.WriteLine("  ~~> Error copying version to output version: {0}", e.Message);
+				            Console.WriteLine("  ~~> ERROR: Error copying version to output version: {0}", e.Message);
 				        }
 				    }
 				}
@@ -362,7 +362,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 					{
 						if (rf.Path.StartsWith("packed:"))
 						{
-							break;
+							continue;
 						}
 
                         path = dna.ResolvePath(rf.Path);
@@ -389,8 +389,8 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 					}
 					if (path == null)
 					{
-						Console.WriteLine("  ~~> Reference with Path: {0} and Name: {1} not found.", rf.Path, rf.Name);
-						break;
+						Console.WriteLine("  ~~> WARNING: Reference with Path: {0} and Name: {1} NOT FOUND.", rf.Path, rf.Name);
+						continue;
 					}
 					
 					// It worked!
@@ -408,7 +408,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                     string path = dna.ResolvePath(image.Path);
                     if (path == null)
                     {
-                        Console.WriteLine("  ~~> Image path {0} not resolved.", image.Path);
+                        Console.WriteLine("  ~~> WARNING: Image path {0} NOT RESOLVED.", image.Path);
                         break;
                     }
                     string name = Path.GetFileNameWithoutExtension(path).ToUpperInvariant() + "_" + lastPackIndex++ + Path.GetExtension(path).ToUpperInvariant();
@@ -426,7 +426,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                         string path = dna.ResolvePath(source.Path);
                         if (path == null)
                         {
-                            Console.WriteLine("  ~~> Source path {0} not resolved.", source.Path);
+                            Console.WriteLine("  ~~> WARNING: Source path {0} NOT RESOLVED.", source.Path);
                             break;
                         }
                         string name = Path.GetFileNameWithoutExtension(path).ToUpperInvariant() + "_" + lastPackIndex++ + Path.GetExtension(path).ToUpperInvariant();
