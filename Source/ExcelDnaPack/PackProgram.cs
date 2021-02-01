@@ -43,20 +43,24 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 
         static int Main(string[] args)
         {
+            int exitCode;
+
             try
             {
-                Pack(args);
-                return Environment.ExitCode;
+                exitCode = Pack(args);
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
-                return 1;
+                exitCode = 1;
+                Console.Error.WriteLine(ex.ToString());
             }
+
+            return exitCode;
         }
 
-        static void Pack(string[] args)
+        private static int Pack(string[] args)
 		{
+
 //			string testLib = @"C:\Work\ExcelDna\Version\ExcelDna-0.23\Source\ExcelDnaPack\bin\Debug\exceldna.xll";
 //			ResourceHelper.ResourceLister rl = new ResourceHelper.ResourceLister(testLib);
 //			rl.ListAll();
@@ -64,16 +68,13 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 //			//ResourceHelper.ResourceUpdater.Test(testLib);
 //			return;
 
-            // Set to an 'Error' exit unless we get to the end.
-            Environment.ExitCode = 1;
-
 			// Force jit-load of ExcelDna.Integration assembly
 			int unused = XlCall.xlAbort;
 
 			if (args.Length < 1)
 			{
 				Console.Write("No .dna file specified.\r\n\r\n" + usageInfo);
-				return;
+				return 1;
 			}
 
 			string dnaPath = args[0];
@@ -89,8 +90,8 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 
 			if (!File.Exists(dnaPath))
 			{
-				Console.Write("ERROR: Add-in .dna file " + dnaPath + " not found.\r\n\r\n" + usageInfo);
-				return;
+				Console.Error.Write("ERROR: Add-in .dna file " + dnaPath + " not found.\r\n\r\n" + usageInfo);
+				return 1;
 			}
 
             // TODO: Replace with an args-parsing routine.
@@ -104,7 +105,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                         {
                             // Too few args.
                             Console.Write("Invalid command-line arguments.\r\n\r\n" + usageInfo);
-                            return;
+                            return 1;
                         }
                         xllOutputPath = args[i + 1];
                     }
@@ -134,7 +135,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 					if (!response.Equals("Y", StringComparison.CurrentCultureIgnoreCase))
 					{
 						Console.WriteLine("\r\nNot overwriting existing file.\r\nExiting ExcelDnaPack.");
-						return;
+						return 1;
 					}
 				}
 
@@ -144,8 +145,8 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 				}
 				catch
 				{
-					Console.Write("ERROR: Existing output .xll file " + xllOutputPath + "could not be deleted. (Perhaps loaded in Excel?)\r\n\r\nExiting ExcelDnaPack.");
-					return;
+					Console.Error.Write("ERROR: Existing output .xll file " + xllOutputPath + "could not be deleted. (Perhaps loaded in Excel?)\r\n\r\nExiting ExcelDnaPack.");
+					return 1;
 				}
 			}
 
@@ -163,8 +164,8 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                 }
                 catch (Exception ex)
                 {
-                    Console.Write("ERROR: Output directory " + outputDirectory + "could not be created. Error: " + ex.Message + "\r\n\r\nExiting ExcelDnaPack.");
-                    return;
+                    Console.Error.Write("ERROR: Output directory " + outputDirectory + "could not be created. Error: " + ex.Message + "\r\n\r\nExiting ExcelDnaPack.");
+                    return 1;
                 }
             }
 
@@ -181,8 +182,8 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                     xllInputPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ExcelDna.xll");
                     if (!File.Exists(xllInputPath))
                     {
-                        Console.WriteLine("ERROR: Base add-in not found.\r\n\r\n" + usageInfo);
-                        return;
+                        Console.Error.WriteLine("ERROR: Base add-in not found.\r\n\r\n" + usageInfo);
+                        return 1;
                     }
                 }
             }
@@ -202,10 +203,10 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 			}
 			if (packedName == null)
 			{
-				Console.WriteLine("ERROR: ExcelDna.Integration assembly could not be packed. ABORTING.");
+				Console.Error.WriteLine("ERROR: ExcelDna.Integration assembly could not be packed. ABORTING.");
 				ru.EndUpdate();
 				File.Delete(xllOutputPath);
-				return;
+				return 1;
 			}
 			if (File.Exists(configPath))
 			{
@@ -221,19 +222,20 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 			Console.ReadKey();
 #endif
             // All OK - set process exit code to 'Success'
-            Environment.ExitCode = 0;
-		}
+            return 0;
+        }
 
 		static int lastPackIndex = 0;
 
 		static byte[] PackDnaLibrary(byte[] dnaContent, string dnaDirectory, ResourceHelper.ResourceUpdater ru, bool compress, bool multithreading)
-		{
+        {
+            string errorMessage;
 			DnaLibrary dna = DnaLibrary.LoadFrom(dnaContent, dnaDirectory);
             if (dna == null)
             {
                 // TODO: Better error handling here.
-                Console.WriteLine("ERROR: .dna file could not be loaded. Possibly malformed xml content? ABORTING.");
-                Environment.Exit(1);
+                errorMessage = "ERROR: .dna file could not be loaded. Possibly malformed xml content? ABORTING.";
+                throw new InvalidOperationException(errorMessage);
             }
 			if (dna.ExternalLibraries != null)
 			{
@@ -243,8 +245,8 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 					var path = dna.ResolvePath(ext.Path);
 					if (!File.Exists(path))
 					{
-						Console.WriteLine("!!! ERROR: ExternalLibrary `{0}` not found. ABORTING.", ext.Path);
-						Environment.Exit(1);
+						errorMessage = string.Format("!!! ERROR: ExternalLibrary `{0}` not found. ABORTING.", ext.Path);
+                        throw new InvalidOperationException(errorMessage);
 					}
 
 					if (ext.Pack)
@@ -279,7 +281,8 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                                     resolvedTypeLibPath = DnaLibrary.ResolvePath(ext.TypeLibPath, System.IO.Path.GetDirectoryName(path) ); // null is unresolved
                                     if (resolvedTypeLibPath == null)
                                     {
-                                        Console.WriteLine("!!! WARNING: ExternalLibrary TypeLib path {0} could not be resolved.", ext.TypeLibPath);
+                                        errorMessage = string.Format("!!! ERROR: ExternalLibrary TypeLib path {0} could not be resolved.", ext.TypeLibPath);
+                                        throw new InvalidOperationException(errorMessage);
                                     }
                                 }
                             }
@@ -314,7 +317,8 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 				        }
 				        catch (Exception e)
 				        {
-				            Console.WriteLine("  ~~> ERROR: Error copying version to output version: {0}", e.Message);
+                            errorMessage = string.Format("  ~~> ERROR: Error copying version to output version: {0}", e.Message);
+                            throw new InvalidOperationException(errorMessage);
 				        }
 				    }
 				}
@@ -389,8 +393,8 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 					}
 					if (path == null)
 					{
-						Console.WriteLine("  ~~> WARNING: Reference with Path: {0} and Name: {1} NOT FOUND.", rf.Path, rf.Name);
-						continue;
+                        errorMessage = string.Format("  ~~> ERROR: Reference with Path: {0} and Name: {1} NOT FOUND.", rf.Path, rf.Name);
+                        throw new InvalidOperationException(errorMessage);
 					}
 					
 					// It worked!
@@ -408,8 +412,8 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                     string path = dna.ResolvePath(image.Path);
                     if (path == null)
                     {
-                        Console.WriteLine("  ~~> WARNING: Image path {0} NOT RESOLVED.", image.Path);
-                        break;
+                        errorMessage = string.Format("  ~~> ERROR: Image path {0} NOT RESOLVED.", image.Path);
+                        throw new InvalidOperationException(errorMessage);
                     }
                     string name = Path.GetFileNameWithoutExtension(path).ToUpperInvariant() + "_" + lastPackIndex++ + Path.GetExtension(path).ToUpperInvariant();
                     byte[] imageBytes = File.ReadAllBytes(path);
@@ -426,8 +430,8 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                         string path = dna.ResolvePath(source.Path);
                         if (path == null)
                         {
-                            Console.WriteLine("  ~~> WARNING: Source path {0} NOT RESOLVED.", source.Path);
-                            break;
+                            errorMessage = string.Format("  ~~> ERROR: Source path {0} NOT RESOLVED.", source.Path);
+                            throw new InvalidOperationException(errorMessage);
                         }
                         string name = Path.GetFileNameWithoutExtension(path).ToUpperInvariant() + "_" + lastPackIndex++ + Path.GetExtension(path).ToUpperInvariant();
                         byte[] sourceBytes = File.ReadAllBytes(path);
