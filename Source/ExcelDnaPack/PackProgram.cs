@@ -77,7 +77,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 				return 1;
 			}
 
-			string dnaPath = args[0];
+			string dnaPath = Path.GetFullPath(args[0]);
 			string dnaDirectory = Path.GetDirectoryName(dnaPath);
 //			string dnaFileName = Path.GetFileName(dnaPath);
 			string dnaFilePrefix = Path.GetFileNameWithoutExtension(dnaPath);
