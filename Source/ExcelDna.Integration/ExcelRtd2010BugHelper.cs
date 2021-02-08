@@ -198,7 +198,7 @@ namespace ExcelDna.Integration
         readonly Dictionary<int, ExcelReferenceSet> _activeTopicCallers = new Dictionary<int, ExcelReferenceSet>();
         readonly Dictionary<ExcelReference, TopicIdList> _activeCallerTopics = new Dictionary<ExcelReference, TopicIdList>();
 
-        // The progId we get here is the one we're internally registered with (NOT the RtdSrv.XXX)
+        // The progId we get here is the one we're internally registered with (NOT the RtdSrv_XXX)
         // CONSIDER: How big an issue is duplicate calls?
         //           (Since we process and clear after every calculation, 
         //            and we don't expect many duplicates inside a calculation...?)

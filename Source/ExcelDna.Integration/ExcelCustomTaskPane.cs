@@ -46,7 +46,8 @@ namespace ExcelDna.Integration.CustomUI
             // We pick a new Guid as ClassId for this add-in...
             Guid clsId = Guid.NewGuid();
             // ...and make the ProgId from this Guid - max 39 chars.
-            string progId = "CtpSrv." + clsId.ToString("N");
+            // Change from CtpSrv.xxx to CtpSrv_xxx to avoid McAfee bug that blocks registry writes with a "." anywhere
+            string progId = "CtpSrv_" + clsId.ToString("N");
 
             // Instantiate and then register UserControl
             try

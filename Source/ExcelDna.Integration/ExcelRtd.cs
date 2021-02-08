@@ -36,7 +36,7 @@ namespace ExcelDna.Integration.Rtd
         // DOCUMENT: We allow more than one name per server (ProgId and FullName)
         // but will make separate instances for the different names...?
         static readonly Dictionary<string, Type> registeredRtdServerTypes = new Dictionary<string, Type>();
-        // Map names of loaded Rtd servers to a registered ProgId - "RtdSrv.A1B2C3...."
+        // Map names of loaded Rtd servers to a registered ProgId - "RtdSrv_A1B2C3...."
         static readonly Dictionary<string, string> loadedRtdServers = new Dictionary<string, string>();
 
         public static void RegisterRtdServerTypes(IEnumerable<Type> rtdServerTypes)
@@ -87,7 +87,7 @@ namespace ExcelDna.Integration.Rtd
                 {
                     ExcelRtd2010BugHelper.RecordRtdCall(progId, topics);
                 }
-                // Call Excel using the synthetic RtdSrv.xxx (or actual from attribute) ProgId
+                // Call Excel using the synthetic RtdSrv_xxx (or actual from attribute) ProgId
                 return TryCallRTD(out result, loadedProgId, null, topics);
             }
 
@@ -122,14 +122,15 @@ namespace ExcelDna.Integration.Rtd
             
             // We pick a new Guid as ClassId for this add-in...
             CLSID clsId = Guid.NewGuid();
-            
+
             // ... (bad idea - this will cause Excel to try to load this RTD server while it is not registered.)
             // Guid typeGuid = GuidUtilit.CreateGuid(..., DnaLibrary.XllPath + ":" + rtdServerType.FullName);
             // or something based on ExcelDnaUtil.XllGuid
-            // string progIdRegistered = "RtdSrv." + typeGuid.ToString("N");
+            // string progIdRegistered = "RtdSrv_" + typeGuid.ToString("N");
 
             // by making a fresh progId, we are sure Excel will try to load when we are ready.
-            string progIdRegistered = "RtdSrv." + clsId.ToString("N");
+            // Change from RtdSrv.xxx to RtdSrv_xxx to avoid McAfee bug that blocks registry writes with a "." anywhere
+            string progIdRegistered = "RtdSrv_" + clsId.ToString("N");
             Debug.Print("RTD - Using ProgId: {0} for type: {1}", progIdRegistered, rtdServerType.FullName);
 
             try
