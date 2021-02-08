@@ -232,7 +232,10 @@ namespace ExcelDna.ComInterop.ComRegistration
             // Some notes about Click-To-Run "Passthrough paths" (not something we use at the moment):
             // https://social.technet.microsoft.com/Forums/en-US/b352d803-a358-42e3-94b7-d40285bb43e2/office-clicktorun-and-passthroughpaths?forum=mdopappv
 
-            const string testKeyName = "_ExcelDna.PermissionsTest.Machine";
+            // GvD 2021/02/28 - Change the key name to avoid the McAfee bug that blocks Classes writes with a '.' in
+            // (when trying to block file association changes)
+
+            const string testKeyName = "_ExcelDna_PermissionsTest_Machine";
             try
             {
                 RegistryKey classesKey = Registry.ClassesRoot; // GvD 2020/06/24 we used to open HKLM\Software\Classes here - see comments above
@@ -271,7 +274,11 @@ namespace ExcelDna.ComInterop.ComRegistration
         static bool CanWriteUserHive()
         {
             string userClassesRoot = WindowsIdentity.GetCurrent().User.ToString() + @"_CLASSES";
-            const string testKeyName = "_ExcelDna.PermissionsTest.User";
+
+            // GvD 2021/02/28 - Change the key name to avoid the McAfee bug that blocks Classes writes with a '.' in
+            // (when trying to block file association changes)
+
+            const string testKeyName = "_ExcelDna_PermissionsTest_User";
             try
             {
                 RegistryKey classesKey = Registry.Users.CreateSubKey(userClassesRoot, RegistryKeyPermissionCheck.ReadWriteSubTree);
