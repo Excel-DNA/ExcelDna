@@ -282,14 +282,23 @@ namespace ExcelDna.Integration
             // Register special RegistrationInfo function
             RegistrationInfo.Register();
             SynchronizationManager.Install(true);
-            // Register my Methods
+            // Register my Methods - should this also go into the delayed call?
             ExcelIntegration.RegisterMethods(_methods);
 
+            // We defer the rest of the load until we have an Application object...
+            ExcelAsyncUtil.QueueAsMacro(AutoOpenImpl);
+        }
+
+        // Runs from the QueueAsMacro, once Application exists
+        void AutoOpenImpl()
+        {
             // Invoke AutoOpen in all assemblies
             foreach (AssemblyLoader.ExcelAddInInfo addIn in _addIns)
             {
                 try
                 {
+                    addIn.Instance = Activator.CreateInstance(addIn.InstanceType);
+
                     if (addIn.AutoOpenMethod != null)
                     {
                         addIn.AutoOpenMethod.Invoke(addIn.Instance, null);
@@ -314,7 +323,7 @@ namespace ExcelDna.Integration
             {
                 try
                 {
-                    if (addIn.AutoCloseMethod != null)
+                    if (addIn.AutoCloseMethod != null && addIn.Instance != null)
                     {
                         addIn.AutoCloseMethod.Invoke(addIn.Instance, null);
                     }
@@ -332,6 +341,9 @@ namespace ExcelDna.Integration
 
         internal void LoadCustomUI()
         {
+            // Load any old-style menus from ExcelCommand attributes
+            MenuManager.LoadCustomUI();
+
             bool uiLoaded = false;
             if (ExcelDnaUtil.ExcelVersion >= 12.0)
             {

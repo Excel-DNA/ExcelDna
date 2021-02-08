@@ -518,42 +518,23 @@ namespace ExcelDna.Integration
 
         static bool IsInFormulaEditMode()
         {
-            // I assume LPenHelper is available under Excel 2007+
-            if (ExcelDnaUtil.ExcelVersion >= 12.0)
+            // check edit state directly
+            var fmlaInfo = new XlCall.FmlaInfo();
+
+            // If Excel is shutting down, CallPenHelper will throw an InvalidOperationException.
+            var result = CallPenHelper(XlCall.xlGetFmlaInfo, ref fmlaInfo);
+            if (result == 0)
             {
-                // check edit state directly
-                var fmlaInfo = new XlCall.FmlaInfo();
-
-                // If Excel is shutting down, CallPenHelper will throw an InvalidOperationException.
-                var result = CallPenHelper(XlCall.xlGetFmlaInfo, ref fmlaInfo);
-                if (result == 0)
-                {
-                    // Succeeded
-                    return fmlaInfo.wPointMode != XlCall.xlModeReady;
-                }
-                else
-                {
-                    // Log and return true (the safer option) ???
-                    // Error for now, but maybe Warn is safe too.
-                    Logger.Registration.Error("IsInFormulaEditMode - PenHelper failed, result " + result);
-                    return true;
-                }
+                // Succeeded
+                return fmlaInfo.wPointMode != XlCall.xlModeReady;
             }
-
-            // Otherwise try Focus windows check, else menu check.
-            IntPtr focusedWindow = GetFocus();
-            if (focusedWindow == IntPtr.Zero)
+            else
             {
-                // Excel (this thread) does not have the keyboard focus. Use the Menu check instead.
-                bool menuEnabled = IsFileOpenMenuEnabled();
-                // Debug.Print("Menus Enabled: " + menuEnabled);
-                return !menuEnabled;
+                // Log and return true (the safer option) ???
+                // Error for now, but maybe Warn is safe too.
+                Logger.Registration.Error("IsInFormulaEditMode - PenHelper failed, result " + result);
+                return true;
             }
-
-            string className = GetWindowClassName(focusedWindow);
-            // Debug.Print("Focused window class: " + className);
-
-            return className == "EXCEL<" || className == "EXCEL6";
         }
         #endregion
     }

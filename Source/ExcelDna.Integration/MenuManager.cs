@@ -19,9 +19,15 @@ namespace ExcelDna.Integration
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     internal static class MenuManager
     {
+        static bool _isInitialized;
         static IMenuManager _menuManager;
-        static MenuManager()
+        static List<Action> _deferredAddQueue;
+
+        static void EnsureInitialized()
         {
+            if (_isInitialized)
+                return;
+
             if (ExcelDnaUtil.SafeIsExcelVersionPre15)
             {
                 _menuManager = new ExcelPre15MenuManager();
@@ -30,17 +36,33 @@ namespace ExcelDna.Integration
             {
                 _menuManager = new Excel15MenuManager();
             }
+            _deferredAddQueue = new List<Action>();
+            _isInitialized = true;
+        }
+
+        public static void LoadCustomUI()
+        {
+            if (!_isInitialized)
+                return; // Nothing to do
+
+            foreach (var add in _deferredAddQueue)
+                add();
         }
 
         // These methods are called from XlRegistration via reflection 
         // The binding is in IntegrationHelpers
         static void AddCommandMenu(string commandName, string menuName, string menuText, string description, string shortCut, string helpTopic)
         {
-            _menuManager.AddCommandMenu(commandName, menuName, menuText, description, shortCut, helpTopic);
+            EnsureInitialized();
+            // We don't want this to run in the initial registration phase, so we just queue up the work here
+            _deferredAddQueue.Add(() => _menuManager.AddCommandMenu(commandName, menuName, menuText, description, shortCut, helpTopic));
         }
 
         static void RemoveCommandMenus()
         {
+            if (!_isInitialized)
+                return; // Nothing to do
+
             _menuManager.RemoveCommandMenus();
         }
     }
