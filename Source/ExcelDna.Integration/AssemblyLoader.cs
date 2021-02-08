@@ -32,7 +32,6 @@ namespace ExcelDna.Integration
                     List<Type> rtdServerTypes,
                     List<ExcelComClassType> comClassTypes)
         {
-            List<AssemblyLoaderExcelServer.ExcelServerInfo> excelServerInfos = new List<AssemblyLoaderExcelServer.ExcelServerInfo>();
             bool loadRibbons = (ExcelDnaUtil.ExcelVersion >= 12.0);
 
             foreach (ExportedAssembly assembly in assemblies)
@@ -72,7 +71,6 @@ namespace ExcelDna.Integration
                         {
                             GetExcelMethods(type, explicitExports, methods);
                         }
-                        AssemblyLoaderExcelServer.GetExcelServerInfos(type, attribs, excelServerInfos);
                         GetExcelAddIns(assembly, type, loadRibbons, addIns);
                         GetRtdServerTypes(type, rtdServerTypes, out isRtdServer);
                         GetComClassTypes(assembly, type, attribs, isRtdServer, comClassTypes);
@@ -83,8 +81,6 @@ namespace ExcelDna.Integration
                     }
                 }
             }
-            // Sigh. Excel server (service?) stuff is still ugly - but no real reason to remove it yet.
-            AssemblyLoaderExcelServer.GetExcelServerMethods(excelServerInfos, methods);
         }
 
         static void GetExcelMethods(Type t, bool explicitExports, List<MethodInfo> excelMethods)
@@ -203,6 +199,7 @@ namespace ExcelDna.Integration
             public MethodInfo AutoOpenMethod;
             public MethodInfo AutoCloseMethod;
             public bool IsCustomUI;
+            public Type InstanceType;
             public object Instance;
             public DnaLibrary ParentDnaLibrary;
         }
@@ -230,8 +227,7 @@ namespace ExcelDna.Integration
                         info.AutoCloseMethod = addInType.GetMethod("AutoClose");
                     }
                     info.IsCustomUI = isRibbon;
-                    // TODO: Consider how to handle exception from constructors here.
-                    info.Instance = Activator.CreateInstance(t);
+                    info.InstanceType = t;
                     info.ParentDnaLibrary = assembly.ParentDnaLibrary;
                     addIns.Add(info);
                     Logger.Registration.Verbose("GetExcelAddIns - Created add-in object of type: {0}", t.FullName);
