@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -497,13 +498,11 @@ namespace ExcelDna.Integration
         }
 
         // The call to LPenHelper will cause an AccessViolation after Excel starts shutting down.
-        // .NET40: If this library is recompiled to target .NET 4+, we need to add an attribute to indicate that this exception 
-        // (which might indicate corrupted state) should be handled in our code.
-        // For now, we target .NET 2.0, and even when running under .NET 4.0 we'll see the exception and be able to handle is.
-        // See: http://msdn.microsoft.com/en-us/magazine/dd419661.aspx
+        // NOTE .NET5+: If this assembly is run under .NET 5+ we need to re-engineer this call to handle possible access violations outside the managed code,
+        // or figure out the source and timing of safe vs dangerous calls.
         // (Also for CheckExcelApiAvailable())
 
-        // [HandleProcessCorruptedStateExceptions]
+        [HandleProcessCorruptedStateExceptions]
         static int CallPenHelper(int wCode, ref XlCall.FmlaInfo fmlaInfo)
         {
             try

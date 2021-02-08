@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 
 namespace ExcelDna.Integration
 {
@@ -256,9 +257,10 @@ namespace ExcelDna.Integration
         }
 
         // This call might throw an access violation 
-        // .NET40: If this assembly is compiled for .NET 4, add this attribute to get the expected behaviour.
+        // NOTE .NET5+: If this assembly is run under .NET 5+ we need to re-engineer this call to handle possible access violations outside the managed code,
+        // or figure out the source and timing of safe vs dangerous calls.
         // (Also for CallPenHelper)
-        // [HandleProcessCorruptedStateExceptions]
+        [HandleProcessCorruptedStateExceptions]
         private static bool IsExcelApiAvailable()
         {
             try
