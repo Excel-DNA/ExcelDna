@@ -126,7 +126,7 @@
       <ModuleDefinitionFile>ExcelDna.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)ExcelDna.Integration\bin\debug\ExcelDna.Integration.*" "$(TargetDir)" 
+      <Command>copy "$(SolutionDir)ExcelDna.Integration\bin\win45\debug\ExcelDna.Integration.*" "$(TargetDir)" 
 copy "$(SolutionDir)ExcelDna.Loader\bin\debug\ExcelDna.Loader.*" "$(TargetDir)" </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -262,16 +262,6 @@ copy "$(SolutionDir)ExcelDna.Loader\bin\debug\ExcelDna.Loader.*" "$(TargetDir)" 
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml64 -c "-Fo$(IntDir)%(FileName).obj" "%(FullPath)"</Command>
     </CustomBuild>
     <None Include="ExcelDna.def" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ExcelDna.Integration\ExcelDna.Integration.csproj">
-      <Project>{196735bc-5a5c-4a21-9fe4-ec01cb7f3de9}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="..\ExcelDna.Loader\ExcelDna.Loader.csproj">
-      <Project>{59ae5bc6-f37e-4ce3-bae3-796f807a9882}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

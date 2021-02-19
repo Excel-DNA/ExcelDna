@@ -35,3 +35,10 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion("1.1.0.0")]
 [assembly: AssemblyFileVersion("1.2.2.0")]
 [assembly: AssemblyInformationalVersion("1.2.2")]
+
+// Workaround for
+//    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+// see https://github.com/dotnet/sdk/issues/14502
+#if NETCOREAPP
+[assembly: System.Runtime.Versioning.SupportedOSPlatform("windows")]
+#endif

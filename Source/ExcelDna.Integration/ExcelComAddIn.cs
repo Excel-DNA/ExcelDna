@@ -22,7 +22,9 @@ namespace ExcelDna.Integration
     // or through Automation (3).
 
     [ComVisible(true)]
+#pragma warning disable CS0618 // Type or member is obsolete (but probably not forever)
     [ClassInterface(ClassInterfaceType.AutoDispatch)]
+#pragma warning restore CS0618 // Type or member is obsolete
     public class ExcelComAddIn : IDTExtensibility2
     {
         internal DnaLibrary DnaLibrary { get; set; }

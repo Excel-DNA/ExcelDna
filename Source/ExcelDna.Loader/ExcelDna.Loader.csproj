@@ -1,107 +1,21 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30729</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{59AE5BC6-F37E-4CE3-BAE3-796F807A9882}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ExcelDna.Loader</RootNamespace>
-    <AssemblyName>ExcelDna.Loader</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <SignAssembly>false</SignAssembly>
-    <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
-    <FileUpgradeFlags>
-    </FileUpgradeFlags>
-    <OldToolsVersion>3.5</OldToolsVersion>
-    <UpgradeBackupLocation />
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <TargetFramework>net45</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\assets\exceldna.snk</AssemblyOriginatorKeyFile>
+
+    <!-- TODO: Can we get rid of this? Then also the SupportedOS attribute in AssemblyInfo.cs -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <LangVersion>6</LangVersion>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <LangVersion>6</LangVersion>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.configuration" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
+    <Compile Include="..\Lzma\**\*.cs" LinkBase="Lzma"/>
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="..\Lzma\ICoder.cs">
-      <Link>Lzma\ICoder.cs</Link>
-    </Compile>
-    <Compile Include="..\Lzma\IMatchFinder.cs">
-      <Link>Lzma\IMatchFinder.cs</Link>
-    </Compile>
-    <Compile Include="..\Lzma\LzmaBase.cs">
-      <Link>Lzma\LzmaBase.cs</Link>
-    </Compile>
-    <Compile Include="..\Lzma\LzmaDecoder.cs">
-      <Link>Lzma\LzmaDecoder.cs</Link>
-    </Compile>
-    <Compile Include="..\Lzma\LzOutWindow.cs">
-      <Link>Lzma\LzOutWindow.cs</Link>
-    </Compile>
-    <Compile Include="..\Lzma\RangeCoder.cs">
-      <Link>Lzma\RangeCoder.cs</Link>
-    </Compile>
-    <Compile Include="..\Lzma\RangeCoderBit.cs">
-      <Link>Lzma\RangeCoderBit.cs</Link>
-    </Compile>
-    <Compile Include="..\Lzma\RangeCoderBitTree.cs">
-      <Link>Lzma\RangeCoderBitTree.cs</Link>
-    </Compile>
-    <Compile Include="AssemblyManager.cs" />
-    <Compile Include="IntegrationMarshalHelpers.cs" />
-    <Compile Include="LoaderHelpers.cs" />
-    <Compile Include="LoaderLogging.cs" />
-    <Compile Include="RtdWrapperHelper.cs" />
-    <Compile Include="IntegrationHelpers.cs" />
-    <Compile Include="XlCallImpl.cs" />
-    <Compile Include="XlAddIn.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="XlDirectMarshal.cs" />
-    <Compile Include="XlDirectMarshalLazy.cs" />
-    <Compile Include="XlDirectMarshalTypes.cs" />
-    <Compile Include="XlMarshalContext.cs" />
-    <Compile Include="XlMethodInfo.cs" />
-    <Compile Include="XlParameterInfo.cs" />
-    <Compile Include="XlRegistration.cs" />
-    <Compile Include="XlTypes.cs" />
+    <ProjectReference Include="..\ExcelDna.Integration\ExcelDna.Integration.csproj" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
-  <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
-  </PropertyGroup>
 </Project>
