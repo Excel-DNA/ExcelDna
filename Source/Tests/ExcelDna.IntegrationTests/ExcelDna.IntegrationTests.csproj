@@ -1,12 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net45</TargetFramework>
+    
+    <TargetFramework>net452</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
 
-    <!-- TODO: Can we get rid of this? Then also the SupportedOS attribute in AssemblyInfo.cs -->
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyTitle>ExcelDna.IntegrationTests</AssemblyTitle>
+    <Copyright>Copyright © 2005-2021 Excel-DNA Contributors</Copyright>
+
+    
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,16 +1,19 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
-    <TargetFramework>net45</TargetFramework>
+    
+    <TargetFramework>net452</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
+
+    <AssemblyTitle>Excel-DNA Integration Library</AssemblyTitle>
+    <Description>Integration library for Excel-DNA</Description>
+
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\assets\exceldna.snk</AssemblyOriginatorKeyFile>
-
-    <!-- TODO: Can we get rid of this? Then also the SupportedOS attribute in AssemblyInfo.cs -->
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    
   </PropertyGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net452' ">
     <Reference Include="System.Configuration" />
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>

@@ -1,14 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net45</TargetFramework>
-    <UseWindowsForms>true</UseWindowsForms>
+    
+    <TargetFramework>net452</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <AssemblyTitle>ExcelDna Managed Loader</AssemblyTitle>
+    <Description>Managed loader library for Excel-Dna</Description>
+
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\assets\exceldna.snk</AssemblyOriginatorKeyFile>
 
-    <!-- TODO: Can we get rid of this? Then also the SupportedOS attribute in AssemblyInfo.cs -->
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
   </PropertyGroup>
 
   <ItemGroup>

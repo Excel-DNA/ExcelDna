@@ -1,14 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    
     <OutputType>Library</OutputType>
-    <TargetFramework>net45</TargetFramework>
+    <TargetFramework>net452</TargetFramework>
+
+    <AssemblyTitle>Excel-DNA MSBuild Tasks</AssemblyTitle>
+    <Description>MSBuild Tasks for Excel DNA</Description>
+    <Product>Excel-DNA Add-In Framework for Microsoft Excel</Product>
+    <Copyright>Copyright © 2005-2021 Govert van Drimmelen</Copyright>
+    <Version>1.1.0.0</Version>
+    <FileVersion>1.2.2.0</FileVersion>
+    <InformationalVersion>1.2.2</InformationalVersion>
+    
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\assets\exceldna.snk</AssemblyOriginatorKeyFile>
 
-    <!-- TODO: Can we get rid of this? Then also the SupportedOS attribute in AssemblyInfo.cs -->
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
