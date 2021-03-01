@@ -3,7 +3,7 @@
   <PropertyGroup>
     
     <OutputType>Library</OutputType>
-    <TargetFramework>net452</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
 
     <AssemblyTitle>Excel-DNA MSBuild Tasks</AssemblyTitle>
     <Description>MSBuild Tasks for Excel DNA</Description>
