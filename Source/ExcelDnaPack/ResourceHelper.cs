@@ -12,7 +12,7 @@ using SevenZip.Compression.LZMA;
 using System.Threading;
 using System.Globalization;
 
-internal unsafe static class ResourceHelper
+internal static class ResourceHelper
 {
     internal enum TypeName
     {
@@ -83,7 +83,7 @@ internal unsafe static class ResourceHelper
 	[DllImport("kernel32.dll")]
 	private static extern uint GetLastError();
 
-	internal unsafe class ResourceUpdater
+	internal class ResourceUpdater
 	{        
         int typelibIndex = 0;
 		IntPtr _hUpdate;

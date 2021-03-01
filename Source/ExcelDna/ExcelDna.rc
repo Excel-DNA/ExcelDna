@@ -39,11 +39,11 @@ LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
 3 TEXTINCLUDE 
 BEGIN
     "#ifdef _DEBUG\r\n"
-    "EXCELDNA.LOADER         ASSEMBLY                ""..\\\\ExcelDna.Loader\\\\bin\\\\Debug\\\\ExcelDna.Loader.dll""\r\n"
-    "EXCELDNA.INTEGRATION    ASSEMBLY                ""..\\\\ExcelDna.Integration\\\\bin\\\\Debug\\\\ExcelDna.Integration.dll""\r\n"
+    "EXCELDNA.LOADER         ASSEMBLY                ""..\\\\ExcelDna.Loader\\\\bin\\\\Debug\\\\net45\\\\ExcelDna.Loader.dll""\r\n"
+    "EXCELDNA.INTEGRATION    ASSEMBLY                ""..\\\\ExcelDna.Integration\\\\bin\\\\Debug\\\\net45\\\\ExcelDna.Integration.dll""\r\n"
     "#else\r\n"
-    "EXCELDNA.LOADER         ASSEMBLY                ""..\\\\ExcelDna.Loader\\\\bin\\\\Release\\\\ExcelDna.Loader.dll""\r\n"
-    "EXCELDNA.INTEGRATION    ASSEMBLY                ""..\\\\ExcelDna.Integration\\\\bin\\\\Release\\\\ExcelDna.Integration.dll""\r\n"
+    "EXCELDNA.LOADER         ASSEMBLY                ""..\\\\ExcelDna.Loader\\\\bin\\\\Release\\\\net45\\\\ExcelDna.Loader.dll""\r\n"
+    "EXCELDNA.INTEGRATION    ASSEMBLY                ""..\\\\ExcelDna.Integration\\\\bin\\\\Release\\\\net45\\\\ExcelDna.Integration.dll""\r\n"
     "#endif\r\0"
 END
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
@@ -197,11 +197,11 @@ END
 //
 LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
 #ifdef _DEBUG
-EXCELDNA.LOADER         ASSEMBLY                "..\\ExcelDna.Loader\\bin\\Debug\\ExcelDna.Loader.dll"
-EXCELDNA.INTEGRATION    ASSEMBLY                "..\\ExcelDna.Integration\\bin\\Debug\\ExcelDna.Integration.dll"
+EXCELDNA.LOADER         ASSEMBLY                "..\\ExcelDna.Loader\\bin\\Debug\\net45\\ExcelDna.Loader.dll"
+EXCELDNA.INTEGRATION    ASSEMBLY                "..\\ExcelDna.Integration\\bin\\Debug\\net45\\ExcelDna.Integration.dll"
 #else
-EXCELDNA.LOADER         ASSEMBLY                "..\\ExcelDna.Loader\\bin\\Release\\ExcelDna.Loader.dll"
-EXCELDNA.INTEGRATION    ASSEMBLY                "..\\ExcelDna.Integration\\bin\\Release\\ExcelDna.Integration.dll"
+EXCELDNA.LOADER         ASSEMBLY                "..\\ExcelDna.Loader\\bin\\Release\\net45\\ExcelDna.Loader.dll"
+EXCELDNA.INTEGRATION    ASSEMBLY                "..\\ExcelDna.Integration\\bin\\Release\\net45\\ExcelDna.Integration.dll"
 #endif
 
 /////////////////////////////////////////////////////////////////////////////

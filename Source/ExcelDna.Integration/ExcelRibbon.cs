@@ -14,7 +14,9 @@ using CLSID = System.Guid;
 namespace ExcelDna.Integration.CustomUI
 {
     [ComVisible(true)]
+#pragma warning disable CS0618 // Type or member is obsolete (but probably not forever)
     [ClassInterface(ClassInterfaceType.AutoDispatch)]
+#pragma warning restore CS0618 // Type or member is obsolete
     public class ExcelRibbon : ExcelComAddIn, IRibbonExtensibility //, ICustomTaskPaneConsumer
     {
         public const string NamespaceCustomUI2010 = @"http://schemas.microsoft.com/office/2009/07/customui";

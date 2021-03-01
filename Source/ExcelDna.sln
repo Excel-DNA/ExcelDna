@@ -3,24 +3,24 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28803.452
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.Loader", "ExcelDna.Loader\ExcelDna.Loader.csproj", "{59AE5BC6-F37E-4CE3-BAE3-796F807A9882}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelDna.Loader", "ExcelDna.Loader\ExcelDna.Loader.csproj", "{59AE5BC6-F37E-4CE3-BAE3-796F807A9882}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExcelDna", "ExcelDna\ExcelDna.vcxproj", "{A8D668E2-63C1-4F4E-A01E-E026C6E4D601}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.Integration", "ExcelDna.Integration\ExcelDna.Integration.csproj", "{196735BC-5A5C-4A21-9FE4-EC01CB7F3DE9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelDna.Integration", "ExcelDna.Integration\ExcelDna.Integration.csproj", "{196735BC-5A5C-4A21-9FE4-EC01CB7F3DE9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDnaPack", "ExcelDnaPack\ExcelDnaPack.csproj", "{FD7F2EE3-9922-4825-96A2-BE2C877BAEB9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelDnaPack", "ExcelDnaPack\ExcelDnaPack.csproj", "{FD7F2EE3-9922-4825-96A2-BE2C877BAEB9}"
 	ProjectSection(ProjectDependencies) = postProject
 		{59AE5BC6-F37E-4CE3-BAE3-796F807A9882} = {59AE5BC6-F37E-4CE3-BAE3-796F807A9882}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.AddIn.Tasks", "ExcelDna.AddIn.Tasks\ExcelDna.AddIn.Tasks.csproj", "{B5CC04D3-0507-4431-9F45-7C60BAC3047A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelDna.AddIn.Tasks", "ExcelDna.AddIn.Tasks\ExcelDna.AddIn.Tasks.csproj", "{B5CC04D3-0507-4431-9F45-7C60BAC3047A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{511CE610-5E55-457F-B818-1522D1A96727}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.AddIn.Tasks.IntegrationTests", "Tests\ExcelDna.AddIn.Tasks.IntegrationTests\ExcelDna.AddIn.Tasks.IntegrationTests.csproj", "{C9CAD3E4-E6F1-4BD2-AF89-57950AB15388}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelDna.AddIn.Tasks.IntegrationTests", "Tests\ExcelDna.AddIn.Tasks.IntegrationTests\ExcelDna.AddIn.Tasks.IntegrationTests.csproj", "{C9CAD3E4-E6F1-4BD2-AF89-57950AB15388}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.IntegrationTests", "Tests\ExcelDna.IntegrationTests\ExcelDna.IntegrationTests.csproj", "{3AFD9408-48AC-43B4-8E55-4E7D73168FEA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelDna.IntegrationTests", "Tests\ExcelDna.IntegrationTests\ExcelDna.IntegrationTests.csproj", "{3AFD9408-48AC-43B4-8E55-4E7D73168FEA}"
 	ProjectSection(ProjectDependencies) = postProject
 		{A8D668E2-63C1-4F4E-A01E-E026C6E4D601} = {A8D668E2-63C1-4F4E-A01E-E026C6E4D601}
 	EndProjectSection
@@ -32,6 +32,11 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "content", "content", "{D0B02D05-F536-4C32-9DC0-BA2B5EEAEAB7}"
 	ProjectSection(SolutionItems) = preProject
 		..\Package\ExcelDna.AddIn\content\ExcelDna-Template.dna = ..\Package\ExcelDna.AddIn\content\ExcelDna-Template.dna
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{23634D27-D704-45E9-B8DD-6214E44287B2}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
 	EndProjectSection
 EndProject
 Global
