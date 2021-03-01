@@ -12,5 +12,5 @@
   <ItemGroup>
     <PackageReference Include="ExcelDna.Interop" Version="14.0.1" />
     <PackageReference Include="NUnit" Version="*" />
-  </ItemGroup>
+    </ItemGroup>
 </Project>
