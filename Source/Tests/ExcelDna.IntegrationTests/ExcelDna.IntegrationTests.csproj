@@ -8,7 +8,6 @@
     <AssemblyTitle>ExcelDna.IntegrationTests</AssemblyTitle>
     <Copyright>Copyright © 2005-2021 Excel-DNA Contributors</Copyright>
 
-    
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,13 +21,22 @@
       <EmbedInteropTypes>true</EmbedInteropTypes>
     </COMReference>
   </ItemGroup>
-
+  
   <ItemGroup>
     <PackageReference Include="NUnit" Version="*" />
-    
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Net.Http" />
     <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\ExcelDna.Integration\ExcelDna.Integration.csproj" />
+    <Content Include="ExcelDna.IntegrationTests-AddIn.dna">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -40,15 +48,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\ExcelDna.Integration\ExcelDna.Integration.csproj" />
-    <Content Include="ExcelDna.IntegrationTests-AddIn.dna">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <!--<ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>-->
 
   <Target Name="AfterBuild">
     <Copy SourceFiles="$(SolutionDir)ExcelDna\$(Configuration)\ExcelDna.xll" DestinationFolder="$(TargetDir)" ContinueOnError="WarnAndContinue" />
