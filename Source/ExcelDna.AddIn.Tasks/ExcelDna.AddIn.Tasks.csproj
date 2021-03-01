@@ -32,7 +32,6 @@
     <Reference Include="System.Management" />
   </ItemGroup>
 
-  <!-- TODO: Not sure what to do here -->
   <ItemGroup>
     <None Include="..\..\Package\ExcelDna.AddIn\content\ExcelDna.Build.props">
       <Link>ExcelDna.Build.props</Link>
@@ -43,7 +42,6 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
-  <!--<Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />-->
   <Import Project="$(ProjectDir)Properties\ExcelDna.AddIn.Tasks.targets" />
 
 </Project>

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     
-    <TargetFramework>net452</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
 
     <AssemblyTitle>Excel-DNA MSBuild Tasks Integration Tests</AssemblyTitle>
@@ -11,6 +11,5 @@
 
   <ItemGroup>
     <PackageReference Include="ExcelDna.Interop" Version="14.0.1" />
-    <PackageReference Include="NUnit" Version="*" />
   </ItemGroup>
 </Project>
