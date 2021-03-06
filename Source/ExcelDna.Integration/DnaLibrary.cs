@@ -279,11 +279,7 @@ namespace ExcelDna.Integration
         // Only called for the Root DnaLibrary.
         internal void AutoOpen()
         {
-            // Register special RegistrationInfo function
-            RegistrationInfo.Register();
             SynchronizationManager.Install(true);
-            // Register my Methods - should this also go into the delayed call?
-            ExcelIntegration.RegisterMethods(_methods);
 
             // We defer the rest of the load until we have an Application object...
             ExcelAsyncUtil.QueueAsMacro(AutoOpenImpl);
@@ -292,6 +288,11 @@ namespace ExcelDna.Integration
         // Runs from the QueueAsMacro, once Application exists
         void AutoOpenImpl()
         {
+            // Register special RegistrationInfo function
+            RegistrationInfo.Register();
+            // Register my methods
+            ExcelIntegration.RegisterMethods(_methods);
+
             // Invoke AutoOpen in all assemblies
             foreach (AssemblyLoader.ExcelAddInInfo addIn in _addIns)
             {

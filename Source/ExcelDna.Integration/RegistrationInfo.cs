@@ -42,7 +42,7 @@ namespace ExcelDna.Integration
             }
             else
             {
-                throw new InvalidOperationException("Synchronization macro registration failed.");
+                throw new InvalidOperationException("RegistrationInfo macro registration failed.");
             }
         }
 
