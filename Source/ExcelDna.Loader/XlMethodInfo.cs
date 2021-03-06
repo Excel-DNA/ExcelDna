@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -162,158 +163,52 @@ namespace ExcelDna.Loader
             // DOCUMENT: Default Category is Current Library Name.
             // Get System.ComponentModel.DescriptionAttribute
             // Search through attribs for Description
-            System.ComponentModel.DescriptionAttribute desc =
-                attrib as System.ComponentModel.DescriptionAttribute;
-            if (desc != null)
+            if (attrib is DescriptionAttribute desc)
             {
                 Description = desc.Description;
                 return;
             }
 
-            // There was a problem with the type identification when checking the 
-            // attribute types, for the second instance of the .xll 
-            // that is loaded.
-            // So I check on the names and access through reflection.
-            // CONSIDER: Fix again? It should rather be 
-            //ExcelFunctionAttribute xlfunc = attrib as ExcelFunctionAttribute;
-            //if (xlfunc != null)
-            //{
-            //    if (xlfunc.Name != null)
-            //    {
-            //        Name = xlfunc.Name;
-            //    }
-            //    if (xlfunc.Description != null)
-            //    {
-            //        Description = xlfunc.Description;
-            //    }
-            //    if (xlfunc.Category != null)
-            //    {
-            //        Category = xlfunc.Category;
-            //    }
-            //    if (xlfunc.HelpTopic != null)
-            //    {
-            //        HelpTopic = xlfunc.HelpTopic;
-            //    }
-            //    IsVolatile = xlfunc.IsVolatile;
-            //    IsExceptionSafe = xlfunc.IsExceptionSafe;
-            //    IsMacroType = xlfunc.IsMacroType;
-            //}
-            //ExcelCommandAttribute xlcmd = attrib as ExcelCommandAttribute;
-            //if (xlcmd != null)
-            //{
-            //    if (xlcmd.Name != null)
-            //    {
-            //        Name = xlcmd.Name;
-            //    }
-            //    if (xlcmd.Description != null)
-            //    {
-            //        Description = xlcmd.Description;
-            //    }
-            //    if (xlcmd.HelpTopic != null)
-            //    {
-            //        HelpTopic = xlcmd.HelpTopic;
-            //    }
-            //    if (xlcmd.ShortCut != null)
-            //    {
-            //        ShortCut = xlcmd.ShortCut;
-            //    }
-            //    if (xlcmd.MenuName != null)
-            //    {
-            //        MenuName = xlcmd.MenuName;
-            //    }
-            //    if (xlcmd.MenuText != null)
-            //    {
-            //        MenuText = xlcmd.MenuText;
-            //    }
-            //    IsExceptionSafe = xlcmd.IsExceptionSafe;
-            //    IsCommand = true;
-            //}
-
-            Type attribType = attrib.GetType();
-                
-            if (TypeHelper.TypeHasAncestorWithFullName(attribType, "ExcelDna.Integration.ExcelFunctionAttribute"))
+            if (attrib is ExcelFunctionAttribute func)
             {
-                string name = (string) attribType.GetField("Name").GetValue(attrib);
-                string description = (string) attribType.GetField("Description").GetValue(attrib);
-                string category = (string) attribType.GetField("Category").GetValue(attrib);
-                string helpTopic = (string) attribType.GetField("HelpTopic").GetValue(attrib);
-                bool isVolatile = (bool) attribType.GetField("IsVolatile").GetValue(attrib);
-                bool isExceptionSafe = (bool) attribType.GetField("IsExceptionSafe").GetValue(attrib);
-                bool isMacroType = (bool) attribType.GetField("IsMacroType").GetValue(attrib);
-                bool isHidden = (bool) attribType.GetField("IsHidden").GetValue(attrib);
-                bool isThreadSafe = (bool) attribType.GetField("IsThreadSafe").GetValue(attrib);
-                bool isClusterSafe = (bool)attribType.GetField("IsClusterSafe").GetValue(attrib);
-                bool explicitRegistration = (bool)attribType.GetField("ExplicitRegistration").GetValue(attrib);
-                bool suppressOverwriteError = (bool)attribType.GetField("SuppressOverwriteError").GetValue(attrib);
-                if (name != null)
-                {
-                    Name = name;
-                }
-                if (description != null)
-                {
-                    Description = description;
-                }
-                if (category != null)
-                {
-                    Category = category;
-                }
-                if (helpTopic != null)
-                {
-                    HelpTopic = helpTopic;
-                }
-                IsVolatile = isVolatile;
-                IsExceptionSafe = isExceptionSafe;
-                IsMacroType = isMacroType;
-                IsHidden = isHidden;
-                IsThreadSafe = (!isMacroType && isThreadSafe);
+                if (func.Name != null)
+                    Name = func.Name;
+                if (func.Description != null)
+                    Description = func.Description;
+                if (func.Category != null)
+                    Category = func.Category;
+                if (func.HelpTopic != null)
+                    HelpTopic = func.HelpTopic;
+                IsVolatile = func.IsVolatile;
+                IsExceptionSafe = func.IsExceptionSafe;
+                IsMacroType = func.IsMacroType;
+                IsHidden = func.IsHidden;
+                IsThreadSafe = (!func.IsMacroType && func.IsThreadSafe);
                 // DOCUMENT: IsClusterSafe function MUST NOT be marked as IsMacroType=true and MAY be marked as IsThreadSafe = true.
                 //           [xlfRegister (Form 1) page in the Microsoft Excel 2010 XLL SDK Documentation]
-                IsClusterSafe = (!isMacroType && isClusterSafe);
-                ExplicitRegistration = explicitRegistration;
-                SuppressOverwriteError = suppressOverwriteError;
+                IsClusterSafe = (!func.IsMacroType && func.IsClusterSafe);
+                ExplicitRegistration = func.ExplicitRegistration;
+                SuppressOverwriteError = func.SuppressOverwriteError;
                 IsCommand = false;
             }
-            else if (TypeHelper.TypeHasAncestorWithFullName(attribType, "ExcelDna.Integration.ExcelCommandAttribute"))
+            else if (attrib is ExcelCommandAttribute cmd)
             {
-                string name = (string) attribType.GetField("Name").GetValue(attrib);
-                string description = (string) attribType.GetField("Description").GetValue(attrib);
-                string helpTopic = (string) attribType.GetField("HelpTopic").GetValue(attrib);
-                string shortCut = (string) attribType.GetField("ShortCut").GetValue(attrib);
-                string menuName = (string) attribType.GetField("MenuName").GetValue(attrib);
-                string menuText = (string) attribType.GetField("MenuText").GetValue(attrib);
-//                    bool isHidden = (bool)attribType.GetField("IsHidden").GetValue(attrib);
-                bool isExceptionSafe = (bool) attribType.GetField("IsExceptionSafe").GetValue(attrib);
-                bool explicitRegistration = (bool)attribType.GetField("ExplicitRegistration").GetValue(attrib);
-                bool suppressOverwriteError = (bool)attribType.GetField("SuppressOverwriteError").GetValue(attrib);
-
-                if (name != null)
-                {
-                    Name = name;
-                }
-                if (description != null)
-                {
-                    Description = description;
-                }
-                if (helpTopic != null)
-                {
-                    HelpTopic = helpTopic;
-                }
-                if (shortCut != null)
-                {
-                    ShortCut = shortCut;
-                }
-                if (menuName != null)
-                {
-                    MenuName = menuName;
-                }
-                if (menuText != null)
-                {
-                    MenuText = menuText;
-                }
+                if (cmd.Name != null)
+                    Name = cmd.Name;
+                if (cmd.Description != null)
+                    Description = cmd.Description;
+                if (cmd.HelpTopic != null)
+                    HelpTopic = cmd.HelpTopic;
+                if (cmd.ShortCut != null)
+                    ShortCut = cmd.ShortCut;
+                if (cmd.MenuName != null)
+                    MenuName = cmd.MenuName;
+                if (cmd.MenuText != null)
+                    MenuText = cmd.MenuText;
 //                    IsHidden = isHidden;  // Only for functions.
-                IsExceptionSafe = isExceptionSafe;
-                ExplicitRegistration = explicitRegistration;
-                SuppressOverwriteError = suppressOverwriteError;
+                IsExceptionSafe = cmd.IsExceptionSafe;
+                ExplicitRegistration = cmd.ExplicitRegistration;
+                SuppressOverwriteError = cmd.SuppressOverwriteError;
 
                 // Override IsCommand, even though this 'macro' might have a return value.
                 // Allow for more flexibility in what kind of macros are supported, particularly for calling
@@ -394,15 +289,13 @@ namespace ExcelDna.Loader
                 methodAttributes.Add(null);
                 foreach (object att in method.GetCustomAttributes(false))
                 {
-                    Type attType = att.GetType();
-                    if (TypeHelper.TypeHasAncestorWithFullName(attType, "ExcelDna.Integration.ExcelFunctionAttribute") ||
-                        TypeHelper.TypeHasAncestorWithFullName(attType, "ExcelDna.Integration.ExcelCommandAttribute"))
+                    if (att is ExcelFunctionAttribute || att is ExcelCommandAttribute)
                     {
                         // Set last value to this attribute
                         methodAttributes[methodAttributes.Count - 1] = att;
                         break;
                     }
-                    if (att is System.ComponentModel.DescriptionAttribute)
+                    if (att is DescriptionAttribute)
                     {
                         // Some compatibility - use Description if no Excel* attribute
                         if (methodAttributes[methodAttributes.Count - 1] == null)
@@ -419,14 +312,13 @@ namespace ExcelDna.Loader
                     argAttribs.Add(null);
                     foreach (object att in param.GetCustomAttributes(false))
                     {
-                        Type attType = att.GetType();
-                        if (TypeHelper.TypeHasAncestorWithFullName(attType, "ExcelDna.Integration.ExcelArgumentAttribute"))
+                        if (att is ExcelArgumentAttribute)
                         {
                             // Set last value to this attribute
                             argAttribs[argAttribs.Count - 1] = att;
                             break;
                         }
-                        if (att is System.ComponentModel.DescriptionAttribute)
+                        if (att is DescriptionAttribute)
                         {
                             // Some compatibility - use Description if no ExcelArgument attribute
                             if (argAttribs[argAttribs.Count - 1] == null)

@@ -3,6 +3,7 @@
 
 using System;
 using System.Reflection;
+using ExcelDna.Integration;
 
 namespace ExcelDna.Loader
 {
@@ -46,43 +47,19 @@ namespace ExcelDna.Loader
             if (attrib == null) return;
 
             // Search through attribs for Description
-            System.ComponentModel.DescriptionAttribute desc =
-                attrib as System.ComponentModel.DescriptionAttribute;
-            if (desc != null)
+            if (attrib is System.ComponentModel.DescriptionAttribute desc)
             {
                 Description = desc.Description;
                 return;
             }
-            //// HACK: Some problem with library references - 
-            //// For now relax the assembly reference and use late-bound
-            Type attribType = attrib.GetType();
-            if (TypeHelper.TypeHasAncestorWithFullName(attribType, "ExcelDna.Integration.ExcelArgumentAttribute"))
+            if (attrib is ExcelArgumentAttribute arg)
             {
-                string name = (string)attribType.GetField("Name").GetValue(attrib);
-                string description = (string)attribType.GetField("Description").GetValue(attrib);
-                object allowReference = attribType.GetField("AllowReference").GetValue(attrib);
-
-                if (name != null)
-                    Name = name;
-                if (description != null)
-                    Description = description;
-                if (allowReference != null)
-                    AllowReference = (bool)allowReference;
+                if (arg.Name != null)
+                    Name = arg.Name;
+                if (arg.Description != null)
+                    Description = arg.Description;
+                AllowReference = arg.AllowReference;
             }
-            // HACK: Here is the other code:
-            //ExcelArgumentAttribute xlparam = attrib as ExcelArgumentAttribute;
-            //if (xlparam != null)
-            //{
-            //    if (xlparam.Name != null)
-            //    {
-            //        Name = xlparam.Name;
-            //    }
-            //    if (xlparam.Description != null)
-            //    {
-            //        Description = xlparam.Description;
-            //    }
-            //    AllowReference = xlparam.AllowReference;
-            //}
         }
 
         public void SetTypeInfo(Type type, bool isReturnType, bool isExceptionSafe)
