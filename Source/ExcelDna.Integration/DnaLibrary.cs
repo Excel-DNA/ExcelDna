@@ -281,8 +281,20 @@ namespace ExcelDna.Integration
         {
             SynchronizationManager.Install(true);
 
-            // We defer the rest of the load until we have an Application object...
-            ExcelAsyncUtil.QueueAsMacro(AutoOpenImpl);
+            if (ExcelDnaUtil.GetApplicationNotProtectedNoThrow() != null)
+            {
+                // Proceed without undue delay
+                AutoOpenImpl();
+            }
+            else
+            {
+                // Some possibilities that get us here:
+                // * Can't get Application object at all - first time we're trying is here, no workbook open and hence C API is needed but not available
+                // * Excel is shutting down (would have abandoned in the past, now we keep re-trying)
+
+                // We defer the rest of the load until we have an Application object...
+                ExcelAsyncUtil.QueueAsMacro(AutoOpenImpl);
+            }
         }
 
         // Runs from the QueueAsMacro, once Application exists
