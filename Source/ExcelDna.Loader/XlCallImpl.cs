@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security;
+using ExcelDna.Integration;
 
 namespace ExcelDna.Loader
 {
@@ -59,7 +60,7 @@ namespace ExcelDna.Loader
         public static readonly int xlfUnregister = 201;
         public static readonly int xlfRtd = 379;
 
-        public unsafe static int TryExcelImpl(int xlFunction, out object result, params object[] parameters)
+        public static XlCall.XlReturn TryExcelImpl(int xlFunction, out object result, params object[] parameters)
         {
             if (Excel12v == null )
             {
@@ -67,14 +68,14 @@ namespace ExcelDna.Loader
                 if (Excel12v == null)
                 {
                     result = null;
-                    return 32; /*XlCall.XlReturn.XlReturnFailed*/
+                    return XlCall.XlReturn.XlReturnFailed;
                 }
             }
 
-            return TryExcelImpl12(xlFunction, out result, parameters);
+            return (XlCall.XlReturn)TryExcelImpl12(xlFunction, out result, parameters);
         }
 
-        private unsafe static void FetchExcel12EntryPt()
+        static void FetchExcel12EntryPt()
         {
             if (Excel12v == null)
             {
@@ -93,7 +94,7 @@ namespace ExcelDna.Loader
             }
         }
 
-        internal unsafe static void SetExcel12EntryPt(IntPtr pfnExcel12v)
+        internal static void SetExcel12EntryPt(IntPtr pfnExcel12v)
         {
             Debug.Print("SetExcel12EntryPt called.");
             FetchExcel12EntryPt();

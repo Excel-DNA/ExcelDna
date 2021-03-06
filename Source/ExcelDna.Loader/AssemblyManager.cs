@@ -18,14 +18,14 @@ namespace ExcelDna.Loader
     // TODO: Lots more to make a flexible loader.
     internal static class AssemblyManager
     {
-        static string pathXll;
         static IntPtr hModule;
+        static string pathXll;
         static Dictionary<string, Assembly> loadedAssemblies = new Dictionary<string,Assembly>();
 
         internal static void Initialize(IntPtr hModule, string pathXll)
         {
-            AssemblyManager.pathXll = pathXll;
             AssemblyManager.hModule = hModule;
+            AssemblyManager.pathXll = pathXll;
             loadedAssemblies.Add(Assembly.GetExecutingAssembly().FullName, Assembly.GetExecutingAssembly());
 
             // TODO: Load up the DnaFile and Assembly names ?

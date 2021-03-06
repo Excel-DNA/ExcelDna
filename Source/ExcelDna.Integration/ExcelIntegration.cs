@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
-using JetBrains.Annotations;
 
 namespace ExcelDna.Integration
 {
@@ -14,72 +13,23 @@ namespace ExcelDna.Integration
     using ExcelDna.Logging;
     using HRESULT = Int32;
 
-    // CAUTION: These functions are called _via reflection_ by
-    // ExcelDna.Loader.XlLibrary to set up the link between the loader 
-    // and the integration library.
-    // Signatures, private/public etc. is fragile.
-
-    internal delegate int TryExcelImplDelegate(int xlFunction, out object result, params object[] parameters);
-    internal delegate void RegisterMethodsDelegate(List<MethodInfo> methods);
-    internal delegate void RegisterMethodsWithAttributesDelegate(List<MethodInfo> methods, List<object> functionAttributes, List<List<object>> argumentAttributes);
-    internal delegate void RegisterDelegatesWithAttributesDelegate(List<Delegate> delegates, List<object> functionAttributes, List<List<object>> argumentAttributes);
-    internal delegate void RegisterLambdaExpressionsWithAttributesDelegate(List<LambdaExpression> delegates, List<object> functionAttributes, List<List<object>> argumentAttributes);
-    internal delegate void RegisterRtdWrapperDelegate(string progId, object rtdWrapperOptions, object functionAttribute, List<object> argumentAttributes);
-    internal delegate byte[] GetResourceBytesDelegate(string resourceName, int type); // types: 0 - Assembly, 1 - Dna file, 2 - Image
     internal delegate void SyncMacroDelegate(double dValue);
-	public delegate object UnhandledExceptionHandler(object exceptionObject);
+    public delegate object UnhandledExceptionHandler(object exceptionObject);
 
     public static class ExcelIntegration
     {
         // This version must match the version declared in ExcelDna.Loader.XlAddIn.
-        const int ExcelIntegrationVersion = 10;
+        const int ExcelIntegrationVersion = 11;
+        static IIntegrationHost _integrationHost;
 
-        private static TryExcelImplDelegate tryExcelImpl;
-
-        [UsedImplicitly] // called by reflection
-        internal static void SetTryExcelImpl(TryExcelImplDelegate d)
+        internal static void ConfigureHost(IIntegrationHost integrationHost)
         {
-            tryExcelImpl = d;
+            _integrationHost = integrationHost;
         }
 
         internal static XlCall.XlReturn TryExcelImpl(int xlFunction, out object result, params object[] parameters)
         {
-            if (tryExcelImpl != null)
-            {
-                return (XlCall.XlReturn)tryExcelImpl(xlFunction, out result, parameters);
-            }
-            result = null;
-            return XlCall.XlReturn.XlReturnFailed;
-        }
-
-        private static RegisterMethodsDelegate registerMethods;
-        internal static void SetRegisterMethods(RegisterMethodsDelegate d)
-        {
-            registerMethods = d;
-        }
-
-        private static RegisterMethodsWithAttributesDelegate registerMethodsWithAttributes;
-        internal static void SetRegisterMethodsWithAttributes(RegisterMethodsWithAttributesDelegate d)
-        {
-            registerMethodsWithAttributes = d;
-        }
-
-        private static RegisterDelegatesWithAttributesDelegate registerDelegatesWithAttributes;
-        internal static void SetRegisterDelegatesWithAttributes(RegisterDelegatesWithAttributesDelegate d)
-        {
-            registerDelegatesWithAttributes = d;
-        }
-
-        private static RegisterLambdaExpressionsWithAttributesDelegate registerLambdaExpressionsWithAttributes;
-        internal static void SetRegisterLambdaExpressionsWithAttributes(RegisterLambdaExpressionsWithAttributesDelegate d)
-        {
-            registerLambdaExpressionsWithAttributes = d;
-        }
-
-        private static RegisterRtdWrapperDelegate registerRtdWrapper;
-        internal static void SetRegisterRtdWrapper(RegisterRtdWrapperDelegate d)
-        {
-            registerRtdWrapper = d;
+            return _integrationHost.TryExcelImpl(xlFunction, out result, parameters);
         }
 
         // These are the public 'externally' exposed members.
@@ -93,7 +43,7 @@ namespace ExcelDna.Integration
 
         public static void RegisterMethods(List<MethodInfo> methods)
         {
-            registerMethods(methods);
+            _integrationHost.RegisterMethods(methods);
         }
 
         public static void RegisterMethods(List<MethodInfo> methods,
@@ -101,7 +51,7 @@ namespace ExcelDna.Integration
                                            List<List<object>> argumentAttributes)
         {
             ClearExplicitRegistration(methodAttributes);
-            registerMethodsWithAttributes(methods, methodAttributes, argumentAttributes);
+            _integrationHost.RegisterMethodsWithAttributes(methods, methodAttributes, argumentAttributes);
         }
 
         public static void RegisterDelegates(List<Delegate> delegates,
@@ -109,7 +59,7 @@ namespace ExcelDna.Integration
                                              List<List<object>> argumentAttributes)
         {
             ClearExplicitRegistration(methodAttributes);
-            registerDelegatesWithAttributes(delegates, methodAttributes, argumentAttributes);
+            _integrationHost.RegisterDelegatesWithAttributes(delegates, methodAttributes, argumentAttributes);
         }
 
         public static void RegisterLambdaExpressions(List<LambdaExpression> lambdaExpressions,
@@ -117,12 +67,12 @@ namespace ExcelDna.Integration
                                      List<List<object>> argumentAttributes)
         {
             ClearExplicitRegistration(methodAttributes);
-            registerLambdaExpressionsWithAttributes(lambdaExpressions, methodAttributes, argumentAttributes);
+            _integrationHost.RegisterLambdaExpressionsWithAttributes(lambdaExpressions, methodAttributes, argumentAttributes);
         }
 
         public static void RegisterRtdWrapper(string progId, object rtdWrapperOptions, object functionAttribute, List<object> argumentAttributes)
         {
-            registerRtdWrapper(progId, rtdWrapperOptions, functionAttribute, argumentAttributes);
+            _integrationHost.RegisterRtdWrapper(progId, rtdWrapperOptions, functionAttribute, argumentAttributes);
         }
 
         // Fix up the ExplicitRegistration, since we _are_ now explicitly registering
@@ -130,8 +80,7 @@ namespace ExcelDna.Integration
         {
             foreach (object attrib in methodAttributes)
             {
-                ExcelFunctionAttribute funcAttrib = attrib as ExcelFunctionAttribute;
-                if (funcAttrib != null)
+                if (attrib is ExcelFunctionAttribute funcAttrib)
                 {
                     funcAttrib.ExplicitRegistration = false;
                     continue;
@@ -206,35 +155,29 @@ namespace ExcelDna.Integration
 			}
 		}
 
-        private static GetResourceBytesDelegate getResourceBytesDelegate;
-        internal static void SetGetResourceBytesDelegate(GetResourceBytesDelegate d)
-        {
-            getResourceBytesDelegate = d;
-        }
-
-		internal static byte[] GetAssemblyBytes(string assemblyName)
+        internal static byte[] GetAssemblyBytes(string assemblyName)
 		{
-			return getResourceBytesDelegate(assemblyName, 0);
+			return _integrationHost.GetResourceBytes(assemblyName, 0);
 		}
 
 		internal static byte[] GetPdbBytes(string assemblyName)
 		{
-			return getResourceBytesDelegate(assemblyName, 4);
+			return _integrationHost.GetResourceBytes(assemblyName, 4);
 		}
 
 		internal static byte[] GetDnaFileBytes(string dnaFileName)
 		{
-			return getResourceBytesDelegate(dnaFileName, 1);
+			return _integrationHost.GetResourceBytes(dnaFileName, 1);
 		}
 
         internal static byte[] GetImageBytes(string imageName)
         {
-            return getResourceBytesDelegate(imageName, 2);
+            return _integrationHost.GetResourceBytes(imageName, 2);
         }
 
         internal static byte[] GetSourceBytes(string sourceName)
         {
-            return getResourceBytesDelegate(sourceName, 3);
+            return _integrationHost.GetResourceBytes(sourceName, 3);
         }
 
         // Called via Reflection from Loader

@@ -49,16 +49,15 @@ namespace ExcelDna.Integration
                 add();
         }
 
-        // These methods are called from XlRegistration via reflection 
-        // The binding is in IntegrationHelpers
-        static void AddCommandMenu(string commandName, string menuName, string menuText, string description, string shortCut, string helpTopic)
+        // These methods are called from the Loader in XlRegistration via IntegrationHelpers
+        internal static void AddCommandMenu(string commandName, string menuName, string menuText, string description, string shortCut, string helpTopic)
         {
             EnsureInitialized();
             // We don't want this to run in the initial registration phase, so we just queue up the work here
             _deferredAddQueue.Add(() => _menuManager.AddCommandMenu(commandName, menuName, menuText, description, shortCut, helpTopic));
         }
 
-        static void RemoveCommandMenus()
+        internal static void RemoveCommandMenus()
         {
             if (!_isInitialized)
                 return; // Nothing to do

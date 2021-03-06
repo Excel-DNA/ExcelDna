@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using ExcelDna.Integration;
 
 namespace ExcelDna.Loader
 {
@@ -16,7 +17,7 @@ namespace ExcelDna.Loader
         readonly static object boxedZero = 0.0;
         readonly static object boxedOne = 1.0;
 
-        readonly static object excelEmpty = IntegrationMarshalHelpers.GetExcelEmptyValue();  // NOTE: What is the timing for this static initialization?
+        readonly static object excelEmpty = ExcelEmpty.Value;
 
         // These are fixed size, and could be allocated as a single struct or block.
         // Strings of any length, in Xloper or direct, using max length fixed buffer
@@ -84,125 +85,124 @@ namespace ExcelDna.Loader
             // Debug.Print("XlObject12Marshaler {0} - Marshaling for thread {1} ", instanceId, System.Threading.Thread.CurrentThread.ManagedThreadId);
 
             // CONSIDER: Use TypeHandle of Type.GetTypeCode(type) lookup instead of if/else?
-            if (ManagedObj is double)
+            if (ManagedObj is double d)
             {
-                _pXloperReturn->numValue = (double)ManagedObj;
+                _pXloperReturn->numValue = d;
                 _pXloperReturn->xlType = XlType12.XlTypeNumber;
             }
-            else if (ManagedObj is string)
+            else if (ManagedObj is string str)
             {
-                _pXloperReturn->pstrValue = (XlString12*)StringReturn((string)ManagedObj);
+                _pXloperReturn->pstrValue = (XlString12*)StringReturn(str);
                 _pXloperReturn->xlType = XlType12.XlTypeString;
             }
-            else if (ManagedObj is DateTime)
+            else if (ManagedObj is DateTime dt)
             {
-                return DateTimeToXloperReturn((DateTime)ManagedObj);
+                return DateTimeToXloperReturn(dt);
             }
-            else if (ManagedObj is bool)
+            else if (ManagedObj is bool b)
             {
-                return BoolToXloperReturn((bool)ManagedObj);
+                return BoolToXloperReturn(b);
             }
-            else if (ManagedObj is object[])
+            else if (ManagedObj is object[] arr1)
             {
                 // Redirect to the ObjectArray Marshaler
                 // CONSIDER: This might cause some memory to get stuck, 
                 // since the memory for the array marshaler is not the same as for this
-                return ObjectArray1Return((object[])ManagedObj);
+                return ObjectArray1Return(arr1);
             }
-            else if (ManagedObj is object[,])
+            else if (ManagedObj is object[,] arr2)
             {
                 // Redirect to the ObjectArray Marshaler
                 // CONSIDER: This might cause some memory to get stuck, 
                 // since the memory for the array marshaler is not the same as for this
-                return ObjectArray2Return((object[,])ManagedObj);
+                return ObjectArray2Return(arr2);
             }
-            else if (ManagedObj is double[])
+            else if (ManagedObj is double[] d1)
             {
-                return DoubleArray1Return((double[])ManagedObj);
+                return DoubleArray1Return(d1);
             }
-            else if (ManagedObj is double[,])
+            else if (ManagedObj is double[,] d2)
             {
-                return DoubleArray2Return((double[,])ManagedObj);
+                return DoubleArray2Return(d2);
             }
-            else if (IntegrationMarshalHelpers.IsExcelErrorObject(ManagedObj))
+            else if (ManagedObj is ExcelError err)
             {
-                _pXloperReturn->errValue = IntegrationMarshalHelpers.ExcelErrorGetValue(ManagedObj);
+                _pXloperReturn->errValue = (short)err;
                 _pXloperReturn->xlType = XlType12.XlTypeError;
             }
-            else if (IntegrationMarshalHelpers.IsExcelMissingObject(ManagedObj))
+            else if (ManagedObj is ExcelMissing)
             {
                 _pXloperReturn->xlType = XlType12.XlTypeMissing;
             }
-            else if (IntegrationMarshalHelpers.IsExcelEmptyObject(ManagedObj))
+            else if (ManagedObj is ExcelEmpty)
             {
                 _pXloperReturn->xlType = XlType12.XlTypeEmpty;
             }
-            else if (ManagedObj is short)
+            else if (ManagedObj is short s)
             {
-                _pXloperReturn->numValue = (short)ManagedObj;
+                _pXloperReturn->numValue = s;
                 _pXloperReturn->xlType = XlType12.XlTypeNumber;
             }
-            else if (ManagedObj is System.Reflection.Missing)
+            else if (ManagedObj is Missing)
             {
                 _pXloperReturn->xlType = XlType12.XlTypeMissing;
             }
-            else if (ManagedObj is int)
+            else if (ManagedObj is int i)
             {
-                _pXloperReturn->numValue = (int)ManagedObj;
+                _pXloperReturn->numValue = i;
                 _pXloperReturn->xlType = XlType12.XlTypeNumber;
             }
-            else if (ManagedObj is uint)
+            else if (ManagedObj is uint ui)
             {
-                _pXloperReturn->numValue = (uint)ManagedObj;
+                _pXloperReturn->numValue = ui;
                 _pXloperReturn->xlType = XlType12.XlTypeNumber;
             }
-            else if (ManagedObj is byte)
+            else if (ManagedObj is byte byt)
             {
-                _pXloperReturn->numValue = (byte)ManagedObj;
+                _pXloperReturn->numValue = byt;
                 _pXloperReturn->xlType = XlType12.XlTypeNumber;
             }
-            else if (ManagedObj is ushort)
+            else if (ManagedObj is ushort us)
             {
-                _pXloperReturn->numValue = (ushort)ManagedObj;
+                _pXloperReturn->numValue = us;
                 _pXloperReturn->xlType = XlType12.XlTypeNumber;
             }
-            else if (ManagedObj is decimal)
+            else if (ManagedObj is decimal dec)
             {
-                _pXloperReturn->numValue = (double)((decimal)ManagedObj);
+                _pXloperReturn->numValue = (double)dec;
                 _pXloperReturn->xlType = XlType12.XlTypeNumber;
             }
-            else if (ManagedObj is float)
+            else if (ManagedObj is float f)
             {
-                _pXloperReturn->numValue = (float)ManagedObj;
+                _pXloperReturn->numValue = f;
                 _pXloperReturn->xlType = XlType12.XlTypeNumber;
             }
-            else if (ManagedObj is long)
+            else if (ManagedObj is long l)
             {
-                _pXloperReturn->numValue = (long)ManagedObj;
+                _pXloperReturn->numValue = l;
                 _pXloperReturn->xlType = XlType12.XlTypeNumber;
             }
-            else if (ManagedObj is ulong)
+            else if (ManagedObj is ulong ul)
             {
-                _pXloperReturn->numValue = (ulong)ManagedObj;
+                _pXloperReturn->numValue = ul;
                 _pXloperReturn->xlType = XlType12.XlTypeNumber;
             }
-            else if (IntegrationMarshalHelpers.IsExcelAsyncHandleNativeObject(ManagedObj))
+            else if (ManagedObj is ExcelAsyncHandleNative ah)
             {
                 // This code is not actually used, since the ExcelAsyncHandle is only passed into
-                // XlCall.Excel param array, so marshaled byt the object array marshaler.
-                IntPtr handle = IntegrationMarshalHelpers.GetExcelAsyncHandleNativeHandle(ManagedObj);
+                // XlCall.Excel param array, so marshaled by the object array marshaler.
 
-                _pXloperReturn->bigData.hData = handle;
+                _pXloperReturn->bigData.hData = ah.Handle;
                 _pXloperReturn->bigData.cbData = IntPtr.Size;
                 _pXloperReturn->xlType = XlType12.XlTypeBigData;
             }
             // CONSIDER: Reimplement in this class (needs extra memory management)?
-            else if (IntegrationMarshalHelpers.IsExcelReferenceObject(ManagedObj))
+            else if (ManagedObj is ExcelReference xlref)
             {
                 // To avoid extra memory management in this class, wrap in an array and let the array marshaler deal with the reference.
                 // TODO/DM: It would be better to have the extra copy of the code here, or abstract the reference memory context too and share
                 object[] refArray = new object[1];
-                refArray[0] = ManagedObj;
+                refArray[0] = xlref;
                 XlOper12* pArray = (XlOper12*)ObjectArray1Return(refArray);
 
                 // Pick reference out of the returned array.
@@ -211,7 +211,7 @@ namespace ExcelDna.Loader
             else
             {
                 // Default error return
-                _pXloperReturn->errValue = IntegrationMarshalHelpers.ExcelError_ExcelErrorValue;
+                _pXloperReturn->errValue = (int)ExcelError.ExcelErrorValue;
                 _pXloperReturn->xlType = XlType12.XlTypeError;
             }
             return (IntPtr)_pXloperReturn;
@@ -350,7 +350,7 @@ namespace ExcelDna.Loader
                 // This is a case where we have a date that cannot be converted to an OleAutomation date, e.g. year < 0100
                 // Certainly it is not a valid date in Excel (no dates before 1900 are valid)
                 // But we must not crash - return #VALUE instead
-                _pXloperReturn->errValue = IntegrationMarshalHelpers.ExcelError_ExcelErrorValue;
+                _pXloperReturn->errValue = (int)ExcelError.ExcelErrorValue;
                 _pXloperReturn->xlType = XlType12.XlTypeError;
             }
             return (IntPtr)_pXloperReturn;
@@ -389,17 +389,17 @@ namespace ExcelDna.Loader
                     managed = pOper->boolValue == 1;
                     break;
                 case XlType12.XlTypeError:
-                    managed = IntegrationMarshalHelpers.GetExcelErrorObject(pOper->errValue);
+                    managed = (ExcelError)pOper->errValue;
                     break;
                 case XlType12.XlTypeMissing:
                     // DOCUMENT: Changed in version 0.17.
                     // managed = System.Reflection.Missing.Value;
-                    managed = IntegrationMarshalHelpers.GetExcelMissingValue();
+                    managed = ExcelMissing.Value;
                     break;
                 case XlType12.XlTypeEmpty:
                     // DOCUMENT: Changed in version 0.17.
                     // managed = null;
-                    managed = excelEmpty; // IntegrationMarshalHelpers.GetExcelEmptyValue();
+                    managed = ExcelEmpty.Value;
                     break;
                 case XlType12.XlTypeArray:
                     int rows = pOper->arrayValue.Rows;
@@ -441,7 +441,7 @@ namespace ExcelDna.Loader
                     object /*ExcelReference*/ r;
                     if (pOper->refValue.pMultiRef == (XlOper12.XlMultiRef12*)IntPtr.Zero)
                     {
-                        r = IntegrationMarshalHelpers.CreateExcelReference(0, 0, 0, 0, pOper->refValue.SheetId);
+                        r = new ExcelReference(0, 0, 0, 0, pOper->refValue.SheetId);
                     }
                     else
                     {
@@ -451,7 +451,7 @@ namespace ExcelDna.Loader
                         if (numAreas == 1)
                         {
 
-                            r = IntegrationMarshalHelpers.CreateExcelReference(
+                            r = new ExcelReference(
                                 pAreas[0].RowFirst, pAreas[0].RowLast,
                                 pAreas[0].ColumnFirst, pAreas[0].ColumnLast, pOper->refValue.SheetId);
                         }
@@ -465,7 +465,7 @@ namespace ExcelDna.Loader
                                                           rect.ColumnFirst, rect.ColumnLast };
                                 areas[i] = area;
                             }
-                            r = IntegrationMarshalHelpers.CreateExcelReference(areas, pOper->refValue.SheetId);
+                            r = new ExcelReference(areas, pOper->refValue.SheetId);
                         }
                     }
                     managed = r;
@@ -473,7 +473,7 @@ namespace ExcelDna.Loader
                 case XlType12.XlTypeSReference:
                     IntPtr sheetId = XlCallImpl.GetCurrentSheetId12();
                     object /*ExcelReference*/ sref;
-                    sref = IntegrationMarshalHelpers.CreateExcelReference(
+                    sref = new ExcelReference(
                                             pOper->srefValue.Reference.RowFirst,
                                             pOper->srefValue.Reference.RowLast,
                                             pOper->srefValue.Reference.ColumnFirst,
@@ -573,8 +573,7 @@ namespace ExcelDna.Loader
             return (decimal)*((double*)pNativeData);
         }
 
-        // NOTE: We need a cast for this to work - can't declare return type here
-        public static object AsyncHandleParam(IntPtr pNativeData)
+        public static ExcelAsyncHandle AsyncHandleParam(IntPtr pNativeData)
         {
             // Make a nice object from the native OPER
             XlOper12* pOper = (XlOper12*)pNativeData;
@@ -583,7 +582,7 @@ namespace ExcelDna.Loader
             if (type == XlType12.XlTypeBigData)
             {
                 XlOper12.XlBigData bigData = pOper->bigData;
-                return IntegrationMarshalHelpers.CreateExcelAsyncHandleNative(bigData.hData);
+                return new ExcelAsyncHandleNative(bigData.hData);
             }
 
             throw new ArgumentException("Unexpected XlOper type for AsyncHandle: " + type, nameof(pNativeData));
@@ -875,7 +874,7 @@ namespace ExcelDna.Loader
             // Excel chokes badly on empty arrays (e.g. crash in function wizard) - rather return the default erro value, #VALUE!
             if (rows * columns == 0)
             {
-                pOper->errValue = (ushort)IntegrationMarshalHelpers.ExcelError_ExcelErrorValue;
+                pOper->errValue = (ushort)ExcelError.ExcelErrorValue;
                 pOper->xlType = XlType12.XlTypeError;
             }
             else
@@ -906,25 +905,24 @@ namespace ExcelDna.Loader
                 pOper = (XlOper12*)_pNative + i + 1;
 
                 // Set up the oper from the object
-                if (obj is double)
+                if (obj is double d)
                 {
-                    pOper->numValue = (double)obj;
+                    pOper->numValue = d;
                     pOper->xlType = XlType12.XlTypeNumber;
                 }
-                else if (obj is string)
+                else if (obj is string str)
                 {
                     // We count all of the string lengths, 
-                    string str = (string)obj;
                     cbNativeStrings += (Marshal.SizeOf(typeof(XlString12)) + ((Math.Min(str.Length, XlString12.MaxLength) - 1) /* 1 char already in XlString */) * 2 /* 2 bytes per char */);
                     // mark the Oper as a string, and
                     // later allocate memory and return to fix pointers
                     pOper->xlType = XlType12.XlTypeString;
                 }
-                else if (obj is DateTime)
+                else if (obj is DateTime dt)
                 {
                     try
                     {
-                        pOper->numValue = ((DateTime)obj).ToOADate();
+                        pOper->numValue = dt.ToOADate();
                         pOper->xlType = XlType12.XlTypeNumber;
                     }
                     catch
@@ -932,98 +930,97 @@ namespace ExcelDna.Loader
                         // This is a case where we have a date that cannot be converted to an OleAutomation date, e.g. year < 0100
                         // Certainly it is not a valid date in Excel (no dates before 1900 are valid)
                         // But we must not crash - return #VALUE instead
-                        pOper->errValue = IntegrationMarshalHelpers.ExcelError_ExcelErrorValue;
+                        pOper->errValue = (int)ExcelError.ExcelErrorValue;
                         pOper->xlType = XlType12.XlTypeError;
                     }
                 }
-                else if (IntegrationMarshalHelpers.IsExcelErrorObject(obj))
+                else if (obj is ExcelError err)
                 {
-                    pOper->errValue = IntegrationMarshalHelpers.ExcelErrorGetValue(obj);
+                    pOper->errValue = (short)err;
                     pOper->xlType = XlType12.XlTypeError;
                 }
-                else if (IntegrationMarshalHelpers.IsExcelMissingObject(obj))
+                else if (obj is ExcelMissing)
                 {
                     pOper->xlType = XlType12.XlTypeMissing;
                 }
-                else if (IntegrationMarshalHelpers.IsExcelEmptyObject(obj))
+                else if (obj is ExcelEmpty)
                 {
                     pOper->xlType = XlType12.XlTypeEmpty;
                 }
-                else if (IntegrationMarshalHelpers.IsExcelAsyncHandleNativeObject(obj))
+                else if (obj is ExcelAsyncHandleNative ah)
                 {
-                    IntPtr handle = IntegrationMarshalHelpers.GetExcelAsyncHandleNativeHandle(obj);
-                    pOper->bigData.hData = handle;
+                    pOper->bigData.hData = ah.Handle;
                     pOper->bigData.cbData = IntPtr.Size;
                     pOper->xlType = XlType12.XlTypeBigData;
                 }
-                else if (obj is bool)
+                else if (obj is bool b)
                 {
-                    pOper->boolValue = (bool)obj ? 1 : 0;
+                    pOper->boolValue = b ? 1 : 0;
                     pOper->xlType = XlType12.XlTypeBoolean;
                 }
-                else if (obj is byte)
+                else if (obj is byte byt)
                 {
-                    pOper->numValue = (double)((byte)obj);
+                    pOper->numValue = byt;
                     pOper->xlType = XlType12.XlTypeNumber;
                 }
-                else if (obj is sbyte)
+                else if (obj is sbyte sbyt)
                 {
-                    pOper->numValue = (double)((sbyte)obj);
+                    pOper->numValue = sbyt;
                     pOper->xlType = XlType12.XlTypeNumber;
                 }
-                else if (obj is short)
+                else if (obj is short sh)
                 {
-                    pOper->numValue = (double)((short)obj);
+                    pOper->numValue = sh;
                     pOper->xlType = XlType12.XlTypeNumber;
                 }
-                else if (obj is ushort)
+                else if (obj is ushort ush)
                 {
-                    pOper->numValue = (double)((ushort)obj);
+                    pOper->numValue = ush;
                     pOper->xlType = XlType12.XlTypeNumber;
                 }
-                else if (obj is int)
+                else if (obj is int ii)
                 {
-                    pOper->numValue = (double)((int)obj);
+                    pOper->numValue = ii;
                     pOper->xlType = XlType12.XlTypeNumber;
                 }
-                else if (obj is uint)
+                else if (obj is uint ui)
                 {
-                    pOper->numValue = (double)((uint)obj);
+                    pOper->numValue = ui;
                     pOper->xlType = XlType12.XlTypeNumber;
                 }
-                else if (obj is long)
+                else if (obj is long l)
                 {
-                    pOper->numValue = (double)((long)obj);
+                    pOper->numValue = l;
                     pOper->xlType = XlType12.XlTypeNumber;
                 }
-                else if (obj is ulong)
+                else if (obj is ulong ul)
                 {
-                    pOper->numValue = (double)((ulong)obj);
+                    pOper->numValue = ul;
                     pOper->xlType = XlType12.XlTypeNumber;
                 }
-                else if (obj is decimal)
+                else if (obj is decimal dec)
                 {
-                    pOper->numValue = (double)((decimal)obj);
+                    pOper->numValue = (double)dec;
                     pOper->xlType = XlType12.XlTypeNumber;
                 }
-                else if (obj is float)
+                else if (obj is float fl)
                 {
-                    pOper->numValue = (double)((float)obj);
+                    pOper->numValue = fl;
                     pOper->xlType = XlType12.XlTypeNumber;
                 }
-                else if (IntegrationMarshalHelpers.IsExcelReferenceObject(obj))
+                else if (obj is ExcelReference xlref)
                 {
                     pOper->xlType = XlType12.XlTypeReference;
                     // First we count all of these, 
                     // later allocate memory and return to fix pointers
                     numReferenceOpers++;
-                    numReferences += IntegrationMarshalHelpers.ExcelReferenceGetRectangleCount(obj); // ((ExcelReference)obj).InnerReferences.Count;
+                    numReferences += xlref.GetRectangleCount();
                 }
-                else if (obj is object[])
+                else if (obj is object[] arr1)
                 {
                     var nested = new XlMarshalXlOperArrayContext(1, false);
                     _nestedInstances.Add(nested);
-                    XlOper12* pNested = (XlOper12*)nested.ObjectArrayReturn(obj);
+                    XlOper12* pNested = (XlOper12*)nested.ObjectArrayReturn(arr1);
                     if (pNested->xlType == XlType12.XlTypeArray)
                     {
                         pOper->xlType = XlType12.XlTypeArray;
@@ -1036,14 +1033,14 @@ namespace ExcelDna.Loader
                         // This is the case where the array passed in has 0 length.
                         // We set to an error to at least have a valid XLOPER
                         pOper->xlType = XlType12.XlTypeError;
-                        pOper->errValue = IntegrationMarshalHelpers.ExcelError_ExcelErrorValue;
+                        pOper->errValue = (int)ExcelError.ExcelErrorValue;
                     }
                 }
-                else if (obj is object[,])
+                else if (obj is object[,] arr2)
                 {
                     var nested = new XlMarshalXlOperArrayContext(2, false);
                     _nestedInstances.Add(nested);
-                    XlOper12* pNested = (XlOper12*)nested.ObjectArrayReturn(obj);
+                    XlOper12* pNested = (XlOper12*)nested.ObjectArrayReturn(arr2);
                     if (pNested->xlType == XlType12.XlTypeArray)
                     {
                         pOper->xlType = XlType12.XlTypeArray;
@@ -1056,12 +1053,11 @@ namespace ExcelDna.Loader
                         // This is the case where the array passed in has 0,0 length.
                         // We set to an error to at least have a valid XLOPER
                         pOper->xlType = XlType12.XlTypeError;
-                        pOper->errValue = IntegrationMarshalHelpers.ExcelError_ExcelErrorValue;
+                        pOper->errValue = (int)ExcelError.ExcelErrorValue;
                     }
                 }
-                else if (obj is double[])
+                else if (obj is double[] doubles)
                 {
-                    double[] doubles = (double[])obj;
                     object[] objects = new object[doubles.Length];
                     Array.Copy(doubles, objects, doubles.Length);
 
@@ -1080,14 +1076,13 @@ namespace ExcelDna.Loader
                         // This is the case where the array passed in has 0 length.
                         // We set to an error to at least have a valid XLOPER
                         pOper->xlType = XlType12.XlTypeError;
-                        pOper->errValue = IntegrationMarshalHelpers.ExcelError_ExcelErrorValue;
+                        pOper->errValue = (int)ExcelError.ExcelErrorValue;
                     }
                 }
-                else if (obj is double[,])
+                else if (obj is double[,] doubles2)
                 {
-                    double[,] doubles = (double[,])obj;
-                    object[,] objects = new object[doubles.GetLength(0), doubles.GetLength(1)];
-                    Array.Copy(doubles, objects, doubles.GetLength(0) * doubles.GetLength(1));
+                    object[,] objects = new object[doubles2.GetLength(0), doubles2.GetLength(1)];
+                    Array.Copy(doubles2, objects, doubles2.GetLength(0) * doubles2.GetLength(1));
 
                     var nested = new XlMarshalXlOperArrayContext(2, false);
                     _nestedInstances.Add(nested);
@@ -1104,7 +1099,7 @@ namespace ExcelDna.Loader
                         // This is the case where the array passed in has 0,0 length.
                         // We set to an error to at least have a valid XLOPER
                         pOper->xlType = XlType12.XlTypeError;
-                        pOper->errValue = IntegrationMarshalHelpers.ExcelError_ExcelErrorValue;
+                        pOper->errValue = (int)ExcelError.ExcelErrorValue;
                     }
                 }
                 else if (obj is Missing)
@@ -1124,8 +1119,8 @@ namespace ExcelDna.Loader
                 else
                 {
                     // Default error return
-                    pOper->errValue = IntegrationMarshalHelpers.ExcelError_ExcelErrorValue;
                     pOper->xlType = XlType12.XlTypeError;
+                    pOper->errValue = (int)ExcelError.ExcelErrorValue;
                 }
             } // end of first pass
 
@@ -1191,23 +1186,42 @@ namespace ExcelDna.Loader
                     if (pOper->xlType == XlType12.XlTypeReference)
                     {
                         // Get the reference from the managed array
-                        object /*ExcelReference*/ r;
+                        ExcelReference r;
                         if (_rank == 1)
                         {
-                            r = /*(ExcelReference)*/((object[])ManagedObj)[i];
+                            r = (ExcelReference)((object[])ManagedObj)[i];
                         }
                         else
                         {
                             int row = i / columns;
                             int column = i % columns;
-                            r = /*(ExcelReference)*/((object[,])ManagedObj)[rowBase + row, columnBase + column];
+                            r = (ExcelReference)((object[,])ManagedObj)[rowBase + row, columnBase + column];
                         }
 
-                        int refCount = IntegrationMarshalHelpers.ExcelReferenceGetRectangleCount(r); // r.InnerReferences.Count
+                        int refCount = r.GetRectangleCount();
                         int numBytes = 4 /* sizeof ushort + packing to get to field offset */
                                        + refCount * Marshal.SizeOf(typeof(XlOper12.XlRectangle12));
 
-                        IntegrationMarshalHelpers.SetExcelReference12(pOper, (XlOper12.XlMultiRef12*)pCurrent, r);
+
+                        IntPtr sheetId = r.SheetId;
+                        int[][] rects = r.GetRectangles();
+                        int rectCount = rects.GetLength(0);
+
+                        pOper->xlType = XlType12.XlTypeReference;
+                        pOper->refValue.SheetId = sheetId;
+
+                        pOper->refValue.pMultiRef = (XlOper12.XlMultiRef12*)pCurrent;
+                        pOper->refValue.pMultiRef->Count = (ushort)rectCount;
+
+                        XlOper12.XlRectangle12* pRectangles = &pOper->refValue.pMultiRef->Rectangles;
+
+                        for (int ir = 0; ir < rectCount; ir++)
+                        {
+                            pRectangles[ir].RowFirst = rects[ir][0];
+                            pRectangles[ir].RowLast = rects[ir][1];
+                            pRectangles[ir].ColumnFirst = rects[ir][2];
+                            pRectangles[ir].ColumnLast = rects[ir][3];
+                        }
 
                         // Unchecked keyword here is redundant (it's the default for C#), 
                         // but makes clear that we rely on the overflow.
@@ -1335,7 +1349,6 @@ namespace ExcelDna.Loader
         public static MethodInfo DoublePtrToInt32Param = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.DoublePtrToInt32Param));
         public static MethodInfo DoublePtrToInt64Param = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.DoublePtrToInt64Param));
         public static MethodInfo DoublePtrToDecimalParam = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.DoublePtrToDecimalParam));
-        // Special case - doesn't have the sginature we want, so maybe get from ExcelDna.Integration somehow
         public static MethodInfo AsyncHandleParam = typeof(XlMarshalContext).GetMethod(nameof(XlMarshalContext.AsyncHandleParam));
     }
 }

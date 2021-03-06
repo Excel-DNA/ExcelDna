@@ -246,9 +246,8 @@ namespace ExcelDna.Integration
 			return (bool)XlCall.Excel(XlCall.xlSet, this, value);
 		}
 
-        // CAUTION: These 'private' functions are called via reflection by the ExcelDna.Loader marshaler
         // Returns arrays containing all the inner rectangles (including the one we pretend is outside).
-        private int[][] GetRectangles()
+        internal int[][] GetRectangles()
         {
             int rectangleCount = GetRectangleCount();
             int furtherRectangleCount = rectangleCount - 1;
@@ -264,7 +263,7 @@ namespace ExcelDna.Integration
             return intRects;
         }
 
-        private int GetRectangleCount()
+        internal int GetRectangleCount()
         {
             if (furtherRectangles == null)
                 return 1;

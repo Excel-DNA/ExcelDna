@@ -8,6 +8,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using ExcelDna.Integration;
 using ExcelDna.Loader.Logging;
 
 namespace ExcelDna.Loader
@@ -66,7 +67,7 @@ namespace ExcelDna.Loader
             // Default Name, Description and Category
             Name = targetMethod?.Name ?? lambdaExpression.Name;
             Description = "";
-            Category = IntegrationHelpers.DnaLibraryGetName();
+            Category = ExcelIntegration.DnaLibraryGetName();
             HelpTopic = "";
             IsVolatile = false;
             IsExceptionSafe = false;
@@ -79,7 +80,7 @@ namespace ExcelDna.Loader
             ShortCut = "";
             // DOCUMENT: Default MenuName is the library name
             // but menu is only added if at least the MenuText is set.
-            MenuName = IntegrationHelpers.DnaLibraryGetName();
+            MenuName = Category;
             MenuText = null; // Menu is only 
 
             // Set default IsCommand - overridden by having an [ExcelCommand] or [ExcelFunction] attribute,

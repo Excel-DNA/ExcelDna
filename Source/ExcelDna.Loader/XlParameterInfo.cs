@@ -288,7 +288,7 @@ namespace ExcelDna.Loader
                     XlMarshalConvert = XlMarshalConversions.DoublePtrToInt64Param;
                 }
             }
-            else if (type == IntegrationMarshalHelpers.ExcelAsyncHandleType && !isReturnType)
+            else if (type == typeof(ExcelDna.Integration.ExcelAsyncHandle) && !isReturnType)
             {
                 XlType = XlTypes.AsyncHandle;
                 XlMarshalConvert = XlMarshalConversions.AsyncHandleParam;    // TODO/DM We need a cast here ????

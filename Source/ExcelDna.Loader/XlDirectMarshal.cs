@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Linq.Expressions;
 using System.Linq;
+using ExcelDna.Integration;
 
 namespace ExcelDna.Loader
 {
@@ -69,8 +70,6 @@ namespace ExcelDna.Loader
             // TODO/DM: Consolidate to a single select
             var outerParams = methodInfo.Parameters.Select(p => Expression.Parameter(typeof(IntPtr), p.Name)).ToArray();
             var innerParamExprs = new Expression[outerParams.Length];
-            ParameterExpression asyncHandle = null;
-            Expression asyncHandleAssign = null;
 
             for (int i = 0; i < methodInfo.Parameters.Length; i++)
             {
@@ -82,14 +81,6 @@ namespace ExcelDna.Loader
                 else
                 {
                     innerParamExprs[i] = Expression.Call(pi.XlMarshalConvert, outerParams[i]);
-                    if (pi.XlType == XlTypes.AsyncHandle)
-                    {
-                        // We insert an additional cast from the conversion's object return type to the ExcelAsyncHandle type
-                        // - we don't have the handle type (defined in ExcelDna.Integration) available when we build ExcelDna.Loader
-                        asyncHandle = Expression.Variable(IntegrationMarshalHelpers.ExcelAsyncHandleType, "asyncHandle");
-                        asyncHandleAssign = Expression.Assign(asyncHandle, Expression.TypeAs(innerParamExprs[i], IntegrationMarshalHelpers.ExcelAsyncHandleType));
-                        innerParamExprs[i] = asyncHandle;
-                    }
                 }
             }
 
@@ -101,12 +92,6 @@ namespace ExcelDna.Loader
             else // LambdaExpression
             {
                 innerCall = Expression.Invoke(methodInfo.LambdaExpression, innerParamExprs);
-            }
-            if (methodInfo.IsExcelAsyncFunction)
-            {
-                innerCall = Expression.Block(
-                    asyncHandleAssign,
-                    innerCall);
             }
 
             // variable to hold XlMarshalContext
@@ -122,21 +107,22 @@ namespace ExcelDna.Loader
                 }
             }
 
-            // Prepare the ex(ception) local variable (TODO/DM why a parameter?)
+            // Prepare the ex(ception) local variable
             var ex = Expression.Variable(typeof(Exception), "ex");
             Expression catchExpression;
             if (methodInfo.IsExcelAsyncFunction)
             {
                 // HandleUnhandledException is called by ExcelAsyncHandle.SetException
-                var setExceptionMethod = IntegrationMarshalHelpers.ExcelAsyncHandleType.GetMethod("SetException");
+                var asyncHandle = Expression.TypeAs(innerParamExprs.Last(), typeof(ExcelAsyncHandleNative));
+                var setExceptionMethod = typeof(ExcelAsyncHandleNative).GetMethod(nameof(ExcelAsyncHandleNative.SetException));
                 // Need to get instance from parameter list
                 catchExpression = Expression.Block(
-                            Expression.Call(asyncHandle, setExceptionMethod, ex), // Ignore bool return !?
-                            Expression.Empty());
+                                        Expression.Call(asyncHandle, setExceptionMethod, ex), // Ignore bool return !?
+                                        Expression.Empty());
             }
             else
             {
-                var exHandler = Expression.Call(typeof(IntegrationHelpers).GetMethod(nameof(IntegrationHelpers.HandleUnhandledException)), ex);
+                var exHandler = Expression.Call(typeof(ExcelIntegration).GetMethod(nameof(ExcelIntegration.HandleUnhandledException)), ex);
                 if (methodInfo.HasReturnType)
                 {
                     if (methodInfo.ReturnType.XlType == XlTypes.Xloper)
@@ -175,7 +161,6 @@ namespace ExcelDna.Loader
                 if (methodInfo.IsExcelAsyncFunction)
                 {
                     body = Expression.Block(
-                        new ParameterExpression[] { asyncHandle },
                         Expression.TryCatch(
                             innerCall,
                             Expression.Catch(ex, catchExpression)));

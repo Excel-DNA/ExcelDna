@@ -18,11 +18,10 @@ namespace ExcelDna.Integration
 
     internal class ExcelAsyncHandleNative : ExcelAsyncHandle
     {
-        // NOTE: This field is read by reflection from ExcelDna.Loader.IntegrationMarshalHelpers
         readonly IntPtr _handle;
+        internal IntPtr Handle => _handle;
 
-        // NOTE: This constructor is accessed by reflection from ExcelDna.Loader.IntegrationMarshalHelpers
-        ExcelAsyncHandleNative(IntPtr handle)
+        internal ExcelAsyncHandleNative(IntPtr handle)
         {
             _handle = handle;
         }

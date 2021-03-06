@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
+using ExcelDna.Integration;
 using ExcelDna.Loader.Logging;
 
 namespace ExcelDna.Loader
@@ -197,7 +198,7 @@ namespace ExcelDna.Loader
             object xlCallResult;
 
             // Remove menus and ShortCuts
-            IntegrationHelpers.RemoveCommandMenus();
+            MenuManager.RemoveCommandMenus();
             UnregisterShortCuts();
 
             // Now take out the methods
@@ -214,7 +215,7 @@ namespace ExcelDna.Loader
                     // And Unregister the real function
                     XlCallImpl.TryExcelImpl(XlCallImpl.xlfUnregister, out xlCallResult, mi.RegisterId);
                     // I follow the advice from X-Cell website to get function out of Wizard (with fix from kh)
-                    XlCallImpl.TryExcelImpl(XlCallImpl.xlfRegister, out xlCallResult, XlAddIn.PathXll, "xlAutoRemove", "I", mi.Name, IntegrationMarshalHelpers.GetExcelMissingValue(), 2);
+                    XlCallImpl.TryExcelImpl(XlCallImpl.xlfRegister, out xlCallResult, XlAddIn.PathXll, "xlAutoRemove", "I", mi.Name, ExcelDna.Integration.ExcelMissing.Value, 2);
                     if (xlCallResult is double)
                     {
                         double fakeRegisterId = (double)xlCallResult;
@@ -232,7 +233,7 @@ namespace ExcelDna.Loader
             if (!string.IsNullOrEmpty(mi.MenuName) &&
                 !string.IsNullOrEmpty(mi.MenuText))
             {
-                IntegrationHelpers.AddCommandMenu(mi.Name, mi.MenuName, mi.MenuText, mi.Description, mi.ShortCut, mi.HelpTopic);
+                MenuManager.AddCommandMenu(mi.Name, mi.MenuName, mi.MenuText, mi.Description, mi.ShortCut, mi.HelpTopic);
             }
         }
 

@@ -2,17 +2,18 @@
 //  Excel-DNA is licensed under the zlib license. See LICENSE.txt for details.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
+using ExcelDna.Integration;
 using ExcelDna.Loader.Logging;
 
 namespace ExcelDna.Loader
 {
-    using HRESULT = System.Int32;
-    using IID = System.Guid;
-    using CLSID = System.Guid;
+    using HRESULT = Int32;
+    using IID = Guid;
+    using CLSID = Guid;
     internal delegate void fn_void_double(double dValue);
     internal delegate short fn_short_void();
     internal delegate void fn_void_intptr(IntPtr intPtr);
@@ -49,9 +50,6 @@ namespace ExcelDna.Loader
     // CAUTION: This type is loaded by reflection from the unmanaged loader.
     public unsafe static class XlAddIn
     {
-        // This version must match the version declared in ExcelDna.Integration.ExcelIntegration
-        const int ExcelIntegrationVersion = 10;
-
         static int thunkTableLength;
         static IntPtr thunkTable;
 
@@ -71,16 +69,25 @@ namespace ExcelDna.Loader
 
         public static bool Initialize32(int xlAddInExportInfoAddress, int hModuleXll, string pathXll)
         {
+            // NOTE: The sequence here is important - we install the AssemblyManage which can resolve packed assemblies
+            //       before calling LoadIntegration, which will be the first time we try to resolve ExcelDna.Integration
+            AssemblyManager.Initialize((IntPtr)hModuleXll, pathXll);
             return Initialize((IntPtr)xlAddInExportInfoAddress, (IntPtr)hModuleXll, pathXll);
         }
 
         public static bool Initialize64(long xlAddInExportInfoAddress, long hModuleXll, string pathXll)
         {
+            // NOTE: The sequence here is important - we install the AssemblyManage which can resolve packed assemblies
+            //       before calling LoadIntegration, which will be the first time we try to resolve ExcelDna.Integration
+            AssemblyManager.Initialize((IntPtr)hModuleXll, pathXll);
             return Initialize((IntPtr)xlAddInExportInfoAddress, (IntPtr)hModuleXll, pathXll);
         }
 
 		private static unsafe bool Initialize(IntPtr xlAddInExportInfoAddress, IntPtr hModuleXll, string pathXll)
         {
+            XlAddIn.hModuleXll = hModuleXll;
+            XlAddIn.pathXll = pathXll;
+
             // NOTE: Too early for logging - the TraceSource in ExcelDna.Integration has not been initialized yet.
             Debug.Print("In sandbox AppDomain with Id: {0}, running on thread: {1}", AppDomain.CurrentDomain.Id, Thread.CurrentThread.ManagedThreadId);
             Debug.Assert(xlAddInExportInfoAddress != IntPtr.Zero, "InitializationInfo address is null");
@@ -177,14 +184,10 @@ namespace ExcelDna.Loader
                 XlAddIn.xlCallVersion = 12;
                 // return false;
             }
-			XlAddIn.hModuleXll = hModuleXll;
-            XlAddIn.pathXll = pathXll;
-
-            AssemblyManager.Initialize(hModuleXll, pathXll);
 
             try
             {
-                LoadIntegration();
+                IntegrationLoader.LoadIntegration();
             }
             catch (InvalidOperationException ioe)
             {
@@ -210,77 +213,13 @@ namespace ExcelDna.Loader
                 pThunkTable[fi] = (void*)pfn;
             }
         }
-
-        private static void LoadIntegration()
-        {
-            // Get the assembly and ExcelIntegration type - will be loaded from file or from packed resources via AssemblyManager.AssemblyResolve.
-            Assembly integrationAssembly = Assembly.Load("ExcelDna.Integration");
-
-            // Check if ExcelDna.Integration was loaded from the Global Assembly Cache
-            if (integrationAssembly.GlobalAssemblyCache)
-            {
-                // Prevent using the version in the GAC to avoid add-ins using the wrong version and breaking
-                // https://github.com/Excel-DNA/ExcelDna/pull/250#issuecomment-508642133
-                throw new InvalidOperationException("ExcelDna.Integration was loaded from Global Assembly Cache, and that's not allowed.");
-            }
-
-            Type integrationType = integrationAssembly.GetType("ExcelDna.Integration.ExcelIntegration");
-
-            // Check the version declared in the ExcelIntegration class
-            int integrationVersion = (int)integrationType.InvokeMember("GetExcelIntegrationVersion", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, null);
-            if (integrationVersion != ExcelIntegrationVersion)
-            {
-                // This is not the version we are expecting!
-                throw new InvalidOperationException("Invalid ExcelIntegration version detected.");
-            }
-
-            // Get the methods that need to be called from the integration assembly
-            MethodInfo tryExcelImplMethod = typeof(XlCallImpl).GetMethod("TryExcelImpl", BindingFlags.Static | BindingFlags.Public);
-            Type tryExcelImplDelegateType = integrationAssembly.GetType("ExcelDna.Integration.TryExcelImplDelegate");
-            Delegate tryExcelImplDelegate = Delegate.CreateDelegate(tryExcelImplDelegateType, tryExcelImplMethod);
-            integrationType.InvokeMember("SetTryExcelImpl", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] { tryExcelImplDelegate });
-
-            MethodInfo registerMethodsMethod = typeof(XlRegistration).GetMethod("RegisterMethods", BindingFlags.Static | BindingFlags.Public);
-            Type registerMethodsDelegateType = integrationAssembly.GetType("ExcelDna.Integration.RegisterMethodsDelegate");
-            Delegate registerMethodsDelegate = Delegate.CreateDelegate(registerMethodsDelegateType, registerMethodsMethod);
-            integrationType.InvokeMember("SetRegisterMethods", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] { registerMethodsDelegate });
-
-            MethodInfo registerWithAttMethod = typeof(XlRegistration).GetMethod("RegisterMethodsWithAttributes", BindingFlags.Static | BindingFlags.Public);
-            Type registerWithAttDelegateType = integrationAssembly.GetType("ExcelDna.Integration.RegisterMethodsWithAttributesDelegate");
-            Delegate registerWithAttDelegate = Delegate.CreateDelegate(registerWithAttDelegateType, registerWithAttMethod);
-            integrationType.InvokeMember("SetRegisterMethodsWithAttributes", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] { registerWithAttDelegate });
-
-            MethodInfo registerDelAttMethod = typeof(XlRegistration).GetMethod("RegisterDelegatesWithAttributes", BindingFlags.Static | BindingFlags.Public);
-            Type registerDelAttDelegateType = integrationAssembly.GetType("ExcelDna.Integration.RegisterDelegatesWithAttributesDelegate");
-            Delegate registerDelAttDelegate = Delegate.CreateDelegate(registerDelAttDelegateType, registerDelAttMethod);
-            integrationType.InvokeMember("SetRegisterDelegatesWithAttributes", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] { registerDelAttDelegate });
-
-            MethodInfo registerLbdAttMethod = typeof(XlRegistration).GetMethod("RegisterLambdaExpressionsWithAttributes", BindingFlags.Static | BindingFlags.Public);
-            Type registerLbdAttDelegateType = integrationAssembly.GetType("ExcelDna.Integration.RegisterLambdaExpressionsWithAttributesDelegate");
-            Delegate registerLbdAttDelegate = Delegate.CreateDelegate(registerLbdAttDelegateType, registerLbdAttMethod);
-            integrationType.InvokeMember("SetRegisterLambdaExpressionsWithAttributes", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] { registerLbdAttDelegate });
-
-            MethodInfo registerRtdWrapperMethod = typeof(XlRegistration).GetMethod("RegisterRtdWrapper", BindingFlags.Static | BindingFlags.Public);
-            Type registerRtdWrapperDelegateType = integrationAssembly.GetType("ExcelDna.Integration.RegisterRtdWrapperDelegate");
-            Delegate registerRtdWrapperDelegate = Delegate.CreateDelegate(registerRtdWrapperDelegateType, registerRtdWrapperMethod);
-            integrationType.InvokeMember("SetRegisterRtdWrapper", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] { registerRtdWrapperDelegate });
-
-            MethodInfo getResourceBytesMethod = typeof(AssemblyManager).GetMethod("GetResourceBytes", BindingFlags.Static | BindingFlags.NonPublic);
-            Type getResourceBytesDelegateType = integrationAssembly.GetType("ExcelDna.Integration.GetResourceBytesDelegate");
-            Delegate getResourceBytesDelegate = Delegate.CreateDelegate(getResourceBytesDelegateType, getResourceBytesMethod);
-            integrationType.InvokeMember("SetGetResourceBytesDelegate", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new object[] { getResourceBytesDelegate });
-
-            // set up helpers for future calls
-            IntegrationHelpers.Bind(integrationAssembly, integrationType);
-            IntegrationMarshalHelpers.Bind(integrationAssembly);
-        }
-        
+    
         private static void InitializeIntegration()
         {
             if (!_initialized)
             {
-                IntegrationHelpers.InitializeIntegration(pathXll);
-                TraceLogger.IntegrationTraceSource = IntegrationHelpers.GetIntegrationTraceSource();
+                ExcelIntegration.Initialize(pathXll);
+                TraceLogger.IntegrationTraceSource = ExcelIntegration.GetIntegrationTraceSource();
                 _initialized = true;
             }
         }
@@ -291,11 +230,11 @@ namespace ExcelDna.Loader
             {
                 if (_opened)
                 {
-                    IntegrationHelpers.DnaLibraryAutoClose();
+                    ExcelIntegration.DnaLibraryAutoClose();
                     XlRegistration.UnregisterMethods();
                 }
                 TraceLogger.IntegrationTraceSource = null;
-                IntegrationHelpers.DeInitializeIntegration();
+                ExcelIntegration.DeInitialize();
                 _initialized = false;
                 _opened = false;
             }
@@ -323,7 +262,7 @@ namespace ExcelDna.Loader
                 _opened = true;
 
                 // InitializeIntegration has loaded the DnaLibrary
-                IntegrationHelpers.DnaLibraryAutoOpen();
+                ExcelIntegration.DnaLibraryAutoOpen();
 
                 result = 1; // All is OK
             }
@@ -409,53 +348,19 @@ namespace ExcelDna.Loader
 
             XlDirectMarshal.FreeMemory();
         }
+        #endregion
 
-        // Note: XlAddInManagerInfo is now implemented in the unmanaged side (for performance in the add-in dialog).
-        //internal static IntPtr XlAddInManagerInfo(IntPtr pXloperAction)
-        //{
-        //    Debug.WriteLine("In XlAddIn.XlAddInManagerInfo");
-        //    ICustomMarshaler m = XlObjectMarshaler.GetInstance("");
-        //    object action = m.MarshalNativeToManaged(pXloperAction);
-        //    object result;
-        //    if ((action is double && (double)action == 1.0))
-        //    {
-        //        InitializeIntegration();
-        //        result = IntegrationHelpers.DnaLibraryGetName();
-        //    }
-        //    else
-        //        result = IntegrationMarshalHelpers.GetExcelErrorObject(IntegrationMarshalHelpers.ExcelError_ExcelErrorValue);
-        //    return m.MarshalManagedToNative(result);
-        //}
-
-        //internal static IntPtr XlAddInManagerInfo12(IntPtr pXloperAction12)
-        //{
-        //    Debug.WriteLine("In XlAddIn.XlAddInManagerInfo12");
-        //    ICustomMarshaler m = XlObject12Marshaler.GetInstance("");
-        //    object action = m.MarshalNativeToManaged(pXloperAction12);
-        //    object result;
-        //    if ((action is double && (double)action == 1.0))
-        //    {
-        //        InitializeIntegration();
-        //        result = IntegrationHelpers.DnaLibraryGetName();
-        //    }
-        //    else
-        //        result = IntegrationMarshalHelpers.GetExcelErrorObject(IntegrationMarshalHelpers.ExcelError_ExcelErrorValue);
-        //    return m.MarshalManagedToNative(result);
-        //}
-
-#endregion
-
-#region Com Server exports
+        #region Com Server exports
         internal static HRESULT DllRegisterServer()
         {
             InitializeIntegration();
-            return IntegrationHelpers.DllRegisterServer();
+            return ExcelIntegration.DllRegisterServer();
         }
 
         internal static HRESULT DllUnregisterServer()
         {
             InitializeIntegration();
-            return IntegrationHelpers.DllUnregisterServer();
+            return ExcelIntegration.DllUnregisterServer();
         }
 
         internal static HRESULT DllGetClassObject(CLSID clsid, IID iid, out IntPtr ppunk)
@@ -464,14 +369,14 @@ namespace ExcelDna.Loader
             HRESULT result;
             InitializeIntegration();
             Logger.Initialization.Verbose("In DllGetClassObject");
-            result = IntegrationHelpers.DllGetClassObject(clsid, iid, out ppunk);
+            result = ExcelIntegration.DllGetClassObject(clsid, iid, out ppunk);
             return result;
         }
 
         internal static HRESULT DllCanUnloadNow()
         {
             InitializeIntegration();
-            return IntegrationHelpers.DllCanUnloadNow();
+            return ExcelIntegration.DllCanUnloadNow();
         }
 #endregion
 
@@ -479,7 +384,7 @@ namespace ExcelDna.Loader
         internal static void SyncMacro(double dValue)
         {
             if (_initialized)
-                IntegrationHelpers.SyncMacro(dValue);
+                ExcelIntegration.SyncMacro(dValue);
         }
 
         internal static IntPtr RegistrationInfo(IntPtr pParam)
@@ -503,13 +408,13 @@ namespace ExcelDna.Loader
         internal static void CalculationCanceled()
         {
             if (_initialized)
-                IntegrationHelpers.CalculationCanceled();
+                ExcelIntegration.CalculationCanceled();
         }
 
         internal static void CalculationEnded()
         {
             if (_initialized)
-                IntegrationHelpers.CalculationEnded();
+                ExcelIntegration.CalculationEnded();
         }
 #endregion
     }
