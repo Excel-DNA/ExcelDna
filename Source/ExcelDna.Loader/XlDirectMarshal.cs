@@ -122,7 +122,8 @@ namespace ExcelDna.Loader
             }
             else
             {
-                var exHandler = Expression.Call(typeof(ExcelIntegration).GetMethod(nameof(ExcelIntegration.HandleUnhandledException)), ex);
+                var handlerMethod = typeof(ExcelIntegration).GetMethod(nameof(ExcelIntegration.HandleUnhandledException), System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+                var exHandler = Expression.Call(handlerMethod, ex);
                 if (methodInfo.HasReturnType)
                 {
                     if (methodInfo.ReturnType.XlType == XlTypes.Xloper)
