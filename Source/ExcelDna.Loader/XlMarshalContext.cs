@@ -246,8 +246,8 @@ namespace ExcelDna.Loader
 
         public IntPtr BoolToXloperReturn(bool b)
         {
-            _pXloperReturn->numValue = b ? 1 : 0;
-            _pXloperReturn->xlType = XlType12.XlTypeNumber;
+            _pXloperReturn->boolValue = b ? 1 : 0;
+            _pXloperReturn->xlType = XlType12.XlTypeBoolean;
             return (IntPtr)_pXloperReturn;
         }
 
