@@ -276,7 +276,14 @@ namespace ExcelDna.ComInterop
                 TYPELIBATTR typeLibAttr = (TYPELIBATTR)Marshal.PtrToStructure(libAttrPtr, typeof(TYPELIBATTR));
                 libId = typeLibAttr.guid;
 
-                rootKey.DeleteSubKeyTree(@"TypeLib\" + libId.ToString("B").ToUpperInvariant());
+                try
+                {
+                    rootKey.DeleteSubKeyTree(@"TypeLib\" + libId.ToString("B").ToUpperInvariant());
+                }
+                catch (Exception ex)
+                {
+                    Logger.ComAddIn.Info("UnregisterTypeLibrary - DeleteSubKeyTree failed - ignoring exception {0}: {1}", ex.GetType().Name, ex.Message);
+                }
 
                 typeLib.ReleaseTLibAttr(libAttrPtr);
             }
