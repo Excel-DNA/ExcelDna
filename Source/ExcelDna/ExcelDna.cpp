@@ -8,17 +8,6 @@
 
 // Minimal parts of XLOPER types, 
 // used only for xlAddInManagerInfo(12). Really.
-struct XLOPER
-{
-	union
-	{
-		double num;					/* xltypeNum */
-		void* str;					/* xltypeStr */
-		WORD err;					/* xltypeErr */
-	} val;
-	WORD xltype; // Should be at offset 8 bytes
-};
-
 struct XLOPER12
 {
 	union
@@ -57,12 +46,11 @@ extern "C"
 XlAddInExportInfo* CreateExportInfo()
 {
 	pExportInfo = new XlAddInExportInfo();
-	pExportInfo->ExportInfoVersion = 8;
+	pExportInfo->ExportInfoVersion = 9;
 	pExportInfo->AppDomainId = -1;
 	pExportInfo->pXlAutoOpen = NULL;
 	pExportInfo->pXlAutoClose = NULL;
 	pExportInfo->pXlAutoRemove = NULL;
-	pExportInfo->pXlAutoFree = NULL;
 	pExportInfo->pXlAutoFree12 = NULL;
 	pExportInfo->pSetExcel12EntryPt = NULL;
 	pExportInfo->pDllRegisterServer = NULL;
@@ -240,49 +228,12 @@ extern "C"
 		return result;
 	}
 
-	void __stdcall xlAutoFree(void* pXloper)
-	{
-		if (pExportInfo != NULL && pExportInfo->pXlAutoFree != NULL)
-		{
-			pExportInfo->pXlAutoFree(pXloper);
-		}
-	}
-
 	void __stdcall xlAutoFree12(void* pXloper12)
 	{
 		if (pExportInfo != NULL && pExportInfo->pXlAutoFree12 != NULL)
 		{
 			pExportInfo->pXlAutoFree12(pXloper12);
 		}
-	}
-
-	XLOPER* __stdcall xlAddInManagerInfo(XLOPER* pXloper)
-	{
-		static XLOPER result;
-		static char name[256];
-
-		// Return error by default
-		result.xltype = xltypeErr;
-		result.val.err = xlerrValue;
-
-		if (pXloper->xltype == 1 && pXloper->val.num == 1.0)
-		{
-			std::wstring addInNameW;
-			HRESULT hr = GetAddInName(addInNameW);
-			if (!FAILED(hr))
-			{
-				std::string addInName(addInNameW.begin(), addInNameW.end());
-				byte length = (byte)min(addInName.length(), 254);
-				name[0] = (char)length;
-				char* pName = (char*)name + 1;
-				strncpy_s(pName, 255, addInName.c_str(), length + 1);
-
-				result.xltype = xltypeStr;
-				result.val.str = name;
-			}
-		}
-
-		return &result;
 	}
 
 	XLOPER12* __stdcall xlAddInManagerInfo12(XLOPER12* pXloper)

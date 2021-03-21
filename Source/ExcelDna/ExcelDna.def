@@ -3,9 +3,7 @@ EXPORTS
 	xlAutoClose				PRIVATE
 ;	xlAutoAdd				PRIVATE
 	xlAutoRemove			PRIVATE
-	xlAutoFree				PRIVATE
 	xlAutoFree12			PRIVATE
-	xlAddInManagerInfo		PRIVATE
 	xlAddInManagerInfo12	PRIVATE
 	SetExcel12EntryPt		PRIVATE
 	DllRegisterServer		PRIVATE

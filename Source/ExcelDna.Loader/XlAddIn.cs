@@ -31,7 +31,6 @@ namespace ExcelDna.Loader
         internal IntPtr /* PFN_SHORT_VOID */            pXlAutoOpen;
         internal IntPtr /* PFN_SHORT_VOID */            pXlAutoClose;
         internal IntPtr /* PFN_SHORT_VOID */            pXlAutoRemove;
-        internal IntPtr /* PFN_VOID_LPXLOPER */         pXlAutoFree;
         internal IntPtr /* PFN_VOID_LPXLOPER12 */       pXlAutoFree12;
         internal IntPtr /* PFN_PFNEXCEL12 */            pSetExcel12EntryPt;
         internal IntPtr /* PFN_HRESULT_VOID */          pDllRegisterServer;
@@ -95,7 +94,7 @@ namespace ExcelDna.Loader
 			
 			XlAddInExportInfo* pXlAddInExportInfo = (XlAddInExportInfo*)xlAddInExportInfoAddress;
             int exportInfoVersion = pXlAddInExportInfo->ExportInfoVersion;
-            if (exportInfoVersion != 8)
+            if (exportInfoVersion != 9)
             {
                 Debug.Print("ExportInfoVersion '{0}' not supported", exportInfoVersion);
                 return false;

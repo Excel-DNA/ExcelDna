@@ -29,7 +29,6 @@ struct XlAddInExportInfo
 	PFN_SHORT_VOID				pXlAutoOpen;
 	PFN_SHORT_VOID				pXlAutoClose;
 	PFN_SHORT_VOID				pXlAutoRemove;
-	PFN_VOID_LPXLOPER			pXlAutoFree;
 	PFN_VOID_LPXLOPER12			pXlAutoFree12;
 	PFN_PFNEXCEL12				pSetExcel12EntryPt;
 	PFN_HRESULT_VOID			pDllRegisterServer;
