@@ -1,6 +1,6 @@
 Version 1.2 (???)
 -----------------
-* Target .NET Framework 4.5 or later only
+* Target .NET Framework 4.52 or later only
 * Target Excel 2007 or later only
 * Improve registration performance
 * Allow registration with LambdaExpressions
@@ -8,6 +8,7 @@ Version 1.2 (???)
 * Remove ExcelServer support
 * Add workaround for McAfee registry security bug blocking COM registration
 * Defer AutoOpen and ribbon loading until Application object (first Workbook) is created 
+* Ignore registry key delete errors that occur in some virtualised environments
 
 Version 1.1 (28 June 2020)
 --------------------------

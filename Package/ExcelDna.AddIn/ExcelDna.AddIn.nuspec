@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata minClientVersion="2.5">
         <id>ExcelDna.AddIn</id>
-        <version>1.2.2-preview</version>
+        <version>1.2.3-preview</version>
         <title>Excel-DNA Add-In</title>
         <authors>Govert van Drimmelen</authors>
         <owners>Govert van Drimmelen</owners>
@@ -16,13 +16,13 @@
     Excel versions 2007 through 2019 / Office 365 can be targeted with a single add-in.
     Advanced Excel features are supported, including multi-threaded recalculation, registration-free RTD servers and customized Ribbon and Task Pane interfaces and asynchronous functions.
 
-    Excel-DNA supports the .NET Framework version 4.5 and later (the version number used in the .dna file will be "4.0"). 
+    Excel-DNA supports the .NET Framework version 4.5.2 and later (the version number used in the .dna file will be "4.0"). 
 
     The Excel-Dna Runtime is free for all use, and distributed under a permissive open-source license that also allows commercial use.</description>
         <summary>Excel-DNA is an independent project to integrate .NET into Excel.</summary>
         <tags>excel exceldna udf excel-dna</tags>
         <dependencies>
-          <dependency id="ExcelDna.Integration" version="[1.2.2-preview]" />
+          <dependency id="ExcelDna.Integration" version="[1.2.3-preview]" />
         </dependencies>
     </metadata>
     <files>
