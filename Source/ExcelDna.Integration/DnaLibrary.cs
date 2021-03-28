@@ -279,30 +279,10 @@ namespace ExcelDna.Integration
         // Only called for the Root DnaLibrary.
         internal void AutoOpen()
         {
-            SynchronizationManager.Install(true);
-
-            if (ExcelDnaUtil.GetApplicationNotProtectedNoThrow() != null)
-            {
-                // Proceed without undue delay
-                AutoOpenImpl();
-            }
-            else
-            {
-                // Some possibilities that get us here:
-                // * Can't get Application object at all - first time we're trying is here, no workbook open and hence C API is needed but not available
-                // * Excel is shutting down (would have abandoned in the past, now we keep re-trying)
-
-                // We defer the rest of the load until we have an Application object...
-                ExcelAsyncUtil.QueueAsMacro(AutoOpenImpl);
-            }
-        }
-
-        // Runs from the QueueAsMacro, once Application exists
-        void AutoOpenImpl()
-        {
             // Register special RegistrationInfo function
             RegistrationInfo.Register();
-            // Register my methods
+            SynchronizationManager.Install(true);
+            // Register my Methods
             ExcelIntegration.RegisterMethods(_methods);
 
             // Invoke AutoOpen in all assemblies
@@ -310,8 +290,6 @@ namespace ExcelDna.Integration
             {
                 try
                 {
-                    addIn.Instance = Activator.CreateInstance(addIn.InstanceType);
-
                     if (addIn.AutoOpenMethod != null)
                     {
                         addIn.AutoOpenMethod.Invoke(addIn.Instance, null);
@@ -336,7 +314,7 @@ namespace ExcelDna.Integration
             {
                 try
                 {
-                    if (addIn.AutoCloseMethod != null && addIn.Instance != null)
+                    if (addIn.AutoCloseMethod != null)
                     {
                         addIn.AutoCloseMethod.Invoke(addIn.Instance, null);
                     }
@@ -354,9 +332,6 @@ namespace ExcelDna.Integration
 
         internal void LoadCustomUI()
         {
-            // Load any old-style menus from ExcelCommand attributes
-            MenuManager.LoadCustomUI();
-
             bool uiLoaded = false;
             if (ExcelDnaUtil.ExcelVersion >= 12.0)
             {
