@@ -19,6 +19,7 @@ namespace ExcelDna.Loader
         // the right AppDomain.CreateDomain overload.
         public static AppDomain CreateFullTrustSandbox()
         {
+#if NETFRAMEWORK
             try
             {
                 Debug.Print("CreateSandboxAndInitialize - in loader AppDomain with Id: " + AppDomain.CurrentDomain.Id);
@@ -48,7 +49,9 @@ namespace ExcelDna.Loader
                 Debug.Print("Error during CreateFullTrustSandbox: " + ex.ToString());
                 return AppDomain.CurrentDomain;
             }
-
+#else
+        return AppDomain.CurrentDomain;
+#endif
         }
     }
 

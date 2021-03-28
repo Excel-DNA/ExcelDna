@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    
-    <TargetFramework>net452</TargetFramework>
+
+    <TargetFrameworks>net452;net5.0-windows</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <AssemblyTitle>ExcelDna Managed Loader</AssemblyTitle>

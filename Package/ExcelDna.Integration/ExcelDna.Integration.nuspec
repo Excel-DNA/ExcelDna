@@ -15,6 +15,6 @@
         <tags>excel exceldna udf excel-dna</tags>
     </metadata>
     <files>
-        <file src="..\..\Distribution\ExcelDna.Integration.dll" target="lib\ExcelDna.Integration.dll" />
+        <file src="..\..\Distribution\ExcelDna.Integration.dll" target="lib\net452\ExcelDna.Integration.dll" />
     </files>
 </package>

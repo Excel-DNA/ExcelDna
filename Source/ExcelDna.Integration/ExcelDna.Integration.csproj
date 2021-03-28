@@ -1,8 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     
-    <TargetFramework>net452</TargetFramework>
+    <TargetFrameworks>net452;net5.0-windows</TargetFrameworks>
     <UseWindowsForms>true</UseWindowsForms>
 
     <AssemblyTitle>Excel-DNA Integration Library</AssemblyTitle>
