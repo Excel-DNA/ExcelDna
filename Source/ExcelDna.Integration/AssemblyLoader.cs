@@ -199,7 +199,6 @@ namespace ExcelDna.Integration
             public MethodInfo AutoOpenMethod;
             public MethodInfo AutoCloseMethod;
             public bool IsCustomUI;
-            public Type InstanceType;
             public object Instance;
             public DnaLibrary ParentDnaLibrary;
         }
@@ -227,7 +226,7 @@ namespace ExcelDna.Integration
                         info.AutoCloseMethod = addInType.GetMethod("AutoClose");
                     }
                     info.IsCustomUI = isRibbon;
-                    info.InstanceType = t;
+                    info.Instance = Activator.CreateInstance(t);
                     info.ParentDnaLibrary = assembly.ParentDnaLibrary;
                     addIns.Add(info);
                     Logger.Registration.Verbose("GetExcelAddIns - Created add-in object of type: {0}", t.FullName);
