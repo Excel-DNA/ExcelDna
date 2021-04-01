@@ -7,8 +7,8 @@ Version 1.2 (???)
 * Improve ExcelDnaPack error handling (thanks to @augustoproiete)
 * Remove ExcelServer support
 * Add workaround for McAfee registry security bug blocking COM registration
-* Defer AutoOpen and ribbon loading until Application object (first Workbook) is created 
 * Ignore registry key delete errors that occur in some virtualised environments
+* Improve IsFunctionWizard check (thanks @iitegrat)
 
 Version 1.1 (28 June 2020)
 --------------------------

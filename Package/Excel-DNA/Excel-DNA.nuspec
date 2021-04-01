@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>Excel-DNA</id>
-        <version>1.2.3-preview</version>
+        <version>1.2.4-preview</version>
         <title>Excel-DNA</title>
         <authors>Govert van Drimmelen</authors>
         <owners>Govert van Drimmelen</owners>
@@ -14,7 +14,7 @@
         <summary>Excel-DNA is an independent project to integrate .NET into Excel.</summary>
         <tags>excel exceldna udf excel-dna</tags>
     <dependencies>
-      <dependency id="ExcelDna.AddIn" version="[1.2.3-preview]" />
+      <dependency id="ExcelDna.AddIn" version="[1.2.4-preview]" />
     </dependencies>
     </metadata>
 </package>
