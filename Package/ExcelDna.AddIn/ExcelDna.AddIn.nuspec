@@ -10,13 +10,13 @@
         <repository type="git" url="https://github.com/Excel-DNA/ExcelDna" />
         <iconUrl>http://docs.excel-dna.net/NuGetIcon.png</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>Excel-DNA eases the development of Excel add-ins using .NET. 
+        <description>Excel-DNA eases the development of Excel add-ins using .NET.
     Add-ins created with Excel-DNA can export high-performance user-defined functions and macros, and can be packed into a single file for easy distribution and installation.
- 
+
     Excel versions 2007 through 2019 / Office 365 can be targeted with a single add-in.
     Advanced Excel features are supported, including multi-threaded recalculation, registration-free RTD servers and customized Ribbon and Task Pane interfaces and asynchronous functions.
 
-    Excel-DNA supports the .NET Framework version 4.5.2 and later (the version number used in the .dna file will be "4.0"). 
+    Excel-DNA supports the .NET Framework version 4.5.2 and later (the version number used in the .dna file will be "4.0").
 
     The Excel-Dna Runtime is free for all use, and distributed under a permissive open-source license that also allows commercial use.</description>
         <summary>Excel-DNA is an independent project to integrate .NET into Excel.</summary>
@@ -39,6 +39,8 @@
         <file src="tools\uninstall.ps1" target="tools\uninstall.ps1" />
         <file src="build\ExcelDna.AddIn.targets" target="build\ExcelDna.AddIn.targets" />
         <file src="tools\ExcelDna.AddIn.Tasks.dll" target="tools\ExcelDna.AddIn.Tasks.dll" />
+        <file src="tools\net472\ExcelDna.AddIn.Tasks.dll" target="tools\net472\ExcelDna.AddIn.Tasks.dll" />
+        <file src="tools\net5.0-windows\ExcelDna.AddIn.Tasks.dll" target="tools\net5.0-windows\ExcelDna.AddIn.Tasks.dll" />
         <file src="readme.txt" target="readme.txt" />
     </files>
 </package>
