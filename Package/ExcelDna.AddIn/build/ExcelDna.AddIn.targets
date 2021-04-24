@@ -4,9 +4,16 @@
     <ExcelDnaToolsPath Condition="$(ExcelDnaToolsPath) == '' Or $(ExcelDnaToolsPath) == '*Undefined*'">$(MSBuildThisFileDirectory)..\tools\</ExcelDnaToolsPath>
   </PropertyGroup>
 
-  <UsingTask TaskName="ExcelDna.AddIn.Tasks.SetDebuggerOptions" AssemblyFile="$(ExcelDnaToolsPath)ExcelDna.AddIn.Tasks.dll" />
-  <UsingTask TaskName="ExcelDna.AddIn.Tasks.CleanExcelAddIn" AssemblyFile="$(ExcelDnaToolsPath)ExcelDna.AddIn.Tasks.dll" />
-  <UsingTask TaskName="ExcelDna.AddIn.Tasks.CreateExcelAddIn" AssemblyFile="$(ExcelDnaToolsPath)ExcelDna.AddIn.Tasks.dll" />
+	<PropertyGroup Condition="'$(MSBuildRuntimeType)' == 'Core'">
+		<ExcelDnaTasksPath>$(ExcelDnaToolsPath)\net5.0-windows\</ExcelDnaTasksPath>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(MSBuildRuntimeType)' != 'Core'">
+		<ExcelDnaTasksPath>$(ExcelDnaToolsPath)\net472\</ExcelDnaTasksPath>
+	</PropertyGroup>
+
+  <UsingTask TaskName="ExcelDna.AddIn.Tasks.SetDebuggerOptions" AssemblyFile="$(ExcelDnaTasksPath)ExcelDna.AddIn.Tasks.dll" />
+  <UsingTask TaskName="ExcelDna.AddIn.Tasks.CleanExcelAddIn" AssemblyFile="$(ExcelDnaTasksPath)ExcelDna.AddIn.Tasks.dll" />
+  <UsingTask TaskName="ExcelDna.AddIn.Tasks.CreateExcelAddIn" AssemblyFile="$(ExcelDnaTasksPath)ExcelDna.AddIn.Tasks.dll" />
 
   <!--
     Extend the Clean target to call our ExcelDnaClean target
