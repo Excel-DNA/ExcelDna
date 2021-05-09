@@ -6,6 +6,12 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelDna.Loader", "ExcelDna.Loader\ExcelDna.Loader.csproj", "{59AE5BC6-F37E-4CE3-BAE3-796F807A9882}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExcelDna", "ExcelDna\ExcelDna.vcxproj", "{A8D668E2-63C1-4F4E-A01E-E026C6E4D601}"
+	ProjectSection(ProjectDependencies) = postProject
+		{196735BC-5A5C-4A21-9FE4-EC01CB7F3DE9} = {196735BC-5A5C-4A21-9FE4-EC01CB7F3DE9}
+		{59AE5BC6-F37E-4CE3-BAE3-796F807A9882} = {59AE5BC6-F37E-4CE3-BAE3-796F807A9882}
+		{DC10CEC8-C6CE-4148-838F-C3DD4EA2A2A3} = {DC10CEC8-C6CE-4148-838F-C3DD4EA2A2A3}
+		{FD7F2EE3-9922-4825-96A2-BE2C877BAEB9} = {FD7F2EE3-9922-4825-96A2-BE2C877BAEB9}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelDna.Integration", "ExcelDna.Integration\ExcelDna.Integration.csproj", "{196735BC-5A5C-4A21-9FE4-EC01CB7F3DE9}"
 EndProject
@@ -38,6 +44,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		Directory.Build.props = Directory.Build.props
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelDna.ManagedHost", "ExcelDna.ManagedHost\ExcelDna.ManagedHost.csproj", "{DC10CEC8-C6CE-4148-838F-C3DD4EA2A2A3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -191,6 +199,26 @@ Global
 		{3AFD9408-48AC-43B4-8E55-4E7D73168FEA}.Release|x64.Build.0 = Release|Any CPU
 		{3AFD9408-48AC-43B4-8E55-4E7D73168FEA}.Release|x86.ActiveCfg = Release|Any CPU
 		{3AFD9408-48AC-43B4-8E55-4E7D73168FEA}.Release|x86.Build.0 = Release|Any CPU
+		{DC10CEC8-C6CE-4148-838F-C3DD4EA2A2A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC10CEC8-C6CE-4148-838F-C3DD4EA2A2A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC10CEC8-C6CE-4148-838F-C3DD4EA2A2A3}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{DC10CEC8-C6CE-4148-838F-C3DD4EA2A2A3}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{DC10CEC8-C6CE-4148-838F-C3DD4EA2A2A3}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{DC10CEC8-C6CE-4148-838F-C3DD4EA2A2A3}.Debug|Win32.Build.0 = Debug|Any CPU
+		{DC10CEC8-C6CE-4148-838F-C3DD4EA2A2A3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DC10CEC8-C6CE-4148-838F-C3DD4EA2A2A3}.Debug|x64.Build.0 = Debug|Any CPU
+		{DC10CEC8-C6CE-4148-838F-C3DD4EA2A2A3}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DC10CEC8-C6CE-4148-838F-C3DD4EA2A2A3}.Debug|x86.Build.0 = Debug|Any CPU
+		{DC10CEC8-C6CE-4148-838F-C3DD4EA2A2A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC10CEC8-C6CE-4148-838F-C3DD4EA2A2A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC10CEC8-C6CE-4148-838F-C3DD4EA2A2A3}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{DC10CEC8-C6CE-4148-838F-C3DD4EA2A2A3}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{DC10CEC8-C6CE-4148-838F-C3DD4EA2A2A3}.Release|Win32.ActiveCfg = Release|Any CPU
+		{DC10CEC8-C6CE-4148-838F-C3DD4EA2A2A3}.Release|Win32.Build.0 = Release|Any CPU
+		{DC10CEC8-C6CE-4148-838F-C3DD4EA2A2A3}.Release|x64.ActiveCfg = Release|Any CPU
+		{DC10CEC8-C6CE-4148-838F-C3DD4EA2A2A3}.Release|x64.Build.0 = Release|Any CPU
+		{DC10CEC8-C6CE-4148-838F-C3DD4EA2A2A3}.Release|x86.ActiveCfg = Release|Any CPU
+		{DC10CEC8-C6CE-4148-838F-C3DD4EA2A2A3}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

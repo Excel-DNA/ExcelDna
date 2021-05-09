@@ -39,11 +39,9 @@ LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
 3 TEXTINCLUDE 
 BEGIN
     "#ifdef _DEBUG\r\n"
-    "EXCELDNA.LOADER         ASSEMBLY                ""..\\\\ExcelDna.Loader\\\\bin\\\\Debug\\\\net452\\\\ExcelDna.Loader.dll""\r\n"
-    "EXCELDNA.INTEGRATION    ASSEMBLY                ""..\\\\ExcelDna.Integration\\\\bin\\\\Debug\\\\net452\\\\ExcelDna.Integration.dll""\r\n"
+    "EXCELDNA.MANAGEDHOST         ASSEMBLY                ""..\\\\ExcelDna.ManagedHost\\\\bin\\\\Debug\\\\net452\\\\ExcelDna.ManagedHost.dll""\r\n"
     "#else\r\n"
-    "EXCELDNA.LOADER         ASSEMBLY                ""..\\\\ExcelDna.Loader\\\\bin\\\\Release\\\\net452\\\\ExcelDna.Loader.dll""\r\n"
-    "EXCELDNA.INTEGRATION    ASSEMBLY                ""..\\\\ExcelDna.Integration\\\\bin\\\\Release\\\\net452\\\\ExcelDna.Integration.dll""\r\n"
+    "EXCELDNA.MANAGEDHOST         ASSEMBLY                ""..\\\\ExcelDna.ManagedHost\\\\bin\\\\Release\\\\net452\\\\ExcelDna.ManagedHost.dll""\r\n"
     "#endif\r\0"
 END
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
@@ -56,8 +54,8 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,2,5,0
- PRODUCTVERSION 1,2,5,0
+ FILEVERSION 1,2,6,0
+ PRODUCTVERSION 1,2,6,0
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -75,7 +73,7 @@ BEGIN
             VALUE "Comments", "Unmanaged loader shim for Excel-DNA Add-Ins"
             VALUE "CompanyName", "Govert van Drimmelen"
             VALUE "FileDescription", "Excel-DNA Dynamic Link Library"
-            VALUE "FileVersion", "1.2.5.0"
+            VALUE "FileVersion", "1.2.6.0"
             VALUE "InternalName", "ExcelDna"
             VALUE "LegalCopyright", "Copyright (C) 2005-2021 Govert van Drimmelen"
             VALUE "OriginalFilename", "ExcelDna.xll"
@@ -138,14 +136,14 @@ BEGIN
     IDS_MSG_BODY_APPLICATIONBASE "ApplicationBase could not be set."
     IDS_MSG_BODY_APPDOMAIN  "AppDomain could not be created."
     IDS_MSG_BODY_MISSINGEXCELDNALOADER 
-                            "The ASSEMBLY 'EXCELDNA.LOADER' could not be found among the add-in resources."
+                            "The ASSEMBLY 'ExcelDna.ManagedHost' could not be found among the add-in resources."
     IDS_MSG_BODY_EXCELDNALOADER 
-                            "The ExcelDna.Loader assembly could not be loaded from resource."
+                            "The ExcelDna.ManagedHost assembly could not be loaded from resource."
     IDS_MSG_BODY_EXCELDNALOADERNAME 
-                            "The Name for the ExcelDna.Loader assembly could not be determined."
-    IDS_MSG_BODY_XLADDIN    "The type ExcelDna.Loader.XlAddIn could not be found."
+                            "The Name for the ExcelDna.ManagedHost assembly could not be determined."
+    IDS_MSG_BODY_XLADDIN    "The type ExcelDna.ManagedHost.AddInInitialize could not be found."
     IDS_MSG_BODY_XLADDININIT 
-                            "The ExcelDna.Loader.XlAddIn.Initialize call failed."
+                            "The ExcelDna.ManagedHost.AddInInitialize.Initialize call failed."
     IDS_MSG_HEADER_NEEDCLR45 
                             "This Excel add-in requires the Microsoft .NET Framework 4.5.2 or later.\r\n\r\nA problem occurred while attempting to load the .NET runtime:"
     IDS_MSG_FOOTER_ENSURECLR45 
@@ -197,11 +195,9 @@ END
 //
 LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
 #ifdef _DEBUG
-EXCELDNA.LOADER         ASSEMBLY                "..\\ExcelDna.Loader\\bin\\Debug\\net452\\ExcelDna.Loader.dll"
-EXCELDNA.INTEGRATION    ASSEMBLY                "..\\ExcelDna.Integration\\bin\\Debug\\net452\\ExcelDna.Integration.dll"
+EXCELDNA.MANAGEDHOST         ASSEMBLY                "..\\ExcelDna.ManagedHost\\bin\\Debug\\net452\\ExcelDna.ManagedHost.dll"
 #else
-EXCELDNA.LOADER         ASSEMBLY                "..\\ExcelDna.Loader\\bin\\Release\\net452\\ExcelDna.Loader.dll"
-EXCELDNA.INTEGRATION    ASSEMBLY                "..\\ExcelDna.Integration\\bin\\Release\\net452\\ExcelDna.Integration.dll"
+EXCELDNA.MANAGEDHOST         ASSEMBLY                "..\\ExcelDna.ManagedHost\\bin\\Release\\net452\\ExcelDna.ManagedHost.dll"
 #endif
 
 /////////////////////////////////////////////////////////////////////////////

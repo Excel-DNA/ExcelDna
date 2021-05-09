@@ -77,6 +77,15 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 				return 1;
 			}
 
+            // Special path when we're building ExcelDna, to pack Loader and Integration
+            if (args[0] == "PackXllBuild")
+            {
+                string xllFullPath = args[1];
+                bool includePdb = (args[2] == "Debug");
+                PackXllBuild(xllFullPath, includePdb);
+                return 0;
+            }
+
 			string dnaPath = Path.GetFullPath(args[0]);
 			string dnaDirectory = Path.GetDirectoryName(dnaPath);
 //			string dnaFileName = Path.GetFileName(dnaPath);
@@ -191,23 +200,6 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 
 			File.Copy(xllInputPath, xllOutputPath, false);
 			ResourceHelper.ResourceUpdater ru = new ResourceHelper.ResourceUpdater(xllOutputPath);
-			// Take out Integration assembly - to be replaced by a compressed copy.
-            // CONSIDER: Maybe use the ExcelDna.Integration that is inside the <MyAddin>.xll
-			ru.RemoveResource("ASSEMBLY", "EXCELDNA.INTEGRATION");
-            string integrationPath = DnaLibrary.ResolvePath("ExcelDna.Integration.dll", dnaDirectory);
-			string packedName = null;
-			if (integrationPath != null)
-			{
-				// pdb is not in the nuget package, so chances are we want it if it is present (ExcelDna dev)// pdb is not in the nuget package, so chances are we want it if it is present (ExcelDna dev)	                // pdb is not in the nuget package, so chances are we want it if it is present (ExcelDna dev)// pdb is not in the nuget package, so chances are we want it if it is present (ExcelDna dev)
-				packedName = ru.AddAssembly(integrationPath, compress, multithreading, true);
-			}
-			if (packedName == null)
-			{
-				Console.Error.WriteLine("ERROR: ExcelDna.Integration assembly could not be packed. ABORTING.");
-				ru.EndUpdate();
-				File.Delete(xllOutputPath);
-				return 1;
-			}
 			if (File.Exists(configPath))
 			{
 				ru.AddFile(File.ReadAllBytes(configPath), "__MAIN__",ResourceHelper.TypeName.CONFIG, false, multithreading);  // Name here must exactly match name in ExcelDnaLoad.cpp.
@@ -443,6 +435,16 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 		    return DnaLibrary.Save(dna);
 		}
 
+
+        static void PackXllBuild(string xllFullPath, bool includePdb)
+        {
+            ResourceHelper.ResourceUpdater ru = new ResourceHelper.ResourceUpdater(xllFullPath);
+
+            var xllDir = Path.GetDirectoryName(xllFullPath);
+            ru.AddAssembly(Path.Combine(xllDir, "ExcelDna.Loader.dll"), compress: true, multithreading: false, includePdb);
+            ru.AddAssembly(Path.Combine(xllDir, "ExcelDna.Integration.dll"), compress: true, multithreading: false, includePdb);
+            ru.EndUpdate();
+        }
 	}
 
 }

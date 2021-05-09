@@ -126,8 +126,9 @@
       <ModuleDefinitionFile>ExcelDna.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net452\ExcelDna.Integration.*" "$(TargetDir)" 
-copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\net452\ExcelDna.Loader.*" "$(TargetDir)" </Command>
+      <Command>copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\net452\ExcelDna.Loader.*" "$(TargetDir)" 
+copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net452\ExcelDna.Integration.*" "$(TargetDir)" 
+"$(SolutionDir)ExcelDnaPack\bin\$(Configuration)\net452\ExcelDnaPack.exe" PackXllBuild "$(OutDir)ExcelDna.xll" $(Configuration)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -159,8 +160,9 @@ copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\net452\ExcelDna.Loader.
       <ModuleDefinitionFile>ExcelDna.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net452\ExcelDna.Integration.*" "$(TargetDir)" 
-copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\net452\ExcelDna.Loader.*" "$(TargetDir)" </Command>
+      <Command>copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\net452\ExcelDna.Loader.*" "$(TargetDir)" 
+copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net452\ExcelDna.Integration.*" "$(TargetDir)" 
+"$(SolutionDir)ExcelDnaPack\bin\$(Configuration)\net452\ExcelDnaPack.exe" PackXllBuild "$(OutDir)ExcelDna64.xll" $(Configuration)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -190,6 +192,11 @@ copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\net452\ExcelDna.Loader.
       <TargetMachine>MachineX86</TargetMachine>
       <ModuleDefinitionFile>ExcelDna.def</ModuleDefinitionFile>
     </Link>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\net452\ExcelDna.Loader.*" "$(TargetDir)" 
+copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net452\ExcelDna.Integration.*" "$(TargetDir)" 
+"$(SolutionDir)ExcelDnaPack\bin\$(Configuration)\net452\ExcelDnaPack.exe" PackXllBuild "$(OutDir)ExcelDna.xll" $(Configuration)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -217,6 +224,11 @@ copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\net452\ExcelDna.Loader.
       <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
       <ModuleDefinitionFile>ExcelDna.def</ModuleDefinitionFile>
     </Link>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\net452\ExcelDna.Loader.*" "$(TargetDir)" 
+copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net452\ExcelDna.Integration.*" "$(TargetDir)" 
+"$(SolutionDir)ExcelDnaPack\bin\$(Configuration)\net452\ExcelDnaPack.exe" PackXllBuild "$(OutDir)ExcelDna64.xll" $(Configuration)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DetectFx.cpp" />

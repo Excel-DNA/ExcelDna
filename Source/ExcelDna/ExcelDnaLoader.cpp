@@ -140,7 +140,7 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 	}
 
 	_TypePtr pXlAddInType;
-	hr = pLoaderAssembly->GetType_2(_bstr_t(L"ExcelDna.Loader.XlAddIn"), &pXlAddInType);
+	hr = pLoaderAssembly->GetType_2(_bstr_t(L"ExcelDna.ManagedHost.AddInInitialize"), &pXlAddInType);
 	if (FAILED(hr) || pXlAddInType == NULL)
 	{
 		ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
@@ -457,7 +457,7 @@ HRESULT LoadAppDomain(ICorRuntimeHostPtr pHost, std::wstring addInFullPath, bool
 	if (createSandboxedAppDomain)
 	{
 		_TypePtr pAppDomainHelperType;
-		hr = pLoaderAssembly->GetType_2(_bstr_t(L"ExcelDna.Loader.AppDomainHelper"), &pAppDomainHelperType);
+		hr = pLoaderAssembly->GetType_2(_bstr_t(L"ExcelDna.ManagedHost.AppDomainHelper"), &pAppDomainHelperType);
 		if (FAILED(hr) || pAppDomainHelperType == NULL)
 		{
 			ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 
@@ -508,13 +508,13 @@ HRESULT LoadLoaderIntoAppDomain(_AppDomainPtr& pAppDomain, _AssemblyPtr& pLoader
 	if (!forceFromBytes)
 	{
 		// Try regular load first 
-		hr = pAppDomain->Load_2(_bstr_t(L"ExcelDna.Loader"), &pLoaderAssembly);
+		hr = pAppDomain->Load_2(_bstr_t(L"ExcelDna.ManagedHost"), &pLoaderAssembly);
 	}
 
 	if (forceFromBytes || FAILED(hr) || pLoaderAssembly == NULL)
 	{
 		// Now try from resource bytes
-		HRSRC hResInfoLoader = FindResource(hModuleCurrent, L"EXCELDNA.LOADER", L"ASSEMBLY");
+		HRSRC hResInfoLoader = FindResource(hModuleCurrent, L"EXCELDNA.MANAGEDHOST", L"ASSEMBLY");
 		if (hResInfoLoader == NULL)
 		{
 			ShowMessage(IDS_MSG_HEADER_APPDOMAIN, 

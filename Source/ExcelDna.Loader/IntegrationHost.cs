@@ -31,7 +31,7 @@ namespace ExcelDna.Loader
             => XlCallImpl.TryExcelImpl(xlFunction, out result, parameters);
 
         public byte[] GetResourceBytes(string resourceName, int type)
-            => AssemblyManager.GetResourceBytes(resourceName, type);
+            => XlAddIn.GetResourceBytes(resourceName, type);
 
         public void RegisterMethods(List<MethodInfo> methods)
             => XlRegistration.RegisterMethods(methods);

@@ -10,10 +10,9 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using ExcelDna.Loader.Logging;
 using SevenZip.Compression.LZMA;
 
-namespace ExcelDna.Loader
+namespace ExcelDna.ManagedHost
 {
     // TODO: Lots more to make a flexible loader.
     internal static class AssemblyManager
@@ -27,29 +26,19 @@ namespace ExcelDna.Loader
             AssemblyManager.hModule = hModule;
             AssemblyManager.pathXll = pathXll;
             loadedAssemblies.Add(Assembly.GetExecutingAssembly().FullName, Assembly.GetExecutingAssembly());
-
-            // TODO: Load up the DnaFile and Assembly names ?
-
-            AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolve;
         }
 
         [MethodImpl(MethodImplOptions.Synchronized)]
-        private static Assembly AssemblyResolve(object sender, ResolveEventArgs args)
+        internal static Assembly AssemblyResolve(AssemblyName assemblyName)
         {
 			string name;
 			byte[] assemblyBytes;
             Assembly loadedAssembly = null;
 
-			AssemblyName assemblyName = new AssemblyName(args.Name);
             CultureInfo cultureInfo = assemblyName.CultureInfo;
 			name = assemblyName.Name.ToUpperInvariant();
-
-			if (name == "EXCELDNA") /* Special case for pre-0.14 versions of ExcelDna */
-			{
-				name = "EXCELDNA.INTEGRATION";
-			}
 			
-			if (name == "EXCELDNA.LOADER")
+			if (name == "EXCELDNA.LOADCONTEXT")
 			{
 				// Loader must have been loaded from bytes.
 				// But I have seen the Loader, and it is us.
@@ -102,14 +91,27 @@ namespace ExcelDna.Loader
 			}
 
             byte[] pdbBytes = GetResourceBytes(name, 4);
-            if (pdbBytes != null)
-                Logger.Initialization.Info("Trying Assembly.Load for {0} (from {1} bytes, with {2} bytes of pdb).", name, assemblyBytes.Length, pdbBytes.Length);
-            else
+            if (pdbBytes == null)
                 Logger.Initialization.Info("Trying Assembly.Load for {0} (from {1} bytes, without pdb).", name, assemblyBytes.Length);
+            else
+                Logger.Initialization.Info("Trying Assembly.Load for {0} (from {1} bytes, with {2} bytes of pdb).", name, assemblyBytes.Length, pdbBytes.Length);
 			try
 			{
-				loadedAssembly = pdbBytes == null ? Assembly.Load(assemblyBytes) : Assembly.Load(assemblyBytes, pdbBytes);
-				loadedAssemblies[name] = loadedAssembly;
+#if NETFRAMEWORK
+                loadedAssembly = pdbBytes == null ? Assembly.Load(assemblyBytes) : Assembly.Load(assemblyBytes, pdbBytes);
+#else
+                if (pdbBytes == null)
+                {
+                    loadedAssembly = System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(Assembly.GetExecutingAssembly())
+                        .LoadFromStream(new MemoryStream(assemblyBytes));
+                }
+                else
+                {
+                    loadedAssembly = System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(Assembly.GetExecutingAssembly())
+                        .LoadFromStream(new MemoryStream(assemblyBytes), new MemoryStream(pdbBytes));
+                }
+#endif
+                loadedAssemblies[name] = loadedAssembly;
 				return loadedAssembly;
 			}
 			catch (Exception e)
@@ -178,7 +180,7 @@ namespace ExcelDna.Loader
         }
     }
 
-    internal unsafe static class ResourceHelper
+    internal static class ResourceHelper
     {
 		[DllImport("kernel32.dll", SetLastError = true)]
 		private static extern IntPtr FindResource(

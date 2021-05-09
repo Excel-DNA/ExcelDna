@@ -15,10 +15,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\Lzma\**\*.cs" LinkBase="Lzma"/>
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\ExcelDna.Integration\ExcelDna.Integration.csproj" />
   </ItemGroup>
 </Project>

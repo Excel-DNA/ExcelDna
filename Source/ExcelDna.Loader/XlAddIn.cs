@@ -55,8 +55,9 @@ namespace ExcelDna.Loader
         // Passed in from unmanaged code during initialization 
         internal static IntPtr hModuleXll;
 
-        static string pathXll;
-        internal static string PathXll { get { return pathXll; } }
+        internal static string PathXll { get; private set;}
+        internal static Func<string, int, byte[]> GetResourceBytes;  // Passed in from LoadContext
+        internal static Action<TraceSource> SetIntegrationTraceSource;  // Passed in from LoadContext
 
         static int xlCallVersion;
         internal static int XlCallVersion { get { return xlCallVersion; } }
@@ -66,26 +67,13 @@ namespace ExcelDna.Loader
 
         #region Initialization
 
-        public static bool Initialize32(int xlAddInExportInfoAddress, int hModuleXll, string pathXll)
-        {
-            // NOTE: The sequence here is important - we install the AssemblyManage which can resolve packed assemblies
-            //       before calling LoadIntegration, which will be the first time we try to resolve ExcelDna.Integration
-            AssemblyManager.Initialize((IntPtr)hModuleXll, pathXll);
-            return Initialize((IntPtr)xlAddInExportInfoAddress, (IntPtr)hModuleXll, pathXll);
-        }
-
-        public static bool Initialize64(long xlAddInExportInfoAddress, long hModuleXll, string pathXll)
-        {
-            // NOTE: The sequence here is important - we install the AssemblyManage which can resolve packed assemblies
-            //       before calling LoadIntegration, which will be the first time we try to resolve ExcelDna.Integration
-            AssemblyManager.Initialize((IntPtr)hModuleXll, pathXll);
-            return Initialize((IntPtr)xlAddInExportInfoAddress, (IntPtr)hModuleXll, pathXll);
-        }
-
-		private static unsafe bool Initialize(IntPtr xlAddInExportInfoAddress, IntPtr hModuleXll, string pathXll)
+		public static unsafe bool Initialize(IntPtr xlAddInExportInfoAddress, IntPtr hModuleXll, string pathXll,
+                                             Func<string, int, byte[]> getResourceBytes, Action<TraceSource> setIntegrationTraceSource)
         {
             XlAddIn.hModuleXll = hModuleXll;
-            XlAddIn.pathXll = pathXll;
+            XlAddIn.PathXll = pathXll;
+            XlAddIn.GetResourceBytes = getResourceBytes;
+            XlAddIn.SetIntegrationTraceSource = setIntegrationTraceSource;
 
             // NOTE: Too early for logging - the TraceSource in ExcelDna.Integration has not been initialized yet.
             Debug.Print("In sandbox AppDomain with Id: {0}, running on thread: {1}", AppDomain.CurrentDomain.Id, Thread.CurrentThread.ManagedThreadId);
@@ -217,8 +205,9 @@ namespace ExcelDna.Loader
         {
             if (!_initialized)
             {
-                ExcelIntegration.Initialize(pathXll);
+                ExcelIntegration.Initialize(PathXll);
                 TraceLogger.IntegrationTraceSource = ExcelIntegration.GetIntegrationTraceSource();
+                SetIntegrationTraceSource(TraceLogger.IntegrationTraceSource);
                 _initialized = true;
             }
         }
@@ -233,6 +222,7 @@ namespace ExcelDna.Loader
                     XlRegistration.UnregisterMethods();
                 }
                 TraceLogger.IntegrationTraceSource = null;
+                SetIntegrationTraceSource(null);
                 ExcelIntegration.DeInitialize();
                 _initialized = false;
                 _opened = false;
@@ -252,7 +242,7 @@ namespace ExcelDna.Loader
                     DeInitializeIntegration();
                 }
                 object xlCallResult;
-                XlCallImpl.TryExcelImpl(XlCallImpl.xlcMessage, out xlCallResult /*Ignore*/ , true, "Registering library " + pathXll);
+                XlCallImpl.TryExcelImpl(XlCallImpl.xlcMessage, out xlCallResult /*Ignore*/ , true, "Registering library " + PathXll);
 				InitializeIntegration();
                 Logger.Initialization.Verbose("In XlAddIn.XlAutoOpen");
                 
@@ -268,7 +258,7 @@ namespace ExcelDna.Loader
             catch (Exception e)
             {
                 // Can't use logging here
-                string alertMessage = string.Format("A problem occurred while an add-in was being initialized (InitializeIntegration failed - {1}).\r\nThe add-in is built with ExcelDna and is being loaded from {0}", pathXll, e.Message);
+                string alertMessage = string.Format("A problem occurred while an add-in was being initialized (InitializeIntegration failed - {1}).\r\nThe add-in is built with ExcelDna and is being loaded from {0}", PathXll, e.Message);
 				object xlCallResult;
 				XlCallImpl.TryExcelImpl(XlCallImpl.xlcAlert, out xlCallResult /*Ignored*/, alertMessage , 3 /* Only OK Button, Warning Icon*/);
                 result = 0;
