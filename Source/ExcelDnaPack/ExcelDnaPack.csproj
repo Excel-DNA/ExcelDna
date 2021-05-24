@@ -3,7 +3,7 @@
   <PropertyGroup>
     
     <OutputType>Exe</OutputType>
-    <TargetFramework>net452</TargetFramework>
+    <TargetFrameworks>net452;net5.0-windows</TargetFrameworks>
     
     <AssemblyTitle>ExcelDnaPack</AssemblyTitle>
     <Description>Excel-DNA Packing Tool</Description>

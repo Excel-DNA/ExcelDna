@@ -39,6 +39,7 @@ namespace ExcelDna.ManagedHost
             string pathXll = Marshal.PtrToStringUni((IntPtr)pPathXLL);
             AssemblyManager.Initialize((IntPtr)hModuleXll, pathXll);
             _alc = new ExcelDnaAssemblyLoadContext(pathXll);
+            _alc.LoadFromAssemblyName(new AssemblyName("ExcelDna.Loader"));
 
             var initOK = XlAddInInitialize((IntPtr)xlAddInExportInfoAddress, (IntPtr)hModuleXll, pathXll, AssemblyManager.GetResourceBytes, Logger.SetIntegrationTraceSource);
 

@@ -38,7 +38,7 @@ namespace ExcelDna.ManagedHost
             CultureInfo cultureInfo = assemblyName.CultureInfo;
 			name = assemblyName.Name.ToUpperInvariant();
 			
-			if (name == "EXCELDNA.LOADCONTEXT")
+			if (name == "EXCELDNA.MANAGEDHOST")
 			{
 				// Loader must have been loaded from bytes.
 				// But I have seen the Loader, and it is us.

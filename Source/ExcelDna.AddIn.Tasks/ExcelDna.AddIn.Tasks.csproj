@@ -10,8 +10,8 @@
     <Product>Excel-DNA Add-In Framework for Microsoft Excel</Product>
     <Copyright>Copyright © 2005-2021 Govert van Drimmelen</Copyright>
     <Version>1.1.0.0</Version>
-    <FileVersion>1.2.2.0</FileVersion>
-    <InformationalVersion>1.2.2</InformationalVersion>
+    <FileVersion>1.5.0.0</FileVersion>
+    <InformationalVersion>1.5.0</InformationalVersion>
     
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\assets\exceldna.snk</AssemblyOriginatorKeyFile>
@@ -23,17 +23,16 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
-    <PackageReference Include="EnvDTE" Version="8.0.2" />
+    <PackageReference Include="envdte" Version="16.9.31023.347" />
+    <Reference Include="Microsoft.Build.Framework" />
+    <Reference Include="Microsoft.Build.Utilities.v4.0" />
+    <Reference Include="System.Management" />
   </ItemGroup>
+
   <ItemGroup Condition=" '$(TargetFramework)' == 'net5.0-windows' ">
     <PackageReference Include="envdte" Version="16.9.31023.347" />
     <PackageReference Include="Microsoft.Build.Framework" Version="15.9.20" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="15.9.20" />
-  </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
-    <Reference Include="Microsoft.Build.Framework" />
-    <Reference Include="Microsoft.Build.Utilities.v4.0" />
-    <Reference Include="System.Management" />
   </ItemGroup>
 
   <ItemGroup>

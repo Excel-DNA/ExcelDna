@@ -4,8 +4,8 @@
 		<Product>Excel-DNA Add-In Framework for Microsoft Excel</Product>
 		<Copyright>Copyright © 2005-2021 Govert van Drimmelen</Copyright>
 		<Version>1.1.0.0</Version>
-		<FileVersion>1.2.5.0</FileVersion>
-		<InformationalVersion>1.2.5</InformationalVersion>
+		<FileVersion>1.5.0.0</FileVersion>
+		<InformationalVersion>1.5.0</InformationalVersion>
 
 	</PropertyGroup>
 </Project>

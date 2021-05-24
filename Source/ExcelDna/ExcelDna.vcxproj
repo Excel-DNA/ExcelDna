@@ -126,9 +126,10 @@
       <ModuleDefinitionFile>ExcelDna.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\net452\ExcelDna.Loader.*" "$(TargetDir)" 
+      <Command>copy "$(SolutionDir)ExcelDna.ManagedHost\bin\$(Configuration)\net452\ExcelDna.ManagedHost.*" "$(TargetDir)" 
+copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\net452\ExcelDna.Loader.*" "$(TargetDir)" 
 copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net452\ExcelDna.Integration.*" "$(TargetDir)" 
-"$(SolutionDir)ExcelDnaPack\bin\$(Configuration)\net452\ExcelDnaPack.exe" PackXllBuild "$(OutDir)ExcelDna.xll" $(Configuration)</Command>
+"$(SolutionDir)ExcelDnaPack\bin\$(Configuration)\net452\ExcelDnaPack.exe" PackXllBuild "$(OutDir)$(TargetName).xll" $(Configuration)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -160,9 +161,10 @@ copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net452\ExcelDna.In
       <ModuleDefinitionFile>ExcelDna.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\net452\ExcelDna.Loader.*" "$(TargetDir)" 
+      <Command>copy "$(SolutionDir)ExcelDna.ManagedHost\bin\$(Configuration)\net452\ExcelDna.ManagedHost.*" "$(TargetDir)" 
+copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\net452\ExcelDna.Loader.*" "$(TargetDir)" 
 copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net452\ExcelDna.Integration.*" "$(TargetDir)" 
-"$(SolutionDir)ExcelDnaPack\bin\$(Configuration)\net452\ExcelDnaPack.exe" PackXllBuild "$(OutDir)ExcelDna64.xll" $(Configuration)</Command>
+"$(SolutionDir)ExcelDnaPack\bin\$(Configuration)\net452\ExcelDnaPack.exe" PackXllBuild "$(OutDir)$(TargetName).xll" $(Configuration)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -193,9 +195,10 @@ copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net452\ExcelDna.In
       <ModuleDefinitionFile>ExcelDna.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\net452\ExcelDna.Loader.*" "$(TargetDir)" 
+      <Command>copy "$(SolutionDir)ExcelDna.ManagedHost\bin\$(Configuration)\net452\ExcelDna.ManagedHost.*" "$(TargetDir)" 
+copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\net452\ExcelDna.Loader.*" "$(TargetDir)" 
 copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net452\ExcelDna.Integration.*" "$(TargetDir)" 
-"$(SolutionDir)ExcelDnaPack\bin\$(Configuration)\net452\ExcelDnaPack.exe" PackXllBuild "$(OutDir)ExcelDna.xll" $(Configuration)</Command>
+"$(SolutionDir)ExcelDnaPack\bin\$(Configuration)\net452\ExcelDnaPack.exe" PackXllBuild "$(OutDir)$(TargetName).xll" $(Configuration)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -225,9 +228,10 @@ copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net452\ExcelDna.In
       <ModuleDefinitionFile>ExcelDna.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\net452\ExcelDna.Loader.*" "$(TargetDir)" 
+      <Command>copy "$(SolutionDir)ExcelDna.ManagedHost\bin\$(Configuration)\net452\ExcelDna.ManagedHost.*" "$(TargetDir)" 
+copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\net452\ExcelDna.Loader.*" "$(TargetDir)" 
 copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net452\ExcelDna.Integration.*" "$(TargetDir)" 
-"$(SolutionDir)ExcelDnaPack\bin\$(Configuration)\net452\ExcelDnaPack.exe" PackXllBuild "$(OutDir)ExcelDna64.xll" $(Configuration)</Command>
+"$(SolutionDir)ExcelDnaPack\bin\$(Configuration)\net452\ExcelDnaPack.exe" PackXllBuild "$(OutDir)$(TargetName).xll" $(Configuration)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
