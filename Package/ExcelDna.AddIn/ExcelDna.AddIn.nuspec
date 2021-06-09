@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata minClientVersion="2.5">
         <id>ExcelDna.AddIn</id>
-        <version>1.5.0-rc</version>
+        <version>1.5.0-rc1</version>
         <title>Excel-DNA Add-In</title>
         <authors>Govert van Drimmelen</authors>
         <owners>Govert van Drimmelen</owners>
@@ -23,7 +23,7 @@
         <tags>excel exceldna udf excel-dna</tags>
         <dependencies>
           <group targetFramework=".NETFramework4.5.2" >
-            <dependency id="ExcelDna.Integration" version="[1.5.0-rc]" />
+            <dependency id="ExcelDna.Integration" version="[1.5.0-rc1]" />
           </group>
         </dependencies>
     </metadata>
@@ -35,11 +35,11 @@
         <file src="..\..\Distribution\ExcelDnaPack.exe.config" target="tools\ExcelDnaPack.exe.config" />
         <file src="content\ExcelDna-Template.dna" target="content\ExcelDna-Template.dna" />
         <file src="content\ExcelDna.Build.props" target="content\Properties\ExcelDna.Build.props" />
-        <file src="tools\install.ps1" target="tools\net472\install.ps1" />
-        <file src="tools\uninstall.ps1" target="tools\net472\uninstall.ps1" />
+        <file src="tools\install.ps1" target="tools\net452\install.ps1" />
+        <file src="tools\uninstall.ps1" target="tools\net452\uninstall.ps1" />
         <file src="build\ExcelDna.AddIn.targets" target="build\ExcelDna.AddIn.targets" />
-        <file src="tools\net472\ExcelDna.AddIn.Tasks.dll" target="tools\net472\ExcelDna.AddIn.Tasks.dll" />
-        <file src="tools\net472\EnvDTE.dll" target="tools\net472\EnvDTE.dll" />
+        <file src="tools\net452\ExcelDna.AddIn.Tasks.dll" target="tools\net452\ExcelDna.AddIn.Tasks.dll" />
+        <file src="tools\net452\EnvDTE.dll" target="tools\net452\EnvDTE.dll" />
         <file src="tools\net5.0-windows\ExcelDna.AddIn.Tasks.dll" target="tools\net5.0-windows\ExcelDna.AddIn.Tasks.dll" />
         <file src="readme.txt" target="readme.txt" />
     </files>

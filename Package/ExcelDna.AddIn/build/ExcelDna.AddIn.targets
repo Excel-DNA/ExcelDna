@@ -8,7 +8,7 @@
 		<ExcelDnaTasksPath>$(ExcelDnaToolsPath)\net5.0-windows\</ExcelDnaTasksPath>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(MSBuildRuntimeType)' != 'Core'">
-		<ExcelDnaTasksPath>$(ExcelDnaToolsPath)\net472\</ExcelDnaTasksPath>
+		<ExcelDnaTasksPath>$(ExcelDnaToolsPath)\net452\</ExcelDnaTasksPath>
 	</PropertyGroup>
 
   <UsingTask TaskName="ExcelDna.AddIn.Tasks.SetDebuggerOptions" AssemblyFile="$(ExcelDnaTasksPath)ExcelDna.AddIn.Tasks.dll" />
