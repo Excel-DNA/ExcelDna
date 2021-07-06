@@ -69,32 +69,18 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)$(Configuration)\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)$(Configuration)64\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Configuration)64\</IntDir>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
-    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</GenerateManifest>
-    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</GenerateManifest>
-    <EmbedManifest Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</EmbedManifest>
-    <EmbedManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</EmbedManifest>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)$(Configuration)\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)$(Configuration)64\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Configuration)64\</IntDir>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</GenerateManifest>
-    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</GenerateManifest>
-    <EmbedManifest Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</EmbedManifest>
-    <EmbedManifest Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</EmbedManifest>
-    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.xll</TargetExt>
-    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.xll</TargetExt>
-    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.xll</TargetExt>
-    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.xll</TargetExt>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectName)64</TargetName>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectName)64</TargetName>
+    <TargetFramework>net452</TargetFramework>
+    <OutDir>$(IntDir)</OutDir>
+    <GenerateManifest>false</GenerateManifest>
+    <EmbedManifest>false</EmbedManifest>
+    <TargetExt>.xll</TargetExt>
+    <TargetName Condition="'$(Platform)'=='x64'">$(ProjectName)64</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -113,7 +99,6 @@
       <ShowProgress>true</ShowProgress>
     </ResourceCompile>
     <Link>
-      <OutputFile>$(OutDir)$(ProjectName).xll</OutputFile>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AssemblyDebug>true</AssemblyDebug>
@@ -125,12 +110,6 @@
       <TargetMachine>MachineX86</TargetMachine>
       <ModuleDefinitionFile>ExcelDna.def</ModuleDefinitionFile>
     </Link>
-    <PostBuildEvent>
-      <Command>copy "$(SolutionDir)ExcelDna.ManagedHost\bin\$(Configuration)\net452\ExcelDna.ManagedHost.*" "$(TargetDir)" 
-copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\net452\ExcelDna.Loader.*" "$(TargetDir)" 
-copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net452\ExcelDna.Integration.*" "$(TargetDir)" 
-"$(SolutionDir)ExcelDnaPack\bin\$(Configuration)\net452\ExcelDnaPack.exe" PackXllBuild "$(OutDir)$(TargetName).xll" $(Configuration)</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -149,7 +128,6 @@ copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net452\ExcelDna.In
       <ShowProgress>true</ShowProgress>
     </ResourceCompile>
     <Link>
-      <OutputFile>$(OutDir)$(ProjectName)64.xll</OutputFile>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AssemblyDebug>true</AssemblyDebug>
@@ -160,12 +138,6 @@ copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net452\ExcelDna.In
       <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
       <ModuleDefinitionFile>ExcelDna.def</ModuleDefinitionFile>
     </Link>
-    <PostBuildEvent>
-      <Command>copy "$(SolutionDir)ExcelDna.ManagedHost\bin\$(Configuration)\net452\ExcelDna.ManagedHost.*" "$(TargetDir)" 
-copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\net452\ExcelDna.Loader.*" "$(TargetDir)" 
-copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net452\ExcelDna.Integration.*" "$(TargetDir)" 
-"$(SolutionDir)ExcelDnaPack\bin\$(Configuration)\net452\ExcelDnaPack.exe" PackXllBuild "$(OutDir)$(TargetName).xll" $(Configuration)</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -182,7 +154,6 @@ copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net452\ExcelDna.In
       <ShowProgress>true</ShowProgress>
     </ResourceCompile>
     <Link>
-      <OutputFile>$(OutDir)$(ProjectName).xll</OutputFile>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -194,12 +165,6 @@ copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net452\ExcelDna.In
       <TargetMachine>MachineX86</TargetMachine>
       <ModuleDefinitionFile>ExcelDna.def</ModuleDefinitionFile>
     </Link>
-    <PostBuildEvent>
-      <Command>copy "$(SolutionDir)ExcelDna.ManagedHost\bin\$(Configuration)\net452\ExcelDna.ManagedHost.*" "$(TargetDir)" 
-copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\net452\ExcelDna.Loader.*" "$(TargetDir)" 
-copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net452\ExcelDna.Integration.*" "$(TargetDir)" 
-"$(SolutionDir)ExcelDnaPack\bin\$(Configuration)\net452\ExcelDnaPack.exe" PackXllBuild "$(OutDir)$(TargetName).xll" $(Configuration)</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -216,7 +181,6 @@ copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net452\ExcelDna.In
       <ShowProgress>true</ShowProgress>
     </ResourceCompile>
     <Link>
-      <OutputFile>$(OutDir)$(ProjectName)64.xll</OutputFile>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -227,11 +191,13 @@ copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net452\ExcelDna.In
       <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
       <ModuleDefinitionFile>ExcelDna.def</ModuleDefinitionFile>
     </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)ExcelDna.ManagedHost\bin\$(Configuration)\net452\ExcelDna.ManagedHost.*" "$(TargetDir)" 
-copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\net452\ExcelDna.Loader.*" "$(TargetDir)" 
-copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net452\ExcelDna.Integration.*" "$(TargetDir)" 
-"$(SolutionDir)ExcelDnaPack\bin\$(Configuration)\net452\ExcelDnaPack.exe" PackXllBuild "$(OutDir)$(TargetName).xll" $(Configuration)</Command>
+      <Command>copy "$(SolutionDir)ExcelDna.ManagedHost\bin\$(Configuration)\$(TargetFramework)\ExcelDna.ManagedHost.*" "$(TargetDir)" 
+copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\$(TargetFramework)\ExcelDna.Loader.*" "$(TargetDir)" 
+copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\$(TargetFramework)\ExcelDna.Integration.*" "$(TargetDir)" 
+"$(SolutionDir)ExcelDnaPack\bin\$(Configuration)\$(TargetFramework)\ExcelDnaPack.exe" PackXllBuild "$(OutDir)$(TargetName).xll" $(Configuration)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
