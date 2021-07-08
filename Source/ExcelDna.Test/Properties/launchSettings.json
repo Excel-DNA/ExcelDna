@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "ExcelDna.Test": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\Microsoft Office\\root\\Office16\\EXCEL.EXE",
+      "commandLineArgs": "ExcelDna.Test-AddIn.xll"
+    }
+  }
+}
