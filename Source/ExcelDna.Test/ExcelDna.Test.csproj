@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net5.0</TargetFrameworks>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\ExcelDna.Integration\ExcelDna.Integration.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Update="ExcelDna.Test-AddIn.dna">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy /y $(SolutionDir)ExcelDna.Host\bin\$(ConfigurationName)\x64\ExcelDna.Host.x64.xll $(TargetDir)ExcelDna.Test-AddIn.xll*&#xD;&#xA;xcopy /y $(SolutionDir)ExcelDna.Host\bin\$(ConfigurationName)\x64\ExcelDna.Host.runtimeconfig.json $(TargetDir)&#xD;&#xA;xcopy /y $(SolutionDir)ExcelDna.Host\bin\$(ConfigurationName)\x64\ExcelDna.ManagedHost.* $(TargetDir)&#xD;&#xA;xcopy /y $(SolutionDir)ExcelDna.Host\bin\$(ConfigurationName)\x64\ExcelDna.Loader.* $(TargetDir)&#xD;&#xA;xcopy /y $(SolutionDir)ExcelDna.Host\bin\$(ConfigurationName)\x64\ExcelDna.Integration.* $(TargetDir)" />
+  </Target>
+
+</Project>
