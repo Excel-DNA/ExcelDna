@@ -27,6 +27,7 @@
     <ProjectGuid>{a9887347-3e93-4e4e-96df-227648e57b60}</ProjectGuid>
     <RootNamespace>ExcelDnaHost</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <TargetFramework>net5.0-windows</TargetFramework>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -57,6 +58,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props" />
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
@@ -124,13 +126,6 @@
       <ModuleDefinitionFile>exports.def</ModuleDefinitionFile>
       <OutputFile>$(OutDir)$(TargetName).xll</OutputFile>
     </Link>
-    <PostBuildEvent>
-      <Command>copy "$(SolutionDir)ExcelDna.ManagedHost\bin\$(Configuration)\net5.0-windows\ExcelDna.ManagedHost.*" "$(TargetDir)" 
-copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\net5.0-windows\ExcelDna.Loader.*" "$(TargetDir)" 
-copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net5.0-windows\ExcelDna.Integration.*" "$(TargetDir)" 
-"$(SolutionDir)ExcelDnaPack\bin\$(Configuration)\net5.0-windows\ExcelDnaPack.exe" PackXllBuild "$(OutDir)$(TargetName).xll" $(Configuration)</Command>
-      <Message>Copying ExcelDna.Loader and ExcelDna.Integration to target dir</Message>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -163,13 +158,6 @@ copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net5.0-windows\Exc
       <ModuleDefinitionFile>exports.def</ModuleDefinitionFile>
       <OutputFile>$(OutDir)$(TargetName).xll</OutputFile>
     </Link>
-    <PostBuildEvent>
-      <Command>copy "$(SolutionDir)ExcelDna.ManagedHost\bin\$(Configuration)\net5.0-windows\ExcelDna.ManagedHost.*" "$(TargetDir)" 
-copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\net5.0-windows\ExcelDna.Loader.*" "$(TargetDir)" 
-copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net5.0-windows\ExcelDna.Integration.*" "$(TargetDir)" 
-"$(SolutionDir)ExcelDnaPack\bin\$(Configuration)\net5.0-windows\ExcelDnaPack.exe" PackXllBuild "$(OutDir)$(TargetName).xll" $(Configuration)</Command>
-      <Message>Copying ExcelDna.Loader and ExcelDna.Integration to target dir</Message>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -198,13 +186,6 @@ copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net5.0-windows\Exc
       <ModuleDefinitionFile>exports.def</ModuleDefinitionFile>
       <OutputFile>$(OutDir)$(TargetName).xll</OutputFile>
     </Link>
-    <PostBuildEvent>
-      <Command>copy "$(SolutionDir)ExcelDna.ManagedHost\bin\$(Configuration)\net5.0-windows\ExcelDna.ManagedHost.*" "$(TargetDir)" 
-copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\net5.0-windows\ExcelDna.Loader.*" "$(TargetDir)" 
-copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net5.0-windows\ExcelDna.Integration.*" "$(TargetDir)" 
-"$(SolutionDir)ExcelDnaPack\bin\$(Configuration)\net5.0-windows\ExcelDnaPack.exe" PackXllBuild "$(OutDir)$(TargetName).xll" $(Configuration)</Command>
-      <Message>Copying ExcelDna.Loader and ExcelDna.Integration to target dir</Message>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -237,12 +218,16 @@ copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net5.0-windows\Exc
       <ModuleDefinitionFile>exports.def</ModuleDefinitionFile>
       <OutputFile>$(OutDir)$(TargetName).xll</OutputFile>
     </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)ExcelDna.ManagedHost\bin\$(Configuration)\net5.0-windows\ExcelDna.ManagedHost.*" "$(TargetDir)" 
-copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\net5.0-windows\ExcelDna.Loader.*" "$(TargetDir)" 
-copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net5.0-windows\ExcelDna.Integration.*" "$(TargetDir)" 
-"$(SolutionDir)ExcelDnaPack\bin\$(Configuration)\net5.0-windows\ExcelDnaPack.exe" PackXllBuild "$(OutDir)$(TargetName).xll" $(Configuration)</Command>
-      <Message>Copying ExcelDna.Loader and ExcelDna.Integration to target dir</Message>
+      <Command>
+        copy "$(SolutionDir)ExcelDna.ManagedHost\bin\$(Configuration)\$(TargetFramework)\ExcelDna.ManagedHost.*" "$(TargetDir)"
+        copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\$(TargetFramework)\ExcelDna.Loader.*" "$(TargetDir)"
+        copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\$(TargetFramework)\ExcelDna.Integration.*" "$(TargetDir)"
+        "$(SolutionDir)ExcelDnaPack\bin\$(Configuration)\$(TargetFramework)\ExcelDnaPack.exe" PackXllBuild "$(OutDir)$(TargetName).xll" $(Configuration)
+      </Command>
+      <Message>Copying ExcelDna.ManagedHost, ExcelDna.Loader and ExcelDna.Integration to target dir</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -252,10 +237,7 @@ copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net5.0-windows\Exc
     <ClCompile Include="loader.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="pch.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="utils.cpp" />
   </ItemGroup>
@@ -265,19 +247,6 @@ copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net5.0-windows\Exc
       <DeploymentContent>true</DeploymentContent>
     </None>
     <None Include="exports.def" />
-    <CustomBuild Include="exports64.asm">
-      <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ml64 -c "-Fo$(IntDir)%(FileName).obj" "%(FullPath)"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Assembling...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(FileName).obj;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml64 -c "-Fo$(IntDir)%(FileName).obj" "%(FullPath)"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Assembling...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(FileName).obj;%(Outputs)</Outputs>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="exports.h" />
@@ -290,7 +259,11 @@ copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net5.0-windows\Exc
   <ItemGroup>
     <ResourceCompile Include="ExcelDna.Host.rc" />
   </ItemGroup>
+  <ItemGroup Condition="'$(Platform)'=='x64'">
+    <MASM Include="exports64.asm" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
   </ImportGroup>
 </Project>
