@@ -34,17 +34,6 @@ END
 BEGIN
     "#include ""winresrc.h""\r\0"
 END
-
-LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
-3 TEXTINCLUDE 
-BEGIN
-    "#ifdef _DEBUG\r\n"
-    "EXCELDNA.MANAGEDHOST         ASSEMBLY                ""..\\\\ExcelDna.ManagedHost\\\\bin\\\\Debug\\\\net452\\\\ExcelDna.ManagedHost.dll""\r\n"
-    "#else\r\n"
-    "EXCELDNA.MANAGEDHOST         ASSEMBLY                ""..\\\\ExcelDna.ManagedHost\\\\bin\\\\Release\\\\net452\\\\ExcelDna.ManagedHost.dll""\r\n"
-    "#endif\r\0"
-END
-LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #endif    // APSTUDIO_INVOKED
 
 
@@ -186,20 +175,4 @@ END
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
-
-
-#ifndef APSTUDIO_INVOKED
-/////////////////////////////////////////////////////////////////////////////
-//
-// Generated from the TEXTINCLUDE 3 resource.
-//
-LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
-#ifdef _DEBUG
-EXCELDNA.MANAGEDHOST         ASSEMBLY                "..\\ExcelDna.ManagedHost\\bin\\Debug\\net452\\ExcelDna.ManagedHost.dll"
-#else
-EXCELDNA.MANAGEDHOST         ASSEMBLY                "..\\ExcelDna.ManagedHost\\bin\\Release\\net452\\ExcelDna.ManagedHost.dll"
-#endif
-
-/////////////////////////////////////////////////////////////////////////////
-#endif    // not APSTUDIO_INVOKED
 

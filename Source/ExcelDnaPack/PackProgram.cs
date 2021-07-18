@@ -441,6 +441,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
             ResourceHelper.ResourceUpdater ru = new ResourceHelper.ResourceUpdater(xllFullPath);
 
             var xllDir = Path.GetDirectoryName(xllFullPath);
+            ru.AddAssembly(Path.Combine(xllDir, "ExcelDna.ManagedHost.dll"), compress: false, multithreading: false, includePdb);
             ru.AddAssembly(Path.Combine(xllDir, "ExcelDna.Loader.dll"), compress: true, multithreading: false, includePdb);
             ru.AddAssembly(Path.Combine(xllDir, "ExcelDna.Integration.dll"), compress: true, multithreading: false, includePdb);
             ru.EndUpdate();

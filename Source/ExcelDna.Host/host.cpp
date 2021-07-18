@@ -69,8 +69,12 @@ int load_runtime_and_run(LPCWSTR basePath, XlAddInExportInfo* pExportInfo, HMODU
     load_assembly_and_get_function_pointer = get_dotnet_load_assembly(config_path_str);
     assert(load_assembly_and_get_function_pointer != nullptr && "Failure: get_dotnet_load_assembly()");
 
+	//
+	// STEP 3: TODO: Copy managed assembly from resources to some temp file
+	//
+
     //
-    // STEP 3: Load managed assembly and get function pointer to a managed method
+    // STEP 4: Load managed assembly and get function pointer to a managed method
     //
     const string_t dotnetlib_path = root_path + L"ExcelDna.ManagedHost.dll";
     const char_t* dotnet_type = L"ExcelDna.ManagedHost.AddInInitialize, ExcelDna.ManagedHost";
