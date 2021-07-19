@@ -7,5 +7,6 @@
 		<FileVersion>1.5.0.0</FileVersion>
 		<InformationalVersion>1.5.0</InformationalVersion>
 
+		<EnableUnitySupport>true</EnableUnitySupport>
 	</PropertyGroup>
 </Project>

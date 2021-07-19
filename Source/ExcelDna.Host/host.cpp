@@ -1,7 +1,6 @@
 //  Copyright (c) Govert van Drimmelen. All rights reserved.
 
 // xllhost.cpp : Defines the entry point for the XLL host
-#include "pch.h"
 #include "host.h"
 #include "exports.h"
 
@@ -12,6 +11,10 @@
 
 #include <coreclr_delegates.h>
 #include <hostfxr.h>
+
+#include <cassert>
+#include <iostream>
+#include <string>
 
 using string_t = std::basic_string<char_t>;
 

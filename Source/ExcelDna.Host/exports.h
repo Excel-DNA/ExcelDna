@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Windows.h>
+
 // EXPORT_COUNT defines the size of the thunk table. 
 // Must match the number of functions exported in exports32.cpp and exports64.asm
 constexpr INT32 EXPORT_COUNT = 10000;
