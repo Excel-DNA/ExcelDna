@@ -30,6 +30,9 @@
     <TargetFramework>net5.0-windows</TargetFramework>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup>  
+    <DotNetRuntime>$(DotNetBase)\packs\Microsoft.NETCore.App.Host.win-$(PlatformTarget)\$(DotNetVersion)\runtimes\win-$(PlatformTarget)\native</DotNetRuntime>    
+  </PropertyGroup>  
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -98,7 +101,7 @@
     <OutDir>$(ProjectDir)bin\$(Configuration)\$(PlatformTarget)\</OutDir>
     <IntDir>$(ProjectDir)obj\$(Configuration)\$(PlatformTarget)\</IntDir>
     <TargetName>$(ProjectName).$(PlatformTarget)</TargetName>
-  </PropertyGroup>  
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -106,7 +109,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;EXCELDNAHOST_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DotNetRuntime);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>false</SuppressStartupBanner>
@@ -116,7 +119,8 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>$(ProjectDir)Lib\$(PlatformTarget)\libnethost.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(DotNetRuntime)</AdditionalLibraryDirectories>      
+      <AdditionalDependencies>libnethost.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>false</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
@@ -134,7 +138,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;EXCELDNAHOST_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DotNetRuntime);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <SuppressStartupBanner>false</SuppressStartupBanner>
@@ -146,7 +150,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>$(ProjectDir)Lib\$(PlatformTarget)\libnethost.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(DotNetRuntime)</AdditionalLibraryDirectories>            
+      <AdditionalDependencies>libnethost.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>false</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
@@ -162,7 +167,7 @@
       <PreprocessorDefinitions>NDEBUG;EXCELDNAHOST_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DotNetRuntime);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>false</SuppressStartupBanner>
@@ -172,7 +177,8 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>$(ProjectDir)Lib\$(PlatformTarget)\libnethost.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(DotNetRuntime)</AdditionalLibraryDirectories>            
+      <AdditionalDependencies>libnethost.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>false</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
@@ -190,7 +196,7 @@
       <PreprocessorDefinitions>NDEBUG;EXCELDNAHOST_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DotNetRuntime);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <SuppressStartupBanner>false</SuppressStartupBanner>
@@ -202,7 +208,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>$(ProjectDir)Lib\$(PlatformTarget)\libnethost.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(DotNetRuntime)</AdditionalLibraryDirectories>            
+      <AdditionalDependencies>libnethost.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>false</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
@@ -221,6 +228,10 @@
       </Command>
       <Message>Copying ExcelDna.ManagedHost, ExcelDna.Loader and ExcelDna.Integration to target dir</Message>
     </PostBuildEvent>
+    <ClCompile>
+      <IncludeInUnityFile>true</IncludeInUnityFile>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="addin.cpp" />
