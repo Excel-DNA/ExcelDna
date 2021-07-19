@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pch.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="exports32.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -56,9 +53,6 @@
     <ClInclude Include="loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pch.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -67,13 +61,11 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="exports64.asm">
-      <Filter>Source Files</Filter>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
     <ResourceCompile Include="ExcelDna.Host.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Notes.txt" />
   </ItemGroup>
 </Project>

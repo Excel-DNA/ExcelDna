@@ -1,13 +1,13 @@
 //  Copyright (c) Govert van Drimmelen. All rights reserved.
 
-#include "pch.h"
-#include "exports.h"
 #include "loader.h"
+
+#include "exports.h"
 #include "host.h"
 #include "utils.h"
 
 
-/*static (???) */ HMODULE hModuleCurrent;
+/*static (???) */ HMODULE hLocalModuleCurrent;
 std::wstring xllPath;
 // Flag to coordinate load/unload close and remove.
 HMODULE lockModule;
@@ -18,7 +18,7 @@ bool locked = false;
 // For now we only store our own module handle.
 void LoaderInitialize(HMODULE hModule)
 {
-	hModuleCurrent = hModule;
+	hLocalModuleCurrent = hModule;
 }
 
 // LoaderUnload is called when the .dll gets PROCESS_DETACH.
@@ -32,7 +32,7 @@ void LoaderUnload(bool processTerminating)
 std::wstring GetAddInFullPath()
 {
 	wchar_t buffer[MAX_PATH];
-	DWORD count = GetModuleFileName(hModuleCurrent, buffer, MAX_PATH);
+	DWORD count = GetModuleFileName(hLocalModuleCurrent, buffer, MAX_PATH);
 	return std::wstring(buffer);
 }
 
@@ -67,7 +67,7 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 	std::wstring xllPath = GetAddInFullPath();
 	WCHAR basePath[MAX_PATH] = { 0 };
 	_wsplitpath_s(xllPath.c_str(), NULL, 0, basePath, MAX_PATH, NULL, 0, NULL, 0);
-	int result = load_runtime_and_run(basePath, pExportInfo, hModuleCurrent, xllPath.c_str());
+	int result = load_runtime_and_run(basePath, pExportInfo, hLocalModuleCurrent, xllPath.c_str());
 
 	return result == EXIT_SUCCESS;
 //

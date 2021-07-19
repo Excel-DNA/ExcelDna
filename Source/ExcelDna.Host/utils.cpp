@@ -1,6 +1,5 @@
 // This code was contributed by Koustubh Moharir (Thank you!)
 
-#include "pch.h"
 #include "utils.h"
 
 TempFileHolder::~TempFileHolder()

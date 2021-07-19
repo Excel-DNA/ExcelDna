@@ -4,6 +4,8 @@
 
 #include "exports.h"
 
+#include <string>
+
 void LoaderInitialize(HMODULE hModule);
 void LoaderUnload(bool processTerminating);
 

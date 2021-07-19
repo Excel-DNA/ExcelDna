@@ -1,7 +1,6 @@
 //  Copyright (c) Govert van Drimmelen. All rights reserved.
 
 // xllhost.cpp : Defines the entry point for the XLL host
-#include "pch.h"
 #include "loader.h"
 #include "exports.h"
 
@@ -40,7 +39,7 @@ bool autoOpened = false; // Not set when loaded for COM server only. Used for re
 // The actual thunk table 
 extern "C"
 {
-	PFN thunks[EXPORT_COUNT];
+    extern PFN thunks[EXPORT_COUNT];
 }
 
 XlAddInExportInfo* CreateExportInfo()
