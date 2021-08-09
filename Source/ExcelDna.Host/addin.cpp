@@ -39,7 +39,7 @@ bool autoOpened = false; // Not set when loaded for COM server only. Used for re
 // The actual thunk table 
 extern "C"
 {
-    extern PFN thunks[EXPORT_COUNT];
+    PFN thunks[EXPORT_COUNT];
 }
 
 XlAddInExportInfo* CreateExportInfo()
