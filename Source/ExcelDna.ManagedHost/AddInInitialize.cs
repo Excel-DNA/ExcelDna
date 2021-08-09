@@ -17,7 +17,7 @@ namespace ExcelDna.ManagedHost
             AssemblyManager.Initialize((IntPtr)hModuleXll, pathXll);
             // TODO: Load up the DnaFile and Assembly names ?
             AppDomain.CurrentDomain.AssemblyResolve += (object sender, ResolveEventArgs args) => AssemblyManager.AssemblyResolve(new AssemblyName(args.Name));
-            return XlAddInInitialize((IntPtr)xlAddInExportInfoAddress, (IntPtr)hModuleXll, pathXll, AssemblyManager.GetResourceBytes, Logger.SetIntegrationTraceSource);
+            return XlAddInInitialize((IntPtr)xlAddInExportInfoAddress, (IntPtr)hModuleXll, pathXll, AssemblyManager.GetResourceBytes, AssemblyManager.LoadFromAssemblyPath, AssemblyManager.LoadFromAssemblyBytes, Logger.SetIntegrationTraceSource);
         }
 
         public static bool Initialize64(long xlAddInExportInfoAddress, long hModuleXll, string pathXll)
@@ -26,7 +26,7 @@ namespace ExcelDna.ManagedHost
             //       before calling LoadIntegration, which will be the first time we try to resolve ExcelDna.Integration
             AssemblyManager.Initialize((IntPtr)hModuleXll, pathXll);
             AppDomain.CurrentDomain.AssemblyResolve += (object sender, ResolveEventArgs args) => AssemblyManager.AssemblyResolve(new AssemblyName(args.Name));
-            return XlAddInInitialize((IntPtr)xlAddInExportInfoAddress, (IntPtr)hModuleXll, pathXll, AssemblyManager.GetResourceBytes, Logger.SetIntegrationTraceSource);
+            return XlAddInInitialize((IntPtr)xlAddInExportInfoAddress, (IntPtr)hModuleXll, pathXll, AssemblyManager.GetResourceBytes, AssemblyManager.LoadFromAssemblyPath, AssemblyManager.LoadFromAssemblyBytes, Logger.SetIntegrationTraceSource);
         }
 #endif
 
@@ -37,23 +37,33 @@ namespace ExcelDna.ManagedHost
         public static short Initialize(void* xlAddInExportInfoAddress, void* hModuleXll, void* pPathXLL)
         {
             string pathXll = Marshal.PtrToStringUni((IntPtr)pPathXLL);
-            AssemblyManager.Initialize((IntPtr)hModuleXll, pathXll);
             _alc = new ExcelDnaAssemblyLoadContext(pathXll);
-            _alc.LoadFromAssemblyName(new AssemblyName("ExcelDna.Loader"));
-
-            var initOK = XlAddInInitialize((IntPtr)xlAddInExportInfoAddress, (IntPtr)hModuleXll, pathXll, AssemblyManager.GetResourceBytes, Logger.SetIntegrationTraceSource);
+            AssemblyManager.Initialize((IntPtr)hModuleXll, pathXll, _alc);
+            var loaderAssembly = _alc.LoadFromAssemblyName(new AssemblyName("ExcelDna.Loader"));
+            var xlAddInType = loaderAssembly.GetType("ExcelDna.Loader.XlAddIn");
+            var initOK = (bool)xlAddInType.InvokeMember("Initialize", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null,
+                new object[] { (IntPtr)xlAddInExportInfoAddress, (IntPtr)hModuleXll, pathXll,
+                    (Func<string, int, byte[]>)AssemblyManager.GetResourceBytes,
+                    (Func<string, Assembly>)_alc.LoadFromAssemblyPath,
+                    (Func<byte[], byte[], Assembly>)_alc.LoadFromAssemblyBytes,
+                    (Action<TraceSource>)Logger.SetIntegrationTraceSource });
 
             return initOK ? (short)1 : (short)0;
+            }
         }
 #endif
 
-
-        // NOTE: We need this code to be in a separate method, so that the assembly resolution for ExcelDna.Loader runs after the AssemblyManager is installed.
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        static bool XlAddInInitialize(IntPtr xlAddInExportInfoAddress, IntPtr hModuleXll, string pathXll, Func<string, int, byte[]> getResourceBytes, Action<TraceSource> setIntegrationTraceSource)
+#if !NETCOREAPP
+    // NOTE: We need this code to be in a separate method, so that the assembly resolution for ExcelDna.Loader runs after the AssemblyManager is installed.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+        static bool XlAddInInitialize(IntPtr xlAddInExportInfoAddress, IntPtr hModuleXll, string pathXll,
+            Func<string, int, byte[]> getResourceBytes,
+            Func<string, Assembly> loadFromAssemblyPath,
+            Func<byte[], byte[], Assembly> loadFromAssemblyBytes,
+            Action<TraceSource> setIntegrationTraceSource)
         {
-            return XlAddIn.Initialize(xlAddInExportInfoAddress, hModuleXll, pathXll, getResourceBytes, setIntegrationTraceSource);
+            return XlAddIn.Initialize(xlAddInExportInfoAddress, hModuleXll, pathXll, getResourceBytes, loadFromAssemblyPath, loadFromAssemblyBytes, setIntegrationTraceSource);
         }
-
     }
+#endif
 }

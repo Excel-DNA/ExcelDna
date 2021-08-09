@@ -94,7 +94,7 @@ namespace ExcelDna.Integration
 
 		internal List<ExportedAssembly> GetAssemblies(string pathResolveRoot, DnaLibrary dnaLibrary)
 		{
-			List<ExportedAssembly> list = new List<ExportedAssembly>();
+            List<ExportedAssembly> list = new List<ExportedAssembly>();
 
 			try
 			{
@@ -136,7 +136,7 @@ namespace ExcelDna.Integration
                         // even if not checking here.
                         byte[] rawAssembly = ExcelIntegration.GetAssemblyBytes(resourceName);
                         byte[] rawPdb = ExcelIntegration.GetPdbBytes(resourceName);
-					    Assembly assembly = rawPdb == null ? Assembly.Load(rawAssembly) : Assembly.Load(rawAssembly, rawPdb);
+                        Assembly assembly = ExcelIntegration.LoadFromAssemblyBytes(rawAssembly, rawPdb);
 						list.Add(new ExportedAssembly(assembly, ExplicitExports, ExplicitRegistration, ComServer, false, typeLibPath, dnaLibrary));
 						return list;
 					}
@@ -174,7 +174,7 @@ namespace ExcelDna.Integration
                             else
                             {
                                 // Load as a regular assembly - TypeLib not supported.
-                                Assembly assembly = Assembly.LoadFrom(Path);
+                                Assembly assembly = ExcelIntegration.LoadFromAssemblyPath(Path);
                                 list.Add(new ExportedAssembly(assembly, ExplicitExports, ExplicitRegistration, ComServer, false, null, dnaLibrary));
                                 return list;
                             }
@@ -221,21 +221,18 @@ namespace ExcelDna.Integration
                             // e.g. as a dependency of an assembly loaded earlier.
                             // In that case we won't be able to have the library 'LoadFromBytes'.
                             byte[] bytes = File.ReadAllBytes(resolvedPath);
+                            byte[] pdbBytes = null;
 
                             string pdbPath = System.IO.Path.ChangeExtension(resolvedPath, "pdb");
                             if (File.Exists(pdbPath))
                             {
-                                byte[] pdbBytes = File.ReadAllBytes(pdbPath);
-                                assembly = Assembly.Load(bytes, pdbBytes);
+                                pdbBytes = File.ReadAllBytes(pdbPath);
                             }
-                            else
-                            {
-                                assembly = Assembly.Load(bytes);
-                            }
+                            assembly = ExcelIntegration.LoadFromAssemblyBytes(bytes, pdbBytes);
                         }
                         else
                         {
-                            assembly = Assembly.LoadFrom(resolvedPath);
+                            assembly = ExcelIntegration.LoadFromAssemblyPath(resolvedPath);
                         }
                     }
                     string resolvedTypeLibPath = null;
@@ -270,7 +267,7 @@ namespace ExcelDna.Integration
         
         // Similar copy to this method lives in ExcelDna.Loader - AssemblyManager.cs
         // But here we don't deal with .resources assemblies
-        private static Assembly GetAssemblyIfLoaded(string assemblyName)
+        static Assembly GetAssemblyIfLoaded(string assemblyName)
         {
             Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
             foreach (Assembly loadedAssembly in assemblies)
@@ -281,5 +278,7 @@ namespace ExcelDna.Integration
             }
             return null;
         }
+
+
 	}
 }

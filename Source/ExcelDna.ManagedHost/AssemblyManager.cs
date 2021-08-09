@@ -20,11 +20,21 @@ namespace ExcelDna.ManagedHost
         static IntPtr hModule;
         static string pathXll;
         static Dictionary<string, Assembly> loadedAssemblies = new Dictionary<string,Assembly>();
+#if NETCOREAPP
+        static ExcelDnaAssemblyLoadContext alc;
+#endif
 
-        internal static void Initialize(IntPtr hModule, string pathXll)
+        internal static void Initialize(IntPtr hModule, string pathXll
+#if NETCOREAPP
+            , ExcelDnaAssemblyLoadContext alc
+#endif
+            )
         {
             AssemblyManager.hModule = hModule;
             AssemblyManager.pathXll = pathXll;
+#if NETCOREAPP
+            AssemblyManager.alc = alc;
+#endif
             loadedAssemblies.Add(Assembly.GetExecutingAssembly().FullName, Assembly.GetExecutingAssembly());
         }
 
@@ -97,20 +107,7 @@ namespace ExcelDna.ManagedHost
                 Logger.Initialization.Info("Trying Assembly.Load for {0} (from {1} bytes, with {2} bytes of pdb).", name, assemblyBytes.Length, pdbBytes.Length);
 			try
 			{
-#if NETFRAMEWORK
-                loadedAssembly = pdbBytes == null ? Assembly.Load(assemblyBytes) : Assembly.Load(assemblyBytes, pdbBytes);
-#else
-                if (pdbBytes == null)
-                {
-                    loadedAssembly = System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(Assembly.GetExecutingAssembly())
-                        .LoadFromStream(new MemoryStream(assemblyBytes));
-                }
-                else
-                {
-                    loadedAssembly = System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(Assembly.GetExecutingAssembly())
-                        .LoadFromStream(new MemoryStream(assemblyBytes), new MemoryStream(pdbBytes));
-                }
-#endif
+                loadedAssembly = LoadFromAssemblyBytes(assemblyBytes, pdbBytes);
                 loadedAssemblies[name] = loadedAssembly;
 				return loadedAssembly;
 			}
@@ -121,8 +118,26 @@ namespace ExcelDna.ManagedHost
 			return null;
         }
 
+        internal static Assembly LoadFromAssemblyPath(string assemblyPath)
+        {
+#if NETCOREAPP
+            return alc.LoadFromAssemblyPath(assemblyPath);
+#else
+            return Assembly.LoadFrom(assemblyPath);
+#endif
+        }
+
+        internal static Assembly LoadFromAssemblyBytes(byte[] assemblyBytes, byte[] pdbBytes)
+        {
+#if NETCOREAPP
+            return alc.LoadFromAssemblyBytes(assemblyBytes, pdbBytes);
+#else
+            return (pdbBytes == null) ? Assembly.Load(assemblyBytes) : Assembly.Load(assemblyBytes, pdbBytes);
+#endif
+        }
+
         // TODO: This method probably should not be here.
-		internal static byte[] GetResourceBytes(string resourceName, int type) // types: 0 - Assembly, 1 - Dna file, 2 - Image
+        internal static byte[] GetResourceBytes(string resourceName, int type) // types: 0 - Assembly, 1 - Dna file, 2 - Image
 		{
             // CAREFUL: Can't log here yet as this method is called during Integration.Initialize()
             // Logger.Initialization.Info("GetResourceBytes for resource {0} of type {1}", resourceName, type);
@@ -157,7 +172,11 @@ namespace ExcelDna.ManagedHost
         // A copy of this method lives in ExcelDna.Integration - ExternalLibrary.cs
         private static Assembly GetAssemblyIfLoaded(AssemblyName assemblyName)
         {
+#if NETCOREAPP
+            IEnumerable<Assembly> assemblies = alc.Assemblies;
+#else
             Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+#endif
             foreach (Assembly loadedAssembly in assemblies)
             {
                 AssemblyName loadedName = loadedAssembly.GetName();

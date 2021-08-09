@@ -33,6 +33,10 @@ namespace ExcelDna.Loader
         public byte[] GetResourceBytes(string resourceName, int type)
             => XlAddIn.GetResourceBytes(resourceName, type);
 
+        public Assembly LoadFromAssemblyPath(string assemblyPath)
+            => XlAddIn.LoadAssemblyFromPath(assemblyPath);
+        public Assembly LoadFromAssemblyBytes(byte[] assemblyBytes, byte[] pdbBytes)
+            => XlAddIn.LoadAssemblyFromBytes(assemblyBytes, pdbBytes);
         public void RegisterMethods(List<MethodInfo> methods)
             => XlRegistration.RegisterMethods(methods);
 

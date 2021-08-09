@@ -9,6 +9,8 @@ namespace ExcelDna.Integration
     {
         XlCall.XlReturn TryExcelImpl(int xlFunction, out object result, params object[] parameters);
         byte[] GetResourceBytes(string resourceName, int type); // types: 0 - Assembly, 1 - Dna file, 2 - Image
+        Assembly LoadFromAssemblyPath(string assemblyPath);
+        Assembly LoadFromAssemblyBytes(byte[] assemblyBytes, byte[] pdbBytes);
         void RegisterMethods(List<MethodInfo> methods);
         void RegisterMethodsWithAttributes(List<MethodInfo> methods, List<object> functionAttributes, List<List<object>> argumentAttributes);
         void RegisterDelegatesWithAttributes(List<Delegate> delegates, List<object> functionAttributes, List<List<object>> argumentAttributes);

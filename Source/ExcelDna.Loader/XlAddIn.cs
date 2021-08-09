@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using ExcelDna.Integration;
@@ -55,9 +56,13 @@ namespace ExcelDna.Loader
         // Passed in from unmanaged code during initialization 
         internal static IntPtr hModuleXll;
 
+        // Consider: When does this become an interface. etc
         internal static string PathXll { get; private set;}
-        internal static Func<string, int, byte[]> GetResourceBytes;  // Passed in from LoadContext
-        internal static Action<TraceSource> SetIntegrationTraceSource;  // Passed in from LoadContext
+        internal static Func<string, int, byte[]> GetResourceBytes;  // Passed in from Loader
+        internal static Func<string, Assembly> LoadAssemblyFromPath;  // Passed in from Loader
+        internal static Func<byte[], byte[], Assembly> LoadAssemblyFromBytes;  // Passed in from Loader
+        internal static Action<TraceSource> SetIntegrationTraceSource;  // Passed in from Loader
+        internal static Action<TraceSource> SetIntegrationLoad;  // Passed in from Loader
 
         static int xlCallVersion;
         internal static int XlCallVersion { get { return xlCallVersion; } }
@@ -67,12 +72,17 @@ namespace ExcelDna.Loader
 
         #region Initialization
 
-		public static unsafe bool Initialize(IntPtr xlAddInExportInfoAddress, IntPtr hModuleXll, string pathXll,
-                                             Func<string, int, byte[]> getResourceBytes, Action<TraceSource> setIntegrationTraceSource)
+		public static bool Initialize(IntPtr xlAddInExportInfoAddress, IntPtr hModuleXll, string pathXll,
+                                             Func<string, int, byte[]> getResourceBytes,
+                                             Func<string, Assembly> loadAssemblyFromPath,
+                                             Func<byte[], byte[], Assembly> loadAssemblyFromBytes,
+                                             Action<TraceSource> setIntegrationTraceSource)
         {
             XlAddIn.hModuleXll = hModuleXll;
             XlAddIn.PathXll = pathXll;
             XlAddIn.GetResourceBytes = getResourceBytes;
+            XlAddIn.LoadAssemblyFromPath = loadAssemblyFromPath;
+            XlAddIn.LoadAssemblyFromBytes = loadAssemblyFromBytes;
             XlAddIn.SetIntegrationTraceSource = setIntegrationTraceSource;
 
             // NOTE: Too early for logging - the TraceSource in ExcelDna.Integration has not been initialized yet.
@@ -243,7 +253,7 @@ namespace ExcelDna.Loader
                 }
                 object xlCallResult;
                 XlCallImpl.TryExcelImpl(XlCallImpl.xlcMessage, out xlCallResult /*Ignore*/ , true, "Registering library " + PathXll);
-				InitializeIntegration();
+                InitializeIntegration();
                 Logger.Initialization.Verbose("In XlAddIn.XlAutoOpen");
                 
                 // v. 30 - moved the setting of _opened before calling AutoOpen, 
@@ -273,7 +283,7 @@ namespace ExcelDna.Loader
             return result;
         }
 
-		internal static short XlAutoClose()
+        internal static short XlAutoClose()
         {
             short result = 0;
             try

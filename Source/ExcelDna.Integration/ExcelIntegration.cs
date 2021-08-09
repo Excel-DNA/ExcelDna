@@ -180,7 +180,16 @@ namespace ExcelDna.Integration
             return _integrationHost.GetResourceBytes(sourceName, 3);
         }
 
-        // Called via Reflection from Loader
+        internal static Assembly LoadFromAssemblyPath(string assemblyPath)
+        {
+            return _integrationHost.LoadFromAssemblyPath(assemblyPath);
+        }
+
+        internal static Assembly LoadFromAssemblyBytes(byte[] assemblyBytes, byte[] pdbBytes)
+        {
+            return _integrationHost.LoadFromAssemblyBytes(assemblyBytes, pdbBytes);
+        }
+
         internal static void Initialize(string xllPath)
         {
 			ExcelDnaUtil.Initialize();  // Set up window handle

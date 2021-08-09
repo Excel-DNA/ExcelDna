@@ -66,6 +66,18 @@ namespace ExcelDna.ManagedHost
             return IntPtr.Zero;
         }
 #endif
+
+        internal Assembly LoadFromAssemblyBytes(byte[] assemblyBytes, byte[] pdbBytes)
+        {
+            if (pdbBytes == null)
+            {
+                return LoadFromStream(new MemoryStream(assemblyBytes));
+            }
+            else
+            {
+                return LoadFromStream(new MemoryStream(assemblyBytes), new MemoryStream(pdbBytes));
+            }
+        }
     }
 }
 #endif
