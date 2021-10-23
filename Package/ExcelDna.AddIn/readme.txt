@@ -26,9 +26,7 @@ After building your project you will find (at least) the following files in your
 For redistribution (if everything is set up correctly) you only need the two (32-bit and 64-bit) -packed.xll files. These files can be renamed as you like.
 
 F# projects - special notes:
-* You will need to build the project before attempting to debug (this ensures that the debug configuration is updated).
-* F# projects built with newer Visual Studio versions should be configured to target .NET 4.5 or later, and ensure that the FSharp.Core.dll is copied to the output directory.
-* Debugging will not be configured for F# projects when installing in Visual Studio 2013 or older. See instructions at the bottom of this file.
+* F# project templates create SDK-style projects and require additional settings to work with Excel-DNA. See https://github.com/Excel-DNA/ExcelDna/issues/360
 
 Next steps
 ----------
@@ -103,14 +101,3 @@ open ExcelDna.Integration
 [<ExcelFunction(Description="My first .NET function")>]
 let HelloDna name =
     "Hello " + name
-
----------------------------------------------------------------------
-Configuring debugging in F# Projects with Visual Studio 2013 or older
----------------------------------------------------------------------
-Debugging cannot be automatically configured for F# projects in older version of Visual Studio.
-In the project properties, select the Debug tab, then
-1. Select "Start External Program" and browse to find EXCEL.EXE, e.g. for Excel 2010 the path might
-   be: C:\Program Files (x86)\Microsoft Office\Office14\EXCEL.EXE.
-2. Enter the name to the .xll file in the output as the Command line arguments,
-   e.g. "TestDnaFs-addin.xll"
-        and for 64-bit Excel -addin64.xll.
