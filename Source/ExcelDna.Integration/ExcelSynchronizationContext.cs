@@ -232,6 +232,11 @@ namespace ExcelDna.Integration
         // The timer is hooked on to the _syncWindow, and its WM_TIMER message received in the _syncWindow calls this function again.
         // TODO: Consider this discussion (maybe allow user to register callback to check other conditions before running): 
         //       https://exceldna.codeplex.com/discussions/565495
+
+        // Here we catch an InvalidOperationException that we throw from CallPenHelper below
+        // This seems to need the special attribute too !?
+        // TODO: NET6+: See notes at CallPenHelper
+        [HandleProcessCorruptedStateExceptions]
         public void ProcessRunSyncMacroMessage()
         {
             try
@@ -498,9 +503,8 @@ namespace ExcelDna.Integration
         }
 
         // The call to LPenHelper will cause an AccessViolation after Excel starts shutting down.
-        // NOTE .NET5+: If this assembly is run under .NET 5+ we need to re-engineer this call to handle possible access violations outside the managed code,
+        // NOTE .NET6+: If this assembly is run under .NET 6+ we need to re-engineer this call to handle possible access violations outside the managed code,
         // or figure out the source and timing of safe vs dangerous calls.
-        // (Also for CheckExcelApiAvailable())
 
         [HandleProcessCorruptedStateExceptions]
         static int CallPenHelper(int wCode, ref XlCall.FmlaInfo fmlaInfo)
