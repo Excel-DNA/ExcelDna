@@ -9,4 +9,10 @@
 
 		<EnableUnitySupport>true</EnableUnitySupport>
 	</PropertyGroup>
+	
+	<PropertyGroup>
+		<!-- It would be nice to not hard code this but there seems to be no build in property -->
+		<DotNetBase>C:\Program Files\dotnet</DotNetBase>
+        <DotNetVersion>5.0.7</DotNetVersion>			
+	</PropertyGroup>
 </Project>
