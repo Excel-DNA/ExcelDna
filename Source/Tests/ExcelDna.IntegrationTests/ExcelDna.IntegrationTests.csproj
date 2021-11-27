@@ -25,6 +25,7 @@
   
   <ItemGroup>
     <PackageReference Include="NUnit" Version="*" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.1.0" />
   </ItemGroup>
 
   <ItemGroup>
