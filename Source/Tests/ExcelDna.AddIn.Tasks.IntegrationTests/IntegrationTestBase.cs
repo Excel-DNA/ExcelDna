@@ -18,9 +18,9 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
             _originalDirectory = Environment.CurrentDirectory;
 
             var thisAssemblyPath = new Uri(typeof(IntegrationTestBase).Assembly.CodeBase).LocalPath;
-            var rootPath = Path.Combine(thisAssemblyPath, @"..\..\..\..\ExcelDna.AddIn.Tasks.IntegrationTests.TestTarget\");
-
-            Environment.CurrentDirectory = Path.GetFullPath(rootPath);
+            string testsDirName = @"\Source\Tests\";
+            string testsDirPath = thisAssemblyPath.Substring(0, thisAssemblyPath.LastIndexOf(testsDirName) + testsDirName.Length);
+            Environment.CurrentDirectory = Path.Combine(testsDirPath, @"ExcelDna.AddIn.Tasks.IntegrationTests.TestTarget");
         }
 
         [TearDown]

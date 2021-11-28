@@ -170,3 +170,6 @@ $RECYCLE.BIN/
 .DS_Store
 /Source/Tests/ExcelDna.AddIn.Tasks.IntegrationTests.TestTarget/MultipleAddInBuild/MultipleAddInProjectOne.dll
 /Source/Tests/ExcelDna.AddIn.Tasks.IntegrationTests.TestTarget/MultipleAddInBuild/MultipleAddInProjectOne.pdb
+
+# Task Canvas
+*.TaskCanvasSL

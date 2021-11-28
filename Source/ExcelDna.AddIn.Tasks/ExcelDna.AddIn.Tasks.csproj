@@ -1,4 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project>
+
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk"/>
 
   <PropertyGroup>
     
@@ -45,6 +47,9 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
+
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk"/>
+  
   <Import Project="$(ProjectDir)Properties\ExcelDna.AddIn.Tasks.targets" />
 
 </Project>

@@ -12,5 +12,6 @@
   <ItemGroup>
     <PackageReference Include="ExcelDna.Interop" Version="14.0.1" />
     <PackageReference Include="NUnit" Version="*" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.1.0" />
     </ItemGroup>
 </Project>
