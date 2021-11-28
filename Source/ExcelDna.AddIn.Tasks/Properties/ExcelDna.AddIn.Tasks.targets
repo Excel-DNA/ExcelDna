@@ -52,12 +52,12 @@
           ContinueOnError="false" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" />
 
     <ItemGroup>
+      <ExcelDnaTestFilesToCopyToTools Include="$(TargetDir)*" />
       <ExcelDnaTestFilesToCopyToTools Include="$(ProjectDir)..\..\Distribution\ExcelDna.xll" />
       <ExcelDnaTestFilesToCopyToTools Include="$(ProjectDir)..\..\Distribution\ExcelDna64.xll" />
       <ExcelDnaTestFilesToCopyToTools Include="$(ProjectDir)..\..\Distribution\ExcelDna.Integration.dll" />
       <ExcelDnaTestFilesToCopyToTools Include="$(ProjectDir)..\..\Distribution\ExcelDnaPack.exe" />
       <ExcelDnaTestFilesToCopyToTools Include="$(ProjectDir)..\..\Distribution\ExcelDnaPack.exe.config" />
-      <ExcelDnaTestFilesToCopyToTools Include="$(TargetDir)*" />
     </ItemGroup>
 
     <Copy SourceFiles="@(ExcelDnaTestFilesToCopyToTools)"
