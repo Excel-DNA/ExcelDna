@@ -34,7 +34,7 @@
       <ExcelDnaTestPackageFilesToDelete Include="$(ExcelDnaTestPackageDir)**\*.*" />
     </ItemGroup>
 
-    <Delete Files="@(ExcelDnaTestPackageFilesToDelete)"/>
+    <Delete Files="@(ExcelDnaTestPackageFilesToDelete)" TreatErrorsAsWarnings="true"/>
   </Target>
 
   <!--
