@@ -1,4 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project>
+
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk"/>
 
   <PropertyGroup>
     
@@ -53,8 +55,10 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>-->
 
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk"/>
+
   <Target Name="AfterBuild">
     <Copy SourceFiles="$(SolutionDir)ExcelDna\$(Configuration)\ExcelDna.xll" DestinationFolder="$(TargetDir)" ContinueOnError="WarnAndContinue" />
-    <Copy SourceFiles="$(SolutionDir)ExcelDna\$(Configuration)64\ExcelDna64.xll" DestinationFolder="$(TargetDir)" ContinueOnError="WarnAndContinue" />
+    <Copy SourceFiles="$(SolutionDir)ExcelDna\x64\$(Configuration)\ExcelDna64.xll" DestinationFolder="$(TargetDir)" ContinueOnError="WarnAndContinue" />
   </Target>
 </Project>
