@@ -119,11 +119,11 @@ namespace ExcelDna.Loader
             }
             else if (ManagedObj is double[] d1)
             {
-                return DoubleArray1Return(d1);
+                return DoubleArray1ToXloperReturn(d1);
             }
             else if (ManagedObj is double[,] d2)
             {
-                return DoubleArray2Return(d2);
+                return DoubleArray2ToXloperReturn(d2);
             }
             else if (ManagedObj is ExcelError err)
             {
@@ -227,11 +227,26 @@ namespace ExcelDna.Loader
             return _rank2OperArrayContext.ObjectArrayReturn(objects);
         }
 
+        // Return double[] as XLOPER
+        public IntPtr DoubleArray1ToXloperReturn(double[] doubles)
+        {
+            return _rank1OperArrayContext.DoubleArrayReturn(doubles);
+        }
+
+        // Return double[,] as XLOPER
+        public IntPtr DoubleArray2ToXloperReturn(double[,] doubles)
+        {
+            return _rank2OperArrayContext.DoubleArrayReturn(doubles);
+        }
+
+
+        // Return double[] as FP
         public IntPtr DoubleArray1Return(double[] doubles)
         {
             return _rank1DoubleArrayContext.DoubleArrayReturn(doubles);
         }
 
+        // Return double[,] as FP
         public IntPtr DoubleArray2Return(double[,] doubles)
         {
             return _rank2DoubleArrayContext.DoubleArrayReturn(doubles);
@@ -853,7 +868,7 @@ namespace ExcelDna.Loader
                 rows = objects.GetLength(0);
                 rowBase = objects.GetLowerBound(0);
                 columns = objects.GetLength(1);
-                columnBase = objects.GetLowerBound(0);
+                columnBase = objects.GetLowerBound(1);
             }
             else
             {
@@ -1238,6 +1253,109 @@ namespace ExcelDna.Loader
             {
                 // For big allocations, ensure that Excel allows us to free the memory
                 if (rows * columns * 16 + cbNativeStrings + numReferences * 16 > 65535)
+                    pOper->xlType |= XlType12.XlBitDLLFree;
+
+                // We are done
+                return _pNative;
+            }
+            else
+            {
+                // For the Excel12v call, we need to return an array
+                // which will contain the pointers to the Opers.
+                int cbOperPointers = columns * Marshal.SizeOf(typeof(XlOper12*));
+                _pOperPointers = Marshal.AllocCoTaskMem(cbOperPointers);
+                XlOper12** pOpers = (XlOper12**)_pOperPointers;
+                for (int i = 0; i < columns; i++)
+                {
+                    pOpers[i] = (XlOper12*)_pNative + i + 1;
+                }
+                return _pOperPointers;
+            }
+        }
+
+        // This is for the special case where we have a double[] or double[,] array
+        // We want to avoid boxing the doubles into an object[,] array
+        // There's some duplication with the general code above.
+        public IntPtr DoubleArrayReturn(object doubleArray)
+        {
+            Reset(true);
+
+            // DOCUMENT: A null pointer is immediately returned to Excel, resulting in #NUM!
+            if (doubleArray == null)
+                return IntPtr.Zero;
+
+            // CONSIDER: Managing memory differently
+            // Here we allocate and clear when the next array is returned
+            // we might also return XLOPER and have xlFree called back.
+
+            // TODO: Remove duplication - due to fixed / pointer interaction
+
+            int rows;
+            int columns; // those in the returned array
+            double[] doubles1 = null;
+            double[,] doubles2 = null;
+            if (_rank == 1)
+            {
+                doubles1 = (double[])doubleArray;
+                rows = 1;
+                columns = doubles1.Length;
+            }
+            else if (_rank == 2)
+            {
+                doubles2 = (double[,])doubleArray;
+                rows = doubles2.GetLength(0);
+                columns = doubles2.GetLength(1);
+            }
+            else
+            {
+                throw new InvalidOperationException("Damaged XlMarshalXlOperArrayContext rank");
+            }
+
+            // Allocate native space
+            int cbNative = Marshal.SizeOf(typeof(XlOper12)) +               // OPER that is returned
+                           Marshal.SizeOf(typeof(XlOper12)) * (rows * columns);    // Array of OPER inside the result
+            _pNative = Marshal.AllocCoTaskMem(cbNative);
+
+            // Set up returned OPER
+            XlOper12* pOper = (XlOper12*)_pNative;
+            // Excel chokes badly on empty arrays (e.g. crash in function wizard) - rather return the default error value, #VALUE!
+            if (rows * columns == 0)
+            {
+                pOper->errValue = (ushort)ExcelError.ExcelErrorValue;
+                pOper->xlType = XlType12.XlTypeError;
+            }
+            else
+            {
+                pOper->xlType = XlType12.XlTypeArray;
+                pOper->arrayValue.Rows = rows;
+                pOper->arrayValue.Columns = columns;
+                pOper->arrayValue.pOpers = ((XlOper12*)_pNative + 1);
+            }
+            // This loop won't be entered in the empty-array case (rows * columns == 0)
+            for (int i = 0; i < rows * columns; i++)
+            {
+                // Get the right object out of the array
+                double dbl;
+                if (_rank == 1)
+                {
+                    dbl = doubles1[i];
+                }
+                else
+                {
+                    int row = i / columns;
+                    int column = i % columns;
+                    dbl = doubles2[row, column];
+                }
+
+                // Get the right pOper
+                pOper = (XlOper12*)_pNative + i + 1;
+                pOper->numValue = dbl;
+                pOper->xlType = XlType12.XlTypeNumber;
+            }
+            if (!_isExcel12v)
+            {
+                // For big allocations, ensure that Excel allows us to free the memory
+                if (rows * columns * 16 > 65535)
                     pOper->xlType |= XlType12.XlBitDLLFree;
 
                 // We are done

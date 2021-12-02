@@ -20,5 +20,11 @@ namespace ExcelDna.IntegrationTests
         {
             return d1*d2;
         }
+
+        [ExcelFunction]
+        public static object testReturnDoubleArray()
+        {
+            return new double[,] { { 1, 2 }, { 3, 4 } };
+        }
     }
 }
