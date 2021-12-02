@@ -1,5 +1,10 @@
-Version 1.2 (???)
------------------
+Version 1.5.1 (????)
+--------------------
+* Fix Excel crash when SynMacro runs on shutdown
+* Fix marshaling bug when double[,] is returned with object return type
+
+Version 1.5 (23 October 2021)
+-----------------------------
 * Target .NET Framework 4.52 or later only
 * Target Excel 2007 or later only
 * Improve registration performance
