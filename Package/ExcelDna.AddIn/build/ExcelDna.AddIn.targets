@@ -70,15 +70,6 @@
   </PropertyGroup>
 
   <!--
-    Target that checks if the project is not compatible with Excel-DNA
-  -->
-  <Target Name="ExcelDnaCheckPackageProjectStyle" BeforeTargets="CoreCompile">
-    <Error Code="DNA1546"
-           Text="Excel-DNA is not compatible with projects that use NuGet `PackageReference`. Make sure you create a .NET Framework (Class Library) project and configure Visual Studio to use `packages.config`"
-           Condition=" '$(ExcelDnaAllowPackageReferenceProjectStyle)' != 'true' AND ('$(PackageReferenceCompatibleProjectStyle)' == 'true' OR '$(RestoreProjectStyle)' == 'ProjectJson' OR '$(NuGetProjectStyle)' == 'PackageReference') " />
-  </Target>
-
-  <!--
     Target that ensures ExcelDna.Integration.dll is not copied to the output folder
     https://github.com/Excel-DNA/ExcelDna/issues/188
   -->
