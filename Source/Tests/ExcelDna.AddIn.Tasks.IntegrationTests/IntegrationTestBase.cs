@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using ExcelDna.AddIn.Tasks.IntegrationTests.Utils;
+using Microsoft.VisualStudio.Setup.Configuration;
 using NUnit.Framework;
 
 namespace ExcelDna.AddIn.Tasks.IntegrationTests
@@ -65,6 +66,28 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
 
         private static string GetMsBuildPath()
         {
+            try
+            {
+                var vsConfiguration = new SetupConfiguration();
+                var vsInstancesEnumerator = vsConfiguration.EnumAllInstances();
+                int fetched;
+                var vsInstances = new ISetupInstance[1];
+                do
+                {
+                    vsInstancesEnumerator.Next(1, vsInstances, out fetched);
+                    if (fetched > 0)
+                    {
+                        var vsInstance = vsInstances[0];
+                        if (vsInstance.GetInstallationVersion().StartsWith("17."))
+                            return vsInstance.ResolvePath(@"Msbuild\Current\Bin\amd64\MSBuild.exe");
+                    }
+                }
+                while (fetched > 0);
+            }
+            catch (Exception)
+            {
+            }
+
             string msBuildPath;
 
             var programFilesDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
