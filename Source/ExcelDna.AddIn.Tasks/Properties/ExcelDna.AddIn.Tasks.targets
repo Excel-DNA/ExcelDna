@@ -52,7 +52,7 @@
           ContinueOnError="false" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" />
 
     <ItemGroup>
-      <ExcelDnaTestFilesToCopyToTools Include="$(TargetDir)*" />
+      <ExcelDnaTestFilesToCopyToTools Include="$(TargetDir)..\**\*.*" />
       <ExcelDnaTestFilesToCopyToTools Include="$(ProjectDir)..\..\Distribution\ExcelDna.xll" />
       <ExcelDnaTestFilesToCopyToTools Include="$(ProjectDir)..\..\Distribution\ExcelDna64.xll" />
       <ExcelDnaTestFilesToCopyToTools Include="$(ProjectDir)..\..\Distribution\ExcelDna.Integration.dll" />
@@ -64,13 +64,6 @@
           DestinationFolder="$(ExcelDnaTestPackageDir)tools\%(RecursiveDir)"
           ContinueOnError="false" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" />
 
-	<ItemGroup>
-		<ExcelDnaTestFilesNET5ToCopyToTools Include="$(ProjectDir)..\..\Distribution\net5.0-windows\ExcelDna.Integration.dll" />
-	</ItemGroup>
 
-	<Copy SourceFiles="@(ExcelDnaTestFilesNET5ToCopyToTools)"
-        DestinationFolder="$(ExcelDnaTestPackageDir)tools\net5.0-windows\%(RecursiveDir)"
-        ContinueOnError="false" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" />
-		
 	</Target>
 </Project>
