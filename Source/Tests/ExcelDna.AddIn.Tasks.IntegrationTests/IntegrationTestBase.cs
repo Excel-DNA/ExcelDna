@@ -78,7 +78,7 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
                     if (fetched > 0)
                     {
                         var vsInstance = vsInstances[0];
-                        if (vsInstance.GetInstallationVersion().StartsWith("17."))
+                        if (vsInstance.GetInstallationVersion().StartsWith("17.")) // Visual Studio 2022
                             return vsInstance.ResolvePath(@"Msbuild\Current\Bin\amd64\MSBuild.exe");
                     }
                 }

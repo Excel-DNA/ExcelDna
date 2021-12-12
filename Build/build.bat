@@ -1,8 +1,6 @@
 copy /Y ..\Source\ExcelDna\Release\ExcelDna.xll ..\Distribution\
 copy /Y ..\Source\ExcelDna\x64\Release\ExcelDna64.xll ..\Distribution\
 copy /Y ..\Source\ExcelDna.Integration\bin\Release\net452\ExcelDna.Integration.dll ..\Distribution\
-if not exist "..\Distribution\net5.0-windows\" mkdir "..\Distribution\net5.0-windows\"
-copy /Y ..\Source\ExcelDna.Integration\bin\Release\net5.0-windows\ExcelDna.Integration.dll ..\Distribution\net5.0-windows\
 copy /Y ..\Source\ExcelDnaPack\bin\Release\net452\ExcelDnaPack.exe ..\Distribution\
 copy /Y ..\Source\ExcelDnaPack\bin\Release\net452\ExcelDnaPack.exe.config ..\Distribution\
 if not exist "..\Package\ExcelDna.AddIn\tools\net452\" mkdir "..\Package\ExcelDna.AddIn\tools\net452\"

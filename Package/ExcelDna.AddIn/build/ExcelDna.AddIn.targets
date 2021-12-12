@@ -161,7 +161,10 @@
       FileSuffix32Bit="$(ExcelDna32BitAddInSuffix)"
       FileSuffix64Bit="$(ExcelDna64BitAddInSuffix)"
       PackIsEnabled="$(RunExcelDnaPack)"
-      PackedFileSuffix="$(ExcelDnaPackXllSuffix)">
+      PackedFileSuffix="$(ExcelDnaPackXllSuffix)"
+ 	  ProjectName="$(MSBuildProjectName)"
+	  TargetFileName="$(TargetFileName)"
+	  TemplateDnaPath="$(MSBuildThisFileDirectory)..\content\ExcelDna-Template.dna">
       <Output TaskParameter="DnaFilesToPack" ItemName="ExcelDnaFilesToPack" />
     </CreateExcelAddIn>
 

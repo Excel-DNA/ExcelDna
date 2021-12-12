@@ -49,6 +49,11 @@ namespace ExcelDna.AddIn.Tasks.Utils
             }
         }
 
+        public void WriteFile(string sourceText, string destinationFileName)
+        {
+            File.WriteAllText(destinationFileName, sourceText);
+        }
+
         public void DeleteFile(string sourceFileName)
         {
             var fileInfo = new FileInfo(sourceFileName);
