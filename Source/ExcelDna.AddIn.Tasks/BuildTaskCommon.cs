@@ -10,27 +10,31 @@ namespace ExcelDna.AddIn.Tasks
         private readonly string _outDirectory;
         private readonly string _fileSuffix32Bit;
         private readonly string _fileSuffix64Bit;
+        private readonly string _projectName;
         private readonly ITaskItem[] _filesInProject;
 
-        public BuildTaskCommon(ITaskItem[] filesInProject, string outDirectory, string fileSuffix32Bit, string fileSuffix64Bit)
+        public BuildTaskCommon(ITaskItem[] filesInProject, string outDirectory, string fileSuffix32Bit, string fileSuffix64Bit, string projectName = null)
         {
             _filesInProject = filesInProject ?? throw new ArgumentNullException(nameof(filesInProject));
             _outDirectory = outDirectory;
             _fileSuffix32Bit = fileSuffix32Bit;
             _fileSuffix64Bit = fileSuffix64Bit;
+            _projectName = projectName;
         }
-        
+
         internal BuildItemSpec[] GetBuildItemsForDnaFiles()
         {
+            var dnaFiles = _filesInProject.Select(i => i.ItemSpec).Where(i => string.Equals(Path.GetExtension(i), ".dna", StringComparison.OrdinalIgnoreCase)).ToList();
+            if (dnaFiles.Count() == 0 && _projectName != null)
+                dnaFiles.Add(_projectName + "-AddIn.dna");
             var buildItemsForDnaFiles = (
-                from item in _filesInProject
-                where string.Equals(Path.GetExtension(item.ItemSpec), ".dna", StringComparison.OrdinalIgnoreCase)
-                orderby item.ItemSpec
-                let inputDnaFileNameAs32Bit = GetDnaFileNameAs32Bit(item.ItemSpec)
-                let inputDnaFileNameAs64Bit = GetDnaFileNameAs64Bit(item.ItemSpec)
+                from file in dnaFiles
+                orderby file
+                let inputDnaFileNameAs32Bit = GetDnaFileNameAs32Bit(file)
+                let inputDnaFileNameAs64Bit = GetDnaFileNameAs64Bit(file)
                 select new BuildItemSpec
                 {
-                    InputDnaFileName = item.ItemSpec,
+                    InputDnaFileName = file,
 
                     InputDnaFileNameAs32Bit = inputDnaFileNameAs32Bit,
                     InputDnaFileNameAs64Bit = inputDnaFileNameAs64Bit,

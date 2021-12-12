@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.1.31911.260
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31911.196
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SingleDnaFileDefaultSuffix", "SingleDnaFileDefaultSuffix\SingleDnaFileDefaultSuffix.csproj", "{69CFC6E4-EAF6-416A-B462-B586DC3E051D}"
 EndProject
@@ -31,9 +31,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AddInInsideSolutionFolder",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectWithNameEndingIn64", "ProjectWithNameEndingIn64\ProjectWithNameEndingIn64.csproj", "{D6A3CFD5-0608-480A-8900-765D4C2A5395}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NET5Minimal", "NET5Minimal\NET5Minimal.csproj", "{E56095FC-56A6-471E-B2A1-455A1233E8B5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NET5Minimal", "NET5Minimal\NET5Minimal.csproj", "{E56095FC-56A6-471E-B2A1-455A1233E8B5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDKMinimal", "SDKMinimal\SDKMinimal.csproj", "{289B64DC-D79F-46D6-B0D1-D571A8E015A8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDKMinimal", "SDKMinimal\SDKMinimal.csproj", "{289B64DC-D79F-46D6-B0D1-D571A8E015A8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDKMinimalWithoutDna", "SDKMinimalWithoutDna\SDKMinimalWithoutDna.csproj", "{EC633DB3-46C8-48F1-95AC-F091F94DE2E7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -101,6 +103,10 @@ Global
 		{289B64DC-D79F-46D6-B0D1-D571A8E015A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{289B64DC-D79F-46D6-B0D1-D571A8E015A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{289B64DC-D79F-46D6-B0D1-D571A8E015A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC633DB3-46C8-48F1-95AC-F091F94DE2E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC633DB3-46C8-48F1-95AC-F091F94DE2E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC633DB3-46C8-48F1-95AC-F091F94DE2E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC633DB3-46C8-48F1-95AC-F091F94DE2E7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
