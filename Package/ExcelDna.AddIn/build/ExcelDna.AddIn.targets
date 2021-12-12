@@ -85,7 +85,7 @@
   -->
   <Target Name="ExcelDnaSetDebuggerOptions"
           BeforeTargets="PreBuildEvent"
-          Condition="'$(RunExcelDnaSetDebuggerOptions)'== 'true' AND '$(BuildingInsideVisualStudio)' == 'true' AND '$(BuildingByReSharper)' != 'true'">
+          Condition="'$(RunExcelDnaSetDebuggerOptions)'== 'true' AND '$(BuildingInsideVisualStudio)' == 'true' AND '$(BuildingByReSharper)' != 'true' AND '$(PackageReferenceCompatibleProjectStyle)' != 'true' AND '$(RestoreProjectStyle)' != 'ProjectJson' AND '$(NuGetProjectStyle)' != 'PackageReference'">
     <Message Text="---" Importance="High" />
 
     <Error Text="ExcelDna32BitAddInSuffix and ExcelDna64BitAddInSuffix cannot be identical. Fix your ExcelDna.Build.props file"
