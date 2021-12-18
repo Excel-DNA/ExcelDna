@@ -279,7 +279,12 @@ namespace ExcelDna.AddIn.Tasks
 
         private string GetDefaultDnaText()
         {
-            return File.ReadAllText(TemplateDnaPath).Replace("%ProjectName%", ProjectName).Replace("%OutputFileName%", TargetFileName);
+            string result = File.ReadAllText(TemplateDnaPath);
+            if (!string.IsNullOrEmpty(AddInName))
+                result = result.Replace("%ProjectName% Add-In", AddInName);
+            else
+                result = result.Replace("%ProjectName%", ProjectName);
+            return result.Replace("%OutputFileName%", TargetFileName);
         }
 
         /// <summary>
@@ -353,6 +358,11 @@ namespace ExcelDna.AddIn.Tasks
         /// Enable/disable running ExcelDnaPack for .dna files
         /// </summary>
         public string PackedFileSuffix { get; set; }
+
+        /// <summary>
+        /// Custom add-in name
+        /// </summary>
+        public string AddInName { get; set; }
 
         /// <summary>
         /// The list of .dna files copied to the output
