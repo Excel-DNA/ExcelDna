@@ -39,6 +39,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDKMinimalWithoutDna", "SDK
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDKExcelDnaCreate32BitAddInFalse", "SDKExcelDnaCreate32BitAddInFalse\SDKExcelDnaCreate32BitAddInFalse.csproj", "{499DDA04-C828-4AAB-8BF2-B6477894AB6B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDKExcelAddInName", "SDKExcelAddInName\SDKExcelAddInName.csproj", "{1D477F66-41E0-4316-B0FB-5FD5AE4F2A7F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -113,6 +115,10 @@ Global
 		{499DDA04-C828-4AAB-8BF2-B6477894AB6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{499DDA04-C828-4AAB-8BF2-B6477894AB6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{499DDA04-C828-4AAB-8BF2-B6477894AB6B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D477F66-41E0-4316-B0FB-5FD5AE4F2A7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D477F66-41E0-4316-B0FB-5FD5AE4F2A7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D477F66-41E0-4316-B0FB-5FD5AE4F2A7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D477F66-41E0-4316-B0FB-5FD5AE4F2A7F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -173,6 +173,14 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
             }
         }
 
+        protected void AssertFileContains(string fileName, string text)
+        {
+            if (!File.ReadAllText(fileName).Contains(text))
+            {
+                Assert.Fail($"Text {text} not found in {Path.GetFileName(fileName)}.");
+            }
+        }
+
         protected void AssertIdentical(string fileName1, string fileName2)
         {
             if (!File.Exists(fileName1))
