@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <ExcelDnaCreate64BitAddIn>false</ExcelDnaCreate64BitAddIn>
+    <ExcelDnaCreate32BitAddIn>false</ExcelDnaCreate32BitAddIn>
   </PropertyGroup>
 
   <ItemGroup>
