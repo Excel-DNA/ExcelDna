@@ -14,7 +14,7 @@ namespace ExcelDna.AddIn.Tasks
         private readonly string _addinFileName;
         private readonly ITaskItem[] _filesInProject;
 
-        public BuildTaskCommon(ITaskItem[] filesInProject, string outDirectory, string fileSuffix32Bit, string fileSuffix64Bit, string projectName = null, string addinFileName = null)
+        public BuildTaskCommon(ITaskItem[] filesInProject, string outDirectory, string fileSuffix32Bit, string fileSuffix64Bit, string projectName, string addinFileName)
         {
             _filesInProject = filesInProject ?? throw new ArgumentNullException(nameof(filesInProject));
             _outDirectory = outDirectory;

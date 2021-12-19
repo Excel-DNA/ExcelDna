@@ -133,7 +133,7 @@ namespace ExcelDna.AddIn.Tasks
                 return false;
             }
 
-            _common = new BuildTaskCommon(FilesInProject, OutDirectory, FileSuffix32Bit, FileSuffix64Bit);
+            _common = new BuildTaskCommon(FilesInProject, OutDirectory, FileSuffix32Bit, FileSuffix64Bit, null, null);
 
             var outputBuildItems = _common.GetBuildItemsForDnaFiles();
 
@@ -143,19 +143,19 @@ namespace ExcelDna.AddIn.Tasks
             switch (excelBitness)
             {
                 case Bitness.Bit32:
-                {
-                    addinForDebugging = firstAddIn.OutputXllFileNameAs32Bit;
-                    return true;
-                }
+                    {
+                        addinForDebugging = firstAddIn.OutputXllFileNameAs32Bit;
+                        return true;
+                    }
                 case Bitness.Bit64:
-                {
-                    addinForDebugging = firstAddIn.OutputXllFileNameAs64Bit;
-                    return true;
-                }
+                    {
+                        addinForDebugging = firstAddIn.OutputXllFileNameAs64Bit;
+                        return true;
+                    }
                 default:
-                {
-                    return false;
-                }
+                    {
+                        return false;
+                    }
             }
         }
 
@@ -175,7 +175,7 @@ namespace ExcelDna.AddIn.Tasks
         /// The path to .XLL file name that should be used for debugging
         /// This overrides the automatic detection depending on Excel's bitness
         /// </summary>
-        public string AddInForDebugging { get; set; }        
+        public string AddInForDebugging { get; set; }
 
         /// <summary>
         /// The list of files in the project marked as Content or None

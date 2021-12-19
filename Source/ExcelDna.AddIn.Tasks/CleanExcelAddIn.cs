@@ -40,7 +40,7 @@ namespace ExcelDna.AddIn.Tasks
                 FilesInProject = FilesInProject ?? new ITaskItem[0];
                 _log.Debug("Number of files in project: " + FilesInProject.Length);
 
-                _common = new BuildTaskCommon(FilesInProject, OutDirectory, FileSuffix32Bit, FileSuffix64Bit);
+                _common = new BuildTaskCommon(FilesInProject, OutDirectory, FileSuffix32Bit, FileSuffix64Bit, ProjectName, AddInFileName);
 
                 var existingBuiltFiles = _common.GetBuildItemsForDnaFiles();
                 _packedFilesToDelete = GetPackedFilesToDelete(existingBuiltFiles);
@@ -155,6 +155,12 @@ namespace ExcelDna.AddIn.Tasks
         }
 
         /// <summary>
+        /// The name of the project being compiled
+        /// </summary>
+        [Required]
+        public string ProjectName { get; set; }
+
+        /// <summary>
         /// The list of files in the project marked as Content or None
         /// </summary>
         [Required]
@@ -197,5 +203,10 @@ namespace ExcelDna.AddIn.Tasks
         /// Enable/disable running ExcelDnaPack for .dna files
         /// </summary>
         public string PackedFileSuffix { get; set; }
+
+        /// <summary>
+        /// Custom add-in file name
+        /// </summary>
+        public string AddInFileName { get; set; }
     }
 }

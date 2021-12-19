@@ -1,4 +1,5 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project>
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk"/>
 
   <PropertyGroup>
      <TargetFramework>net472</TargetFramework>
@@ -7,6 +8,7 @@
 
   <PropertyGroup>
     <ExcelAddInFileName>MyFile</ExcelAddInFileName>
+    <RunExcelDnaClean>True</RunExcelDnaClean>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,6 +20,8 @@
   <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
+
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk"/>
 
   <Import Project="$(ProjectDir)..\..\.exceldna.addin\build\ExcelDna.AddIn.targets" />
 

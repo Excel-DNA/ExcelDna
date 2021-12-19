@@ -130,7 +130,9 @@
       FileSuffix32Bit="$(ExcelDna32BitAddInSuffix)"
       FileSuffix64Bit="$(ExcelDna64BitAddInSuffix)"
       PackIsEnabled="$(RunExcelDnaPack)"
-      PackedFileSuffix="$(ExcelDnaPackXllSuffix)">
+      PackedFileSuffix="$(ExcelDnaPackXllSuffix)"
+ 	  AddInFileName="$(ExcelAddInFileName)"
+ 	  ProjectName="$(MSBuildProjectName)">
     </CleanExcelAddIn>
   </Target>
 
