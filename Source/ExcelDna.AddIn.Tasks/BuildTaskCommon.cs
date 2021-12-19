@@ -11,22 +11,24 @@ namespace ExcelDna.AddIn.Tasks
         private readonly string _fileSuffix32Bit;
         private readonly string _fileSuffix64Bit;
         private readonly string _projectName;
+        private readonly string _addinFileName;
         private readonly ITaskItem[] _filesInProject;
 
-        public BuildTaskCommon(ITaskItem[] filesInProject, string outDirectory, string fileSuffix32Bit, string fileSuffix64Bit, string projectName = null)
+        public BuildTaskCommon(ITaskItem[] filesInProject, string outDirectory, string fileSuffix32Bit, string fileSuffix64Bit, string projectName = null, string addinFileName = null)
         {
             _filesInProject = filesInProject ?? throw new ArgumentNullException(nameof(filesInProject));
             _outDirectory = outDirectory;
             _fileSuffix32Bit = fileSuffix32Bit;
             _fileSuffix64Bit = fileSuffix64Bit;
             _projectName = projectName;
+            _addinFileName = addinFileName;
         }
 
         internal BuildItemSpec[] GetBuildItemsForDnaFiles()
         {
             var dnaFiles = _filesInProject.Select(i => i.ItemSpec).Where(i => string.Equals(Path.GetExtension(i), ".dna", StringComparison.OrdinalIgnoreCase)).ToList();
             if (dnaFiles.Count() == 0 && _projectName != null)
-                dnaFiles.Add(_projectName + "-AddIn.dna");
+                dnaFiles.Add((string.IsNullOrEmpty(_addinFileName) ? _projectName + "-AddIn" : _addinFileName) + ".dna");
             var buildItemsForDnaFiles = (
                 from file in dnaFiles
                 orderby file
