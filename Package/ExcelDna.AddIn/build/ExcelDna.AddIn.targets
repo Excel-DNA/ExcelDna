@@ -167,6 +167,7 @@
  	  AddInName="$(ExcelAddInName)"
  	  AddInFileName="$(ExcelAddInFileName)"
  	  AddInInclude="$(ExcelAddInInclude)"
+ 	  AddInExternalLibraryPath="$(ExcelAddInExternalLibraryPath)"
  	  ProjectName="$(MSBuildProjectName)"
 	  TargetFileName="$(TargetFileName)"
 	  TemplateDnaPath="$(MSBuildThisFileDirectory)..\content\ExcelDna-Template.dna">
