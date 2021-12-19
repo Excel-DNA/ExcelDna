@@ -47,7 +47,7 @@ namespace ExcelDna.AddIn.Tasks
                 _log.Debug("Number of files in project: " + FilesInProject.Length);
 
                 _configFilesInProject = GetConfigFilesInProject();
-                _common = new BuildTaskCommon(FilesInProject, OutDirectory, FileSuffix32Bit, FileSuffix64Bit, ProjectName);
+                _common = new BuildTaskCommon(FilesInProject, OutDirectory, FileSuffix32Bit, FileSuffix64Bit, ProjectName, AddInFileName);
 
                 var buildItemsForDnaFiles = _common.GetBuildItemsForDnaFiles();
 
@@ -363,6 +363,11 @@ namespace ExcelDna.AddIn.Tasks
         /// Custom add-in name
         /// </summary>
         public string AddInName { get; set; }
+
+        /// <summary>
+        /// Custom add-in file name
+        /// </summary>
+        public string AddInFileName { get; set; }
 
         /// <summary>
         /// The list of .dna files copied to the output
