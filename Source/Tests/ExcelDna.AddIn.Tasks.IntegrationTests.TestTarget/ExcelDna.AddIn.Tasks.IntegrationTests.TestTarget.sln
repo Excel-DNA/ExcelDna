@@ -45,6 +45,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDKExcelAddInFileName", "SD
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDKExcelAddInInclude", "SDKExcelAddInInclude\SDKExcelAddInInclude.csproj", "{E8736ACA-803C-4AB6-97C6-E077EDDB41DA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDKExcelAddInExternalLibraryPath", "SDKExcelAddInExternalLibraryPath\SDKExcelAddInExternalLibraryPath.csproj", "{AA01958C-ECBF-4CD7-826E-917A96E49855}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -131,6 +133,10 @@ Global
 		{E8736ACA-803C-4AB6-97C6-E077EDDB41DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E8736ACA-803C-4AB6-97C6-E077EDDB41DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E8736ACA-803C-4AB6-97C6-E077EDDB41DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA01958C-ECBF-4CD7-826E-917A96E49855}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA01958C-ECBF-4CD7-826E-917A96E49855}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA01958C-ECBF-4CD7-826E-917A96E49855}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA01958C-ECBF-4CD7-826E-917A96E49855}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

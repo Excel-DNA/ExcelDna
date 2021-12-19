@@ -284,6 +284,7 @@ namespace ExcelDna.AddIn.Tasks
                 result = result.Replace("%ProjectName% Add-In", AddInName);
             else
                 result = result.Replace("%ProjectName%", ProjectName);
+
             if (!string.IsNullOrEmpty(AddInInclude))
             {
                 string includes = "";
@@ -293,7 +294,8 @@ namespace ExcelDna.AddIn.Tasks
                 }
                 result = result.Replace("</DnaLibrary>", includes + "</DnaLibrary>");
             }
-            return result.Replace("%OutputFileName%", TargetFileName);
+
+            return result.Replace("%OutputFileName%", !string.IsNullOrEmpty(AddInExternalLibraryPath) ? AddInExternalLibraryPath : TargetFileName);
         }
 
         /// <summary>
@@ -382,6 +384,11 @@ namespace ExcelDna.AddIn.Tasks
         /// Semicolon separated list of references written to the .dna file
         /// </summary>
         public string AddInInclude { get; set; }
+
+        /// <summary>
+        /// Custom path for ExternalLibrary
+        /// </summary>
+        public string AddInExternalLibraryPath { get; set; }
 
         /// <summary>
         /// The list of .dna files copied to the output
