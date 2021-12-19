@@ -284,6 +284,15 @@ namespace ExcelDna.AddIn.Tasks
                 result = result.Replace("%ProjectName% Add-In", AddInName);
             else
                 result = result.Replace("%ProjectName%", ProjectName);
+            if (!string.IsNullOrEmpty(AddInInclude))
+            {
+                string includes = "";
+                foreach (string i in AddInInclude.Split(';'))
+                {
+                    includes += $"  <Reference Path=\"{i}\" Pack=\"true\" />" + Environment.NewLine;
+                }
+                result = result.Replace("</DnaLibrary>", includes + "</DnaLibrary>");
+            }
             return result.Replace("%OutputFileName%", TargetFileName);
         }
 
@@ -368,6 +377,11 @@ namespace ExcelDna.AddIn.Tasks
         /// Custom add-in file name
         /// </summary>
         public string AddInFileName { get; set; }
+
+        /// <summary>
+        /// Semicolon separated list of references written to the .dna file
+        /// </summary>
+        public string AddInInclude { get; set; }
 
         /// <summary>
         /// The list of .dna files copied to the output

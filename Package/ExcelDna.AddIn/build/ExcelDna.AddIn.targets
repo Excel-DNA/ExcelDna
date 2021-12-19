@@ -166,6 +166,7 @@
       PackedFileSuffix="$(ExcelDnaPackXllSuffix)"
  	  AddInName="$(ExcelAddInName)"
  	  AddInFileName="$(ExcelAddInFileName)"
+ 	  AddInInclude="$(ExcelAddInInclude)"
  	  ProjectName="$(MSBuildProjectName)"
 	  TargetFileName="$(TargetFileName)"
 	  TemplateDnaPath="$(MSBuildThisFileDirectory)..\content\ExcelDna-Template.dna">
