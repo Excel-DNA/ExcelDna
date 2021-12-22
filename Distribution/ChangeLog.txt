@@ -1,5 +1,5 @@
-Version 1.5.1 (????)
---------------------
+Version 1.5.1 (22 December 2021)
+--------------------------------
 * Fix Excel crash when SynMacro runs on shutdown
 * Fix marshaling bug when double[,] is returned with object return type
 

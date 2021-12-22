@@ -7,16 +7,16 @@ set outputPath=%basePath%\nupkg
 
 if not exist "%outputPath%" mkdir "%outputPath%"
 
-nuget.exe push "%outputPath%\ExcelDna.Integration.1.5.1-rc3.nupkg" -Source  https://api.nuget.org/v3/index.json -Verbosity detailed -NonInteractive
+nuget.exe push "%outputPath%\ExcelDna.Integration.1.5.1.nupkg" -Source  https://api.nuget.org/v3/index.json -Verbosity detailed -NonInteractive
 @if errorlevel 1 goto end
 
-nuget.exe push "%outputPath%\ExcelDna.AddIn.1.5.1-rc3.nupkg" -Source  https://api.nuget.org/v3/index.json -Verbosity detailed -NonInteractive
+nuget.exe push "%outputPath%\ExcelDna.AddIn.1.5.1.nupkg" -Source  https://api.nuget.org/v3/index.json -Verbosity detailed -NonInteractive
 @if errorlevel 1 goto end
 
-nuget.exe push "%outputPath%\Excel-DNA.Lib.1.5.1-rc3.nupkg" -Source  https://api.nuget.org/v3/index.json -Verbosity detailed -NonInteractive
+nuget.exe push "%outputPath%\Excel-DNA.Lib.1.5.1.nupkg" -Source  https://api.nuget.org/v3/index.json -Verbosity detailed -NonInteractive
 @if errorlevel 1 goto end
 
-nuget.exe push "%outputPath%\Excel-DNA.1.5.1-rc3.nupkg" -Source  https://api.nuget.org/v3/index.json -Verbosity detailed -NonInteractive
+nuget.exe push "%outputPath%\Excel-DNA.1.5.1.nupkg" -Source  https://api.nuget.org/v3/index.json -Verbosity detailed -NonInteractive
 @if errorlevel 1 goto end
 
 
