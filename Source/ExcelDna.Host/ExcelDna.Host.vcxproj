@@ -221,6 +221,18 @@
       </Command>
       <Message>Copying ExcelDna.ManagedHost, ExcelDna.Loader and ExcelDna.Integration to target dir</Message>
     </PostBuildEvent>
+    <ClCompile>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp20</LanguageStandard>
+    </ClCompile>
+    <ClCompile>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">stdcpp20</LanguageStandard>
+    </ClCompile>
+    <ClCompile>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdcpp20</LanguageStandard>
+    </ClCompile>
+    <ClCompile>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpp20</LanguageStandard>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="addin.cpp" />
@@ -228,6 +240,7 @@
     <ClCompile Include="host.cpp" />
     <ClCompile Include="loader.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="TempDir.cpp" />
     <ClCompile Include="utils.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -242,6 +255,7 @@
     <ClInclude Include="host.h" />
     <ClInclude Include="loader.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="TempDir.h" />
     <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>
