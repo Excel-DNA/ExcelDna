@@ -15,7 +15,7 @@ private:
 };
 
 template <int size>
-int CompareNoCase(const std::wstring & str1, wchar_t const (&str2)[size])
+int CompareNoCase(const std::wstring& str1, wchar_t const (&str2)[size])
 {
 	return _wcsnicmp(str1.c_str(), str2, size - 1);
 }
@@ -75,3 +75,7 @@ private:
 };
 
 std::wstring UTF8toUTF16(const std::string& utf8);
+
+HRESULT WriteAllBytes(const std::wstring& filePath, void* buf, DWORD size);
+
+std::wstring PathCombine(const std::wstring& path1, const std::wstring& path2);

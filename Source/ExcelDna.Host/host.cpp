@@ -17,6 +17,7 @@
 #include <string>
 
 #include "TempDir.h"
+#include "utils.h"
 
 using string_t = std::basic_string<char_t>;
 
@@ -27,7 +28,7 @@ hostfxr_close_fn close_fptr;
 
 // Forward declarations
 bool load_hostfxr();
-load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(const char_t* assembly);
+load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly();
 
 // Provide a callback for any catastrophic failures.
 // The provided callback will be the last call prior to a rude-abort of the process.
@@ -44,18 +45,6 @@ TempDir tempDir;
 // TODO: Might return the fn*
 int load_runtime_and_run(LPCWSTR basePath, XlAddInExportInfo* pExportInfo, HMODULE hModuleXll, LPCWSTR pathXll)
 {
-	// Get the current executable's directory
-	// This sample assumes the managed assembly to load and its runtime configuration file are next to the host
-	char_t host_path[MAX_PATH];
-
-	auto size = ::GetFullPathNameW(basePath, sizeof(host_path) / sizeof(char_t), host_path, nullptr);
-	assert(size != 0);
-
-	string_t root_path = host_path;
-	auto pos = root_path.find_last_of('\\');
-	assert(pos != string_t::npos);
-	root_path = root_path.substr(0, pos + 1);
-
 	//
 	// STEP 1: Load HostFxr and get exported hosting functions
 	//
@@ -68,23 +57,25 @@ int load_runtime_and_run(LPCWSTR basePath, XlAddInExportInfo* pExportInfo, HMODU
 	//
 	// STEP 2: Initialize and start the .NET Core runtime
 	//
-	const string_t config_path = root_path + L"ExcelDna.Host.runtimeconfig.json";
-	const string_t deps_path = root_path + L"ExcelDna.Host.deps.json";
-	load_assembly_and_get_function_pointer_fn load_assembly_and_get_function_pointer = nullptr;
-	const char_t* config_path_str = config_path.c_str();
-	const char_t* deps_path_str = deps_path.c_str();
-	load_assembly_and_get_function_pointer = get_dotnet_load_assembly(config_path_str);
+	load_assembly_and_get_function_pointer_fn load_assembly_and_get_function_pointer = get_dotnet_load_assembly();
 	assert(load_assembly_and_get_function_pointer != nullptr && "Failure: get_dotnet_load_assembly()");
 
 	//
-	// STEP 3: TODO: Copy managed assembly from resources to some temp file
+	// STEP 3: Copy managed assembly from resources to some temp file
 	//
-
 	HRSRC hResManagedHost = FindResource(hModuleXll, L"EXCELDNA.MANAGEDHOST", L"ASSEMBLY");
+	assert(hResManagedHost != NULL && "Failure: FindResource EXCELDNA.MANAGEDHOST");
+
 	HGLOBAL hManagedHost = LoadResource(hModuleXll, hResManagedHost);
+	assert(hManagedHost != NULL && "Failure: LoadResource EXCELDNA.MANAGEDHOST");
+
 	void* buf = LockResource(hManagedHost);
+	assert(buf != NULL && "Failure: LockResource EXCELDNA.MANAGEDHOST");
+
 	DWORD resSize = SizeofResource(hModuleXll, hResManagedHost);
-	std::wstring hostFile = tempDir.WriteFileBuf(L"ExcelDna.ManagedHost.dll", buf, resSize);
+	std::wstring hostFile = PathCombine(tempDir.GetPath(), L"ExcelDna.ManagedHost.dll");
+	HRESULT hr = WriteAllBytes(hostFile, buf, resSize);
+	assert(SUCCEEDED(hr) && "Failure: saving EXCELDNA.MANAGEDHOST");
 
 	//
 	// STEP 4: Load managed assembly and get function pointer to a managed method
@@ -148,7 +139,7 @@ bool load_hostfxr()
 }
 
 // Load and initialize .NET Core and get desired function pointer for scenario
-load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(const char_t* config_path)
+load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly()
 {
 	std::string configText = R"({
   "runtimeOptions": {
@@ -159,7 +150,13 @@ load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(const char_t*
     }
   }
 })";
-	std::wstring configFile = tempDir.WriteFileBuf(L"ExcelDna.Host.runtimeconfig.json", (void*)configText.c_str(), configText.length());
+	std::wstring configFile = PathCombine(tempDir.GetPath(), L"ExcelDna.Host.runtimeconfig.json");
+	HRESULT hr = WriteAllBytes(configFile, (void*)configText.c_str(), static_cast<DWORD>(configText.length()));
+	if (FAILED(hr))
+	{
+		std::cerr << "Saving ExcelDna.Host.runtimeconfig.json failed: " << std::hex << std::showbase << hr << std::endl;
+		return nullptr;
+	}
 
 	// Load .NET Core
 	void* load_assembly_and_get_function_pointer = nullptr;

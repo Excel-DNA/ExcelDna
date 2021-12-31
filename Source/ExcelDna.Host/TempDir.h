@@ -1,5 +1,4 @@
 #pragma once
-#include <Windows.h>
 #include <string>
 
 class TempDir
@@ -7,7 +6,7 @@ class TempDir
 public:
 	TempDir();
 	~TempDir();
-	std::wstring WriteFileBuf(const std::wstring& name, void* buf, DWORD size);
+	const std::wstring& GetPath() const;
 
 private:
 	std::wstring  path;
