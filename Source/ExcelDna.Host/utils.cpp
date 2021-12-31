@@ -83,7 +83,7 @@ std::wstring LoadStringFromResource(HMODULE hModule, int id)
 {
 	const wchar_t* buffer = nullptr;
 	LoadStringW(hModule, id, (LPWSTR)&buffer, 0);//ugly cast for badly designed API (specifying buffer size == 0 returns a read only pointer.
-	return std::wstring(buffer, *((WORD*) buffer - 1));//The WORD preceding the address is the size of the resource string. which is not null-terminated.
+	return std::wstring(buffer, *((WORD*)buffer - 1));//The WORD preceding the address is the size of the resource string. which is not null-terminated.
 }
 
 std::wstring FormatString(std::wstring formatString, ...)
@@ -180,4 +180,29 @@ std::wstring UTF8toUTF16(const std::string& utf8)
 		utf16.resize(len);
 	}
 	return utf16;
+}
+
+HRESULT WriteAllBytes(const std::wstring& filePath, void* buf, DWORD size)
+{
+	HANDLE hFile = CreateFile(filePath.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hFile == INVALID_HANDLE_VALUE)
+		return HResultFromLastError();
+
+	DWORD dwBytesWritten;
+	if (!WriteFile(hFile, buf, size, &dwBytesWritten, NULL))
+	{
+		HRESULT hr = HResultFromLastError();
+		CloseHandle(hFile);
+		return hr;
+	}
+
+	if (!CloseHandle(hFile))
+		return HResultFromLastError();
+
+	return S_OK;
+}
+
+std::wstring PathCombine(const std::wstring& path1, const std::wstring& path2)
+{
+	return path1 + L"\\" + path2;
 }
