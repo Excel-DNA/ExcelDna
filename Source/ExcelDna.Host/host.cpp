@@ -40,7 +40,7 @@ load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly();
 // cost associated with calling an export for the first time.
 void __stdcall preload_runtime(void) {}
 
-TempDir tempDir;
+TempDir tempDir(L"ExcelDna.Host");
 
 // TODO: Might return the fn*
 int load_runtime_and_run(LPCWSTR basePath, XlAddInExportInfo* pExportInfo, HMODULE hModuleXll, LPCWSTR pathXll)

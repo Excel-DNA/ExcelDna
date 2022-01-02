@@ -79,3 +79,4 @@ std::wstring UTF8toUTF16(const std::string& utf8);
 HRESULT WriteAllBytes(const std::wstring& filePath, void* buf, DWORD size);
 
 std::wstring PathCombine(const std::wstring& path1, const std::wstring& path2);
+std::wstring PathCombine(const std::wstring& path1, const std::wstring& path2, const std::wstring& path3);

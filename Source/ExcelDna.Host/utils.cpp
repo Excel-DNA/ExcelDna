@@ -206,3 +206,8 @@ std::wstring PathCombine(const std::wstring& path1, const std::wstring& path2)
 {
 	return path1 + L"\\" + path2;
 }
+
+std::wstring PathCombine(const std::wstring& path1, const std::wstring& path2, const std::wstring& path3)
+{
+	return PathCombine(PathCombine(path1, path2), path3);
+}
