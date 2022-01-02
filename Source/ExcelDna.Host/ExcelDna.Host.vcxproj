@@ -245,9 +245,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="assembly.bin" />
-    <None Include="ExcelDna.Host.runtimeconfig.json">
-      <DeploymentContent>true</DeploymentContent>
-    </None>
     <None Include="exports.def" />
   </ItemGroup>
   <ItemGroup>
