@@ -1,6 +1,13 @@
 #include "TempDir.h"
 #include "utils.h"
 
+#include <shlwapi.h>
+#undef PathCombine
+#pragma comment(lib, "Shlwapi.lib")
+
+#include <vector>
+#include <algorithm>
+#include <functional>
 #include <cassert>
 #include <rpc.h>
 #pragma comment(lib, "rpcrt4.lib")
@@ -21,36 +28,73 @@ namespace
 		RpcStringFree(&str);
 		return result;
 	}
+
+	constexpr auto pendingDeleteFileName(L"pending delete");
 }
 
-TempDir::TempDir()
+TempDir::TempDir(const std::wstring& topDirName)
 {
 	TCHAR lpTempPathBuffer[MAX_PATH];
 	DWORD dwRetVal = GetTempPath(MAX_PATH, lpTempPathBuffer);
 	assert(!(dwRetVal > MAX_PATH || dwRetVal == 0) && "Failure: GetTempPath");
 
-	path = PathCombine(lpTempPathBuffer, L"DNA" + CreateUuid());
+	topDirPath = PathCombine(lpTempPathBuffer, topDirName);
+	CreateDirectory(topDirPath.c_str(), NULL);
+
+	DeletePendingDirs();
+
+	path = PathCombine(topDirPath, CreateUuid());
 	BOOL b = CreateDirectory(path.c_str(), NULL);
 	assert(b && "Failure: CreateDirectory");
 }
 
 TempDir::~TempDir()
 {
-	WIN32_FIND_DATA ffd;
-	HANDLE hFind = FindFirstFile(PathCombine(path, L"*").c_str(), &ffd);
-	if (hFind != INVALID_HANDLE_VALUE)
-	{
-		do
-		{
-			if ((ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
-				DeleteFile(PathCombine(path, ffd.cFileName).c_str());
-		} while (FindNextFile(hFind, &ffd) != 0);
-		FindClose(hFind);
-	}
-	RemoveDirectory(path.c_str());
+	DeleteDir(path);
 }
 
 const std::wstring& TempDir::GetPath() const
 {
 	return path;
+}
+
+void TempDir::DeletePendingDirs()
+{
+	WIN32_FIND_DATA ffd;
+	HANDLE hFind = FindFirstFile(PathCombine(topDirPath, L"*").c_str(), &ffd);
+	if (hFind != INVALID_HANDLE_VALUE)
+	{
+		std::vector<std::wstring> specialDirs = { L".", L".." };
+		do
+		{
+			if ((ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY && !std::any_of(specialDirs.begin(), specialDirs.end(), [&ffd](auto i) {return i == ffd.cFileName; }))
+			{
+				std::wstring subdir = PathCombine(topDirPath, ffd.cFileName);
+				if (PathFileExists(PathCombine(subdir, pendingDeleteFileName).c_str()))
+					DeleteDir(subdir);
+			}
+		} while (FindNextFile(hFind, &ffd) != 0);
+		FindClose(hFind);
+	}
+}
+
+void TempDir::DeleteDir(const std::wstring& dirPath)
+{
+	WIN32_FIND_DATA ffd;
+	HANDLE hFind = FindFirstFile(PathCombine(dirPath, L"*").c_str(), &ffd);
+	if (hFind != INVALID_HANDLE_VALUE)
+	{
+		do
+		{
+			if ((ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+				DeleteFile(PathCombine(dirPath, ffd.cFileName).c_str());
+		} while (FindNextFile(hFind, &ffd) != 0);
+		FindClose(hFind);
+	}
+	if (RemoveDirectory(dirPath.c_str()) == 0)
+	{
+		HANDLE hFile = CreateFile(PathCombine(dirPath, pendingDeleteFileName).c_str(), GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+		if (hFile != INVALID_HANDLE_VALUE)
+			CloseHandle(hFile);
+	}
 }
