@@ -38,7 +38,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="ExcelDna.Host.runtimeconfig.json" />
     <None Include="exports.def">
       <Filter>Source Files</Filter>
     </None>
