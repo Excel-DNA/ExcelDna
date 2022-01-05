@@ -143,10 +143,10 @@ load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly()
 {
 	std::string configText = R"({
   "runtimeOptions": {
-    "tfm": "net5.0",
+    "tfm": "net6.0",
     "framework": {
       "name": "Microsoft.WindowsDesktop.App",
-      "version": "5.0.1"
+      "version": "6.0.0"
     }
   }
 })";

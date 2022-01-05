@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net5.0-windows</TargetFrameworks>
+    <TargetFrameworks>net6.0-windows</TargetFrameworks>
   </PropertyGroup>
   
   <ItemGroup>
@@ -14,10 +14,6 @@
     </None>
   </ItemGroup>
   
-  <ItemGroup>
-    <Folder Include="bin\Debug\net5.0-windows\" />
-  </ItemGroup>
-
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="xcopy /y $(SolutionDir)ExcelDna.Host\bin\$(ConfigurationName)\x64\ExcelDna.Host.x64.xll $(TargetDir)ExcelDna.Test-AddIn.xll*&#xD;&#xA;" />
   </Target>
