@@ -1,3 +1,0 @@
-﻿<DnaLibrary Name="NET5Minimal Add-In" >
-  <ExternalLibrary Path="NET5Minimal.dll" Pack="true" />
-</DnaLibrary>

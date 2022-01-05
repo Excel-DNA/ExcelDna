@@ -1,0 +1,3 @@
+﻿<DnaLibrary Name="NET6Minimal Add-In" >
+  <ExternalLibrary Path="NET6Minimal.dll" Pack="true" />
+</DnaLibrary>
