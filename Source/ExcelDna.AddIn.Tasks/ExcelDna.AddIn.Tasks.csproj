@@ -5,7 +5,7 @@
   <PropertyGroup>
     
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net5.0-windows;net452</TargetFrameworks>
+    <TargetFrameworks>net6.0-windows;net452</TargetFrameworks>
 
     <AssemblyTitle>Excel-DNA MSBuild Tasks</AssemblyTitle>
     <Description>MSBuild Tasks for Excel DNA</Description>
@@ -31,7 +31,7 @@
     <Reference Include="System.Management" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net5.0-windows' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net6.0-windows' ">
     <PackageReference Include="envdte" Version="16.9.31023.347" />
     <PackageReference Include="Microsoft.Build.Framework" Version="15.9.20" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="15.9.20" />

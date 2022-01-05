@@ -214,10 +214,10 @@
   <ItemDefinitionGroup>
     <PostBuildEvent>
       <Command>
-        copy "$(SolutionDir)ExcelDna.ManagedHost\bin\$(Configuration)\$(TargetFramework)\ExcelDna.ManagedHost.*" "$(TargetDir)"
-        copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\$(TargetFramework)\ExcelDna.Loader.*" "$(TargetDir)"
-        copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\$(TargetFramework)\ExcelDna.Integration.*" "$(TargetDir)"
-        "$(SolutionDir)ExcelDnaPack\bin\$(Configuration)\$(TargetFramework)\ExcelDnaPack.exe" PackXllBuild "$(OutDir)$(TargetName).xll" $(Configuration)
+        copy "$(SolutionDir)ExcelDna.ManagedHost\bin\$(Configuration)\net6.0-windows\ExcelDna.ManagedHost.*" "$(TargetDir)"
+        copy "$(SolutionDir)ExcelDna.Loader\bin\$(Configuration)\net6.0-windows\ExcelDna.Loader.*" "$(TargetDir)"
+        copy "$(SolutionDir)ExcelDna.Integration\bin\$(Configuration)\net6.0-windows\ExcelDna.Integration.*" "$(TargetDir)"
+        "$(SolutionDir)ExcelDnaPack\bin\$(Configuration)\net6.0-windows\ExcelDnaPack.exe" PackXllBuild "$(OutDir)$(TargetName).xll" $(Configuration)
       </Command>
       <Message>Copying ExcelDna.ManagedHost, ExcelDna.Loader and ExcelDna.Integration to target dir</Message>
     </PostBuildEvent>
