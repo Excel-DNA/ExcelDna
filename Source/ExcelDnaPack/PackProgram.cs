@@ -11,9 +11,9 @@ using ExcelDna.Integration;
 
 namespace ExcelDnaPack
 {
-	class PackProgram
-	{
-		static string usageInfo =
+    class PackProgram
+    {
+        static string usageInfo =
 @"ExcelDnaPack Usage
 ------------------
 ExcelDnaPack is a command-line utility to pack ExcelDna add-ins into a single .xll file.
@@ -59,23 +59,23 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
         }
 
         private static int Pack(string[] args)
-		{
+        {
 
-//			string testLib = @"C:\Work\ExcelDna\Version\ExcelDna-0.23\Source\ExcelDnaPack\bin\Debug\exceldna.xll";
-//			ResourceHelper.ResourceLister rl = new ResourceHelper.ResourceLister(testLib);
-//			rl.ListAll();
+            //			string testLib = @"C:\Work\ExcelDna\Version\ExcelDna-0.23\Source\ExcelDnaPack\bin\Debug\exceldna.xll";
+            //			ResourceHelper.ResourceLister rl = new ResourceHelper.ResourceLister(testLib);
+            //			rl.ListAll();
 
-//			//ResourceHelper.ResourceUpdater.Test(testLib);
-//			return;
+            //			//ResourceHelper.ResourceUpdater.Test(testLib);
+            //			return;
 
-			// Force jit-load of ExcelDna.Integration assembly
-			int unused = XlCall.xlAbort;
+            // Force jit-load of ExcelDna.Integration assembly
+            int unused = XlCall.xlAbort;
 
-			if (args.Length < 1)
-			{
-				Console.Write("No .dna file specified.\r\n\r\n" + usageInfo);
-				return 1;
-			}
+            if (args.Length < 1)
+            {
+                Console.Write("No .dna file specified.\r\n\r\n" + usageInfo);
+                return 1;
+            }
 
             // Special path when we're building ExcelDna, to pack Loader and Integration
             if (args[0] == "PackXllBuild")
@@ -86,22 +86,22 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                 return 0;
             }
 
-			string dnaPath = Path.GetFullPath(args[0]);
-			string dnaDirectory = Path.GetDirectoryName(dnaPath);
-//			string dnaFileName = Path.GetFileName(dnaPath);
-			string dnaFilePrefix = Path.GetFileNameWithoutExtension(dnaPath);
-			string configPath = Path.ChangeExtension(dnaPath, ".xll.config");
+            string dnaPath = Path.GetFullPath(args[0]);
+            string dnaDirectory = Path.GetDirectoryName(dnaPath);
+            //			string dnaFileName = Path.GetFileName(dnaPath);
+            string dnaFilePrefix = Path.GetFileNameWithoutExtension(dnaPath);
+            string configPath = Path.ChangeExtension(dnaPath, ".xll.config");
             string xllInputPath = Path.Combine(dnaDirectory, dnaFilePrefix + ".xll");
-			string xllOutputPath = Path.Combine(dnaDirectory, dnaFilePrefix + "-packed.xll");
+            string xllOutputPath = Path.Combine(dnaDirectory, dnaFilePrefix + "-packed.xll");
             bool overwrite = false;
             bool compress = true;
             bool multithreading = true;
 
-			if (!File.Exists(dnaPath))
-			{
-				Console.Error.Write("ERROR: Add-in .dna file " + dnaPath + " not found.\r\n\r\n" + usageInfo);
-				return 1;
-			}
+            if (!File.Exists(dnaPath))
+            {
+                Console.Error.Write("ERROR: Add-in .dna file " + dnaPath + " not found.\r\n\r\n" + usageInfo);
+                return 1;
+            }
 
             // TODO: Replace with an args-parsing routine.
             if (args.Length > 1)
@@ -121,7 +121,8 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                     else if (args[i].Equals("/Y", StringComparison.CurrentCultureIgnoreCase))
                     {
                         overwrite = true;
-                    } else
+                    }
+                    else
                     if (args[i].Equals("/NoCompression", StringComparison.CurrentCultureIgnoreCase))
                     {
                         compress = false;
@@ -131,33 +132,33 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                     {
                         multithreading = false;
                     }
-                    
+
                 }
             }
 
-			if (File.Exists(xllOutputPath))
-			{
-				if (overwrite == false)
-				{
-					Console.Write("Output .xll file " + xllOutputPath + " already exists. Overwrite? [Y/N] ");
-					string response = Console.ReadLine();
-					if (!response.Equals("Y", StringComparison.CurrentCultureIgnoreCase))
-					{
-						Console.WriteLine("\r\nNot overwriting existing file.\r\nExiting ExcelDnaPack.");
-						return 1;
-					}
-				}
+            if (File.Exists(xllOutputPath))
+            {
+                if (overwrite == false)
+                {
+                    Console.Write("Output .xll file " + xllOutputPath + " already exists. Overwrite? [Y/N] ");
+                    string response = Console.ReadLine();
+                    if (!response.Equals("Y", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        Console.WriteLine("\r\nNot overwriting existing file.\r\nExiting ExcelDnaPack.");
+                        return 1;
+                    }
+                }
 
-				try
-				{
-					File.Delete(xllOutputPath);
-				}
-				catch
-				{
-					Console.Error.Write("ERROR: Existing output .xll file " + xllOutputPath + "could not be deleted. (Perhaps loaded in Excel?)\r\n\r\nExiting ExcelDnaPack.");
-					return 1;
-				}
-			}
+                try
+                {
+                    File.Delete(xllOutputPath);
+                }
+                catch
+                {
+                    Console.Error.Write("ERROR: Existing output .xll file " + xllOutputPath + "could not be deleted. (Perhaps loaded in Excel?)\r\n\r\nExiting ExcelDnaPack.");
+                    return 1;
+                }
+            }
 
             string outputDirectory = Path.GetDirectoryName(xllOutputPath);
             if (outputDirectory == String.Empty)
@@ -167,8 +168,8 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 
             if (!Directory.Exists(outputDirectory))
             {
-				try
-				{
+                try
+                {
                     Directory.CreateDirectory(outputDirectory);
                 }
                 catch (Exception ex)
@@ -178,7 +179,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                 }
             }
 
-			// Find ExcelDna.xll to use.
+            // Find ExcelDna.xll to use.
             // First try <MyAddin>.xll
             if (!File.Exists(xllInputPath))
             {
@@ -196,69 +197,75 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                     }
                 }
             }
-			Console.WriteLine("Using base add-in " + xllInputPath);
+            Console.WriteLine("Using base add-in " + xllInputPath);
 
-			File.Copy(xllInputPath, xllOutputPath, false);
-			ResourceHelper.ResourceUpdater ru = new ResourceHelper.ResourceUpdater(xllOutputPath);
-			if (File.Exists(configPath))
-			{
-				ru.AddFile(File.ReadAllBytes(configPath), "__MAIN__",ResourceHelper.TypeName.CONFIG, false, multithreading);  // Name here must exactly match name in ExcelDnaLoad.cpp.
-			}
-			byte[] dnaBytes = File.ReadAllBytes(dnaPath);
-			byte[] dnaContentForPacking = PackDnaLibrary(dnaBytes, dnaDirectory, ru, compress, multithreading);
-			ru.AddFile(dnaContentForPacking, "__MAIN__",ResourceHelper.TypeName.DNA, false, multithreading); // Name here must exactly match name in DnaLibrary.Initialize.
-			ru.EndUpdate();
-			Console.WriteLine("Completed Packing {0}.", xllOutputPath);
+            File.Copy(xllInputPath, xllOutputPath, false);
+            ResourceHelper.ResourceUpdater ru = new ResourceHelper.ResourceUpdater(xllOutputPath);
+            if (File.Exists(configPath))
+            {
+                ru.AddFile(File.ReadAllBytes(configPath), "__MAIN__", ResourceHelper.TypeName.CONFIG, false, multithreading);  // Name here must exactly match name in ExcelDnaLoad.cpp.
+            }
+            byte[] dnaBytes = File.ReadAllBytes(dnaPath);
+            byte[] dnaContentForPacking = PackDnaLibrary(dnaBytes, dnaDirectory, ru, compress, multithreading);
+            ru.AddFile(dnaContentForPacking, "__MAIN__", ResourceHelper.TypeName.DNA, false, multithreading); // Name here must exactly match name in DnaLibrary.Initialize.
+            ru.EndUpdate();
+            Console.WriteLine("Completed Packing {0}.", xllOutputPath);
 #if DEBUG
-			Console.WriteLine("Press any key to exit.");
-			Console.ReadKey();
+            Console.WriteLine("Press any key to exit.");
+            try
+            {
+                Console.ReadKey();
+            }
+            catch (InvalidOperationException) // Exception when running pack when building in Visual Studio.
+            {
+            }
 #endif
             // All OK - set process exit code to 'Success'
             return 0;
         }
 
-		static int lastPackIndex = 0;
+        static int lastPackIndex = 0;
 
-		static byte[] PackDnaLibrary(byte[] dnaContent, string dnaDirectory, ResourceHelper.ResourceUpdater ru, bool compress, bool multithreading)
+        static byte[] PackDnaLibrary(byte[] dnaContent, string dnaDirectory, ResourceHelper.ResourceUpdater ru, bool compress, bool multithreading)
         {
             string errorMessage;
-			DnaLibrary dna = DnaLibrary.LoadFrom(dnaContent, dnaDirectory);
+            DnaLibrary dna = DnaLibrary.LoadFrom(dnaContent, dnaDirectory);
             if (dna == null)
             {
                 // TODO: Better error handling here.
                 errorMessage = "ERROR: .dna file could not be loaded. Possibly malformed xml content? ABORTING.";
                 throw new InvalidOperationException(errorMessage);
             }
-			if (dna.ExternalLibraries != null)
-			{
-			    bool copiedVersion = false;
-				foreach (ExternalLibrary ext in dna.ExternalLibraries)
-				{
-					var path = dna.ResolvePath(ext.Path);
-					if (!File.Exists(path))
-					{
-						errorMessage = string.Format("!!! ERROR: ExternalLibrary `{0}` not found. ABORTING.", ext.Path);
+            if (dna.ExternalLibraries != null)
+            {
+                bool copiedVersion = false;
+                foreach (ExternalLibrary ext in dna.ExternalLibraries)
+                {
+                    var path = dna.ResolvePath(ext.Path);
+                    if (!File.Exists(path))
+                    {
+                        errorMessage = string.Format("!!! ERROR: ExternalLibrary `{0}` not found. ABORTING.", ext.Path);
                         throw new InvalidOperationException(errorMessage);
-					}
+                    }
 
-					if (ext.Pack)
-					{
+                    if (ext.Pack)
+                    {
                         Console.WriteLine("  ~~> ExternalLibrary path {0} resolved to {1}.", ext.Path, path);
-						if (Path.GetExtension(path).Equals(".DNA", StringComparison.OrdinalIgnoreCase))
-						{
-							string name = Path.GetFileNameWithoutExtension(path).ToUpperInvariant() + "_" + lastPackIndex++ + ".DNA";
-							byte[] dnaContentForPacking = PackDnaLibrary(File.ReadAllBytes(path), Path.GetDirectoryName(path), ru, compress, multithreading);
-							ru.AddFile(dnaContentForPacking, name, ResourceHelper.TypeName.DNA, compress, multithreading);
-							ext.Path = "packed:" + name;
-						}
-						else
-						{
-							string packedName = ru.AddAssembly(path, compress, multithreading, ext.IncludePdb);
-							if (packedName != null)
-							{
-								ext.Path = "packed:" + packedName;
-							}
-						}
+                        if (Path.GetExtension(path).Equals(".DNA", StringComparison.OrdinalIgnoreCase))
+                        {
+                            string name = Path.GetFileNameWithoutExtension(path).ToUpperInvariant() + "_" + lastPackIndex++ + ".DNA";
+                            byte[] dnaContentForPacking = PackDnaLibrary(File.ReadAllBytes(path), Path.GetDirectoryName(path), ru, compress, multithreading);
+                            ru.AddFile(dnaContentForPacking, name, ResourceHelper.TypeName.DNA, compress, multithreading);
+                            ext.Path = "packed:" + name;
+                        }
+                        else
+                        {
+                            string packedName = ru.AddAssembly(path, compress, multithreading, ext.IncludePdb);
+                            if (packedName != null)
+                            {
+                                ext.Path = "packed:" + packedName;
+                            }
+                        }
                         if (ext.ComServer == true)
                         {
                             // Check for a TypeLib to pack
@@ -270,7 +277,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                                 if (resolvedTypeLibPath == null)
                                 {
                                     // Try relative to .dll
-                                    resolvedTypeLibPath = DnaLibrary.ResolvePath(ext.TypeLibPath, System.IO.Path.GetDirectoryName(path) ); // null is unresolved
+                                    resolvedTypeLibPath = DnaLibrary.ResolvePath(ext.TypeLibPath, System.IO.Path.GetDirectoryName(path)); // null is unresolved
                                     if (resolvedTypeLibPath == null)
                                     {
                                         errorMessage = string.Format("!!! ERROR: ExternalLibrary TypeLib path {0} could not be resolved.", ext.TypeLibPath);
@@ -294,109 +301,109 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                                 ext.TypeLibPath = "packed:" + packedIndex.ToString();
                             }
                         }
-					}
-				    if (ext.UseVersionAsOutputVersion)
-				    {
-				        if (copiedVersion)
-				        {
-				            Console.WriteLine("  ~~> Assembly version already copied from previous ExternalLibrary; ignoring 'UseVersionAsOutputVersion' attribute.");
-				            continue;
-				        }
-				        try
-				        {
-				            ru.CopyFileVersion(path);
-				            copiedVersion = true;
-				        }
-				        catch (Exception e)
-				        {
+                    }
+                    if (ext.UseVersionAsOutputVersion)
+                    {
+                        if (copiedVersion)
+                        {
+                            Console.WriteLine("  ~~> Assembly version already copied from previous ExternalLibrary; ignoring 'UseVersionAsOutputVersion' attribute.");
+                            continue;
+                        }
+                        try
+                        {
+                            ru.CopyFileVersion(path);
+                            copiedVersion = true;
+                        }
+                        catch (Exception e)
+                        {
                             errorMessage = string.Format("  ~~> ERROR: Error copying version to output version: {0}", e.Message);
                             throw new InvalidOperationException(errorMessage);
-				        }
-				    }
-				}
-			}
-			// Collect the list of all the references.
-			List<Reference> refs = new List<Reference>();
-			foreach (Project proj in dna.GetProjects())
-			{
-				if (proj.References != null)
-				{
-					refs.AddRange(proj.References);
-				}
-			}
-			// Fix-up if Reference is not part of a project, but just used to add an assembly for packing.
-			foreach (Reference rf in dna.References)
-			{
-				if (!refs.Contains(rf))
-					refs.Add(rf);
-			}
+                        }
+                    }
+                }
+            }
+            // Collect the list of all the references.
+            List<Reference> refs = new List<Reference>();
+            foreach (Project proj in dna.GetProjects())
+            {
+                if (proj.References != null)
+                {
+                    refs.AddRange(proj.References);
+                }
+            }
+            // Fix-up if Reference is not part of a project, but just used to add an assembly for packing.
+            foreach (Reference rf in dna.References)
+            {
+                if (!refs.Contains(rf))
+                    refs.Add(rf);
+            }
 
-			// Expand asterisk in filename of reference path, e.g. "./*.dll"
-			List<Reference> expandedReferences = new List<Reference>();
-			for (int i = refs.Count - 1; i >= 0; i--)
-			{
-				string path = refs[i].Path; 
-				if (path != null && path.Contains("*"))
-				{
-					var files = Directory.GetFiles(Path.GetDirectoryName(path), Path.GetFileName(path));
-					foreach (var file in files)
-					{
-						expandedReferences.Add(new Reference(Path.GetFullPath(file)) {Pack = true});
-					}
-					refs.RemoveAt(i);
-				}
-			}
-			refs.AddRange(expandedReferences);
+            // Expand asterisk in filename of reference path, e.g. "./*.dll"
+            List<Reference> expandedReferences = new List<Reference>();
+            for (int i = refs.Count - 1; i >= 0; i--)
+            {
+                string path = refs[i].Path;
+                if (path != null && path.Contains("*"))
+                {
+                    var files = Directory.GetFiles(Path.GetDirectoryName(path), Path.GetFileName(path));
+                    foreach (var file in files)
+                    {
+                        expandedReferences.Add(new Reference(Path.GetFullPath(file)) { Pack = true });
+                    }
+                    refs.RemoveAt(i);
+                }
+            }
+            refs.AddRange(expandedReferences);
 
-			// Now pack the references
-			foreach (Reference rf in refs)
-			{
-				if (rf.Pack)
-				{
-					string path = null;
-					if (rf.Path != null)
-					{
-						if (rf.Path.StartsWith("packed:"))
-						{
-							continue;
-						}
+            // Now pack the references
+            foreach (Reference rf in refs)
+            {
+                if (rf.Pack)
+                {
+                    string path = null;
+                    if (rf.Path != null)
+                    {
+                        if (rf.Path.StartsWith("packed:"))
+                        {
+                            continue;
+                        }
 
                         path = dna.ResolvePath(rf.Path);
                         Console.WriteLine("  ~~> Assembly path {0} resolved to {1}.", rf.Path, path);
                     }
-					if (path == null && rf.Name != null)
-					{
-						// Try Load as as last resort (and opportunity to load by FullName)
-						try
+                    if (path == null && rf.Name != null)
+                    {
+                        // Try Load as as last resort (and opportunity to load by FullName)
+                        try
                         {
-                            #pragma warning disable 0618
+#pragma warning disable 0618
                             Assembly ass = Assembly.LoadWithPartialName(rf.Name);
-                            #pragma warning restore 0618
+#pragma warning restore 0618
                             if (ass != null)
-							{
-								path = ass.Location;
-								Console.WriteLine("  ~~> Assembly {0} 'Load'ed from location {1}.", rf.Name, path);
-							}
-						}
-						catch (Exception e)
-						{
-							Console.WriteLine("  ~~> Assembly {0} not 'Load'ed. Exception: {1}", rf.Name, e);
-						}
-					}
-					if (path == null)
-					{
+                            {
+                                path = ass.Location;
+                                Console.WriteLine("  ~~> Assembly {0} 'Load'ed from location {1}.", rf.Name, path);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine("  ~~> Assembly {0} not 'Load'ed. Exception: {1}", rf.Name, e);
+                        }
+                    }
+                    if (path == null)
+                    {
                         errorMessage = string.Format("  ~~> ERROR: Reference with Path: {0} and Name: {1} NOT FOUND.", rf.Path, rf.Name);
                         throw new InvalidOperationException(errorMessage);
-					}
-					
-					// It worked!
-					string packedName = ru.AddAssembly(path, compress, multithreading, rf.IncludePdb);
-					if (packedName != null)
-					{
-						rf.Path = "packed:" + packedName;
-					}
-				}
-			}
+                    }
+
+                    // It worked!
+                    string packedName = ru.AddAssembly(path, compress, multithreading, rf.IncludePdb);
+                    if (packedName != null)
+                    {
+                        rf.Path = "packed:" + packedName;
+                    }
+                }
+            }
             foreach (Image image in dna.Images)
             {
                 if (image.Pack)
@@ -432,8 +439,8 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                     }
                 }
             }
-		    return DnaLibrary.Save(dna);
-		}
+            return DnaLibrary.Save(dna);
+        }
 
 
         static void PackXllBuild(string xllFullPath, bool includePdb)
@@ -446,6 +453,6 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
             ru.AddAssembly(Path.Combine(xllDir, "ExcelDna.Integration.dll"), compress: true, multithreading: false, includePdb);
             ru.EndUpdate();
         }
-	}
+    }
 
 }

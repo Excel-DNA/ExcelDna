@@ -1,6 +1,6 @@
 ﻿<Project>
 
-  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk"/>
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
     
@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ExcelDna.Integration\ExcelDna.Integration.csproj" />
+    <ProjectReference Include="..\ExcelDnaPack\ExcelDnaPack.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net452' ">
@@ -48,7 +49,7 @@
     </None>
   </ItemGroup>
 
-  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk"/>
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
   
   <Import Project="$(ProjectDir)Properties\ExcelDna.AddIn.Tasks.targets" />
 
