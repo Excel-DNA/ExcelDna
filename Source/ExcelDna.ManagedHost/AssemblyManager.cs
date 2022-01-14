@@ -260,11 +260,15 @@ namespace ExcelDna.ManagedHost
             IntPtr pResourceBytes = LockResource(hResData);
             byte[] resourceBytes = new byte[size];
 			Marshal.Copy(pResourceBytes, resourceBytes, 0, (int)size);
-			
+
+            byte[] resultBytes;
 			if (typeName.EndsWith("_LZMA"))
-				return Decompress(resourceBytes);
+				resultBytes = Decompress(resourceBytes);
 			else 
-				return resourceBytes;
+				resultBytes = resourceBytes;
+
+            XorRecode(resultBytes);
+            return resultBytes;
 		}
 
 		private static byte[] Decompress(byte[] inputBytes)
@@ -291,5 +295,16 @@ namespace ExcelDna.ManagedHost
 			return b;
 		}
 
-	}
+        static readonly byte[] _xorKeys = System.Text.Encoding.ASCII.GetBytes("ExcelDna");
+        static void XorRecode(byte[] data)
+        {
+            var keys = _xorKeys;
+            for (int i = 0; i < data.Length; i++)
+            {
+                data[i] = (byte)(keys[i % keys.Length] ^ data[i]);
+            }
+        }
+
+    }
+    
 }

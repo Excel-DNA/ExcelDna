@@ -420,8 +420,13 @@ HRESULT LoadAppDomain(ICorRuntimeHostPtr pHost, std::wstring addInFullPath, bool
 			void* pConfig = LockResource(hConfig);
 			DWORD sizeConfig = SizeofResource(hModuleCurrent, hResConfig);
 
+			SafeByteArray configBytes(pConfig, sizeConfig);
+			XorRecode(configBytes);
+
+			byte* pConfigData;
+			int nConfigSize = configBytes.AccessData(&pConfigData);
 			std::wstring tempConfigFileName;
-			hr = CreateTempFile(pConfig, sizeConfig, tempConfigFileName);
+			hr = CreateTempFile(pConfigData, nConfigSize, tempConfigFileName);
 			if (SUCCEEDED(hr))
 			{
 				pAppDomainSetup->put_ConfigurationFile(_bstr_t(tempConfigFileName.c_str()));
@@ -525,9 +530,10 @@ HRESULT LoadLoaderIntoAppDomain(_AppDomainPtr& pAppDomain, _AssemblyPtr& pLoader
 		}
 		HGLOBAL hLoader = LoadResource(hModuleCurrent, hResInfoLoader);
 		void* pLoader = LockResource(hLoader);
-		ULONG sizeLoader = (ULONG)SizeofResource(hModuleCurrent, hResInfoLoader);
-		
+		DWORD sizeLoader = SizeofResource(hModuleCurrent, hResInfoLoader);
+
 		SafeByteArray loaderBytes(pLoader, sizeLoader);
+		XorRecode(loaderBytes);
 
 		hr = pAppDomain->Load_3(loaderBytes, &pLoaderAssembly);
 		if (FAILED(hr))
@@ -956,10 +962,15 @@ HRESULT GetDnaHeader(bool showErrors, std::wstring& header)
 	if (hResDna != NULL)
 	{
 		HGLOBAL hDna = LoadResource(hModuleCurrent, hResDna);
-		DWORD sizeDna = SizeofResource(hModuleCurrent, hResDna);
 		void* pDna = LockResource(hDna);
+		DWORD sizeDna = SizeofResource(hModuleCurrent, hResDna);
+
 		headerLength = min(sizeDna, MAX_HEADER_LENGTH);
-		CopyMemory(headerBuffer, pDna, headerLength);
+		SafeByteArray dnaBytes(pDna, headerLength);
+		XorRecode(dnaBytes);
+
+		void* pData = ((LPSAFEARRAY)dnaBytes)->pvData;
+		CopyMemory(headerBuffer, pData, headerLength);
 	}
 	else
 	{
@@ -1008,7 +1019,7 @@ HRESULT GetDnaHeader(bool showErrors, std::wstring& header)
 	}
 	else
 	{
-		header = std::wstring((wchar_t*)headerBuffer, headerLength);
+		header = std::wstring((wchar_t*)headerBuffer, headerLength / 2);
 	}
 	return S_OK;
 }

@@ -67,10 +67,23 @@ SafeByteArray::SafeByteArray(void* data, int sizeInBytes)
 	memcpy(pArray->pvData, data, sizeInBytes);
 	SafeArrayUnlock(pArray);
 }
+
 SafeByteArray::~SafeByteArray()
 {
 	SafeArrayDestroy(pArray);
 }
+
+int SafeByteArray::AccessData(byte** ppData)
+{
+	SafeArrayAccessData(pArray, (void**)ppData);
+	return pArray->rgsabound->cElements;
+}
+
+void SafeByteArray::UnaccessData()
+{
+	SafeArrayUnaccessData(pArray);
+}
+
 
 bool FileExists(LPCTSTR szPath)
 {
@@ -181,4 +194,18 @@ std::wstring UTF8toUTF16(const std::string& utf8)
 		utf16.resize(len);
 	}
 	return utf16;
+}
+
+const byte* XorKeys = (byte*)"ExcelDna";
+int XorKeysLength = 8;
+
+void XorRecode(SafeByteArray& data)
+{
+	byte* pData;
+	int cbData = data.AccessData(&pData);
+	for (int i = 0; i < cbData; i++)
+	{
+		pData[i] = (byte)(XorKeys[i % XorKeysLength] ^ pData[i]);
+	}
+	data.UnaccessData();
 }

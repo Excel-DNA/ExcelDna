@@ -83,24 +83,24 @@ internal static class ResourceHelper
 	[DllImport("kernel32.dll")]
 	private static extern uint GetLastError();
 
-	internal class ResourceUpdater
-	{        
+    internal class ResourceUpdater
+    {
         int typelibIndex = 0;
-		IntPtr _hUpdate;
-		List<object> updateData = new List<object>();
+        IntPtr _hUpdate;
+        List<object> updateData = new List<object>();
 
         object lockResource = new object();
 
         Queue<ManualResetEvent> finishedTask = new Queue<ManualResetEvent>();
 
         public ResourceUpdater(string fileName)
-		{
-			_hUpdate = BeginUpdateResource(fileName, false);
-			if (_hUpdate == IntPtr.Zero)
-			{
-				throw new Win32Exception();
-			}
-		}
+        {
+            _hUpdate = BeginUpdateResource(fileName, false);
+            if (_hUpdate == IntPtr.Zero)
+            {
+                throw new Win32Exception();
+            }
+        }
 
         private void CompressDoUpdateHelper(byte[] content, string name, TypeName typeName, bool compress)
         {
@@ -111,6 +111,8 @@ internal static class ResourceHelper
 
         public string AddFile(byte[] content, string name, TypeName typeName, bool compress, bool multithreading)
         {
+            XorRecode(content);
+
             Debug.Assert(name == name.ToUpperInvariant());
 
             if (multithreading)
@@ -133,16 +135,16 @@ internal static class ResourceHelper
         }
 
         public string AddAssembly(string path, bool compress, bool multithreading, bool includePdb)
-		{
-			try
-			{
-				byte[] assemblyBytes = File.ReadAllBytes(path);
-				// Not just into the Reflection context, because this Load is used to get the name and also to 
-				// check that the assembly can Load from bytes (mixed assemblies can't).
-				Assembly assembly = Assembly.Load(assemblyBytes);
+        {
+            try
+            {
+                byte[] assemblyBytes = File.ReadAllBytes(path);
+                // Not just into the Reflection context, because this Load is used to get the name and also to 
+                // check that the assembly can Load from bytes (mixed assemblies can't).
+                Assembly assembly = Assembly.Load(assemblyBytes);
                 AssemblyName assemblyName = assembly.GetName();
                 CultureInfo cultureInfo = assemblyName.CultureInfo;
-				string name = assemblyName.Name.ToUpperInvariant(); // .ToUpperInvariant().Replace(".", "_");
+                string name = assemblyName.Name.ToUpperInvariant(); // .ToUpperInvariant().Replace(".", "_");
 
                 // For .resources assemblies we add the Culture name to the packed name
                 if (name.EndsWith(".RESOURCES") && cultureInfo != null && !string.IsNullOrEmpty(cultureInfo.Name))
@@ -158,14 +160,14 @@ internal static class ResourceHelper
                     byte[] pdbBytes = File.ReadAllBytes(pdbFile);
                     AddFile(pdbBytes, name, TypeName.PDB, compress, multithreading);
                 }
-				return name;
-			}
-			catch (Exception e)
-			{
-				Console.WriteLine("Assembly at " + path + " could not be packed. Possibly a mixed assembly? (These are not supported yet.)\r\nException: " + e);
-				return null;
-			}
-		}
+                return name;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Assembly at " + path + " could not be packed. Possibly a mixed assembly? (These are not supported yet.)\r\nException: " + e);
+                return null;
+            }
+        }
 
         public int AddTypeLib(byte[] data)
         {
@@ -188,8 +190,8 @@ internal static class ResourceHelper
             return typelibIndex;
         }
 
-		public void DoUpdateResource(string typeName, string name, byte[] data)
-		{
+        public void DoUpdateResource(string typeName, string name, byte[] data)
+        {
             lock (lockResource)
             {
                 Console.WriteLine(string.Format("  ->  Updating resource: Type: {0}, Name: {1}, Length: {2}", typeName, name, data.Length));
@@ -216,55 +218,55 @@ internal static class ResourceHelper
             }
         }
 
-	    public void CopyFileVersion(string fromFile)
-	    {
-	        uint ignored;
-	        uint versionSize = ResourceHelper.GetFileVersionInfoSize(fromFile, out ignored);
-	        if (versionSize == 0)
-	        {
-	            throw new Win32Exception();
-	        }
-            
+        public void CopyFileVersion(string fromFile)
+        {
+            uint ignored;
+            uint versionSize = ResourceHelper.GetFileVersionInfoSize(fromFile, out ignored);
+            if (versionSize == 0)
+            {
+                throw new Win32Exception();
+            }
+
             byte[] versionBuf = new byte[versionSize];
-	        bool result = ResourceHelper.GetFileVersionInfo(fromFile, ignored, versionSize, versionBuf);
-	        if (!result)
-	        {
-	            throw new Win32Exception();
-	        }
+            bool result = ResourceHelper.GetFileVersionInfo(fromFile, ignored, versionSize, versionBuf);
+            if (!result)
+            {
+                throw new Win32Exception();
+            }
 
-	        GCHandle versionBufHandle = GCHandle.Alloc(versionBuf, GCHandleType.Pinned);
+            GCHandle versionBufHandle = GCHandle.Alloc(versionBuf, GCHandleType.Pinned);
             try
-	        {
-	            lock (lockResource)
-	            {
-	                uint versionResourceType = 16;
-	                uint versionResourceId = 1;
-	                result = ResourceHelper.UpdateResource(
-	                    _hUpdate,
-	                    versionResourceType,
-	                    versionResourceId,
-	                    localeNeutral,
-	                    versionBufHandle.AddrOfPinnedObject(),
-	                    versionSize);
-	                if (!result)
-	                {
-	                    throw new Win32Exception();
-	                }
-	            }
-	        }
-	        finally
-	        {
-	            versionBufHandle.Free();
-	        }
-	    }
+            {
+                lock (lockResource)
+                {
+                    uint versionResourceType = 16;
+                    uint versionResourceId = 1;
+                    result = ResourceHelper.UpdateResource(
+                        _hUpdate,
+                        versionResourceType,
+                        versionResourceId,
+                        localeNeutral,
+                        versionBufHandle.AddrOfPinnedObject(),
+                        versionSize);
+                    if (!result)
+                    {
+                        throw new Win32Exception();
+                    }
+                }
+            }
+            finally
+            {
+                versionBufHandle.Free();
+            }
+        }
 
-		public void EndUpdate()
-		{
-			EndUpdate(false);
-		}
+        public void EndUpdate()
+        {
+            EndUpdate(false);
+        }
 
-		public void EndUpdate(bool discard)
-		{
+        public void EndUpdate(bool discard)
+        {
             if (finishedTask.Count > 0)
             {
                 while (finishedTask.Count > 0)
@@ -283,10 +285,20 @@ internal static class ResourceHelper
             }
 
             bool result = EndUpdateResource(_hUpdate, discard);
-			if (!result)
-			{
-				throw new Win32Exception();
-			}
-		}
-	}
+            if (!result)
+            {
+                throw new Win32Exception();
+            }
+        }
+
+        static readonly byte[] _xorKeys = System.Text.Encoding.ASCII.GetBytes("ExcelDna");
+        static void XorRecode(byte[] data)
+        {
+            var keys = _xorKeys;
+            for (int i = 0; i < data.Length; i++)
+            {
+                data[i] = (byte)(keys[i % keys.Length] ^ data[i]);
+            }
+        }
+    }
 }
