@@ -73,8 +73,13 @@ int load_runtime_and_run(LPCWSTR basePath, XlAddInExportInfo* pExportInfo, HMODU
 	assert(buf != NULL && "Failure: LockResource EXCELDNA.MANAGEDHOST");
 
 	DWORD resSize = SizeofResource(hModuleXll, hResManagedHost);
+	SafeByteArray safeBytes(buf, resSize);
+	XorRecode(safeBytes);
+	byte* pData;
+	int nSize = safeBytes.AccessData(&pData);
+
 	std::wstring hostFile = PathCombine(tempDir.GetPath(), L"ExcelDna.ManagedHost.dll");
-	HRESULT hr = WriteAllBytes(hostFile, buf, resSize);
+	HRESULT hr = WriteAllBytes(hostFile, pData, nSize);
 	assert(SUCCEEDED(hr) && "Failure: saving EXCELDNA.MANAGEDHOST");
 
 	//
