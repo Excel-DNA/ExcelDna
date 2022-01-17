@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using ExcelDna.AddIn.Tasks.IntegrationTests.Utils;
+using Microsoft.VisualStudio.Setup.Configuration;
 using NUnit.Framework;
 
 namespace ExcelDna.AddIn.Tasks.IntegrationTests
@@ -65,6 +66,28 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
 
         private static string GetMsBuildPath()
         {
+            try
+            {
+                var vsConfiguration = new SetupConfiguration();
+                var vsInstancesEnumerator = vsConfiguration.EnumAllInstances();
+                int fetched;
+                var vsInstances = new ISetupInstance[1];
+                do
+                {
+                    vsInstancesEnumerator.Next(1, vsInstances, out fetched);
+                    if (fetched > 0)
+                    {
+                        var vsInstance = vsInstances[0];
+                        if (vsInstance.GetInstallationVersion().StartsWith("17.")) // Visual Studio 2022
+                            return vsInstance.ResolvePath(@"Msbuild\Current\Bin\amd64\MSBuild.exe");
+                    }
+                }
+                while (fetched > 0);
+            }
+            catch (Exception)
+            {
+            }
+
             string msBuildPath;
 
             var programFilesDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
@@ -150,6 +173,14 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
             }
         }
 
+        protected void AssertFileContains(string fileName, string text)
+        {
+            if (!File.ReadAllText(fileName).Contains(text))
+            {
+                Assert.Fail($"Text {text} not found in {Path.GetFileName(fileName)}.");
+            }
+        }
+
         protected void AssertIdentical(string fileName1, string fileName2)
         {
             if (!File.Exists(fileName1))
@@ -173,7 +204,7 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
                 Assert.Fail("File {0} does not exist", xllFileName);
             }
 
-            Assert.IsTrue(FilesHaveEqualHash(xllFileName, @"..\.exceldna.addin\tools\ExcelDna.xll"), "{0} is not a 32-bit .xll file",
+            Assert.IsTrue(FilesHaveEqualHash(xllFileName, @"..\.exceldna.addin\tools\net452\ExcelDna.xll"), "{0} is not a 32-bit .xll file",
                 xllFileName);
         }
 
@@ -184,7 +215,7 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
                 Assert.Fail("File {0} does not exist", xllFileName);
             }
 
-            Assert.IsTrue(FilesHaveEqualHash(xllFileName, @"..\.exceldna.addin\tools\ExcelDna64.xll"), "{0} is not a 64-bit .xll file",
+            Assert.IsTrue(FilesHaveEqualHash(xllFileName, @"..\.exceldna.addin\tools\net452\ExcelDna64.xll"), "{0} is not a 64-bit .xll file",
                 xllFileName);
         }
 

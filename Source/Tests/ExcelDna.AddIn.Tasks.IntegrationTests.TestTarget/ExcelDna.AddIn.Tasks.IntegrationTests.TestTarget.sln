@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27428.2043
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.31911.260
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SingleDnaFileDefaultSuffix", "SingleDnaFileDefaultSuffix\SingleDnaFileDefaultSuffix.csproj", "{69CFC6E4-EAF6-416A-B462-B586DC3E051D}"
 EndProject
@@ -30,6 +30,22 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AddInInsideSolutionFolder", "AddInInsideSolutionFolder\AddInInsideSolutionFolder.csproj", "{502A14C5-C058-42BC-A70F-C899ECD58245}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectWithNameEndingIn64", "ProjectWithNameEndingIn64\ProjectWithNameEndingIn64.csproj", "{D6A3CFD5-0608-480A-8900-765D4C2A5395}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NET6Minimal", "NET6Minimal\NET6Minimal.csproj", "{E56095FC-56A6-471E-B2A1-455A1233E8B5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDKMinimal", "SDKMinimal\SDKMinimal.csproj", "{289B64DC-D79F-46D6-B0D1-D571A8E015A8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDKMinimalWithoutDna", "SDKMinimalWithoutDna\SDKMinimalWithoutDna.csproj", "{EC633DB3-46C8-48F1-95AC-F091F94DE2E7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDKExcelDnaCreate32BitAddInFalse", "SDKExcelDnaCreate32BitAddInFalse\SDKExcelDnaCreate32BitAddInFalse.csproj", "{499DDA04-C828-4AAB-8BF2-B6477894AB6B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDKExcelAddInName", "SDKExcelAddInName\SDKExcelAddInName.csproj", "{1D477F66-41E0-4316-B0FB-5FD5AE4F2A7F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDKExcelAddInFileName", "SDKExcelAddInFileName\SDKExcelAddInFileName.csproj", "{4ECB1171-AB3D-4DBA-A945-26096FEDDC32}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDKExcelAddInInclude", "SDKExcelAddInInclude\SDKExcelAddInInclude.csproj", "{E8736ACA-803C-4AB6-97C6-E077EDDB41DA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDKExcelAddInExternalLibraryPath", "SDKExcelAddInExternalLibraryPath\SDKExcelAddInExternalLibraryPath.csproj", "{AA01958C-ECBF-4CD7-826E-917A96E49855}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -89,6 +105,38 @@ Global
 		{D6A3CFD5-0608-480A-8900-765D4C2A5395}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D6A3CFD5-0608-480A-8900-765D4C2A5395}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D6A3CFD5-0608-480A-8900-765D4C2A5395}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E56095FC-56A6-471E-B2A1-455A1233E8B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E56095FC-56A6-471E-B2A1-455A1233E8B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E56095FC-56A6-471E-B2A1-455A1233E8B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E56095FC-56A6-471E-B2A1-455A1233E8B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{289B64DC-D79F-46D6-B0D1-D571A8E015A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{289B64DC-D79F-46D6-B0D1-D571A8E015A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{289B64DC-D79F-46D6-B0D1-D571A8E015A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{289B64DC-D79F-46D6-B0D1-D571A8E015A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC633DB3-46C8-48F1-95AC-F091F94DE2E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC633DB3-46C8-48F1-95AC-F091F94DE2E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC633DB3-46C8-48F1-95AC-F091F94DE2E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC633DB3-46C8-48F1-95AC-F091F94DE2E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{499DDA04-C828-4AAB-8BF2-B6477894AB6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{499DDA04-C828-4AAB-8BF2-B6477894AB6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{499DDA04-C828-4AAB-8BF2-B6477894AB6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{499DDA04-C828-4AAB-8BF2-B6477894AB6B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D477F66-41E0-4316-B0FB-5FD5AE4F2A7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D477F66-41E0-4316-B0FB-5FD5AE4F2A7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D477F66-41E0-4316-B0FB-5FD5AE4F2A7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D477F66-41E0-4316-B0FB-5FD5AE4F2A7F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4ECB1171-AB3D-4DBA-A945-26096FEDDC32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4ECB1171-AB3D-4DBA-A945-26096FEDDC32}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4ECB1171-AB3D-4DBA-A945-26096FEDDC32}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4ECB1171-AB3D-4DBA-A945-26096FEDDC32}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E8736ACA-803C-4AB6-97C6-E077EDDB41DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8736ACA-803C-4AB6-97C6-E077EDDB41DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8736ACA-803C-4AB6-97C6-E077EDDB41DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8736ACA-803C-4AB6-97C6-E077EDDB41DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA01958C-ECBF-4CD7-826E-917A96E49855}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA01958C-ECBF-4CD7-826E-917A96E49855}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA01958C-ECBF-4CD7-826E-917A96E49855}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA01958C-ECBF-4CD7-826E-917A96E49855}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

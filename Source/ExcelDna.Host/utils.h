@@ -15,7 +15,7 @@ private:
 };
 
 template <int size>
-int CompareNoCase(const std::wstring & str1, wchar_t const (&str2)[size])
+int CompareNoCase(const std::wstring& str1, wchar_t const (&str2)[size])
 {
 	return _wcsnicmp(str1.c_str(), str2, size - 1);
 }
@@ -41,6 +41,8 @@ public:
 	SafeByteArray(void* data, int sizeInBytes);
 	~SafeByteArray();
 	operator LPSAFEARRAY() { return pArray; }
+	int AccessData(byte** ppData);
+	void UnaccessData();
 private:
 	LPSAFEARRAY pArray;
 };
@@ -75,3 +77,10 @@ private:
 };
 
 std::wstring UTF8toUTF16(const std::string& utf8);
+
+void XorRecode(SafeByteArray& data);
+
+HRESULT WriteAllBytes(const std::wstring& filePath, void* buf, DWORD size);
+
+std::wstring PathCombine(const std::wstring& path1, const std::wstring& path2);
+std::wstring PathCombine(const std::wstring& path1, const std::wstring& path2, const std::wstring& path3);

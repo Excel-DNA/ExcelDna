@@ -1,0 +1,3 @@
+﻿<DnaLibrary Name="SDKMinimal Add-In" RuntimeVersion="v4.0">
+  <ExternalLibrary Path="SDKMinimal.dll" Pack="true" />
+</DnaLibrary>
