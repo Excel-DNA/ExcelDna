@@ -1,6 +1,8 @@
 Version 1.6.0 (???)
 -------------------
 * Encode packed files to reduce AV false positives
+* Support for SDK-style project files / PackageReference
+* Preview of .NET 6 support (.net6.0-windows TargetFramework)
 
 Version 1.5.1 (22 December 2021)
 --------------------------------

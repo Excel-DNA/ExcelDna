@@ -62,7 +62,6 @@ namespace ExcelDna.Loader
         internal static Func<string, Assembly> LoadAssemblyFromPath;  // Passed in from Loader
         internal static Func<byte[], byte[], Assembly> LoadAssemblyFromBytes;  // Passed in from Loader
         internal static Action<TraceSource> SetIntegrationTraceSource;  // Passed in from Loader
-        internal static Action<TraceSource> SetIntegrationLoad;  // Passed in from Loader
 
         static int xlCallVersion;
         internal static int XlCallVersion { get { return xlCallVersion; } }

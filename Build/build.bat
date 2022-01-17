@@ -23,4 +23,6 @@ copy /Y ..\Source\ExcelDna.AddIn.Tasks\bin\Release\net452\ExcelDna.AddIn.Tasks.p
 copy /Y ..\Source\ExcelDna.AddIn.Tasks\bin\Release\net6.0-windows\ExcelDna.AddIn.Tasks.dll ..\Package\ExcelDna.AddIn\tools\net6.0-windows\
 copy /Y ..\Source\ExcelDna.AddIn.Tasks\bin\Release\net6.0-windows\ExcelDna.AddIn.Tasks.pdb ..\Package\ExcelDna.AddIn\tools\net6.0-windows\
 
+copy /Y ..\Distribution\net452\ ..\Distribution\
+
 pause
