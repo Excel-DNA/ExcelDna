@@ -223,15 +223,19 @@
     </PostBuildEvent>
     <ClCompile>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp20</LanguageStandard>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Async</ExceptionHandling>
     </ClCompile>
     <ClCompile>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">stdcpp20</LanguageStandard>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Async</ExceptionHandling>
     </ClCompile>
     <ClCompile>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdcpp20</LanguageStandard>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Async</ExceptionHandling>
     </ClCompile>
     <ClCompile>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpp20</LanguageStandard>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Async</ExceptionHandling>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -239,6 +243,7 @@
     <ClCompile Include="exports32.cpp" />
     <ClCompile Include="host.cpp" />
     <ClCompile Include="loader.cpp" />
+    <ClCompile Include="LPenHelper.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="TempDir.cpp" />
     <ClCompile Include="utils.cpp" />
@@ -251,6 +256,7 @@
     <ClInclude Include="exports.h" />
     <ClInclude Include="host.h" />
     <ClInclude Include="loader.h" />
+    <ClInclude Include="LPenHelper.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="TempDir.h" />
     <ClInclude Include="utils.h" />

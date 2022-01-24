@@ -203,6 +203,18 @@
       </Command>
       <Message>Copying ExcelDna.ManagedHost, ExcelDna.Loader and ExcelDna.Integration to target dir</Message>
     </PostBuildEvent>
+    <ClCompile>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Async</ExceptionHandling>
+    </ClCompile>
+    <ClCompile>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Async</ExceptionHandling>
+    </ClCompile>
+    <ClCompile>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Async</ExceptionHandling>
+    </ClCompile>
+    <ClCompile>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Async</ExceptionHandling>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DetectFx.cpp" />
@@ -216,6 +228,7 @@
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsManaged>
     </ClCompile>
+    <ClCompile Include="LPenHelper.cpp" />
     <ClCompile Include="MiscUtils.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -230,6 +243,7 @@
     <ClInclude Include="DetectFx.h" />
     <ClInclude Include="ExcelDna.h" />
     <ClInclude Include="ExcelDnaLoader.h" />
+    <ClInclude Include="LPenHelper.h" />
     <ClInclude Include="metahost_extract.h" />
     <ClInclude Include="MiscUtils.h" />
     <ClInclude Include="mscorlib_extract.h" />

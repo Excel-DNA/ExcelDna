@@ -36,6 +36,9 @@
     <ClCompile Include="TempDir.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LPenHelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def">
@@ -62,6 +65,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TempDir.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LPenHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

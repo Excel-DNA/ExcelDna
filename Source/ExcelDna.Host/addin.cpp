@@ -3,9 +3,9 @@
 // xllhost.cpp : Defines the entry point for the XLL host
 #include "loader.h"
 #include "exports.h"
+#include "LPenHelper.h"
 
 static HMODULE hModuleCurrent;
-
 
 // Minimal parts of XLOPER types, 
 // used only for xlAddInManagerInfo(12). Really.
@@ -39,13 +39,13 @@ bool autoOpened = false; // Not set when loaded for COM server only. Used for re
 // The actual thunk table 
 extern "C"
 {
-    PFN thunks[EXPORT_COUNT];
+	PFN thunks[EXPORT_COUNT];
 }
 
 XlAddInExportInfo* CreateExportInfo()
 {
 	pExportInfo = new XlAddInExportInfo();
-	pExportInfo->ExportInfoVersion = 9;
+	pExportInfo->ExportInfoVersion = 10;
 	pExportInfo->pXlAutoOpen = NULL;
 	pExportInfo->pXlAutoClose = NULL;
 	pExportInfo->pXlAutoRemove = NULL;
@@ -59,6 +59,7 @@ XlAddInExportInfo* CreateExportInfo()
 	pExportInfo->pRegistrationInfo = NULL;
 	pExportInfo->pCalculationCanceled = NULL;
 	pExportInfo->pCalculationEnded = NULL;
+	pExportInfo->pLPenHelper = LPenHelper;
 	pExportInfo->ThunkTableLength = EXPORT_COUNT;
 	pExportInfo->ThunkTable = (PFN*)thunks;
 	return pExportInfo;

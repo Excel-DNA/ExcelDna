@@ -26,8 +26,8 @@ namespace ExcelDna.Loader
     // CAUTION: This struct is also defined in the unmanaged loader.
     internal struct XlAddInExportInfo
     {
-        #pragma warning disable 0649 // Field 'field' is never assigned to, and will always have its default value 'value'
-        internal Int32 ExportInfoVersion; // Must be 9 for this version
+#pragma warning disable 0649 // Field 'field' is never assigned to, and will always have its default value 'value'
+        internal Int32 ExportInfoVersion; // Must be 10 for this version
         internal Int32 AppDomainId; // Id of the Sandbox AppDomain where the add-in runs.
         internal IntPtr /* PFN_SHORT_VOID */            pXlAutoOpen;
         internal IntPtr /* PFN_SHORT_VOID */            pXlAutoClose;
@@ -42,9 +42,10 @@ namespace ExcelDna.Loader
         internal IntPtr /* PFN_LPXLOPER12_LPXLOPER12 */ pRegistrationInfo;
         internal IntPtr /* PFN_VOID_VOID */             pCalculationCanceled;
         internal IntPtr /* PFN_VOID_VOID */             pCalculationEnded;
+        internal IntPtr /* PFN_LPENHELPER */            pLPenHelper;
         internal Int32 ThunkTableLength;  // Must be EXPORT_COUNT
         internal IntPtr /*PFN*/ ThunkTable; // Actually (PFN ThunkTable[EXPORT_COUNT])
-        #pragma warning restore 0649
+#pragma warning restore 0649
     };
 
     // CAUTION: This type is loaded by reflection from the unmanaged loader.
@@ -57,11 +58,14 @@ namespace ExcelDna.Loader
         internal static IntPtr hModuleXll;
 
         // Consider: When does this become an interface. etc
-        internal static string PathXll { get; private set;}
+        internal static string PathXll { get; private set; }
         internal static Func<string, int, byte[]> GetResourceBytes;  // Passed in from Loader
         internal static Func<string, Assembly> LoadAssemblyFromPath;  // Passed in from Loader
         internal static Func<byte[], byte[], Assembly> LoadAssemblyFromBytes;  // Passed in from Loader
         internal static Action<TraceSource> SetIntegrationTraceSource;  // Passed in from Loader
+
+        internal delegate int LPenHelperDelegate(int wCode, ref XlCall.FmlaInfo fmlaInfo);
+        internal static LPenHelperDelegate LPenHelper;
 
         static int xlCallVersion;
         internal static int XlCallVersion { get { return xlCallVersion; } }
@@ -71,7 +75,7 @@ namespace ExcelDna.Loader
 
         #region Initialization
 
-		public static bool Initialize(IntPtr xlAddInExportInfoAddress, IntPtr hModuleXll, string pathXll,
+        public static bool Initialize(IntPtr xlAddInExportInfoAddress, IntPtr hModuleXll, string pathXll,
                                              Func<string, int, byte[]> getResourceBytes,
                                              Func<string, Assembly> loadAssemblyFromPath,
                                              Func<byte[], byte[], Assembly> loadAssemblyFromBytes,
@@ -88,10 +92,10 @@ namespace ExcelDna.Loader
             Debug.Print("In sandbox AppDomain with Id: {0}, running on thread: {1}", AppDomain.CurrentDomain.Id, Thread.CurrentThread.ManagedThreadId);
             Debug.Assert(xlAddInExportInfoAddress != IntPtr.Zero, "InitializationInfo address is null");
             Debug.Print("InitializationInfo address: 0x{0:x8}", xlAddInExportInfoAddress);
-			
-			XlAddInExportInfo* pXlAddInExportInfo = (XlAddInExportInfo*)xlAddInExportInfoAddress;
+
+            XlAddInExportInfo* pXlAddInExportInfo = (XlAddInExportInfo*)xlAddInExportInfoAddress;
             int exportInfoVersion = pXlAddInExportInfo->ExportInfoVersion;
-            if (exportInfoVersion != 9)
+            if (exportInfoVersion != 10)
             {
                 Debug.Print("ExportInfoVersion '{0}' not supported", exportInfoVersion);
                 return false;
@@ -149,13 +153,15 @@ namespace ExcelDna.Loader
             GCHandle.Alloc(fnCalculationEnded);
             pXlAddInExportInfo->pCalculationEnded = Marshal.GetFunctionPointerForDelegate(fnCalculationEnded);
 
+            LPenHelper = (LPenHelperDelegate)Marshal.GetDelegateForFunctionPointer(pXlAddInExportInfo->pLPenHelper, typeof(LPenHelperDelegate));
+
             // Thunk table for registered functions
             thunkTableLength = pXlAddInExportInfo->ThunkTableLength;
             thunkTable = pXlAddInExportInfo->ThunkTable;
 
-			// This is the place where we call into Excel - this causes SecurityPermission exception
-			// when run from VSTO. I don't know how to deal with this problem yet.
-			// TODO: Learn more about the special security stuff in VSTO.
+            // This is the place where we call into Excel - this causes SecurityPermission exception
+            // when run from VSTO. I don't know how to deal with this problem yet.
+            // TODO: Learn more about the special security stuff in VSTO.
             //       See ExecutionContext.SuppressFlow links below.
             try
             {
@@ -165,7 +171,7 @@ namespace ExcelDna.Loader
             {
                 // This is expected if we are running under HPC or Regsvr32.
                 Debug.Print("XlCall library not found - probably running in HPC host or Regsvr32.exe");
-                
+
                 // For the HPC support, I ignore error here and just assume we are under new Excel.
                 // This will cause the common error here to get pushed to later ...
                 XlAddIn.xlCallVersion = 12;
@@ -209,7 +215,7 @@ namespace ExcelDna.Loader
                 pThunkTable[fi] = (void*)pfn;
             }
         }
-    
+
         private static void InitializeIntegration()
         {
             if (!_initialized)
@@ -243,7 +249,7 @@ namespace ExcelDna.Loader
         internal static short XlAutoOpen()
         {
             Debug.Print("XlAddIn.XlAutoOpen - AppDomain Id: " + AppDomain.CurrentDomain.Id + " (Default: " + AppDomain.CurrentDomain.IsDefaultAppDomain() + ")");
-			short result = 0;
+            short result = 0;
             try
             {
                 if (_opened)
@@ -254,7 +260,7 @@ namespace ExcelDna.Loader
                 XlCallImpl.TryExcelImpl(XlCallImpl.xlcMessage, out xlCallResult /*Ignore*/ , true, "Registering library " + PathXll);
                 InitializeIntegration();
                 Logger.Initialization.Verbose("In XlAddIn.XlAutoOpen");
-                
+
                 // v. 30 - moved the setting of _opened before calling AutoOpen, 
                 // so that checking in DeInitializeIntegration does not prevent AutoOpen - unloading via xlAutoRemove from working.
                 _opened = true;
@@ -268,8 +274,8 @@ namespace ExcelDna.Loader
             {
                 // Can't use logging here
                 string alertMessage = string.Format("A problem occurred while an add-in was being initialized (InitializeIntegration failed - {1}).\r\nThe add-in is built with ExcelDna and is being loaded from {0}", PathXll, e.Message);
-				object xlCallResult;
-				XlCallImpl.TryExcelImpl(XlCallImpl.xlcAlert, out xlCallResult /*Ignored*/, alertMessage , 3 /* Only OK Button, Warning Icon*/);
+                object xlCallResult;
+                XlCallImpl.TryExcelImpl(XlCallImpl.xlcAlert, out xlCallResult /*Ignored*/, alertMessage, 3 /* Only OK Button, Warning Icon*/);
                 result = 0;
             }
             finally
@@ -300,7 +306,7 @@ namespace ExcelDna.Loader
         }
 
         // No longer exported (or called) from native loader.
-		internal static short XlAutoAdd()
+        internal static short XlAutoAdd()
         {
             // AutoOpen will get called too, where we set everything up ...
             short result = 0;
@@ -317,7 +323,7 @@ namespace ExcelDna.Loader
             return result;
         }
 
-		internal static short XlAutoRemove()
+        internal static short XlAutoRemove()
         {
             short result = 0;
             try
@@ -336,7 +342,7 @@ namespace ExcelDna.Loader
             return result;
         }
 
-		internal static void XlAutoFree12(IntPtr pXloper12)
+        internal static void XlAutoFree12(IntPtr pXloper12)
         {
             // CONSIDER: This might be improved....
             // Another option would be to have the Com memory allocator run in unmanaged code.
@@ -376,9 +382,9 @@ namespace ExcelDna.Loader
             InitializeIntegration();
             return ExcelIntegration.DllCanUnloadNow();
         }
-#endregion
+        #endregion
 
-#region Extensions support
+        #region Extensions support
         internal static void SyncMacro(double dValue)
         {
             if (_initialized)
@@ -414,7 +420,7 @@ namespace ExcelDna.Loader
             if (_initialized)
                 ExcelIntegration.CalculationEnded();
         }
-#endregion
+        #endregion
     }
 }
 
