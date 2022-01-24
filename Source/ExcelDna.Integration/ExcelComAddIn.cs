@@ -47,6 +47,7 @@ namespace ExcelDna.Integration
 
         public virtual void OnDisconnection(ext_DisconnectMode RemoveMode, ref Array custom)
         {
+            SynchronizationManager.Uninstall();
             Logger.ComAddIn.Verbose("ExcelComAddIn.OnDisconnection");
         }
 

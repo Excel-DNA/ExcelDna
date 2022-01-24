@@ -88,7 +88,7 @@ namespace ExcelDna.Integration
         {
             get
             {
-                if (_syncWindow != null && _syncWindow.RunMacroSynchronization.IsRegistered) 
+                if (_syncWindow != null && _syncWindow.RunMacroSynchronization.IsRegistered)
                     return _syncWindow.RunMacroSynchronization;
 
                 return null;
@@ -343,7 +343,7 @@ namespace ExcelDna.Integration
 
             object xlCallResult;
             XlCall.TryExcel(XlCall.xlfRegister, out xlCallResult, registerParameters);
-            Logger.Registration.Verbose("Register SyncMacro - XllPath={0}, ProcName={1}, FunctionType={2}, MethodName={3} - Result={4}", 
+            Logger.Registration.Verbose("Register SyncMacro - XllPath={0}, ProcName={1}, FunctionType={2}, MethodName={3} - Result={4}",
                 registerParameters[0], registerParameters[1], registerParameters[2], registerParameters[3], xlCallResult);
             if (xlCallResult is double)
             {
@@ -363,8 +363,20 @@ namespace ExcelDna.Integration
         void Unregister()
         {
             // Clear the name and unregister
-            XlCall.Excel(XlCall.xlfSetName, _syncMacroName);
-            XlCall.Excel(XlCall.xlfUnregister, _syncMacroRegistrationId);
+            try
+            {
+                XlCall.Excel(XlCall.xlfSetName, _syncMacroName);
+            }
+            catch (XlCallException)
+            {
+            }
+            try
+            {
+                XlCall.Excel(XlCall.xlfUnregister, _syncMacroRegistrationId);
+            }
+            catch (XlCallException)
+            {
+            }
             _syncMacroRegistrationId = null;
         }
 
@@ -411,7 +423,7 @@ namespace ExcelDna.Integration
                     }
                     else
                     {
-                        if (   (int)result != E_FAIL
+                        if ((int)result != E_FAIL
                             && (int)result != E_NA)
                         {
                             Logger.Registration.Error("Unexpected return value from Application.Run(\"SyncMacro_...\") - " + result);
@@ -477,7 +489,7 @@ namespace ExcelDna.Integration
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         static extern IntPtr GetFocus();
-        
+
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
 
