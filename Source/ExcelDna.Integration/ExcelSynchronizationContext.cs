@@ -88,7 +88,7 @@ namespace ExcelDna.Integration
         {
             get
             {
-                if (_syncWindow != null && _syncWindow.RunMacroSynchronization.IsRegistered) 
+                if (_syncWindow != null && _syncWindow.RunMacroSynchronization.IsRegistered)
                     return _syncWindow.RunMacroSynchronization;
 
                 return null;
@@ -343,7 +343,7 @@ namespace ExcelDna.Integration
 
             object xlCallResult;
             XlCall.TryExcel(XlCall.xlfRegister, out xlCallResult, registerParameters);
-            Logger.Registration.Verbose("Register SyncMacro - XllPath={0}, ProcName={1}, FunctionType={2}, MethodName={3} - Result={4}", 
+            Logger.Registration.Verbose("Register SyncMacro - XllPath={0}, ProcName={1}, FunctionType={2}, MethodName={3} - Result={4}",
                 registerParameters[0], registerParameters[1], registerParameters[2], registerParameters[3], xlCallResult);
             if (xlCallResult is double)
             {
@@ -477,7 +477,7 @@ namespace ExcelDna.Integration
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         static extern IntPtr GetFocus();
-        
+
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
 
@@ -502,22 +502,9 @@ namespace ExcelDna.Integration
             return openMenuButton.Enabled;
         }
 
-        // The call to LPenHelper will cause an AccessViolation after Excel starts shutting down.
-        // NOTE .NET6+: If this assembly is run under .NET 6+ we need to re-engineer this call to handle possible access violations outside the managed code,
-        // or figure out the source and timing of safe vs dangerous calls.
-
-        [HandleProcessCorruptedStateExceptions]
         static int CallPenHelper(int wCode, ref XlCall.FmlaInfo fmlaInfo)
         {
-            try
-            {
-                // (If Excel is shutting down, we see an Access Violation here, reading at 0x00000018.)
-                return XlCall.LPenHelper(XlCall.xlGetFmlaInfo, ref fmlaInfo);
-            }
-            catch (AccessViolationException ave)
-            {
-                throw new InvalidOperationException("LPenHelper call failed. Excel is shutting down.", ave);
-            }
+            return ExcelIntegration.LPenHelper(XlCall.xlGetFmlaInfo, ref fmlaInfo);
         }
 
         static bool IsInFormulaEditMode()

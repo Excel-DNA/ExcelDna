@@ -16,5 +16,6 @@ namespace ExcelDna.Integration
         void RegisterDelegatesWithAttributes(List<Delegate> delegates, List<object> functionAttributes, List<List<object>> argumentAttributes);
         void RegisterLambdaExpressionsWithAttributes(List<LambdaExpression> lambdaExpressions, List<object> functionAttributes, List<List<object>> argumentAttributes);
         void RegisterRtdWrapper(string progId, object rtdWrapperOptions, object functionAttribute, List<object> argumentAttributes);
+        int LPenHelper(int wCode, ref XlCall.FmlaInfo fmlaInfo);
     }
 }
