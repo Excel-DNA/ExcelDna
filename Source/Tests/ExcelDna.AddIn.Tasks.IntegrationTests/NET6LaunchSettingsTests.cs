@@ -27,7 +27,10 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
         }
 
         [Test]
-        public void UpdateExistingProfile()
+        [TestCase("launchSettingsExistingProfile.json")]
+        [TestCase("launchSettingsNoProfile.json")]
+        [TestCase("launchSettingsNoProfiles.json")]
+        public void UpdateExistingProfile(string src)
         {
             const string projectBasePath = @"NET6LaunchSettings\";
             const string projectOutDir = projectBasePath + @"bin\Release\";
@@ -37,7 +40,7 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
             try
             {
                 string launchSettingsPath = Path.Combine(projectBasePath, "Properties", "launchSettings.json");
-                CopyLaunchSettings("launchSettingsExistingProfile.json", launchSettingsPath);
+                CopyLaunchSettings(src, launchSettingsPath);
 
                 MsBuild(projectBasePath + "NET6LaunchSettings.csproj /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
 

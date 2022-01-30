@@ -65,7 +65,17 @@ namespace ExcelDna.AddIn.Tasks
         {
             JObject settings = JObject.Parse(File.ReadAllText(settingsPath));
             JObject profiles = (JObject)settings["profiles"];
-            profiles["ExcelDna"] = JToken.FromObject(profile);
+            if (profiles == null)
+            {
+                settings["profiles"] = JToken.FromObject(new
+                {
+                    ExcelDna = profile
+                });
+            }
+            else
+            {
+                profiles["ExcelDna"] = JToken.FromObject(profile);
+            }
             File.WriteAllText(settingsPath, settings.ToString());
         }
 

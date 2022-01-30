@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Profile 1": {
+      "commandName": "Executable",
+      "executablePath": "MiscUtils.cpp",
+      "commandLineArgs": "67890"
+    }
+  }
+}
