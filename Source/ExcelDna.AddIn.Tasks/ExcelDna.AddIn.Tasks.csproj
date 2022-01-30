@@ -27,6 +27,7 @@
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net452' ">
     <PackageReference Include="envdte" Version="16.9.31023.347" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="Microsoft.Build.Utilities.v4.0" />
     <Reference Include="System.Management" />
@@ -36,6 +37,7 @@
     <PackageReference Include="envdte" Version="16.9.31023.347" />
     <PackageReference Include="Microsoft.Build.Framework" Version="15.9.20" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="15.9.20" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
   <ItemGroup>

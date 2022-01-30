@@ -12,8 +12,9 @@
 	</PropertyGroup>
 	
 	<UsingTask TaskName="ExcelDna.AddIn.Tasks.SetDebuggerOptions" AssemblyFile="$(ExcelDnaTasksPath)ExcelDna.AddIn.Tasks.dll" />
-  <UsingTask TaskName="ExcelDna.AddIn.Tasks.CleanExcelAddIn" AssemblyFile="$(ExcelDnaTasksPath)ExcelDna.AddIn.Tasks.dll" />
-  <UsingTask TaskName="ExcelDna.AddIn.Tasks.CreateExcelAddIn" AssemblyFile="$(ExcelDnaTasksPath)ExcelDna.AddIn.Tasks.dll" />
+	<UsingTask TaskName="ExcelDna.AddIn.Tasks.SetLaunchSettings" AssemblyFile="$(ExcelDnaTasksPath)ExcelDna.AddIn.Tasks.dll" />
+	<UsingTask TaskName="ExcelDna.AddIn.Tasks.CleanExcelAddIn" AssemblyFile="$(ExcelDnaTasksPath)ExcelDna.AddIn.Tasks.dll" />
+	<UsingTask TaskName="ExcelDna.AddIn.Tasks.CreateExcelAddIn" AssemblyFile="$(ExcelDnaTasksPath)ExcelDna.AddIn.Tasks.dll" />
 
   <!--
     Extend the Clean target to call our ExcelDnaClean target
@@ -30,11 +31,12 @@
   -->
   <PropertyGroup>
     <BuildDependsOn>
-      ExcelDnaSetDebuggerOptions;
-      $(BuildDependsOn);
-      ExcelDnaBuild;
-      ExcelDnaPack;
-    </BuildDependsOn>
+			ExcelDnaSetDebuggerOptions;
+			ExcelDnaSetLaunchSettings;
+			$(BuildDependsOn);
+			ExcelDnaBuild;
+			ExcelDnaPack;
+		</BuildDependsOn>
   </PropertyGroup>
 
   <!--
@@ -80,32 +82,59 @@
     </ItemGroup>
   </Target>
 
-  <!--
-    Configure debugger options (Path for EXCEL.EXE, add-in to open, etc).
-  -->
-  <Target Name="ExcelDnaSetDebuggerOptions"
-          BeforeTargets="PreBuildEvent"
-          Condition="'$(RunExcelDnaSetDebuggerOptions)'== 'true' AND '$(BuildingInsideVisualStudio)' == 'true' AND '$(BuildingByReSharper)' != 'true' AND '$(PackageReferenceCompatibleProjectStyle)' != 'true' AND '$(RestoreProjectStyle)' != 'ProjectJson' AND '$(NuGetProjectStyle)' != 'PackageReference'">
-    <Message Text="---" Importance="High" />
+	<!--
+		Configure debugger options (Path for EXCEL.EXE, add-in to open, etc).
+	-->
+	<Target Name="ExcelDnaSetDebuggerOptions"
+					BeforeTargets="PreBuildEvent"
+					Condition="'$(RunExcelDnaSetDebuggerOptions)'== 'true' AND ('$(BuildingInsideVisualStudio)' == 'true' OR '$(RunExcelDnaSetDebuggerOptionsOutsideVisualStudio)'== 'true') AND '$(BuildingByReSharper)' != 'true' AND '$(PackageReferenceCompatibleProjectStyle)' != 'true' AND '$(RestoreProjectStyle)' != 'ProjectJson' AND '$(NuGetProjectStyle)' != 'PackageReference'">
+		<Message Text="---" Importance="High" />
 
-    <Error Text="ExcelDna32BitAddInSuffix and ExcelDna64BitAddInSuffix cannot be identical. Fix your ExcelDna.Build.props file"
-           Condition="'$(ExcelDna32BitAddInSuffix)' == '$(ExcelDna64BitAddInSuffix)'" />
+		<Error Text="ExcelDna32BitAddInSuffix and ExcelDna64BitAddInSuffix cannot be identical. Fix your ExcelDna.Build.props file"
+						Condition="'$(ExcelDna32BitAddInSuffix)' == '$(ExcelDna64BitAddInSuffix)'" />
 
-    <ItemGroup>
-      <ExcelDnaSetDebuggerOptionsFilesInProject Include="@(None)" />
-      <ExcelDnaSetDebuggerOptionsFilesInProject Include="@(Content)" />
-    </ItemGroup>
+		<ItemGroup>
+			<ExcelDnaSetDebuggerOptionsFilesInProject Include="@(None)" />
+			<ExcelDnaSetDebuggerOptionsFilesInProject Include="@(Content)" />
+		</ItemGroup>
 
-    <SetDebuggerOptions
-      ProjectName="$(MSBuildProjectName)"
-      ExcelExePath="$(ExcelDnaExcelExePath)"
-      AddInForDebugging="$(ExcelDnaAddInForDebugging)"
-      FilesInProject="@(ExcelDnaSetDebuggerOptionsFilesInProject)"
-      OutDirectory="$(OutDir)"
-      FileSuffix32Bit="$(ExcelDna32BitAddInSuffix)"
-      FileSuffix64Bit="$(ExcelDna64BitAddInSuffix)">
-    </SetDebuggerOptions>
-  </Target>
+		<SetDebuggerOptions
+		ProjectName="$(MSBuildProjectName)"
+		ExcelExePath="$(ExcelDnaExcelExePath)"
+		AddInForDebugging="$(ExcelDnaAddInForDebugging)"
+		FilesInProject="@(ExcelDnaSetDebuggerOptionsFilesInProject)"
+		OutDirectory="$(OutDir)"
+		FileSuffix32Bit="$(ExcelDna32BitAddInSuffix)"
+		FileSuffix64Bit="$(ExcelDna64BitAddInSuffix)"
+		AddInFileName="$(ExcelAddInFileName)">
+		</SetDebuggerOptions>
+	</Target>
+
+	<Target Name="ExcelDnaSetLaunchSettings"
+					BeforeTargets="PreBuildEvent"
+					Condition="'$(RunExcelDnaSetDebuggerOptions)'== 'true' AND ('$(BuildingInsideVisualStudio)' == 'true' OR '$(RunExcelDnaSetDebuggerOptionsOutsideVisualStudio)'== 'true') AND '$(UsingMicrosoftNETSdk)' == 'true' AND '$(BuildingByReSharper)' != 'true'">
+		<Message Text="---" Importance="High" />
+
+		<Error Text="ExcelDna32BitAddInSuffix and ExcelDna64BitAddInSuffix cannot be identical. Fix your ExcelDna.Build.props file"
+						Condition="'$(ExcelDna32BitAddInSuffix)' == '$(ExcelDna64BitAddInSuffix)'" />
+
+		<ItemGroup>
+			<ExcelDnaSetLaunchSettingsFilesInProject Include="@(None)" />
+			<ExcelDnaSetLaunchSettingsFilesInProject Include="@(Content)" />
+		</ItemGroup>
+
+		<SetLaunchSettings
+			ProjectDirectory="$(MSBuildProjectDirectory)"
+			ProjectName="$(MSBuildProjectName)"
+			ExcelExePath="$(ExcelDnaExcelExePath)"
+			AddInForDebugging="$(ExcelDnaAddInForDebugging)"
+			FilesInProject="@(ExcelDnaSetLaunchSettingsFilesInProject)"
+			OutDirectory="$(OutDir)"
+			FileSuffix32Bit="$(ExcelDna32BitAddInSuffix)"
+			FileSuffix64Bit="$(ExcelDna64BitAddInSuffix)"
+			AddInFileName="$(ExcelAddInFileName)">
+		</SetLaunchSettings>
+	</Target>
 
   <!--
     Target that removes .dna, .xll, and .xll.config from the build output folder
