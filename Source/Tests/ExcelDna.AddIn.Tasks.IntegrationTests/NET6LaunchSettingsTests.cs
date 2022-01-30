@@ -22,8 +22,35 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
             }
             finally
             {
-                Directory.Delete(Path.Combine(projectBasePath, "Properties"), true);
+                DeleteProperties(projectBasePath);
             }
+        }
+
+        [Test]
+        public void Disabled()
+        {
+            const string projectBasePath = @"NET6LaunchSettingsDisabled\";
+            const string projectOutDir = projectBasePath + @"bin\Release\";
+
+            Clean(projectOutDir);
+
+            try
+            {
+                MsBuild(projectBasePath + "NET6LaunchSettingsDisabled.csproj /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
+
+                AssertNotFound(Path.Combine(projectBasePath, "Properties", "launchSettings.json"));
+            }
+            finally
+            {
+                DeleteProperties(projectBasePath);
+            }
+        }
+
+        private void DeleteProperties(string projectBasePath)
+        {
+            string properties = Path.Combine(projectBasePath, "Properties");
+            if (Directory.Exists(properties))
+                Directory.Delete(properties, true);
         }
     }
 }
