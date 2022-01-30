@@ -27,6 +27,30 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
         }
 
         [Test]
+        public void UpdateExistingProfile()
+        {
+            const string projectBasePath = @"NET6LaunchSettings\";
+            const string projectOutDir = projectBasePath + @"bin\Release\";
+
+            Clean(projectOutDir);
+
+            try
+            {
+                string launchSettingsPath = Path.Combine(projectBasePath, "Properties", "launchSettings.json");
+                CopyLaunchSettings("launchSettingsExistingProfile.json", launchSettingsPath);
+
+                MsBuild(projectBasePath + "NET6LaunchSettings.csproj /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
+
+                AssertFileContains(launchSettingsPath, "NET6LaunchSettings-AddIn");
+                AssertFileContains(launchSettingsPath, "67890");
+            }
+            finally
+            {
+                DeleteProperties(projectBasePath);
+            }
+        }
+
+        [Test]
         public void Disabled()
         {
             const string projectBasePath = @"NET6LaunchSettingsDisabled\";
@@ -51,6 +75,13 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
             string properties = Path.Combine(projectBasePath, "Properties");
             if (Directory.Exists(properties))
                 Directory.Delete(properties, true);
+        }
+
+        private void CopyLaunchSettings(string srcName, string dstPath)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(dstPath));
+            string srcPath = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), srcName);
+            File.Copy(srcPath, dstPath, true);
         }
     }
 }

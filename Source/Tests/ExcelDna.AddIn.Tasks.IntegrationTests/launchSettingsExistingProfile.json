@@ -1,0 +1,14 @@
+{
+  "profiles": {
+    "ExcelDna": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\Microsoft Office\\root\\Office16\\EXCEL.EXE",
+      "commandLineArgs": "12345"
+    },
+    "Profile 1": {
+      "commandName": "Executable",
+      "executablePath": "MiscUtils.cpp",
+      "commandLineArgs": "67890"
+    }
+  }
+}
