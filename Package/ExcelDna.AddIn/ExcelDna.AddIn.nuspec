@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata minClientVersion="2.5">
         <id>ExcelDna.AddIn</id>
-        <version>1.6.0-preview1</version>
+        <version>1.6.0-preview2</version>
         <title>Excel-DNA Add-In</title>
         <authors>Govert van Drimmelen</authors>
         <owners>Govert van Drimmelen</owners>
@@ -23,10 +23,10 @@
         <tags>excel exceldna udf excel-dna</tags>
         <dependencies>
           <group targetFramework=".NETFramework4.5.2" >
-            <dependency id="ExcelDna.Integration" version="[1.6.0-preview1]" />
+            <dependency id="ExcelDna.Integration" version="[1.6.0-preview2]" />
           </group>
           <group targetFramework="net6.0-windows" >
-            <dependency id="ExcelDna.Integration" version="[1.6.0-preview1]" />
+            <dependency id="ExcelDna.Integration" version="[1.6.0-preview2]" />
           </group>
         </dependencies>
     </metadata>
