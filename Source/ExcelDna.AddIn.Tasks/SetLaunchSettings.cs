@@ -53,7 +53,7 @@ namespace ExcelDna.AddIn.Tasks
             {
                 profiles = new
                 {
-                    ExcelDna = profile
+                    Excel = profile
                 }
             };
 
@@ -69,12 +69,12 @@ namespace ExcelDna.AddIn.Tasks
             {
                 settings["profiles"] = JToken.FromObject(new
                 {
-                    ExcelDna = profile
+                    Excel = profile
                 });
             }
             else
             {
-                profiles["ExcelDna"] = JToken.FromObject(profile);
+                profiles["Excel"] = JToken.FromObject(profile);
             }
             File.WriteAllText(settingsPath, settings.ToString());
         }
