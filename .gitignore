@@ -173,3 +173,5 @@ $RECYCLE.BIN/
 
 # Task Canvas
 *.TaskCanvasSL
+
+/Source/Tests/ExcelDna.AddIn.Tasks.IntegrationTests.TestTarget/SDKProperties/Properties/launchSettings.json
