@@ -72,6 +72,15 @@
       Suffix used for packed .xll files e.g. MyAddIn-packed.xll
     -->
     <ExcelDnaPackXllSuffix Condition="'$(ExcelDnaPackXllSuffix)' == ''">-packed</ExcelDnaPackXllSuffix>
+
+    <!--
+      Options used when packing .xll files.
+      When in trouble with your virus scanner, try uncommenting at least the resource compression properties.
+      The default is true for both compression and multithreaded runs when not specified.
+    -->
+    <!--<ExcelDnaPackCompressResources Condition="'$(ConfigurationName)' == 'Debug'">false</ExcelDnaPackCompressResources>-->
+    <!--<ExcelDnaPackRunMultithreaded  Condition="'$(ConfigurationName)' == 'Debug'">false</ExcelDnaPackRunMultithreaded>-->
+    <!--<ExcelDnaPackCompressResources Condition="'$(ConfigurationName)' == 'Release'">false</ExcelDnaPackCompressResources>-->
+    <!--<ExcelDnaPackRunMultithreaded  Condition="'$(ConfigurationName)' == 'Release'">false</ExcelDnaPackRunMultithreaded>-->
   </PropertyGroup>
 </Project>
-
