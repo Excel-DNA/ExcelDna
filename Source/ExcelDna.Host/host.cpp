@@ -11,6 +11,7 @@
 
 #include <coreclr_delegates.h>
 #include <hostfxr.h>
+#include <error_codes.h>
 
 #include <cassert>
 #include <iostream>
@@ -167,7 +168,7 @@ load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly()
 	void* load_assembly_and_get_function_pointer = nullptr;
 	hostfxr_handle cxt = nullptr;
 	int rc = init_fptr(configFile.c_str(), nullptr, &cxt);
-	if (rc != 0 || cxt == nullptr)
+	if (!STATUS_CODE_SUCCEEDED(rc) || cxt == nullptr)
 	{
 		std::cerr << "Init failed: " << std::hex << std::showbase << rc << std::endl;
 		close_fptr(cxt);
