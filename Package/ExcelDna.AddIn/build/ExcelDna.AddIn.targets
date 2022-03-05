@@ -124,6 +124,7 @@
 		<SetLaunchSettings
 			ProjectDirectory="$(MSBuildProjectDirectory)"
 			ProjectName="$(MSBuildProjectName)"
+			ProjectExtension="$(MSBuildProjectExtension)"
 			ExcelExePath="$(ExcelDnaExcelExePath)"
 			AddInForDebugging="$(ExcelDnaAddInForDebugging)"
 			FilesInProject="@(ExcelDnaSetLaunchSettingsFilesInProject)"

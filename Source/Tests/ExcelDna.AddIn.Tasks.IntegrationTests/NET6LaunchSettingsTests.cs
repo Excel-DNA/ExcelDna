@@ -73,6 +73,28 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
             }
         }
 
+        [Test]
+        public void VB()
+        {
+            const string projectBasePath = @"NET6LaunchSettingsVB\";
+            const string projectOutDir = projectBasePath + @"bin\Release\";
+
+            Clean(projectOutDir);
+
+            try
+            {
+                MsBuild(projectBasePath + "NET6LaunchSettingsVB.vbproj /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
+
+                AssertFileContains(Path.Combine(projectBasePath, "My Project", "launchSettings.json"), "NET6LaunchSettingsVB-AddIn");
+            }
+            finally
+            {
+                string properties = Path.Combine(projectBasePath, "My Project");
+                if (Directory.Exists(properties))
+                    Directory.Delete(properties, true);
+            }
+        }
+
         private void DeleteProperties(string projectBasePath)
         {
             string properties = Path.Combine(projectBasePath, "Properties");
