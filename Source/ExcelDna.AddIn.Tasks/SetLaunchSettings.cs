@@ -22,7 +22,8 @@ namespace ExcelDna.AddIn.Tasks
             {
                 _log.Debug("Running SetLaunchSettings MSBuild Task");
 
-                string settingsPath = Path.Combine(ProjectDirectory, "Properties", "launchSettings.json");
+                string settingsDir = string.Equals(ProjectExtension, ".vbproj", StringComparison.OrdinalIgnoreCase) ? "My Project" : "Properties";
+                string settingsPath = Path.Combine(ProjectDirectory, settingsDir, "launchSettings.json");
 
                 _excelDetector = _excelDetectorLazy.Value;
                 var excelExePath = GetExcelPath();
@@ -84,5 +85,11 @@ namespace ExcelDna.AddIn.Tasks
         /// </summary>
         [Required]
         public string ProjectDirectory { get; set; }
+
+        /// <summary>
+        /// The file name extension of the project file, including the period
+        /// </summary>
+        [Required]
+        public string ProjectExtension { get; set; }
     }
 }

@@ -49,7 +49,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDKExcelAddInExternalLibrar
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NET6LaunchSettings", "NET6LaunchSettings\NET6LaunchSettings.csproj", "{3B43BB71-A082-4FE6-A173-AC9A3461C608}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NET6LaunchSettingsDisabled", "NET6LaunchSettingsDisabled\NET6LaunchSettingsDisabled.csproj", "{7833EF22-3772-43B7-A28F-F423D16B563A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NET6LaunchSettingsDisabled", "NET6LaunchSettingsDisabled\NET6LaunchSettingsDisabled.csproj", "{7833EF22-3772-43B7-A28F-F423D16B563A}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "NET6LaunchSettingsVB", "NET6LaunchSettingsVB\NET6LaunchSettingsVB.vbproj", "{4020D690-236E-4B14-A134-8FA30E43717B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -149,6 +151,10 @@ Global
 		{7833EF22-3772-43B7-A28F-F423D16B563A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7833EF22-3772-43B7-A28F-F423D16B563A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7833EF22-3772-43B7-A28F-F423D16B563A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4020D690-236E-4B14-A134-8FA30E43717B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4020D690-236E-4B14-A134-8FA30E43717B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4020D690-236E-4B14-A134-8FA30E43717B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4020D690-236E-4B14-A134-8FA30E43717B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
