@@ -1,17 +1,25 @@
 ExcelDna.AddIn - NuGet package for creating an Excel-DNA add-in
 ===============================================================
-The Excel-DNA home page is at http://excel-dna.net.
-For general support, please post to https://groups.google.com/forum/#!forum/exceldna.
+The Excel-DNA home page is at http://excel-dna.net
+For general support, please post to https://groups.google.com/g/exceldna
+To encourage further development of the library, please visit https://github.com/sponsors/Excel-DNA
 
-Installing the ExcelDna.AddIn NuGet package into your project has made a number of changes to your project:
 
-1. A file called <ProjectName>-AddIn.dna was added to your project, and set to be copied to the output directory. This is the master file for your Excel add-in.
+The ExcelDna.AddIn NuGet package was installed into your project in one of two ways:
 
-2. A reference to <package>\lib\ExcelDna.Integration.dll was added. This contains helper classes like ExcelDnaUtil and ExcelFunctionAttribute that you may use in your add-in.
+1. Into the packages.config file in your project (the 'old' style package import).
+  * A file called <ProjectName>-AddIn.dna was added to your project, and set to be copied to the output directory. This is the master file for your Excel add-in.
+  * Under your Properties item group, a build properties file called ExcelDna.Build.props was added. This file allows build customization, like configuring whether the packing tool will be run.
 
-3. Under your Properties item group, a build properties file called ExcelDna.Build.props was added. This file allows build customization, like configuring whether the packing tool will be run.
+2. As a <PackageReference> tag in your .csproj / .vbproj / .fsproj project file
 
-4. Upon compilation, the project debugging settings will be configured to start Excel and load the appropriate (32-bit or 64-bit) unpacked version of your add-in, <ProjectName>-AddIn.xll or <ProjectName>-AddIn64.xll.
+  In this case the .dna file is not added to your project when the package in installed, but is created automatically in the output directory when the project builds.
+  You can still have a .dna file in your project, but many settings from the .dna file can be added to the project file instead.
+
+
+A reference to <package>\lib\ExcelDna.Integration.dll was also added. This contains helper classes like ExcelDnaUtil and ExcelFunctionAttribute that you may use in your add-in.
+
+Upon compilation, the project debugging settings will be configured to start Excel and load the appropriate (32-bit or 64-bit) unpacked version of your add-in, <ProjectName>-AddIn.xll or <ProjectName>-AddIn64.xll.
 
 After building your project you will find (at least) the following files in your output directory (typically bin\Debug or bin\Release):
 
@@ -25,16 +33,11 @@ After building your project you will find (at least) the following files in your
 
 For redistribution (if everything is set up correctly) you only need the two (32-bit and 64-bit) -packed.xll files. These files can be renamed as you like.
 
-F# projects - special notes:
-* F# project templates create SDK-style projects and require additional settings to work with Excel-DNA. See https://github.com/Excel-DNA/ExcelDna/issues/360
-
 Next steps
 ----------
 * Insert a sample function for your language from the Sample Snippets list below.
   Then press F5 to run Excel and load the add-in, and type into a cell: =HelloDna("your name")
 * By default all Public Shared (public static in C#) functions (and functions in a Public Module) will be registered with Excel.
-* Further configure packing for your library to add additional references by editing the <ProjectName>-Addin.dna file.
-* To get IntelliSense and validation in your .dna files, you can install the NuGet package ExcelDna.XmlSchemas to add the .xml schema into the local project. Alternatively install the Visual Studio .vsix extension ExcelDna.XmlSchemas to add the schema file into Visual Studio. Further documentation here: https://github.com/Excel-DNA/ExcelDna/tree/master/Distribution/XmlSchemas/
 * Source code, related projects and samples can be found on GitHub at https://github.com/Excel-DNA.
 * Support questions at all levels are welcome at https://groups.google.com/forum/#!forum/exceldna.
 
@@ -42,18 +45,13 @@ Troubleshooting
 ---------------
 Press F5 (Start Debugging) to compile the project, open the .xll add-in in Excel and make your functions available.
 
-* If Excel does not open, check that the path under Project Properties->Debug->"Start external program:" is correct. If not, make sure that you have rebuilt the project successfully - this should automatically configure the debug options.
+* If Excel does not open, check that the path under the 'Debug Properties' is correct. If not, make sure that you have rebuilt the project successfully - this should automatically configure the debug options.
 * If Excel starts but no add-in is loaded, check the Excel security settings under File -> Options -> Trust Center
   -> Trust Center Settings -> Macro Settings.
   Any option is fine _except_ "Disable all macros without notification."
 * If Excel starts but you get a message saying "The file you are trying to open, [...], is in a different format than
   specified by the file extension.", then there is a mismatch between the bitness of Excel and the add-in being loaded.
-* For any other problems, please post to the Excel-DNA group at https://groups.google.com/forum/#!forum/exceldna.
-
-Uninstalling
-------------
-* When the ExcelDna.AddIn NuGet package is uninstalled, the <ProjectName>-AddIn.dna file will be renamed to
-  "_UNINSTALLED_<ProjectName>-AddIn.dna" (to preserve any changes you've made). If the project won't be used as an Excel add-in this file may be deleted.
+* For any other problems, please post to the Excel-DNA group at https://groups.google.com/g/exceldna
 
 ===============
 Sample snippets

@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata minClientVersion="2.5">
         <id>ExcelDna.AddIn</id>
-        <version>1.6.0-preview2</version>
+        <version>1.6.0-preview3</version>
         <title>Excel-DNA Add-In</title>
         <authors>Govert van Drimmelen</authors>
         <owners>Govert van Drimmelen</owners>
@@ -10,23 +10,24 @@
         <repository type="git" url="https://github.com/Excel-DNA/ExcelDna" />
         <iconUrl>http://docs.excel-dna.net/NuGetIcon.png</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>Excel-DNA eases the development of Excel add-ins using .NET.
-    Add-ins created with Excel-DNA can export high-performance user-defined functions and macros, and can be packed into a single file for easy distribution and installation.
+        <description>
+          Excel-DNA eases the development of Excel add-ins using .NET.
+          Add-ins created with Excel-DNA can export high-performance user-defined functions and macros, and can be packed into a single file for easy distribution and installation.
 
-    Excel versions 2007 through 2021 / Office 365 can be targeted with a single add-in.
-    Advanced Excel features are supported, including multi-threaded recalculation, registration-free RTD servers and customized Ribbon and Task Pane interfaces and asynchronous functions.
+          Excel versions 2007 through 2021 / Office 365 can be targeted with a single add-in.
+          Advanced Excel features are supported, including multi-threaded recalculation, registration-free RTD servers and customized Ribbon and Task Pane interfaces and asynchronous functions.
 
-    Excel-DNA supports the .NET Framework version 4.5.2 and later (the version number used in the .dna file will be "4.0").
+          Excel-DNA supports .NET Framework version 4.5.2 to 4.8, and.NET 6.0 (in preview).
 
-    The Excel-Dna Runtime is free for all use, and distributed under a permissive open-source license that also allows commercial use.</description>
+          The Excel-DNA Runtime is free for all use, and distributed under a permissive open-source license that also allows commercial use.</description>
         <summary>Excel-DNA is an independent project to integrate .NET into Excel.</summary>
         <tags>excel exceldna udf excel-dna</tags>
         <dependencies>
           <group targetFramework=".NETFramework4.5.2" >
-            <dependency id="ExcelDna.Integration" version="[1.6.0-preview2]" />
+            <dependency id="ExcelDna.Integration" version="[1.6.0-preview3]" />
           </group>
           <group targetFramework="net6.0-windows" >
-            <dependency id="ExcelDna.Integration" version="[1.6.0-preview2]" />
+            <dependency id="ExcelDna.Integration" version="[1.6.0-preview3]" />
           </group>
         </dependencies>
     </metadata>

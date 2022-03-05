@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>Excel-DNA.Lib</id>
-        <version>1.6.0-preview2</version>
+        <version>1.6.0-preview3</version>
         <title>Excel-DNA Reference Library</title>
         <authors>Govert van Drimmelen</authors>
         <owners>Govert van Drimmelen</owners>
@@ -14,7 +14,7 @@
         <summary>Reference library package for Excel-DNA.</summary>
         <tags>excel exceldna udf excel-dna</tags>
       <dependencies>
-        <dependency id="ExcelDna.Integration" version="[1.6.0-preview2]" />
+        <dependency id="ExcelDna.Integration" version="[1.6.0-preview3]" />
       </dependencies>
     </metadata>
 </package>
