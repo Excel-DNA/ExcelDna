@@ -63,8 +63,6 @@
     <ExcelDna32BitAddInSuffix Condition="'$(ExcelDna32BitAddInSuffix)' == ''"></ExcelDna32BitAddInSuffix>
     <ExcelDna64BitAddInSuffix Condition="'$(ExcelDna64BitAddInSuffix)' == ''">64</ExcelDna64BitAddInSuffix>
 
-    <ExcelDnaAllowPackageReferenceProjectStyle Condition="'$(ExcelDnaAllowPackageReferenceProjectStyle)' == ''">false</ExcelDnaAllowPackageReferenceProjectStyle>
-
     <ExcelDnaPackExePath Condition="'$(ExcelDnaPackExePath)' == ''">$(ExcelDnaTasksPath)ExcelDnaPack.exe</ExcelDnaPackExePath>
     <ExcelDnaPackXllSuffix Condition="'$(ExcelDnaPackXllSuffix)' == ''">-packed</ExcelDnaPackXllSuffix>
     <ExcelDnaPackCompressResources Condition="'$(ExcelDnaPackCompressResources)' == ''">true</ExcelDnaPackCompressResources>
