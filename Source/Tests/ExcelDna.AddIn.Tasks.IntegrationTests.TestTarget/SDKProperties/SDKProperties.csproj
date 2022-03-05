@@ -1,0 +1,116 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <UseWindowsForms>True</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    
+    <!-- Base path to ExcelDna.AddIn.Tasks.dll, ExcelDnaPack.exe and ExcelDna.xll. -->
+    <!-- Default value: ..\tools -->
+    <ExcelDnaToolsPath></ExcelDnaToolsPath>
+
+    <!-- Path to ExcelDnaPack.exe. -->
+    <!-- Default value: $(ExcelDnaTasksPath)ExcelDnaPack.exe -->
+    <ExcelDnaPackExePath></ExcelDnaPackExePath>
+
+    <!-- Base path for .props location. -->
+    <!-- Default value: $(MSBuildProjectDirectory) -->
+    <ExcelDnaProjectPath></ExcelDnaProjectPath>
+
+    <!-- Path for configuration properties file location.  -->
+    <!-- Default value: $(ExcelDnaProjectPath)\Properties\ExcelDna.Build.props -->
+    <ExcelDnaPropsFilePath></ExcelDnaPropsFilePath>
+
+    <!-- Enables creating executable Excel profile in launchSettings.json.  -->
+    <!-- Default value: true -->
+    <RunExcelDnaSetDebuggerOptions></RunExcelDnaSetDebuggerOptions>
+
+    <!-- Enables creating executable Excel profile in launchSettings.json when building from a command line or alternative IDE.  -->
+    <!-- Default value: false -->
+    <RunExcelDnaSetDebuggerOptionsOutsideVisualStudio></RunExcelDnaSetDebuggerOptionsOutsideVisualStudio>
+
+    <!-- Enables removing .dna, .xll from the build output folder on Build Clean. -->
+    <!-- Default value: true -->
+    <RunExcelDnaClean></RunExcelDnaClean>
+
+    <!-- Enables copying .dna, .xll to the build output folder on Build.  -->
+    <!-- Default value: true -->
+    <RunExcelDnaBuild></RunExcelDnaBuild>
+
+    <!-- Enables creating packed add-in on Build. -->
+    <!-- Default value: true -->
+    <RunExcelDnaPack></RunExcelDnaPack>
+
+    <!-- Enables creating 32bit add-in. -->
+    <!-- Default value: true -->
+    <ExcelDnaCreate32BitAddIn></ExcelDnaCreate32BitAddIn>
+
+    <!-- Enables creating 64bit add-in. -->
+    <!-- Default value: true -->
+    <ExcelDnaCreate64BitAddIn></ExcelDnaCreate64BitAddIn>
+
+    <!-- 32bit add-in name suffix. -->
+    <!-- Default value: none -->
+    <ExcelDna32BitAddInSuffix></ExcelDna32BitAddInSuffix>
+
+    <!-- 64bit add-in name suffix. -->
+    <!-- Default value: 64 -->
+    <ExcelDna64BitAddInSuffix></ExcelDna64BitAddInSuffix>
+
+    <!-- Packed add-in name suffix. -->
+    <!-- Default value: -packed -->
+    <ExcelDnaPackXllSuffix></ExcelDnaPackXllSuffix>
+
+    <!-- Enables packed add-in compression. -->
+    <!-- Default value: true -->
+    <ExcelDnaPackCompressResources></ExcelDnaPackCompressResources>
+
+    <!-- Enables multithreaded add-in packing. -->
+    <!-- Default value: true -->
+    <ExcelDnaPackRunMultithreaded></ExcelDnaPackRunMultithreaded>
+
+    <!-- EXCEL.EXE path for debugging. -->
+    <!-- Default value: auto detect -->
+    <ExcelDnaExcelExePath></ExcelDnaExcelExePath>
+
+    <!-- Add-in file name for debugging. -->
+    <!-- Default value: auto detect -->
+    <ExcelDnaAddInForDebugging></ExcelDnaAddInForDebugging>
+
+    <!-- Add-in name for output files. -->
+    <!-- Default value: $(ProjectName)-AddIn -->
+    <ExcelAddInFileName></ExcelAddInFileName>
+
+    <!-- DnaLibrary Name in .dna. -->
+    <!-- Default value: $(ProjectName) Add-In -->
+    <ExcelAddInName></ExcelAddInName>
+
+    <!-- Semicolon separated references list to include in .dna. -->
+    <!-- Default value: empty -->
+    <ExcelAddInInclude></ExcelAddInInclude>
+
+    <!-- ExternalLibrary Path in .dna. -->
+    <!-- Default value: $(TargetFileName) -->
+    <ExcelAddInExternalLibraryPath></ExcelAddInExternalLibraryPath>
+
+    <!-- We don't need the extra 'ref' directory and reference assemblies for the Excel add-in -->
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+
+    <!-- We need all dependencies to be copied to the output directory, as-if we are an 'application' and not a 'library'. This property also sets the CopyLockFileAssemblies property to true. -->
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <Reference Include="ExcelDna.Integration">
+      <HintPath>..\..\.exceldna.addin\tools\net6.0-windows\ExcelDna.Integration.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <Import Project="$(ProjectDir)..\..\.exceldna.addin\build\ExcelDna.AddIn.targets" />
+  
+</Project>
