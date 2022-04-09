@@ -4,8 +4,7 @@
 #include "loader.h"
 #include "exports.h"
 #include "LPenHelper.h"
-
-static HMODULE hModuleCurrent;
+#include "dnainfo.h"
 
 // Minimal parts of XLOPER types, 
 // used only for xlAddInManagerInfo(12). Really.
@@ -185,34 +184,34 @@ void __stdcall xlAutoFree12(void* pXloper12)
 		pExportInfo->pXlAutoFree12(pXloper12);
 	}
 }
-//
-//XLOPER12* __stdcall xlAddInManagerInfo12(XLOPER12* pXloper)
-//{
-//	static XLOPER12 result;
-//	static wchar_t name[256];
-//
-//	// Return error by default
-//	result.xltype = xltypeErr;
-//	result.val.err = xlerrValue;
-//
-//	if (pXloper->xltype == 1 && pXloper->val.num == 1.0)
-//	{
-//		std::wstring addInName;
-//		HRESULT hr = GetAddInName(addInName);
-//		if (!FAILED(hr))
-//		{
-//			// We could probably use CString as is (maybe with truncation)!?
-//			int length = (int)min(addInName.length(), 254);
-//			name[0] = (wchar_t)length;
-//			wchar_t* pName = (wchar_t*)name + 1;
-//			lstrcpyn(pName, addInName.c_str(), length + 1);
-//			result.xltype = xltypeStr;
-//			result.val.str = name;
-//		}
-//	}
-//
-//	return &result;
-//}
+
+XLOPER12* __stdcall xlAddInManagerInfo12(XLOPER12* pXloper)
+{
+	static XLOPER12 result;
+	static wchar_t name[256];
+
+	// Return error by default
+	result.xltype = xltypeErr;
+	result.val.err = xlerrValue;
+
+	if (pXloper->xltype == 1 && pXloper->val.num == 1.0)
+	{
+		std::wstring addInName;
+		HRESULT hr = GetAddInName(addInName);
+		if (!FAILED(hr))
+		{
+			// We could probably use CString as is (maybe with truncation)!?
+			int length = (int)min(addInName.length(), 254);
+			name[0] = (wchar_t)length;
+			wchar_t* pName = (wchar_t*)name + 1;
+			lstrcpyn(pName, addInName.c_str(), length + 1);
+			result.xltype = xltypeStr;
+			result.val.str = name;
+		}
+	}
+
+	return &result;
+}
 
 // Support for Excel 2010 SDK - used when loading under HPC XLL Host
 void __stdcall SetExcel12EntryPt(void* pexcel12New)
@@ -225,7 +224,7 @@ void __stdcall SetExcel12EntryPt(void* pexcel12New)
 }
 
 // We are also a COM Server, to support the =RTD(...) worksheet function and VBA ComServer integration.
-HRESULT __stdcall DllRegisterServer()
+STDAPI DllRegisterServer()
 {
 	HRESULT result = E_UNEXPECTED;
 	if (EnsureInitialized() &&
@@ -236,7 +235,7 @@ HRESULT __stdcall DllRegisterServer()
 	return result;
 }
 
-HRESULT __stdcall DllUnregisterServer()
+STDAPI DllUnregisterServer()
 {
 	HRESULT result = E_UNEXPECTED;
 	if (EnsureInitialized() &&
