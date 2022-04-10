@@ -240,6 +240,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="addin.cpp" />
+    <ClCompile Include="dnainfo.cpp" />
     <ClCompile Include="exports32.cpp" />
     <ClCompile Include="host.cpp" />
     <ClCompile Include="loader.cpp" />
@@ -253,6 +254,7 @@
     <None Include="exports.def" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="dnainfo.h" />
     <ClInclude Include="exports.h" />
     <ClInclude Include="host.h" />
     <ClInclude Include="loader.h" />

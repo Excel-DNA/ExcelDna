@@ -84,3 +84,9 @@ HRESULT WriteAllBytes(const std::wstring& filePath, void* buf, DWORD size);
 
 std::wstring PathCombine(const std::wstring& path1, const std::wstring& path2);
 std::wstring PathCombine(const std::wstring& path1, const std::wstring& path2, const std::wstring& path3);
+
+void ShowMessage(int headerId, int bodyId, int footerId, HRESULT hr);
+
+std::wstring GetAddInFullPath();
+
+BOOL IsBufferUTF8(BYTE* buffer, DWORD bufferLength);
