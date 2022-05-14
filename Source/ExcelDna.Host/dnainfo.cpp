@@ -121,7 +121,7 @@ HRESULT GetAttributeValue(std::wstring tag, std::wstring attributeName, std::wst
 	return S_OK;
 }
 
-HRESULT ParseDnaHeader(std::wstring header, std::wstring& addInName, std::wstring& runtimeVersion, bool& shadowCopyFiles, std::wstring& createSandboxedAppDomain, bool& cancelAddInIsolation)
+HRESULT ParseDnaHeader(std::wstring header, std::wstring& addInName, std::wstring& runtimeVersion, bool& shadowCopyFiles, std::wstring& createSandboxedAppDomain, bool& cancelAddInIsolation, bool& disableAssemblyContextUnload)
 {
 	HRESULT hr;
 
@@ -206,6 +206,26 @@ HRESULT ParseDnaHeader(std::wstring header, std::wstring& addInName, std::wstrin
 			cancelAddInIsolation = false;
 	}
 
+	std::wstring disableAssemblyContextUnloadValue;
+	hr = GetAttributeValue(rootTag, L"DisableAssemblyContextUnload", disableAssemblyContextUnloadValue);
+	if (FAILED(hr))
+	{
+		// Parse error
+		return E_FAIL;
+	}
+	if (hr == S_FALSE)
+	{
+		disableAssemblyContextUnload = false;
+		hr = S_OK;
+	}
+	else // attribute read OK
+	{
+		if (CompareNoCase(disableAssemblyContextUnloadValue, L"true") == 0)
+			disableAssemblyContextUnload = true;
+		else
+			disableAssemblyContextUnload = false;
+	}
+
 	hr = GetAttributeValue(rootTag, L"Name", addInName);
 	if (FAILED(hr))
 	{
@@ -228,10 +248,11 @@ HRESULT GetAddInName(std::wstring& addInName)
 	bool shadowCopyFiles;
 	std::wstring createSandboxedAppDomainValue;
 	bool cancelAddInIsolation;
+	bool disableAssemblyContextUnload;
 	hr = GetDnaHeader(false, header);	// Don't show errors here.
 	if (!FAILED(hr))
 	{
-		hr = ParseDnaHeader(header, addInName, clrVersion, shadowCopyFiles, createSandboxedAppDomainValue, cancelAddInIsolation); // No errors yet.
+		hr = ParseDnaHeader(header, addInName, clrVersion, shadowCopyFiles, createSandboxedAppDomainValue, cancelAddInIsolation, disableAssemblyContextUnload); // No errors yet.
 		if (FAILED(hr))
 		{
 			return E_FAIL;
@@ -242,6 +263,27 @@ HRESULT GetAddInName(std::wstring& addInName)
 			StripPath(xllPath);
 			RemoveExtension(xllPath);
 			addInName = xllPath;
+		}
+	}
+	return hr;
+}
+
+HRESULT GetDisableAssemblyContextUnload(bool& disableAssemblyContextUnload)
+{
+	HRESULT hr;
+	std::wstring addInName;
+	std::wstring header;
+	std::wstring clrVersion;
+	bool shadowCopyFiles;
+	std::wstring createSandboxedAppDomainValue;
+	bool cancelAddInIsolation;
+	hr = GetDnaHeader(false, header);	// Don't show errors here.
+	if (!FAILED(hr))
+	{
+		hr = ParseDnaHeader(header, addInName, clrVersion, shadowCopyFiles, createSandboxedAppDomainValue, cancelAddInIsolation, disableAssemblyContextUnload); // No errors yet.
+		if (FAILED(hr))
+		{
+			return E_FAIL;
 		}
 	}
 	return hr;
