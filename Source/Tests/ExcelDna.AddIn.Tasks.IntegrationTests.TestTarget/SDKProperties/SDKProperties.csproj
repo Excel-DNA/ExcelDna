@@ -97,6 +97,10 @@
     <!-- Default value: $(TargetFileName) -->
     <ExcelAddInExternalLibraryPath></ExcelAddInExternalLibraryPath>
 
+    <!-- Enable/disable collectible AssemblyLoadContext for .NET 6. -->
+    <!-- Default value: false -->
+    <ExcelAddInDisableAssemblyContextUnload></ExcelAddInDisableAssemblyContextUnload>
+
     <!-- We don't need the extra 'ref' directory and reference assemblies for the Excel add-in -->
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 

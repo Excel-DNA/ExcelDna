@@ -13,8 +13,8 @@ namespace ExcelDna.ManagedHost
         readonly AssemblyDependencyResolver _resolver;
 
 
-        public ExcelDnaAssemblyLoadContext(string basePath) 
-            : base($"ExcelDnaAssemblyLoadContext_{Path.GetFileNameWithoutExtension(basePath)}", isCollectible: true)
+        public ExcelDnaAssemblyLoadContext(string basePath, bool isCollectible)
+            : base($"ExcelDnaAssemblyLoadContext_{Path.GetFileNameWithoutExtension(basePath)}", isCollectible: isCollectible)
         {
             _basePath = basePath;
             _resolver = new AssemblyDependencyResolver(basePath);

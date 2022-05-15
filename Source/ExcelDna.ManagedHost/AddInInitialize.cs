@@ -34,10 +34,10 @@ namespace ExcelDna.ManagedHost
         static ExcelDnaAssemblyLoadContext _alc;
 
         [UnmanagedCallersOnly]
-        public static short Initialize(void* xlAddInExportInfoAddress, void* hModuleXll, void* pPathXLL)
+        public static short Initialize(void* xlAddInExportInfoAddress, void* hModuleXll, void* pPathXLL, byte disableAssemblyContextUnload)
         {
             string pathXll = Marshal.PtrToStringUni((IntPtr)pPathXLL);
-            _alc = new ExcelDnaAssemblyLoadContext(pathXll);
+            _alc = new ExcelDnaAssemblyLoadContext(pathXll, disableAssemblyContextUnload == 0);
             AssemblyManager.Initialize((IntPtr)hModuleXll, pathXll, _alc);
             var loaderAssembly = _alc.LoadFromAssemblyName(new AssemblyName("ExcelDna.Loader"));
             var xlAddInType = loaderAssembly.GetType("ExcelDna.Loader.XlAddIn");
@@ -49,8 +49,8 @@ namespace ExcelDna.ManagedHost
                     (Action<TraceSource>)Logger.SetIntegrationTraceSource });
 
             return initOK ? (short)1 : (short)0;
-            }
         }
+    }
 #endif
 
 #if !NETCOREAPP

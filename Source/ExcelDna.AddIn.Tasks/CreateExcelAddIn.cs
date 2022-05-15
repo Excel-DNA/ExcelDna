@@ -295,6 +295,9 @@ namespace ExcelDna.AddIn.Tasks
                 result = result.Replace("</DnaLibrary>", includes + "</DnaLibrary>");
             }
 
+            if (DisableAssemblyContextUnload)
+                result = result.Replace("<DnaLibrary ", "<DnaLibrary " + "DisableAssemblyContextUnload=\"true\" ");
+
             return result.Replace("%OutputFileName%", !string.IsNullOrEmpty(AddInExternalLibraryPath) ? AddInExternalLibraryPath : TargetFileName);
         }
 
@@ -366,7 +369,7 @@ namespace ExcelDna.AddIn.Tasks
         public bool PackIsEnabled { get; set; }
 
         /// <summary>
-        /// Enable/disable running ExcelDnaPack for .dna files
+        /// Packed add-in name suffix
         /// </summary>
         public string PackedFileSuffix { get; set; }
 
@@ -389,6 +392,11 @@ namespace ExcelDna.AddIn.Tasks
         /// Custom path for ExternalLibrary
         /// </summary>
         public string AddInExternalLibraryPath { get; set; }
+
+        /// <summary>
+        /// Enable/disable collectible AssemblyLoadContext for .NET 6
+        /// </summary>
+        public bool DisableAssemblyContextUnload { get; set; }
 
         /// <summary>
         /// The list of .dna files copied to the output

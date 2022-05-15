@@ -19,6 +19,7 @@
 
 #include "TempDir.h"
 #include "utils.h"
+#include "dnainfo.h"
 
 using string_t = std::basic_string<char_t>;
 
@@ -91,7 +92,7 @@ int load_runtime_and_run(LPCWSTR basePath, XlAddInExportInfo* pExportInfo, HMODU
 	const char_t* dotnet_type_method = L"Initialize";
 
 	// Function pointer to managed delegate with non-default signature
-	typedef short (CORECLR_DELEGATE_CALLTYPE* xladdin_initialize_fn)(void* xlAddInExportInfo, void* hModuleXLL, void* pPathXLL);
+	typedef short (CORECLR_DELEGATE_CALLTYPE* xladdin_initialize_fn)(void* xlAddInExportInfo, void* hModuleXLL, void* pPathXLL, BYTE disableAssemblyContextUnload);
 	xladdin_initialize_fn init = nullptr;
 	int rc = load_assembly_and_get_function_pointer(
 		dotnetlib_path.c_str(),
@@ -102,7 +103,12 @@ int load_runtime_and_run(LPCWSTR basePath, XlAddInExportInfo* pExportInfo, HMODU
 		(void**)&init);
 	assert(rc == 0 && init != nullptr && "Failure: load_assembly_and_get_function_pointer()");
 
-	short res = init(pExportInfo, hModuleXll, (void*)pathXll);
+	bool disableAssemblyContextUnload;
+	hr = GetDisableAssemblyContextUnload(disableAssemblyContextUnload);
+	if (FAILED(hr))
+		disableAssemblyContextUnload = false;
+
+	short res = init(pExportInfo, hModuleXll, (void*)pathXll, disableAssemblyContextUnload);
 
 	return res == 0 ? EXIT_FAILURE : EXIT_SUCCESS;
 }

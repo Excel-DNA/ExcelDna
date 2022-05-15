@@ -6,3 +6,4 @@
 #include <string>
 
 HRESULT GetAddInName(std::wstring& addInName);
+HRESULT GetDisableAssemblyContextUnload(bool& disableAssemblyContextUnload);

@@ -51,9 +51,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NET6LaunchSettings", "NET6L
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NET6LaunchSettingsDisabled", "NET6LaunchSettingsDisabled\NET6LaunchSettingsDisabled.csproj", "{7833EF22-3772-43B7-A28F-F423D16B563A}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "NET6LaunchSettingsVB", "NET6LaunchSettingsVB\NET6LaunchSettingsVB.vbproj", "{4020D690-236E-4B14-A134-8FA30E43717B}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "NET6LaunchSettingsVB", "NET6LaunchSettingsVB\NET6LaunchSettingsVB.vbproj", "{4020D690-236E-4B14-A134-8FA30E43717B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDKProperties", "SDKProperties\SDKProperties.csproj", "{3E5CC398-612D-401E-82E1-A51058E6CF18}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDKProperties", "SDKProperties\SDKProperties.csproj", "{3E5CC398-612D-401E-82E1-A51058E6CF18}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NET6DisableAssemblyContextUnload", "NET6DisableAssemblyContextUnload\NET6DisableAssemblyContextUnload.csproj", "{1EF35B7F-F8A8-4868-AF34-91107E7E3129}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -161,6 +163,10 @@ Global
 		{3E5CC398-612D-401E-82E1-A51058E6CF18}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3E5CC398-612D-401E-82E1-A51058E6CF18}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3E5CC398-612D-401E-82E1-A51058E6CF18}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1EF35B7F-F8A8-4868-AF34-91107E7E3129}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1EF35B7F-F8A8-4868-AF34-91107E7E3129}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1EF35B7F-F8A8-4868-AF34-91107E7E3129}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1EF35B7F-F8A8-4868-AF34-91107E7E3129}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
