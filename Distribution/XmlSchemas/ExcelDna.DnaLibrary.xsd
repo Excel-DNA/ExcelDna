@@ -259,6 +259,9 @@
     <xs:attribute name="CreateSandboxedAppDomain"
                   use="optional"
                   type="Boolean" />
+    <xs:attribute name="DisableAssemblyContextUnload"
+                  use="optional"
+                  type="Boolean" />
     <xs:attribute name="Language"
                   use="optional"
                   type="LanguageType" />
