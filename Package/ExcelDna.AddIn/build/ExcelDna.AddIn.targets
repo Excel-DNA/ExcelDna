@@ -204,6 +204,7 @@
  	  AddInFileName="$(ExcelAddInFileName)"
  	  AddInInclude="$(ExcelAddInInclude)"
  	  AddInExternalLibraryPath="$(ExcelAddInExternalLibraryPath)"
+ 	  DisableAssemblyContextUnload="$(ExcelAddInDisableAssemblyContextUnload)"
  	  ProjectName="$(MSBuildProjectName)"
 	  TargetFileName="$(TargetFileName)"
 	  TemplateDnaPath="$(MSBuildThisFileDirectory)..\content\ExcelDna-Template.dna">
