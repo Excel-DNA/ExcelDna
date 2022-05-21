@@ -25,21 +25,21 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE 
+1 TEXTINCLUDE
 BEGIN
-    "resource.h\0"
+"resource.h\0"
 END
 
-2 TEXTINCLUDE 
+2 TEXTINCLUDE
 BEGIN
-    "#include ""winres.h""\r\n"
-    "\0"
+"#include ""winres.h""\r\n"
+"\0"
 END
 
-3 TEXTINCLUDE 
+3 TEXTINCLUDE
 BEGIN
-    "\r\n"
-    "\0"
+"\r\n"
+"\0"
 END
 
 #endif    // APSTUDIO_INVOKED
@@ -52,20 +52,20 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSG_HEADER_DNANOTFOUND 
-                            "This Excel add-in requires an '<addin>.dna' configuration file which matched the '<addin>.xll' file.\r\n\r\nThe required '.dna' file could not be loaded from resources, and was not found in the file system:"
-    IDS_MSG_BODY_DNAPATHNOTEXIST 
-                            "\tFileExists failed when checking for '.dna' file."
-    IDS_MSG_FOOTER_ENSUREDNAFILE 
-                            "\r\nPlease ensure that the required '.dna' file exists in the same directory as the '.xll' add-in, and has the correct matching filename."
-    IDS_MSG_HEADER_DNAPROBLEM 
-                            "This Excel add-in requires an '<addin>.dna' configuration file which matches the '<addin>.xll' file (or an embedded resource with the '.dna' file contents).\r\n\r\nA problem occurred while reading the '.dna' file:"
-    IDS_MSG_BODY_DNAOPENFAILED "\tThe file could not be opened."
-    IDS_MSG_FOOTER_UNEXPECTED 
-                            "\r\nThis is an unexpected error. Please report this error to the add-in developer."
-    IDS_MSG_TITLE           "%1 Add-In Loader"
-    IDS_MSG_HRESULT         "\r\nAdditional error information: HRESULT 0x%1!08X!\r\n"
-    IDS_MSG_TEMPLATE        "%1\r\n%2\r\n%3\r\n%4\r\nThis add-in is built with Excel-DNA and is being loaded from the following location:\r\n\t%5."
+IDS_MSG_HEADER_DNANOTFOUND
+"This Excel add-in requires an '<addin>.dna' configuration file which matched the '<addin>.xll' file.\r\n\r\nThe required '.dna' file could not be loaded from resources, and was not found in the file system:"
+IDS_MSG_BODY_DNAPATHNOTEXIST
+"\tFileExists failed when checking for '.dna' file."
+IDS_MSG_FOOTER_ENSUREDNAFILE
+"\r\nPlease ensure that the required '.dna' file exists in the same directory as the '.xll' add-in, and has the correct matching filename."
+IDS_MSG_HEADER_DNAPROBLEM
+"This Excel add-in requires an '<addin>.dna' configuration file which matches the '<addin>.xll' file (or an embedded resource with the '.dna' file contents).\r\n\r\nA problem occurred while reading the '.dna' file:"
+IDS_MSG_BODY_DNAOPENFAILED "\tThe file could not be opened."
+IDS_MSG_FOOTER_UNEXPECTED
+"\r\nThis is an unexpected error. Please report this error to the add-in developer."
+IDS_MSG_TITLE           "%1 Add-In Loader"
+IDS_MSG_HRESULT         "\r\nAdditional error information: HRESULT 0x%1!08X!\r\n"
+IDS_MSG_TEMPLATE        "%1\r\n%2\r\n%3\r\n%4\r\nThis add-in is built with Excel-DNA and is being loaded from the following location:\r\n\t%5."
 END
 
 #endif    // English (United States) resources
@@ -74,12 +74,6 @@ END
 
 
 #ifndef APSTUDIO_INVOKED
-/////////////////////////////////////////////////////////////////////////////
-//
-// Generated from the TEXTINCLUDE 3 resource.
-//
-
-
-/////////////////////////////////////////////////////////////////////////////
+#include "..\versioninfo.rc2"  // non-Visual C++ edited resources
 #endif    // not APSTUDIO_INVOKED
 

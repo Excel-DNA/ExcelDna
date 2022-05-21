@@ -1,0 +1,42 @@
+#ifdef APSTUDIO_INVOKED
+#error this file is not editable by Visual C++
+#endif //APSTUDIO_INVOKED
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION 1, 6, 0, 0
+PRODUCTVERSION 1, 6, 0, 0
+FILEFLAGSMASK 0x17L
+#ifdef _DEBUG
+FILEFLAGS 0x1L
+#else
+FILEFLAGS 0x0L
+#endif
+FILEOS 0x4L
+FILETYPE 0x2L
+FILESUBTYPE 0x0L
+BEGIN
+BLOCK "StringFileInfo"
+BEGIN
+BLOCK "080004b0"
+BEGIN
+VALUE "Comments", "Unmanaged loader shim for Excel-DNA Add-Ins"
+VALUE "CompanyName", "Govert van Drimmelen"
+VALUE "FileDescription", "Excel-DNA Dynamic Link Library"
+VALUE "FileVersion", "1.6.0.0"
+VALUE "InternalName", "ExcelDna"
+VALUE "LegalCopyright", "Copyright (C) 2005-2022 Govert van Drimmelen"
+VALUE "OriginalFilename", "ExcelDna.xll"
+VALUE "ProductName", "Excel-DNA Add-In Framework for Microsoft Excel"
+VALUE "ProductVersion", "1.6"
+END
+END
+BLOCK "VarFileInfo"
+BEGIN
+VALUE "Translation", 0x800, 1200
+END
+END
