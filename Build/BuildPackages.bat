@@ -9,13 +9,10 @@ set rcfile=..\Source\versioninfo.rc2
 PowerShell "(Get-Content %rcfile%) -replace '\d+,\d+,\d+,\d+', '%DllVersion%'.Replace('.',',') -replace '\d+\.\d+\.\d+\.\d+', '%DllVersion%' | Set-Content %rcfile%"
 @if errorlevel 1 goto end
 
-%MSBuildPath% ..\Source\ExcelDna.sln /t:restore /p:Configuration=Release
+%MSBuildPath% ..\Source\ExcelDna.sln /t:restore,build /p:Configuration=Release
 @if errorlevel 1 goto end
 
-%MSBuildPath% ..\Source\ExcelDna.sln /t:Build /p:Configuration=Release
-@if errorlevel 1 goto end
-
-%MSBuildPath% ..\Source\ExcelDna.sln /t:Build /p:Configuration=Release /p:Platform=x64
+%MSBuildPath% ..\Source\ExcelDna.sln /t:restore,build /p:Configuration=Release /p:Platform=x64
 @if errorlevel 1 goto end
 
 call build.bat
