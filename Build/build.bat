@@ -26,4 +26,3 @@ copy /Y ..\Source\ExcelDna.AddIn.Tasks\bin\Release\net6.0-windows\ExcelDna.AddIn
 
 copy /Y ..\Distribution\net452\ ..\Distribution\
 
-pause

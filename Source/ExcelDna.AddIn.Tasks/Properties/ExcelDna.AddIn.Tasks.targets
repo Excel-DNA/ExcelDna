@@ -59,25 +59,33 @@
           DestinationFolder="$(ExcelDnaTestPackageDir)tools\%(RecursiveDir)"
           ContinueOnError="false" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" />
 
-	<Copy SourceFiles="$(ProjectDir)..\ExcelDna.Host\bin\$(Configuration)\x64\ExcelDna.Host.x64.xll"
+	<Copy 
+        Condition="Exists('$(ProjectDir)..\ExcelDna.Host\bin\$(Configuration)\x64\ExcelDna.Host.x64.xll')"
+        SourceFiles="$(ProjectDir)..\ExcelDna.Host\bin\$(Configuration)\x64\ExcelDna.Host.x64.xll"
         DestinationFiles="$(ExcelDnaTestPackageDir)tools\net6.0-windows\ExcelDna64.xll"
         ContinueOnError="false"
         OverwriteReadOnlyFiles="true"
         SkipUnchangedFiles="true" />
 
-	<Copy SourceFiles="$(ProjectDir)..\ExcelDna.Host\bin\$(Configuration)\x86\ExcelDna.Host.x86.xll"
+	<Copy 
+		Condition="Exists('$(ProjectDir)..\ExcelDna.Host\bin\$(Configuration)\x86\ExcelDna.Host.x86.xll')"
+		SourceFiles="$(ProjectDir)..\ExcelDna.Host\bin\$(Configuration)\x86\ExcelDna.Host.x86.xll"
 		DestinationFiles="$(ExcelDnaTestPackageDir)tools\net6.0-windows\ExcelDna.xll"
 		ContinueOnError="false"
 		OverwriteReadOnlyFiles="true"
 		SkipUnchangedFiles="true" />
 
-	<Copy SourceFiles="$(ProjectDir)..\ExcelDna\x64\$(Configuration)\ExcelDna64.xll"
+	<Copy 
+		Condition="Exists('$(ProjectDir)..\ExcelDna\x64\$(Configuration)\ExcelDna64.xll')"
+		SourceFiles="$(ProjectDir)..\ExcelDna\x64\$(Configuration)\ExcelDna64.xll"
 		DestinationFiles="$(ExcelDnaTestPackageDir)tools\net452\ExcelDna64.xll"
 		ContinueOnError="false"
 		OverwriteReadOnlyFiles="true"
 		SkipUnchangedFiles="true" />
 
-	<Copy SourceFiles="$(ProjectDir)..\ExcelDna\$(Configuration)\ExcelDna.xll"
+	<Copy 
+		Condition="Exists('$(ProjectDir)..\ExcelDna\$(Configuration)\ExcelDna.xll')"
+		SourceFiles="$(ProjectDir)..\ExcelDna\$(Configuration)\ExcelDna.xll"
 		DestinationFiles="$(ExcelDnaTestPackageDir)tools\net452\ExcelDna.xll"
 		ContinueOnError="false"
 		OverwriteReadOnlyFiles="true"
