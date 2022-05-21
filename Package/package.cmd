@@ -4,7 +4,7 @@ setlocal
 set currentPath=%~dp0
 set basePath=%currentPath:~0,-1%
 set outputPath=%basePath%\nupkg
-set ExcelDnaVersion=1.6.0-preview3
+set ExcelDnaVersion=%1
 
 if exist "%outputPath%\*.nupkg" del "%outputPath%\*.nupkg"
 

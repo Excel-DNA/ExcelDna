@@ -1,3 +1,7 @@
+setlocal
+
+set PackageVersion=1.6.0-preview3
+
 set MSBuildPath="c:\Program Files\Microsoft Visual Studio\2022\Preview\Msbuild\Current\Bin\amd64\MSBuild.exe"
 
 %MSBuildPath% ..\Source\ExcelDna.sln /t:restore /p:Configuration=Release
@@ -13,7 +17,7 @@ call build.bat
 @if errorlevel 1 goto end
 
 cd ..\Package
-call package.cmd
+call package.cmd %PackageVersion%
 @if errorlevel 1 goto end
 
 :end
