@@ -51,6 +51,8 @@
     </None>
   </ItemGroup>
 
+  <Import Project="..\ExcelDna.PackedResources\ExcelDna.PackedResources.projitems" Label="Shared" />
+
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
   
   <Import Project="$(ProjectDir)Properties\ExcelDna.AddIn.Tasks.targets" />

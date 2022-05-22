@@ -15,7 +15,7 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
 
             MsBuild(projectBasePath + "NET6Unpack.csproj /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
 
-            AssertFound(projectOutDir, ".dll", new string[] { "ExcelDna.ManagedHost.dll", "ExcelDna.Integration.dll", "ExcelDna.Loader.dll" });
+            AssertFound(projectOutDir, "*.dll", new string[] { "ExcelDna.ManagedHost.dll", "ExcelDna.Integration.dll", "ExcelDna.Loader.dll" });
         }
     }
 }

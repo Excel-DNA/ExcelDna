@@ -135,6 +135,9 @@ namespace ExcelDna.AddIn.Tasks
                     // Copy .xll file to build output folder for 32-bit
                     CopyFileToBuildOutput(Xll32FilePath, item.OutputXllFileNameAs32Bit, overwrite: true);
 
+                    if (UnpackIsEnabled)
+                        UnpackXll(item.OutputXllFileNameAs32Bit);
+
                     // Copy .config file to build output folder for 32-bit (if exist)
                     TryCopyConfigFileToOutput(item.InputConfigFileNameAs32Bit, item.InputConfigFileNameFallbackAs32Bit, item.OutputConfigFileNameAs32Bit);
 
@@ -157,6 +160,9 @@ namespace ExcelDna.AddIn.Tasks
 
                     // Copy .xll file to build output folder for 64-bit
                     CopyFileToBuildOutput(Xll64FilePath, item.OutputXllFileNameAs64Bit, overwrite: true);
+
+                    if (UnpackIsEnabled)
+                        UnpackXll(item.OutputXllFileNameAs64Bit);
 
                     // Copy .config file to build output folder for 64-bit (if exist)
                     TryCopyConfigFileToOutput(item.InputConfigFileNameAs64Bit, item.InputConfigFileNameFallbackAs64Bit, item.OutputConfigFileNameAs64Bit);
@@ -299,6 +305,28 @@ namespace ExcelDna.AddIn.Tasks
                 result = result.Replace("<DnaLibrary ", "<DnaLibrary " + "DisableAssemblyContextUnload=\"true\" ");
 
             return result.Replace("%OutputFileName%", !string.IsNullOrEmpty(AddInExternalLibraryPath) ? AddInExternalLibraryPath : TargetFileName);
+        }
+
+        private void UnpackXll(string xllPath)
+        {
+            var destinationFolder = Path.GetDirectoryName(xllPath);
+            IntPtr hModule = ResourceHelper.ResourceUpdater.LoadXllResources(xllPath);
+            UnpackAssembly(hModule, "ExcelDna.ManagedHost", destinationFolder);
+            UnpackAssembly(hModule, "ExcelDna.Integration", destinationFolder);
+            UnpackAssembly(hModule, "ExcelDna.Loader", destinationFolder);
+            ResourceHelper.ResourceUpdater.FreeXllResources(hModule);
+
+            var updater = new ResourceHelper.ResourceUpdater(xllPath);
+            updater.RemoveResource("ASSEMBLY", "ExcelDna.ManagedHost".ToUpperInvariant());
+            updater.RemoveResource("ASSEMBLY_LZMA", "ExcelDna.Integration".ToUpperInvariant());
+            updater.RemoveResource("ASSEMBLY_LZMA", "ExcelDna.Loader".ToUpperInvariant());
+            updater.EndUpdate();
+        }
+
+        private void UnpackAssembly(IntPtr hModule, string assemblyName, string destinationFolder)
+        {
+            byte[] data = ResourceHelper.ResourceUpdater.LoadResourceBytes(hModule, "ASSEMBLY", assemblyName.ToUpperInvariant());
+            File.WriteAllBytes(Path.Combine(destinationFolder, assemblyName + ".dll"), data);
         }
 
         /// <summary>
