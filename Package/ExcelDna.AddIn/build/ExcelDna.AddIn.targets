@@ -198,6 +198,7 @@
       Create64BitAddIn="$(ExcelDnaCreate64BitAddIn)"
       FileSuffix32Bit="$(ExcelDna32BitAddInSuffix)"
       FileSuffix64Bit="$(ExcelDna64BitAddInSuffix)"
+      UnpackIsEnabled="$(ExcelDnaUnpack)"
       PackIsEnabled="$(RunExcelDnaPack)"
       PackedFileSuffix="$(ExcelDnaPackXllSuffix)"
  	  AddInName="$(ExcelAddInName)"

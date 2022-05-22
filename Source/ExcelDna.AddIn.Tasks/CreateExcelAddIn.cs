@@ -364,6 +364,11 @@ namespace ExcelDna.AddIn.Tasks
         public string FileSuffix64Bit { get; set; }
 
         /// <summary>
+        /// Enable/disable to have an .xll file with no packed assemblies
+        /// </summary>
+        public bool UnpackIsEnabled { get; set; }
+
+        /// <summary>
         /// Enable/disable running ExcelDnaPack for .dna files
         /// </summary>
         public bool PackIsEnabled { get; set; }
