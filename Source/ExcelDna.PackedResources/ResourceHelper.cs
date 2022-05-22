@@ -25,29 +25,29 @@ internal static class ResourceHelper
     }
 
     // TODO: Learn about locales
-    private const ushort localeNeutral		= 0;
-	private const ushort localeEnglishUS	= 1033;
-	private const ushort localeEnglishSA	= 7177;
+    private const ushort localeNeutral = 0;
+    private const ushort localeEnglishUS = 1033;
+    private const ushort localeEnglishSA = 7177;
 
-	[DllImport("kernel32.dll")]
-	private static extern IntPtr BeginUpdateResource(
-		string pFileName,
-		bool bDeleteExistingResources);
+    [DllImport("kernel32.dll")]
+    private static extern IntPtr BeginUpdateResource(
+        string pFileName,
+        bool bDeleteExistingResources);
 
-	[DllImport("kernel32.dll")]
-	private static extern bool EndUpdateResource(
-		IntPtr hUpdate,
-		bool fDiscard);
-	
-	//, EntryPoint="UpdateResourceA", CharSet=CharSet.Ansi,
-	[DllImport("kernel32.dll", SetLastError=true)]
-	private static extern bool UpdateResource(
-		IntPtr hUpdate,
-		string lpType,
-		string lpName,
-		ushort wLanguage,
-		IntPtr lpData,
-		uint cbData);
+    [DllImport("kernel32.dll")]
+    private static extern bool EndUpdateResource(
+        IntPtr hUpdate,
+        bool fDiscard);
+
+    //, EntryPoint="UpdateResourceA", CharSet=CharSet.Ansi,
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool UpdateResource(
+        IntPtr hUpdate,
+        string lpType,
+        string lpName,
+        ushort wLanguage,
+        IntPtr lpData,
+        uint cbData);
 
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern bool UpdateResource(
@@ -80,8 +80,30 @@ internal static class ResourceHelper
         uint dwLen,
         byte[] lpData);
 
-	[DllImport("kernel32.dll")]
-	private static extern uint GetLastError();
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern IntPtr FindResource(
+    IntPtr hModule,
+    string lpName,
+    string lpType);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern IntPtr LoadResource(
+        IntPtr hModule,
+        IntPtr hResInfo);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern IntPtr LockResource(
+        IntPtr hResData);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern uint SizeofResource(
+        IntPtr hModule,
+        IntPtr hResInfo);
+
+    [DllImport("kernel32.dll")]
+    private static extern uint GetLastError();
+
+
 
     internal class ResourceUpdater
     {
@@ -289,6 +311,80 @@ internal static class ResourceHelper
             {
                 throw new Win32Exception();
             }
+        }
+
+        // Load the resource, trying also as compressed if no uncompressed version is found.
+        // If the resource type ends with "_LZMA", we decompress from the LZMA format.
+        internal static byte[] LoadResourceBytes(IntPtr hModule, string typeName, string resourceName)
+        {
+            // CAREFUL: Can't log here yet as this method is called during Integration.Initialize()
+            // Logger.Initialization.Info("LoadResourceBytes for resource {0} of type {1}", resourceName, typeName);
+            IntPtr hResInfo = FindResource(hModule, resourceName, typeName);
+            if (hResInfo == IntPtr.Zero)
+            {
+                // We expect this null result value when the resource does not exists.
+
+                if (!typeName.EndsWith("_LZMA"))
+                {
+                    // Try the compressed name.
+                    typeName += "_LZMA";
+                    hResInfo = FindResource(hModule, resourceName, typeName);
+                }
+                if (hResInfo == IntPtr.Zero)
+                {
+                    // CAREFUL: Can't log here yet as this method is called during Integration.Initialize()
+                    // Logger.Initialization.Info("Resource not found - resource {0} of type {1}", resourceName, typeName);
+                    Debug.Print("ResourceHelper.LoadResourceBytes - Resource not found - resource {0} of type {1}", resourceName, typeName);
+                    // Return null to indicate that the resource was not found.
+                    return null;
+                }
+            }
+            IntPtr hResData = LoadResource(hModule, hResInfo);
+            if (hResData == IntPtr.Zero)
+            {
+                // Unexpected error - this should not happen
+                // CAREFUL: Can't log here yet as this method is called during Integration.Initialize()
+                //Logger.Initialization.Error("Unexpected errror loading resource {0} of type {1}", resourceName, typeName);
+                Debug.Print("ResourceHelper.LoadResourceBytes - Unexpected errror loading resource {0} of type {1}", resourceName, typeName);
+                throw new Win32Exception();
+            }
+            uint size = SizeofResource(hModule, hResInfo);
+            IntPtr pResourceBytes = LockResource(hResData);
+            byte[] resourceBytes = new byte[size];
+            Marshal.Copy(pResourceBytes, resourceBytes, 0, (int)size);
+
+            byte[] resultBytes;
+            if (typeName.EndsWith("_LZMA"))
+                resultBytes = Decompress(resourceBytes);
+            else
+                resultBytes = resourceBytes;
+
+            XorRecode(resultBytes);
+            return resultBytes;
+        }
+
+        private static byte[] Decompress(byte[] inputBytes)
+        {
+            MemoryStream newInStream = new MemoryStream(inputBytes);
+            Decoder decoder = new Decoder();
+            newInStream.Seek(0, 0);
+            MemoryStream newOutStream = new MemoryStream();
+            byte[] properties2 = new byte[5];
+            if (newInStream.Read(properties2, 0, 5) != 5)
+                throw (new Exception("input .lzma is too short"));
+            long outSize = 0;
+            for (int i = 0; i < 8; i++)
+            {
+                int v = newInStream.ReadByte();
+                if (v < 0)
+                    throw (new Exception("Can't Read 1"));
+                outSize |= ((long)(byte)v) << (8 * i);
+            }
+            decoder.SetDecoderProperties(properties2);
+            long compressedSize = newInStream.Length - newInStream.Position;
+            decoder.Code(newInStream, newOutStream, compressedSize, outSize, null);
+            byte[] b = newOutStream.ToArray();
+            return b;
         }
 
         static readonly byte[] _xorKeys = System.Text.Encoding.ASCII.GetBytes("ExcelDna");

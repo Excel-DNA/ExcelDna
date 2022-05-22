@@ -70,6 +70,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelDna.Test", "ExcelDna.T
 		{FD7F2EE3-9922-4825-96A2-BE2C877BAEB9} = {FD7F2EE3-9922-4825-96A2-BE2C877BAEB9}
 	EndProjectSection
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "ExcelDna.PackedResources", "ExcelDna.PackedResources\ExcelDna.PackedResources.shproj", "{7EBB8FA9-A153-422E-B454-144C3FB03450}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -171,5 +173,10 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {69EF43B0-B903-4775-BC81-C7E7E012EDA3}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		ExcelDna.PackedResources\ExcelDna.PackedResources.projitems*{7ebb8fa9-a153-422e-b454-144c3fb03450}*SharedItemsImports = 13
+		ExcelDna.PackedResources\ExcelDna.PackedResources.projitems*{dc10cec8-c6ce-4148-838f-c3dd4ea2a2a3}*SharedItemsImports = 5
+		ExcelDna.PackedResources\ExcelDna.PackedResources.projitems*{fd7f2ee3-9922-4825-96a2-be2c877baeb9}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

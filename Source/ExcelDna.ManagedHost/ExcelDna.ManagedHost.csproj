@@ -6,11 +6,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\Lzma\**\*.cs" LinkBase="Lzma" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\ExcelDna.Loader\ExcelDna.Loader.csproj" />
   </ItemGroup>
+
+  <Import Project="..\ExcelDna.PackedResources\ExcelDna.PackedResources.projitems" Label="Shared" />
   
 </Project>
