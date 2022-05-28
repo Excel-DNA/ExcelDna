@@ -313,9 +313,7 @@ namespace ExcelDna.AddIn.Tasks
 
             IntPtr hModule = ResourceHelper.LoadXllResources(xllPath);
             if (hModule == IntPtr.Zero)
-            {
-                return;
-            }
+                throw new InvalidOperationException("Error loading resources from " + xllPath);
 
             try
             {
