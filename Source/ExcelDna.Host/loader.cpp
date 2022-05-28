@@ -57,8 +57,9 @@ bool XlLibraryInitialize(XlAddInExportInfo* pExportInfo)
 {
 	std::wstring xllPath = GetAddInFullPath();
 	WCHAR basePath[MAX_PATH] = { 0 };
-	_wsplitpath_s(xllPath.c_str(), NULL, 0, basePath, MAX_PATH, NULL, 0, NULL, 0);
-	int result = load_runtime_and_run(basePath, pExportInfo, hModuleCurrent, xllPath.c_str());
+	WCHAR drive[_MAX_DRIVE] = { 0 };
+	_wsplitpath_s(xllPath.c_str(), drive, _MAX_DRIVE, basePath, MAX_PATH, NULL, 0, NULL, 0);
+	int result = load_runtime_and_run(std::wstring(drive) + basePath, pExportInfo, hModuleCurrent, xllPath.c_str());
 
 	return result == EXIT_SUCCESS;
 	//

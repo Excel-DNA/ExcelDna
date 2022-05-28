@@ -4,4 +4,4 @@
 
 #include "exports.h"
 
-int load_runtime_and_run(LPCWSTR basePath, XlAddInExportInfo* pExportInfo, HMODULE hModuleXll, LPCWSTR pathXll);
+int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExportInfo, HMODULE hModuleXll, LPCWSTR pathXll);
