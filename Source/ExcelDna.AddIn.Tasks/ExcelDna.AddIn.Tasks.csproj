@@ -22,7 +22,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ExcelDna.Integration\ExcelDna.Integration.csproj" />
-    <ProjectReference Include="..\ExcelDnaPack\ExcelDnaPack.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net452' ">
