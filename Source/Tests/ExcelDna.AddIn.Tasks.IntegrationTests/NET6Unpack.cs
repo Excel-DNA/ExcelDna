@@ -31,5 +31,18 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
 
             AssertNotFound(Path.Combine(projectOutDir, "ExcelDna.ManagedHost.dll"));
         }
+
+        [Test]
+        public void DisablePack()
+        {
+            const string projectBasePath = @"NET6Unpack\";
+            const string projectOutDir = projectBasePath + @"bin\Release";
+
+            Clean(projectOutDir);
+
+            MsBuild(projectBasePath + "NET6Unpack.csproj /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
+
+            AssertNotFound(Path.Combine(projectOutDir, "NET6Unpack-AddIn64-packed.xll"));
+        }
     }
 }

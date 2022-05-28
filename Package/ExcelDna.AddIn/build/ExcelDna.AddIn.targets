@@ -219,7 +219,7 @@
   <!--
     Target that runs ExcelDnaPack.exe for each .dna copied to the build output folder
   -->
-  <Target Name="ExcelDnaPack" DependsOnTargets="ExcelDnaBuild" BeforeTargets="PostBuildEvent" Condition="('$(RunExcelDnaPack)' == 'true') AND ('@(ExcelDnaFilesToPack->Count())' &gt; 0)" Outputs="%(ExcelDnaFilesToPack.Identity)">
+  <Target Name="ExcelDnaPack" DependsOnTargets="ExcelDnaBuild" BeforeTargets="PostBuildEvent" Condition="('$(ExcelDnaUnpack)' != 'true') AND ('$(RunExcelDnaPack)' == 'true') AND ('@(ExcelDnaFilesToPack->Count())' &gt; 0)" Outputs="%(ExcelDnaFilesToPack.Identity)">
     <Error Text="ExcelDnaPack: ExcelDnaPack.exe not found: $(ExcelDnaPackExePath)" Condition="!Exists('$(ExcelDnaPackExePath)')" />
 
     <!-- Run ExcelDnaPack.exe -->

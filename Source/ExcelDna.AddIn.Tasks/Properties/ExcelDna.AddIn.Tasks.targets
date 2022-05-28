@@ -5,16 +5,6 @@
   </PropertyGroup>
 
   <!--
-    Extend the Clean target to call our ExcelDnaAddInTasksClean target
-  -->
-  <PropertyGroup>
-    <CleanDependsOn>
-      $(CleanDependsOn);
-      ExcelDnaAddInTasksClean;
-    </CleanDependsOn>
-  </PropertyGroup>
-
-  <!--
     Extend the AfterBuild target to call our ExcelDnaAddInTasksBuild target
   -->
   <PropertyGroup>
@@ -23,19 +13,6 @@
       ExcelDnaAddInTasksBuild;
     </BuildDependsOn>
   </PropertyGroup>
-
-  <!--
-    Target that removes all files previously copied to run the integration tests
-  -->
-  <Target Name="ExcelDnaAddInTasksClean">
-    <Message Text="Cleaning files previously copied to run the integration tests in $(ExcelDnaTestPackageDir)" Importance="High" />
-
-    <ItemGroup>
-      <ExcelDnaTestPackageFilesToDelete Include="$(ExcelDnaTestPackageDir)**\*.*" />
-    </ItemGroup>
-
-    <Delete Files="@(ExcelDnaTestPackageFilesToDelete)" TreatErrorsAsWarnings="true"/>
-  </Target>
 
   <!--
     Target that copies the necessary files to run the integration tests
