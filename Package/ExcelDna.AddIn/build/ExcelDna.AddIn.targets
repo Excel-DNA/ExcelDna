@@ -157,6 +157,7 @@
       Xll64FilePath="ExcelDna64.xll"
       FileSuffix32Bit="$(ExcelDna32BitAddInSuffix)"
       FileSuffix64Bit="$(ExcelDna64BitAddInSuffix)"
+      UnpackIsEnabled="$(ExcelDnaUnpack)"
       PackIsEnabled="$(RunExcelDnaPack)"
       PackedFileSuffix="$(ExcelDnaPackXllSuffix)"
  	  AddInFileName="$(ExcelAddInFileName)"
