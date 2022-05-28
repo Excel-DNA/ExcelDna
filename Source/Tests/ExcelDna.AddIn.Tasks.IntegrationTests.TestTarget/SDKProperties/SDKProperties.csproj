@@ -45,6 +45,10 @@
     <!-- Default value: true -->
     <RunExcelDnaPack></RunExcelDnaPack>
 
+    <!-- Enables to have an .xll file with no packed assemblies in it. -->
+    <!-- Default value: false -->
+    <ExcelDnaUnpack></ExcelDnaUnpack>
+
     <!-- Enables creating 32bit add-in. -->
     <!-- Default value: true -->
     <ExcelDnaCreate32BitAddIn></ExcelDnaCreate32BitAddIn>
