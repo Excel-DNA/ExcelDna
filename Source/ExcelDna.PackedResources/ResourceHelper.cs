@@ -127,6 +127,16 @@ internal static class ResourceHelper
         LOAD_WITH_ALTERED_SEARCH_PATH = 0x00000008
     }
 
+    public static IntPtr LoadXllResources(string xllPath)
+    {
+        return LoadLibraryEx(xllPath, IntPtr.Zero, LoadLibraryFlags.LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE);
+    }
+
+    public static bool FreeXllResources(IntPtr hModule)
+    {
+        return FreeLibrary(hModule);
+    }
+
     internal class ResourceUpdater
     {
         int typelibIndex = 0;
@@ -254,7 +264,7 @@ internal static class ResourceHelper
         {
             lock (lockResource)
             {
-                bool result = ResourceHelper.UpdateResource(_hUpdate, typeName, name, localeNeutral, IntPtr.Zero, 0);
+                bool result = UpdateResource(_hUpdate, typeName, name, localeNeutral, IntPtr.Zero, 0);
                 if (!result)
                 {
                     throw new Win32Exception();
@@ -333,16 +343,6 @@ internal static class ResourceHelper
             {
                 throw new Win32Exception();
             }
-        }
-
-        public static IntPtr LoadXllResources(string xllPath)
-        {
-            return LoadLibraryEx(xllPath, IntPtr.Zero, LoadLibraryFlags.LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE);
-        }
-
-        public static bool FreeXllResources(IntPtr hModule)
-        {
-            return FreeLibrary(hModule);
         }
 
         // Load the resource, trying also as compressed if no uncompressed version is found.

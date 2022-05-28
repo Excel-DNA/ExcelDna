@@ -309,24 +309,58 @@ namespace ExcelDna.AddIn.Tasks
 
         private void UnpackXll(string xllPath)
         {
-            var destinationFolder = Path.GetDirectoryName(xllPath);
-            IntPtr hModule = ResourceHelper.ResourceUpdater.LoadXllResources(xllPath);
-            UnpackAssembly(hModule, "ExcelDna.ManagedHost", destinationFolder);
-            UnpackAssembly(hModule, "ExcelDna.Integration", destinationFolder);
-            UnpackAssembly(hModule, "ExcelDna.Loader", destinationFolder);
-            ResourceHelper.ResourceUpdater.FreeXllResources(hModule);
+            string[] assemblies = { "ExcelDna.ManagedHost", "ExcelDna.Integration", "ExcelDna.Loader" };
 
-            var updater = new ResourceHelper.ResourceUpdater(xllPath);
-            updater.RemoveResource("ASSEMBLY", "ExcelDna.ManagedHost".ToUpperInvariant());
-            updater.RemoveResource("ASSEMBLY_LZMA", "ExcelDna.Integration".ToUpperInvariant());
-            updater.RemoveResource("ASSEMBLY_LZMA", "ExcelDna.Loader".ToUpperInvariant());
-            updater.EndUpdate();
+            IntPtr hModule = ResourceHelper.LoadXllResources(xllPath);
+            if (hModule == IntPtr.Zero)
+            {
+                return;
+            }
+
+            try
+            {
+                var destinationFolder = Path.GetDirectoryName(xllPath);
+                foreach (var i in assemblies)
+                {
+                    TryUnpackResource(hModule, i + ".dll", "ASSEMBLY", destinationFolder);
+                    TryUnpackResource(hModule, i + ".pdb", "PDB", destinationFolder);
+                }
+            }
+            finally
+            {
+                ResourceHelper.FreeXllResources(hModule);
+            }
+
+            foreach (var i in assemblies)
+            {
+                string name = i.ToUpperInvariant();
+                TryRemoveResource(xllPath, name, "ASSEMBLY");
+                TryRemoveResource(xllPath, name, "ASSEMBLY_LZMA");
+                TryRemoveResource(xllPath, name, "PDB");
+                TryRemoveResource(xllPath, name, "PDB_LZMA");
+            }
         }
 
-        private void UnpackAssembly(IntPtr hModule, string assemblyName, string destinationFolder)
+        private void TryUnpackResource(IntPtr hModule, string resourceFileName, string typeName, string destinationFolder)
         {
-            byte[] data = ResourceHelper.ResourceUpdater.LoadResourceBytes(hModule, "ASSEMBLY", assemblyName.ToUpperInvariant());
-            File.WriteAllBytes(Path.Combine(destinationFolder, assemblyName + ".dll"), data);
+            byte[] data = ResourceHelper.ResourceUpdater.LoadResourceBytes(hModule, typeName, Path.GetFileNameWithoutExtension(resourceFileName).ToUpperInvariant());
+            if (data != null)
+                File.WriteAllBytes(Path.Combine(destinationFolder, resourceFileName), data);
+        }
+
+        private void TryRemoveResource(string xllPath, string name, string typeName)
+        {
+            var updater = new ResourceHelper.ResourceUpdater(xllPath);
+            try
+            {
+                updater.RemoveResource(typeName, name);
+            }
+            catch (System.ComponentModel.Win32Exception)
+            {
+                updater.EndUpdate(true);
+                return;
+            }
+            updater.EndUpdate();
         }
 
         /// <summary>
