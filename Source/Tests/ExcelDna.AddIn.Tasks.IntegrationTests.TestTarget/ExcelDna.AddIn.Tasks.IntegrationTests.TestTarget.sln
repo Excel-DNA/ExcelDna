@@ -57,7 +57,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDKProperties", "SDKPropert
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NET6DisableAssemblyContextUnload", "NET6DisableAssemblyContextUnload\NET6DisableAssemblyContextUnload.csproj", "{1EF35B7F-F8A8-4868-AF34-91107E7E3129}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NET6Unpack", "NET6Unpack\NET6Unpack.csproj", "{2CCB79EA-E218-408D-88A8-DCB8EE39F644}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NET6Unpack", "NET6Unpack\NET6Unpack.csproj", "{2CCB79EA-E218-408D-88A8-DCB8EE39F644}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NET4Unpack", "NET4Unpack\NET4Unpack.csproj", "{E423DF71-55E6-4742-AEEF-7A892F9C0AD8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -173,6 +175,10 @@ Global
 		{2CCB79EA-E218-408D-88A8-DCB8EE39F644}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2CCB79EA-E218-408D-88A8-DCB8EE39F644}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2CCB79EA-E218-408D-88A8-DCB8EE39F644}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E423DF71-55E6-4742-AEEF-7A892F9C0AD8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E423DF71-55E6-4742-AEEF-7A892F9C0AD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E423DF71-55E6-4742-AEEF-7A892F9C0AD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E423DF71-55E6-4742-AEEF-7A892F9C0AD8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
