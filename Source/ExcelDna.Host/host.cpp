@@ -16,6 +16,7 @@
 #include <cassert>
 #include <iostream>
 #include <string>
+#include <filesystem>
 
 #include "TempDir.h"
 #include "utils.h"
@@ -45,7 +46,7 @@ void __stdcall preload_runtime(void) {}
 TempDir tempDir(L"ExcelDna.Host");
 
 // TODO: Might return the fn*
-int load_runtime_and_run(LPCWSTR basePath, XlAddInExportInfo* pExportInfo, HMODULE hModuleXll, LPCWSTR pathXll)
+int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExportInfo, HMODULE hModuleXll, LPCWSTR pathXll)
 {
 	//
 	// STEP 1: Load HostFxr and get exported hosting functions
@@ -63,26 +64,30 @@ int load_runtime_and_run(LPCWSTR basePath, XlAddInExportInfo* pExportInfo, HMODU
 	assert(load_assembly_and_get_function_pointer != nullptr && "Failure: get_dotnet_load_assembly()");
 
 	//
-	// STEP 3: Copy managed assembly from resources to some temp file
+	// STEP 3: Copy managed assembly from resources to some temp file if needed
 	//
-	HRSRC hResManagedHost = FindResource(hModuleXll, L"EXCELDNA.MANAGEDHOST", L"ASSEMBLY");
-	assert(hResManagedHost != NULL && "Failure: FindResource EXCELDNA.MANAGEDHOST");
+	std::wstring hostFile = PathCombine(basePath, L"ExcelDna.ManagedHost.dll");
+	if (!std::filesystem::exists(hostFile))
+	{
+		HRSRC hResManagedHost = FindResource(hModuleXll, L"EXCELDNA.MANAGEDHOST", L"ASSEMBLY");
+		assert(hResManagedHost != NULL && "Failure: FindResource EXCELDNA.MANAGEDHOST");
 
-	HGLOBAL hManagedHost = LoadResource(hModuleXll, hResManagedHost);
-	assert(hManagedHost != NULL && "Failure: LoadResource EXCELDNA.MANAGEDHOST");
+		HGLOBAL hManagedHost = LoadResource(hModuleXll, hResManagedHost);
+		assert(hManagedHost != NULL && "Failure: LoadResource EXCELDNA.MANAGEDHOST");
 
-	void* buf = LockResource(hManagedHost);
-	assert(buf != NULL && "Failure: LockResource EXCELDNA.MANAGEDHOST");
+		void* buf = LockResource(hManagedHost);
+		assert(buf != NULL && "Failure: LockResource EXCELDNA.MANAGEDHOST");
 
-	DWORD resSize = SizeofResource(hModuleXll, hResManagedHost);
-	SafeByteArray safeBytes(buf, resSize);
-	XorRecode(safeBytes);
-	byte* pData;
-	int nSize = safeBytes.AccessData(&pData);
+		DWORD resSize = SizeofResource(hModuleXll, hResManagedHost);
+		SafeByteArray safeBytes(buf, resSize);
+		XorRecode(safeBytes);
+		byte* pData;
+		int nSize = safeBytes.AccessData(&pData);
 
-	std::wstring hostFile = PathCombine(tempDir.GetPath(), L"ExcelDna.ManagedHost.dll");
-	HRESULT hr = WriteAllBytes(hostFile, pData, nSize);
-	assert(SUCCEEDED(hr) && "Failure: saving EXCELDNA.MANAGEDHOST");
+		hostFile = PathCombine(tempDir.GetPath(), L"ExcelDna.ManagedHost.dll");
+		HRESULT hr = WriteAllBytes(hostFile, pData, nSize);
+		assert(SUCCEEDED(hr) && "Failure: saving EXCELDNA.MANAGEDHOST");
+	}
 
 	//
 	// STEP 4: Load managed assembly and get function pointer to a managed method
@@ -104,7 +109,7 @@ int load_runtime_and_run(LPCWSTR basePath, XlAddInExportInfo* pExportInfo, HMODU
 	assert(rc == 0 && init != nullptr && "Failure: load_assembly_and_get_function_pointer()");
 
 	bool disableAssemblyContextUnload;
-	hr = GetDisableAssemblyContextUnload(disableAssemblyContextUnload);
+	HRESULT hr = GetDisableAssemblyContextUnload(disableAssemblyContextUnload);
 	if (FAILED(hr))
 		disableAssemblyContextUnload = false;
 

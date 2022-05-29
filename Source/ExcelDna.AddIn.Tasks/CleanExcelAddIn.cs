@@ -48,6 +48,8 @@ namespace ExcelDna.AddIn.Tasks
                 // Get the packed name versions : Refactor this + build items
                 DeleteAddInFiles(existingBuiltFiles);
                 DeletePackedAddInFiles(_packedFilesToDelete);
+                if (UnpackIsEnabled)
+                    DeleteUnpackedAddInFiles();
 
                 return true;
             }
@@ -145,6 +147,16 @@ namespace ExcelDna.AddIn.Tasks
             });
         }
 
+        private void DeleteUnpackedAddInFiles()
+        {
+            string[] assemblies = { "ExcelDna.ManagedHost", "ExcelDna.Integration", "ExcelDna.Loader" };
+            foreach (var i in assemblies)
+            {
+                DeleteFileIfExists(Path.Combine(OutDirectory, i + ".dll"));
+                DeleteFileIfExists(Path.Combine(OutDirectory, i + ".pdb"));
+            }
+        }
+
         private void DeleteFileIfExists(string path)
         {
             if (_fileSystem.FileExists(path))
@@ -193,6 +205,11 @@ namespace ExcelDna.AddIn.Tasks
         /// The name suffix for 64-bit .dna files
         /// </summary>
         public string FileSuffix64Bit { get; set; }
+
+        /// <summary>
+        /// Enable/disable to have an .xll file with no packed assemblies
+        /// </summary>
+        public bool UnpackIsEnabled { get; set; }
 
         /// <summary>
         /// Enable/disable running ExcelDnaPack for .dna files

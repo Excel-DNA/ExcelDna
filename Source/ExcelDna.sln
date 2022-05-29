@@ -22,8 +22,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelDnaPack", "ExcelDnaPac
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelDna.AddIn.Tasks", "ExcelDna.AddIn.Tasks\ExcelDna.AddIn.Tasks.csproj", "{B5CC04D3-0507-4431-9F45-7C60BAC3047A}"
 	ProjectSection(ProjectDependencies) = postProject
-		{A9887347-3E93-4E4E-96DF-227648E57B60} = {A9887347-3E93-4E4E-96DF-227648E57B60}
 		{A8D668E2-63C1-4F4E-A01E-E026C6E4D601} = {A8D668E2-63C1-4F4E-A01E-E026C6E4D601}
+		{A9887347-3E93-4E4E-96DF-227648E57B60} = {A9887347-3E93-4E4E-96DF-227648E57B60}
+		{FD7F2EE3-9922-4825-96A2-BE2C877BAEB9} = {FD7F2EE3-9922-4825-96A2-BE2C877BAEB9}
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{511CE610-5E55-457F-B818-1522D1A96727}"
@@ -64,11 +65,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExcelDna.Host", "ExcelDna.H
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelDna.Test", "ExcelDna.Test\ExcelDna.Test.csproj", "{BA1BBC2E-E1A6-4682-8901-F596A21FD253}"
 	ProjectSection(ProjectDependencies) = postProject
-		{A9887347-3E93-4E4E-96DF-227648E57B60} = {A9887347-3E93-4E4E-96DF-227648E57B60}
 		{59AE5BC6-F37E-4CE3-BAE3-796F807A9882} = {59AE5BC6-F37E-4CE3-BAE3-796F807A9882}
+		{A9887347-3E93-4E4E-96DF-227648E57B60} = {A9887347-3E93-4E4E-96DF-227648E57B60}
 		{DC10CEC8-C6CE-4148-838F-C3DD4EA2A2A3} = {DC10CEC8-C6CE-4148-838F-C3DD4EA2A2A3}
 		{FD7F2EE3-9922-4825-96A2-BE2C877BAEB9} = {FD7F2EE3-9922-4825-96A2-BE2C877BAEB9}
 	EndProjectSection
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "ExcelDna.PackedResources", "ExcelDna.PackedResources\ExcelDna.PackedResources.shproj", "{7EBB8FA9-A153-422E-B454-144C3FB03450}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -170,5 +173,11 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {69EF43B0-B903-4775-BC81-C7E7E012EDA3}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		ExcelDna.PackedResources\ExcelDna.PackedResources.projitems*{7ebb8fa9-a153-422e-b454-144c3fb03450}*SharedItemsImports = 13
+		ExcelDna.PackedResources\ExcelDna.PackedResources.projitems*{b5cc04d3-0507-4431-9f45-7c60bac3047a}*SharedItemsImports = 5
+		ExcelDna.PackedResources\ExcelDna.PackedResources.projitems*{dc10cec8-c6ce-4148-838f-c3dd4ea2a2a3}*SharedItemsImports = 5
+		ExcelDna.PackedResources\ExcelDna.PackedResources.projitems*{fd7f2ee3-9922-4825-96a2-be2c877baeb9}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

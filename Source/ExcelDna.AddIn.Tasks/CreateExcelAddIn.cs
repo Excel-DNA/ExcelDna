@@ -135,6 +135,9 @@ namespace ExcelDna.AddIn.Tasks
                     // Copy .xll file to build output folder for 32-bit
                     CopyFileToBuildOutput(Xll32FilePath, item.OutputXllFileNameAs32Bit, overwrite: true);
 
+                    if (UnpackIsEnabled)
+                        UnpackXll(item.OutputXllFileNameAs32Bit);
+
                     // Copy .config file to build output folder for 32-bit (if exist)
                     TryCopyConfigFileToOutput(item.InputConfigFileNameAs32Bit, item.InputConfigFileNameFallbackAs32Bit, item.OutputConfigFileNameAs32Bit);
 
@@ -157,6 +160,9 @@ namespace ExcelDna.AddIn.Tasks
 
                     // Copy .xll file to build output folder for 64-bit
                     CopyFileToBuildOutput(Xll64FilePath, item.OutputXllFileNameAs64Bit, overwrite: true);
+
+                    if (UnpackIsEnabled)
+                        UnpackXll(item.OutputXllFileNameAs64Bit);
 
                     // Copy .config file to build output folder for 64-bit (if exist)
                     TryCopyConfigFileToOutput(item.InputConfigFileNameAs64Bit, item.InputConfigFileNameFallbackAs64Bit, item.OutputConfigFileNameAs64Bit);
@@ -301,6 +307,60 @@ namespace ExcelDna.AddIn.Tasks
             return result.Replace("%OutputFileName%", !string.IsNullOrEmpty(AddInExternalLibraryPath) ? AddInExternalLibraryPath : TargetFileName);
         }
 
+        private void UnpackXll(string xllPath)
+        {
+            string[] assemblies = { "ExcelDna.ManagedHost", "ExcelDna.Integration", "ExcelDna.Loader" };
+
+            IntPtr hModule = ResourceHelper.LoadXllResources(xllPath);
+            if (hModule == IntPtr.Zero)
+                throw new InvalidOperationException("Error loading resources from " + xllPath);
+
+            try
+            {
+                var destinationFolder = Path.GetDirectoryName(xllPath);
+                foreach (var i in assemblies)
+                {
+                    TryUnpackResource(hModule, i + ".dll", "ASSEMBLY", destinationFolder);
+                    TryUnpackResource(hModule, i + ".pdb", "PDB", destinationFolder);
+                }
+            }
+            finally
+            {
+                ResourceHelper.FreeXllResources(hModule);
+            }
+
+            foreach (var i in assemblies)
+            {
+                string name = i.ToUpperInvariant();
+                TryRemoveResource(xllPath, name, "ASSEMBLY");
+                TryRemoveResource(xllPath, name, "ASSEMBLY_LZMA");
+                TryRemoveResource(xllPath, name, "PDB");
+                TryRemoveResource(xllPath, name, "PDB_LZMA");
+            }
+        }
+
+        private void TryUnpackResource(IntPtr hModule, string resourceFileName, string typeName, string destinationFolder)
+        {
+            byte[] data = ResourceHelper.ResourceUpdater.LoadResourceBytes(hModule, typeName, Path.GetFileNameWithoutExtension(resourceFileName).ToUpperInvariant());
+            if (data != null)
+                File.WriteAllBytes(Path.Combine(destinationFolder, resourceFileName), data);
+        }
+
+        private void TryRemoveResource(string xllPath, string name, string typeName)
+        {
+            var updater = new ResourceHelper.ResourceUpdater(xllPath);
+            try
+            {
+                updater.RemoveResource(typeName, name);
+            }
+            catch (System.ComponentModel.Win32Exception)
+            {
+                updater.EndUpdate(true);
+                return;
+            }
+            updater.EndUpdate();
+        }
+
         /// <summary>
         /// The name of the project being compiled
         /// </summary>
@@ -362,6 +422,11 @@ namespace ExcelDna.AddIn.Tasks
         /// The name suffix for 64-bit .dna files
         /// </summary>
         public string FileSuffix64Bit { get; set; }
+
+        /// <summary>
+        /// Enable/disable to have an .xll file with no packed assemblies
+        /// </summary>
+        public bool UnpackIsEnabled { get; set; }
 
         /// <summary>
         /// Enable/disable running ExcelDnaPack for .dna files

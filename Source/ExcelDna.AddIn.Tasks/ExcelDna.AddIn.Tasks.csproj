@@ -19,7 +19,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ExcelDna.Integration\ExcelDna.Integration.csproj" />
-    <ProjectReference Include="..\ExcelDnaPack\ExcelDnaPack.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net452' ">
@@ -47,6 +46,8 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
+
+  <Import Project="..\ExcelDna.PackedResources\ExcelDna.PackedResources.projitems" Label="Shared" />
 
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
   

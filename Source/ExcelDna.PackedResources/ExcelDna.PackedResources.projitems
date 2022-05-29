@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>7ebb8fa9-a153-422e-b454-144c3fb03450</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>ExcelDna.PackedResources</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Lzma\CRC.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lzma\ICoder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lzma\IMatchFinder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lzma\InBuffer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lzma\LzBinTree.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lzma\LzInWindow.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lzma\LzmaBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lzma\LzmaDecoder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lzma\LzmaEncoder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lzma\LzOutWindow.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lzma\OutBuffer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lzma\RangeCoder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lzma\RangeCoderBit.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lzma\RangeCoderBitTree.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lzma\SevenZipHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ResourceHelper.cs" />
+  </ItemGroup>
+</Project>
