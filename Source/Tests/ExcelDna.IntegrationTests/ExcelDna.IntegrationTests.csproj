@@ -1,6 +1,6 @@
 ﻿<Project>
 
-  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk"/>
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
     
@@ -14,13 +14,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <COMReference Include="Microsoft.Office.Excel.dll">
-      <WrapperTool>tlbimp</WrapperTool>
+    <COMReference Include="{00020813-0000-0000-c000-000000000046}">
+      <WrapperTool>primary</WrapperTool>
       <VersionMinor>9</VersionMinor>
       <VersionMajor>1</VersionMajor>
       <Guid>00020813-0000-0000-c000-000000000046</Guid>
-      <Lcid>0</Lcid>
-      <Isolated>false</Isolated>
       <EmbedInteropTypes>true</EmbedInteropTypes>
     </COMReference>
   </ItemGroup>
@@ -55,7 +53,7 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>-->
 
-  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk"/>
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 
   <Target Name="AfterBuild">
     <Copy SourceFiles="$(SolutionDir)ExcelDna\$(Configuration)\ExcelDna.xll" DestinationFolder="$(TargetDir)" ContinueOnError="WarnAndContinue" />
