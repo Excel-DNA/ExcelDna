@@ -27,4 +27,9 @@ copy /Y %targetsfile% %rootPath%\Registration\Source\Directory.Build.targets
 call BuildPackages.bat %PackageVersion% %MSBuildPath%
 @if errorlevel 1 goto end
 
+cd %rootPath%\IntelliSense\Build
+copy /Y %targetsfile% %rootPath%\IntelliSense\Source\Directory.Build.targets
+call BuildPackages.bat %PackageVersion% %MSBuildPath%
+@if errorlevel 1 goto end
+
 :end
