@@ -4,7 +4,7 @@ Version 1.6.0 (???)
 * Support for SDK-style project files / PackageReference
 * Preview of .NET 6 support (.net6.0-windows TargetFramework)
 * Optionally disable ExcelDnaPack compression (thanks to @Phundamentals)
-
+* Remove support for http-based assembly retrieval
 
 Version 1.5.1 (22 December 2021)
 --------------------------------

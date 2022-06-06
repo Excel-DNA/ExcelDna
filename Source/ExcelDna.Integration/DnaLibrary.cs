@@ -9,7 +9,6 @@ using System.Runtime.InteropServices;
 using System.Xml.Serialization;
 using System.Xml;
 using System.Drawing;
-using System.Net;
 
 using ExcelDna.Serialization;
 using ExcelDna.Integration.CustomUI;
@@ -454,30 +453,6 @@ namespace ExcelDna.Integration
             // Called to shut down the Add-In.
             // Free whatever possible
             rootLibrary = null;
-        }
-
-        public static DnaLibrary LoadFrom(Uri uri)
-        {
-            DnaLibrary dnaLibrary;
-            XmlSerializer serializer = new DnaLibrarySerializer();
-
-            // The uri might be file or http.
-            try
-            {
-                WebRequest req = WebRequest.CreateDefault(uri);
-                WebResponse res = req.GetResponse();
-                Stream s = res.GetResponseStream();
-                dnaLibrary = (DnaLibrary)serializer.Deserialize(s);
-            }
-            catch (Exception e)
-            {
-                Logger.Initialization.Error("There was an error in loading the .dna file from a Uri:\r\n{0}\r\n{1}\r\nUri:{2}", e.Message, e.InnerException != null ? e.InnerException.Message : string.Empty, uri.ToString());
-                return null;
-            }
-
-            dnaLibrary.dnaResolveRoot = null;
-            return dnaLibrary;
-
         }
 
         public static DnaLibrary LoadFrom(byte[] bytes, string pathResolveRoot)

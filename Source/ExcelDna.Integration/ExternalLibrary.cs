@@ -143,7 +143,6 @@ namespace ExcelDna.Integration
 				}
 				if (Uri.IsWellFormedUriString(Path, UriKind.Absolute))
 				{
-                    // Here is support for loading ExternalLibraries from http.
                     Uri uri = new Uri(Path, UriKind.Absolute);
                     if (uri.IsUnc)
                     {
@@ -152,33 +151,8 @@ namespace ExcelDna.Integration
                     }
                     else
                     {
-                        string scheme = uri.Scheme.ToLowerInvariant();
-                        if (scheme != "http" && scheme != "file" && scheme != "https")
-                        {
-                            Logger.Initialization.Error("The ExternalLibrary path {0} is not a valid Uri scheme.", Path);
-                            return list;
-                        }
-                        else
-                        {
-                            if (uri.AbsolutePath.EndsWith("dna", StringComparison.InvariantCultureIgnoreCase))
-                            {
-                                DnaLibrary lib = DnaLibrary.LoadFrom(uri);
-                                if (lib == null)
-                                {
-                                    Logger.Initialization.Error("External library could not be registered - Path: {0} - DnaLibrary could not be loaded" + Path);
-                                    return list;
-                                }
-                                // CONSIDER: Should we add a resolve story for .dna files at Uris?
-                                return lib.GetAssemblies(null); // No explicit resolve path
-                            }
-                            else
-                            {
-                                // Load as a regular assembly - TypeLib not supported.
-                                Assembly assembly = ExcelIntegration.LoadFromAssemblyPath(Path);
-                                list.Add(new ExportedAssembly(assembly, ExplicitExports, ExplicitRegistration, ComServer, false, null, dnaLibrary));
-                                return list;
-                            }
-                        }
+                        Logger.Initialization.Error("External library could not be loaded - Path: {0} is not valid. Support for http-based Uri paths has been removed from Excel-DNA.", Path);
+                        return list;
                     }
                 }
                 // Keep trying with the current value of realPath.
