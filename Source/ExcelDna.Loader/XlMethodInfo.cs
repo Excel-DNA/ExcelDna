@@ -263,14 +263,14 @@ namespace ExcelDna.Loader
                     // Skip if suppressed
                     if (xlmi.ExplicitRegistration)
                     {
-                        Logger.Registration.Info("Suppressing due to ExplictRegistration attribute: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
+                        Logger.Registration.Info("Suppressing due to ExplictRegistration attribute: '{0}.{1}'", mi?.DeclaringType.Name ?? "<lambda>", mi?.Name ?? lambda?.Name);
                         continue;
                     }
                     xlMethodInfos.Add(xlmi);
                 }
                 catch (DnaMarshalException e)
                 {
-                    Logger.Registration.Error(e, "Method not registered due to unsupported signature: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
+                    Logger.Registration.Error(e, "Method not registered due to unsupported signature: '{0}.{1}'", mi?.DeclaringType.Name ?? "<lambda>", mi?.Name ?? lambda?.Name);
                 }
             }
 
