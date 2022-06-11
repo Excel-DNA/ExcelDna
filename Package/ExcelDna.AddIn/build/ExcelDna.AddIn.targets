@@ -182,6 +182,8 @@
     <Error Text="ExcelDna32BitAddInSuffix and ExcelDna64BitAddInSuffix cannot be identical. Fix your ExcelDna.Build.props file"
               Condition="'$(ExcelDna32BitAddInSuffix)' == '$(ExcelDna64BitAddInSuffix)'" />
 
+	<Error Text="The target platform should be Windows. For example, &lt;TargetFramework&gt;net6.0-windows&lt;/TargetFramework&gt;." Condition="'$(TargetPlatformIdentifier)' != 'Windows'" />		
+
     <Warning Text="ExcelDnaCreate32BitAddIn and ExcelDnaCreate64BitAddIn are both 'false'. Nothing to do"
              Condition="('$(ExcelDnaCreate32BitAddIn)' == 'false') AND ('$(ExcelDnaCreate64BitAddIn)' == 'false')" />
 
