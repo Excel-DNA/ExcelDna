@@ -37,4 +37,9 @@ copy /Y %targetsfile% %rootPath%\ExcelDnaDoc\Directory.Build.targets
 call BuildPackages.bat %PackageVersion% %MSBuildPath%
 @if errorlevel 1 goto end
 
+cd %rootPath%\DeveloperTools\ExcelDna.Testing\Build
+copy /Y %targetsfile% %rootPath%\DeveloperTools\ExcelDna.Testing\Directory.Build.targets
+call BuildPackages.bat %PackageVersion% %MSBuildPath%
+@if errorlevel 1 goto end
+
 :end
