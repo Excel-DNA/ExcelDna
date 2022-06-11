@@ -1,0 +1,5 @@
+<Project>
+	<PropertyGroup>
+		<EnableDynamicLoading>true</EnableDynamicLoading>
+	</PropertyGroup>
+</Project>

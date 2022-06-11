@@ -45,6 +45,10 @@
       <Link>ExcelDna.AddIn.targets</Link>
       <SubType>Designer</SubType>
     </None>
+    <None Include="..\..\Package\ExcelDna.AddIn\build\ExcelDna.AddIn.props">
+      <Link>ExcelDna.AddIn.props</Link>
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
 
   <Import Project="..\ExcelDna.PackedResources\ExcelDna.PackedResources.projitems" Label="Shared" />
