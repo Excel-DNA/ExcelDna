@@ -14,7 +14,7 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
 
             Clean(projectOutDir);
 
-            MsBuild(projectBasePath + "NET6DisableAssemblyContextUnload.csproj /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
+            MsBuild(projectBasePath + "NET6DisableAssemblyContextUnload.csproj /t:Restore,Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
 
             AssertFileContains(Path.Combine(projectOutDir, "NET6DisableAssemblyContextUnload-AddIn64.dna"), "DisableAssemblyContextUnload=\"true\"");
         }

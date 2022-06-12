@@ -35,14 +35,9 @@
         <file src="..\..\Distribution\net452\ExcelDna.Integration.dll" target="tools\net452\ExcelDna.Integration.dll" />
         <file src="..\..\Distribution\net452\ExcelDna.xll" target="tools\net452\ExcelDna.xll" />
         <file src="..\..\Distribution\net452\ExcelDna64.xll" target="tools\net452\ExcelDna64.xll" />
-        <file src="..\..\Distribution\net452\ExcelDnaPack.exe" target="tools\net452\ExcelDnaPack.exe" />
-        <file src="..\..\Distribution\net452\ExcelDnaPack.exe.config" target="tools\net452\ExcelDnaPack.exe.config" />
         <file src="..\..\Distribution\net6.0-windows\ExcelDna.Integration.dll" target="tools\net6.0-windows\ExcelDna.Integration.dll" />
         <file src="..\..\Distribution\net6.0-windows\ExcelDna.xll" target="tools\net6.0-windows\ExcelDna.xll" />
         <file src="..\..\Distribution\net6.0-windows\ExcelDna64.xll" target="tools\net6.0-windows\ExcelDna64.xll" />
-        <file src="..\..\Distribution\net6.0-windows\ExcelDnaPack.exe" target="tools\net6.0-windows\ExcelDnaPack.exe" />
-        <file src="..\..\Distribution\net6.0-windows\ExcelDnaPack.dll" target="tools\net6.0-windows\ExcelDnaPack.dll" />
-        <file src="..\..\Distribution\net6.0-windows\ExcelDnaPack.runtimeconfig.json" target="tools\net6.0-windows\ExcelDnaPack.runtimeconfig.json" />
         <file src="content\ExcelDna-Template.dna" target="content\ExcelDna-Template.dna" />
         <file src="content\ExcelDna.Build.props" target="content\Properties\ExcelDna.Build.props" />
         <file src="tools\install.ps1" target="tools\net452\install.ps1" />

@@ -13,7 +13,7 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
 
             Clean(projectOutDir);
 
-            MsBuild(projectBasePath + "SDKExcelDnaCreate32BitAddInFalse.csproj /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
+            MsBuild(projectBasePath + "SDKExcelDnaCreate32BitAddInFalse.csproj /t:Restore,Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
 
             AssertOutput(projectOutDir, "*.dna", "SDKExcelDnaCreate32BitAddInFalse-AddIn64.dna");
         }

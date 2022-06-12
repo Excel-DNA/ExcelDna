@@ -14,7 +14,7 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
 
             Clean(projectOutDir);
 
-            MsBuild(projectBasePath + "SDKExcelAddInName.csproj /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
+            MsBuild(projectBasePath + "SDKExcelAddInName.csproj /t:Restore,Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
 
             AssertFileContains(Path.Combine(projectOutDir, "SDKExcelAddInName-AddIn64.dna"), "Name=\"MyName\"");
         }

@@ -16,7 +16,7 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
 
             try
             {
-                MsBuild(projectBasePath + "NET6LaunchSettings.csproj /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
+                MsBuild(projectBasePath + "NET6LaunchSettings.csproj /t:Restore,Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
 
                 AssertFileContains(Path.Combine(projectBasePath, "Properties", "launchSettings.json"), "NET6LaunchSettings-AddIn");
             }
@@ -42,7 +42,7 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
                 string launchSettingsPath = Path.Combine(projectBasePath, "Properties", "launchSettings.json");
                 CopyLaunchSettings(src, launchSettingsPath);
 
-                MsBuild(projectBasePath + "NET6LaunchSettings.csproj /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
+                MsBuild(projectBasePath + "NET6LaunchSettings.csproj /t:Restore,Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
 
                 AssertFileContains(launchSettingsPath, "NET6LaunchSettings-AddIn");
                 AssertFileContains(launchSettingsPath, "67890");
@@ -63,7 +63,7 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
 
             try
             {
-                MsBuild(projectBasePath + "NET6LaunchSettingsDisabled.csproj /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
+                MsBuild(projectBasePath + "NET6LaunchSettingsDisabled.csproj /t:Restore,Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
 
                 AssertNotFound(Path.Combine(projectBasePath, "Properties", "launchSettings.json"));
             }
@@ -83,7 +83,7 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
 
             try
             {
-                MsBuild(projectBasePath + "NET6LaunchSettingsVB.vbproj /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
+                MsBuild(projectBasePath + "NET6LaunchSettingsVB.vbproj /t:Restore,Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
 
                 AssertFileContains(Path.Combine(projectBasePath, "My Project", "launchSettings.json"), "NET6LaunchSettingsVB-AddIn");
             }
