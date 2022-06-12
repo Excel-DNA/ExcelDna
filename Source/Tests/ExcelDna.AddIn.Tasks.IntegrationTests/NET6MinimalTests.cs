@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System.IO;
 
 namespace ExcelDna.AddIn.Tasks.IntegrationTests
 {
@@ -14,6 +15,24 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
             Clean(projectOutDir);
 
             MsBuild(projectBasePath + "NET6Minimal.csproj /t:Restore,Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
+        }
+
+        [Test]
+        public void Compression()
+        {
+            const string projectBasePath = @"NET6Minimal\";
+            const string projectOutDir = projectBasePath + @"bin\Release\";
+            string packedFile = Path.Combine(projectOutDir, "MyLibrary-AddIn64-packed.xll");
+
+            Clean(projectOutDir);
+
+            MsBuild(projectBasePath + "NET6Minimal.csproj /t:Restore,Build /p:ExcelDnaPackCompressResources=false /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
+            long notCompressed = (new FileInfo(packedFile)).Length;
+
+            MsBuild(projectBasePath + "NET6Minimal.csproj /t:Restore,Build /p:ExcelDnaPackCompressResources=true /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
+            long compressed = (new FileInfo(packedFile)).Length;
+
+            Assert.Less(compressed, notCompressed);
         }
     }
 }
