@@ -15,6 +15,7 @@
 	<UsingTask TaskName="ExcelDna.AddIn.Tasks.SetLaunchSettings" AssemblyFile="$(ExcelDnaTasksPath)ExcelDna.AddIn.Tasks.dll" />
 	<UsingTask TaskName="ExcelDna.AddIn.Tasks.CleanExcelAddIn" AssemblyFile="$(ExcelDnaTasksPath)ExcelDna.AddIn.Tasks.dll" />
 	<UsingTask TaskName="ExcelDna.AddIn.Tasks.CreateExcelAddIn" AssemblyFile="$(ExcelDnaTasksPath)ExcelDna.AddIn.Tasks.dll" />
+	<UsingTask TaskName="ExcelDna.AddIn.Tasks.PackExcelAddIn" AssemblyFile="$(ExcelDnaTasksPath)ExcelDna.AddIn.Tasks.dll" />
 
   <!--
     Extend the Clean target to call our ExcelDnaClean target
@@ -63,7 +64,6 @@
     <ExcelDna32BitAddInSuffix Condition="'$(ExcelDna32BitAddInSuffix)' == ''"></ExcelDna32BitAddInSuffix>
     <ExcelDna64BitAddInSuffix Condition="'$(ExcelDna64BitAddInSuffix)' == ''">64</ExcelDna64BitAddInSuffix>
 
-    <ExcelDnaPackExePath Condition="'$(ExcelDnaPackExePath)' == ''">$(ExcelDnaTasksPath)ExcelDnaPack.exe</ExcelDnaPackExePath>
     <ExcelDnaPackXllSuffix Condition="'$(ExcelDnaPackXllSuffix)' == ''">-packed</ExcelDnaPackXllSuffix>
     <ExcelDnaPackCompressResources Condition="'$(ExcelDnaPackCompressResources)' == ''">true</ExcelDnaPackCompressResources>
     <ExcelDnaPackRunMultithreaded Condition="'$(ExcelDnaPackRunMultithreaded)' == ''">true</ExcelDnaPackRunMultithreaded>
@@ -217,22 +217,17 @@
   </Target>
 
   <!--
-    Target that runs ExcelDnaPack.exe for each .dna copied to the build output folder
+    Target that packs files for each .dna copied to the build output folder
   -->
   <Target Name="ExcelDnaPack" DependsOnTargets="ExcelDnaBuild" BeforeTargets="PostBuildEvent" Condition="('$(ExcelDnaUnpack)' != 'true') AND ('$(RunExcelDnaPack)' == 'true') AND ('@(ExcelDnaFilesToPack->Count())' &gt; 0)" Outputs="%(ExcelDnaFilesToPack.Identity)">
-    <Error Text="ExcelDnaPack: ExcelDnaPack.exe not found: $(ExcelDnaPackExePath)" Condition="!Exists('$(ExcelDnaPackExePath)')" />
 
-    <!-- Run ExcelDnaPack.exe -->
     <Message Text="ExcelDnaPack: %(ExcelDnaFilesToPack.OutputDnaFileName) -> %(ExcelDnaFilesToPack.OutputPackedXllFileName)" Importance="High" />
-
-    <PropertyGroup>
-      <ExcelDnaPackExtraArgs Condition="!$(ExcelDnaPackCompressResources)">/NoCompression</ExcelDnaPackExtraArgs>
-      <ExcelDnaPackExtraArgs Condition="!$(ExcelDnaPackRunMultithreaded)">$(ExcelDnaPackExtraArgs) /NoMultiThreading</ExcelDnaPackExtraArgs>
-    </PropertyGroup>
-
-    <Exec Command="&quot;$(ExcelDnaPackExePath)&quot; &quot;%(ExcelDnaFilesToPack.OutputDnaFileName)&quot; /Y $(ExcelDnaPackExtraArgs) /O &quot;%(ExcelDnaFilesToPack.OutputPackedXllFileName)&quot;"
-          IgnoreExitCode="false"
-          ContinueOnError="false" />
+	<PackExcelAddIn
+		OutputDnaFileName="%(ExcelDnaFilesToPack.OutputDnaFileName)"
+		OutputPackedXllFileName="%(ExcelDnaFilesToPack.OutputPackedXllFileName)"
+		CompressResources="$(ExcelDnaPackCompressResources)"
+		RunMultithreaded="$(ExcelDnaPackRunMultithreaded)">
+	</PackExcelAddIn>
 
     <!-- Copy .xll.config file to -packed.xll.config (if .xll.config exists) -->
     <Message Text="ExcelDnaPack: %(ExcelDnaFilesToPack.OutputXllConfigFileName) -> %(ExcelDnaFilesToPack.OutputPackedXllFileName).config" Importance="High"

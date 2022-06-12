@@ -24,6 +24,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Lzma\RangeCoderBit.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lzma\RangeCoderBitTree.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lzma\SevenZipHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExcelDnaPack.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ResourceHelper.cs" />
   </ItemGroup>
 </Project>
