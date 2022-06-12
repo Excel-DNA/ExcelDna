@@ -19,7 +19,4 @@
   
   <Import Project="..\ExcelDna.PackedResources\ExcelDna.PackedResources.projitems" Label="Shared" />
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="cd $(ProjectDir)&#xD;&#xA;CopyFilesForIntegrationTests.cmd $(TargetDir)" />
-  </Target>
 </Project>
