@@ -34,5 +34,27 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
 
             Assert.Less(compressed, notCompressed);
         }
+
+        [Test]
+        public void RunMultithreadedDisabled()
+        {
+            const string projectBasePath = @"NET6Minimal\";
+            const string projectOutDir = projectBasePath + @"bin\Release\";
+
+            Clean(projectOutDir);
+
+            MsBuild(projectBasePath + "NET6Minimal.csproj /t:Restore,Build /p:ExcelDnaPackRunMultithreaded=false /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
+        }
+
+        [Test]
+        public void RunMultithreadedEnabled()
+        {
+            const string projectBasePath = @"NET6Minimal\";
+            const string projectOutDir = projectBasePath + @"bin\Release\";
+
+            Clean(projectOutDir);
+
+            MsBuild(projectBasePath + "NET6Minimal.csproj /t:Restore,Build /p:ExcelDnaPackRunMultithreaded=true /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
+        }
     }
 }
