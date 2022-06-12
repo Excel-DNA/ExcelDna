@@ -43,6 +43,7 @@
         <file src="tools\install.ps1" target="tools\net452\install.ps1" />
         <file src="tools\uninstall.ps1" target="tools\net452\uninstall.ps1" />
         <file src="build\ExcelDna.AddIn.targets" target="build\ExcelDna.AddIn.targets" />
+        <file src="build\ExcelDna.AddIn.props" target="build\ExcelDna.AddIn.props" />
         <file src="tools\net452\ExcelDna.AddIn.Tasks.dll" target="tools\net452\ExcelDna.AddIn.Tasks.dll" />
         <file src="tools\net452\EnvDTE.dll" target="tools\net452\EnvDTE.dll" />
         <file src="tools\net452\Newtonsoft.Json.dll" target="tools\net452\Newtonsoft.Json.dll" />

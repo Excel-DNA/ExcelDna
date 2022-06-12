@@ -1,0 +1,6 @@
+<Project>
+	<PropertyGroup>
+		<EnableDynamicLoading>true</EnableDynamicLoading>
+		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+	</PropertyGroup>
+</Project>
