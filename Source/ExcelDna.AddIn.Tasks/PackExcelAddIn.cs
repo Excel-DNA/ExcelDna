@@ -1,13 +1,7 @@
 ﻿using System;
-using System.Collections;
-using System.IO;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
 using ExcelDna.AddIn.Tasks.Logging;
 using ExcelDna.AddIn.Tasks.Utils;
-using System.Diagnostics;
 
 namespace ExcelDna.AddIn.Tasks
 {
@@ -39,15 +33,7 @@ namespace ExcelDna.AddIn.Tasks
                     throw new ApplicationException($"Pack failed with exit code {result}.");
 
                 if (SignTool != null && SignOptions != null)
-                {
-                    Process p = Process.Start(SignTool, $"sign {SignOptions} \"{OutputPackedXllFileName}\"");
-                    if (p == null)
-                        throw new ApplicationException($"Failed to start SignTool.");
-
-                    p.WaitForExit();
-                    if (p.ExitCode != 0)
-                        throw new ApplicationException($"SignTool failed with exit code {p.ExitCode}.");
-                }
+                    Utils.SignTool.Sign(SignTool, SignOptions, OutputPackedXllFileName, _log);
 
                 return true;
             }
