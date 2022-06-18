@@ -39,7 +39,7 @@ namespace ExcelDna.ManagedHost
         }
 
         [MethodImpl(MethodImplOptions.Synchronized)]
-        internal static Assembly AssemblyResolve(AssemblyName assemblyName)
+        internal static Assembly AssemblyResolve(AssemblyName assemblyName, bool logMissingResources)
         {
             string name;
             byte[] assemblyBytes;
@@ -93,10 +93,13 @@ namespace ExcelDna.ManagedHost
             assemblyBytes = GetResourceBytes(name, 0);
             if (assemblyBytes == null)
             {
-                if (isResourceAssembly)
-                    Logger.Initialization.Verbose("Assembly {0} could not be loaded from resources (ResourceManager probing for satellite assemblies).", name);
-                else
-                    Logger.Initialization.Warn("Assembly {0} could not be loaded from resources.", name);
+                if (logMissingResources)
+                {
+                    if (isResourceAssembly)
+                        Logger.Initialization.Verbose("Assembly {0} could not be loaded from resources (ResourceManager probing for satellite assemblies).", name);
+                    else
+                        Logger.Initialization.Warn("Assembly {0} could not be loaded from resources.", name);
+                }
                 return null;
             }
 

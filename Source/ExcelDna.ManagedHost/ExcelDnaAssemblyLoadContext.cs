@@ -37,7 +37,7 @@ namespace ExcelDna.ManagedHost
             }
 
             // Finally we try the AssemblyManager
-            return AssemblyManager.AssemblyResolve(assemblyName);
+            return AssemblyManager.AssemblyResolve(assemblyName, false);
         }
 
         protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
