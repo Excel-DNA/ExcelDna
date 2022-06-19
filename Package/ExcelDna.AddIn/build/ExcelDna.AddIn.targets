@@ -211,6 +211,9 @@
  	  DisableAssemblyContextUnload="$(ExcelAddInDisableAssemblyContextUnload)"
  	  ProjectName="$(MSBuildProjectName)"
 	  TargetFileName="$(TargetFileName)"
+	  TlbExp="$(ExcelAddInTlbExp)"
+	  TlbCreate="$(ExcelAddInTlbCreate)"
+	  IntegrationDllPath="$(ExcelDnaRuntimeToolsPath)ExcelDna.Integration.dll"
 	  TemplateDnaPath="$(MSBuildThisFileDirectory)..\content\ExcelDna-Template.dna">
       <Output TaskParameter="DnaFilesToPack" ItemName="ExcelDnaFilesToPack" />
     </CreateExcelAddIn>

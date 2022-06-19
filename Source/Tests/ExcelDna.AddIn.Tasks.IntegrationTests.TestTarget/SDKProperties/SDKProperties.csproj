@@ -105,6 +105,14 @@
     <!-- Default value: false -->
     <ExcelAddInDisableAssemblyContextUnload></ExcelAddInDisableAssemblyContextUnload>
 
+    <!-- Path to TlbExp.exe. E.g. "c:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools\x64\TlbExp.exe" or $(MSBuildProjectDirectory)\TlbExp.exe.-->
+    <!-- Default value: empty -->
+    <ExcelAddInTlbExp></ExcelAddInTlbExp>
+
+    <!-- Enable/disable .tlb file creation. -->
+    <!-- Default value: false -->
+    <ExcelAddInTlbCreate></ExcelAddInTlbCreate>
+
     <!-- We don't need the extra 'ref' directory and reference assemblies for the Excel add-in -->
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 

@@ -1,0 +1,3 @@
+	<DnaLibrary Name="SDKDnaComServer Add-In" RuntimeVersion="v4.0">
+	  <ExternalLibrary Path="SDKDnaComServer.dll" ExplicitExports="false" ComServer="true" LoadFromBytes="true" Pack="true" />
+	</DnaLibrary>
