@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <UseWindowsForms>True</UseWindowsForms>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ExcelAddInTlbCreate>false</ExcelAddInTlbCreate>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="ExcelDna.Integration">
+      <HintPath>..\..\.exceldna.addin\tools\net452\ExcelDna.Integration.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <Import Project="$(ProjectDir)..\..\.exceldna.addin\build\ExcelDna.AddIn.targets" />
+
+</Project>
