@@ -170,8 +170,13 @@
   -->
   <Target Name="ExcelDnaBuild" BeforeTargets="PostBuildEvent" Condition="'$(RunExcelDnaBuild)' == 'true'">
 
+	<PropertyGroup>
+		<ExcelDnaTlbDscom>false</ExcelDnaTlbDscom>
+	</PropertyGroup>
+		
 	<PropertyGroup Condition="'$(TargetFrameworkVersion.Length())' >= '2' AND '$(TargetFrameworkVersion.Substring(1,1))' >= '6'">
 		<ExcelDnaRuntimeToolsPath>$(ExcelDnaToolsPath)\net6.0-windows\</ExcelDnaRuntimeToolsPath>
+		<ExcelDnaTlbDscom>true</ExcelDnaTlbDscom>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(TargetFrameworkVersion.Length())' >= '2' AND '$(TargetFrameworkVersion.Substring(0,2))' == 'v4'">
 		<ExcelDnaRuntimeToolsPath>$(ExcelDnaToolsPath)\net452\</ExcelDnaRuntimeToolsPath>
@@ -211,6 +216,7 @@
  	  DisableAssemblyContextUnload="$(ExcelAddInDisableAssemblyContextUnload)"
  	  ProjectName="$(MSBuildProjectName)"
 	  TargetFileName="$(TargetFileName)"
+	  TlbDscom="$(ExcelDnaTlbDscom)"
 	  TlbExp="$(ExcelAddInTlbExp)"
 	  TlbCreate="$(ExcelAddInTlbCreate)"
 	  IntegrationDllPath="$(ExcelDnaRuntimeToolsPath)ExcelDna.Integration.dll"

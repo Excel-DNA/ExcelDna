@@ -1,21 +1,20 @@
 ﻿using ExcelDna.AddIn.Tasks.Logging;
 using System;
 using System.Diagnostics;
-using System.IO;
 
 namespace ExcelDna.AddIn.Tasks.Utils
 {
-    internal class TlbExp
+    internal class ProcessRunner
     {
-        public static void Create(string toolPath, string outputFile, IBuildLogger log)
+        public static void Run(string fileName, string arguments, string appName, IBuildLogger log)
         {
             _log = log;
             Process p = new Process
             {
                 StartInfo =
                 {
-                    FileName = toolPath,
-                    Arguments = $"\"{outputFile}\" /out:\"{Path.ChangeExtension(outputFile,"tlb")}\"",
+                    FileName = fileName,
+                    Arguments = arguments,
                     CreateNoWindow = true,
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
@@ -32,7 +31,7 @@ namespace ExcelDna.AddIn.Tasks.Utils
 
             p.WaitForExit();
             if (p.ExitCode != 0)
-                throw new ApplicationException($"TlbExp failed with exit code {p.ExitCode}.");
+                throw new ApplicationException($"{appName} failed with exit code {p.ExitCode}.");
         }
 
         private static void OnDataReceived(object sender, DataReceivedEventArgs e)

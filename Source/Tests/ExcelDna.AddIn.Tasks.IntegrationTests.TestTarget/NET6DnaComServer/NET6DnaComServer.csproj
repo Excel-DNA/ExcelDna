@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <ExcelAddInTlbCreate>false</ExcelAddInTlbCreate>
+    <ExcelAddInTlbCreate>true</ExcelAddInTlbCreate>
   </PropertyGroup>
 
   <ItemGroup>

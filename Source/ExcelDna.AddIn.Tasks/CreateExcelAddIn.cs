@@ -124,7 +124,21 @@ namespace ExcelDna.AddIn.Tasks
 
             try
             {
-                Utils.TlbExp.Create(TlbExp, Path.Combine(OutDirectory, OutputFileName()), _log);
+                string outputFile = Path.Combine(OutDirectory, OutputFileName());
+                string outputTlbFile = Path.ChangeExtension(outputFile, "tlb");
+                if (TlbDscom)
+                {
+                    string args = $"tlbexport \"{outputFile}\"";
+                    ProcessRunner.Run("dscom", args, "dscom", _log);
+
+                    File.Delete(outputTlbFile);
+                    File.Move(Path.GetFileName(outputTlbFile), outputTlbFile);
+                }
+                else
+                {
+                    string args = $"\"{outputFile}\" /out:\"{outputTlbFile}\"";
+                    ProcessRunner.Run(TlbExp, args, "TlbExp", _log);
+                }
             }
             finally
             {
@@ -506,6 +520,12 @@ namespace ExcelDna.AddIn.Tasks
         /// Enable/disable .tlb file creation
         /// </summary>
         public bool TlbCreate { get; set; }
+
+        /// <summary>
+        /// Use Dscom instead of TlbExp
+        /// </summary>
+        [Required]
+        public bool TlbDscom { get; set; }
 
         /// <summary>
         /// The list of .dna files copied to the output
