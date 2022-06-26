@@ -228,7 +228,9 @@
 		OutputDnaFileName="%(ExcelDnaFilesToPack.OutputDnaFileName)"
 		OutputPackedXllFileName="%(ExcelDnaFilesToPack.OutputPackedXllFileName)"
 		CompressResources="$(ExcelDnaPackCompressResources)"
-		RunMultithreaded="$(ExcelDnaPackRunMultithreaded)">
+		RunMultithreaded="$(ExcelDnaPackRunMultithreaded)"
+		SignTool="$(ExcelAddInSignTool)"
+		SignOptions="$(ExcelAddInSignOptions)">
 	</PackExcelAddIn>
 
     <!-- Copy .xll.config file to -packed.xll.config (if .xll.config exists) -->

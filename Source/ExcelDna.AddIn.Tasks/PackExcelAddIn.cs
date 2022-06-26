@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections;
-using System.IO;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
 using ExcelDna.AddIn.Tasks.Logging;
 using ExcelDna.AddIn.Tasks.Utils;
 
@@ -33,7 +28,14 @@ namespace ExcelDna.AddIn.Tasks
             {
                 _log.Debug("Running PackExcelAddIn Task");
 
-                return ExcelDna.PackedResources.ExcelDnaPack.Pack(OutputDnaFileName, OutputPackedXllFileName, CompressResources, RunMultithreaded, true, null) == 0;
+                int result = ExcelDna.PackedResources.ExcelDnaPack.Pack(OutputDnaFileName, OutputPackedXllFileName, CompressResources, RunMultithreaded, true, null);
+                if (result != 0)
+                    throw new ApplicationException($"Pack failed with exit code {result}.");
+
+                if (SignTool != null && SignOptions != null)
+                    Utils.SignTool.Sign(SignTool, SignOptions, OutputPackedXllFileName, _log);
+
+                return true;
             }
             catch (Exception ex)
             {
@@ -66,5 +68,15 @@ namespace ExcelDna.AddIn.Tasks
         /// </summary>
         [Required]
         public bool RunMultithreaded { get; set; }
+
+        /// <summary>
+        /// Path to signtool.exe
+        /// </summary>
+        public string SignTool { get; set; }
+
+        /// <summary>
+        /// Options for signtool.exe
+        /// </summary>
+        public string SignOptions { get; set; }
     }
 }
