@@ -1,0 +1,3 @@
+	<DnaLibrary Name="NET6DnaComServer Add-In" RuntimeVersion="v4.0">
+	  <ExternalLibrary Path="NET6DnaComServer.dll" ExplicitExports="false" ComServer="true" LoadFromBytes="true" Pack="true" />
+	</DnaLibrary>

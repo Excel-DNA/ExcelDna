@@ -51,6 +51,8 @@ namespace ExcelDna.AddIn.Tasks
 
                 var buildItemsForDnaFiles = _common.GetBuildItemsForDnaFiles();
 
+                TryCreateTlb();
+
                 TryBuildAddInFor32Bit(buildItemsForDnaFiles);
 
                 _log.Information("---", MessageImportance.High);
@@ -107,6 +109,41 @@ namespace ExcelDna.AddIn.Tasks
             if (string.Equals(FileSuffix32Bit, FileSuffix64Bit, StringComparison.OrdinalIgnoreCase))
             {
                 throw new InvalidOperationException("32-bit add-in suffix and 64-bit add-in suffix cannot be identical");
+            }
+        }
+
+        private void TryCreateTlb()
+        {
+            if (!TlbCreate)
+                return;
+
+            string outputIntegrationDllPath = Path.Combine(OutDirectory, "ExcelDna.Integration.dll");
+            bool outputIntegrationDllExists = File.Exists(outputIntegrationDllPath);
+            if (!outputIntegrationDllExists)
+                File.Copy(IntegrationDllPath, outputIntegrationDllPath);
+
+            try
+            {
+                string outputFile = Path.Combine(OutDirectory, OutputFileName());
+                string outputTlbFile = Path.ChangeExtension(outputFile, "tlb");
+                if (TlbDscom)
+                {
+                    string args = $"tlbexport \"{outputFile}\"";
+                    ProcessRunner.Run("dscom", args, "dscom", _log);
+
+                    File.Delete(outputTlbFile);
+                    File.Move(Path.GetFileName(outputTlbFile), outputTlbFile);
+                }
+                else
+                {
+                    string args = $"\"{outputFile}\" /out:\"{outputTlbFile}\"";
+                    ProcessRunner.Run(TlbExp, args, "TlbExp", _log);
+                }
+            }
+            finally
+            {
+                if (!outputIntegrationDllExists)
+                    File.Delete(outputIntegrationDllPath);
             }
         }
 
@@ -304,7 +341,12 @@ namespace ExcelDna.AddIn.Tasks
             if (DisableAssemblyContextUnload)
                 result = result.Replace("<DnaLibrary ", "<DnaLibrary " + "DisableAssemblyContextUnload=\"true\" ");
 
-            return result.Replace("%OutputFileName%", !string.IsNullOrEmpty(AddInExternalLibraryPath) ? AddInExternalLibraryPath : TargetFileName);
+            return result.Replace("%OutputFileName%", OutputFileName());
+        }
+
+        private string OutputFileName()
+        {
+            return !string.IsNullOrEmpty(AddInExternalLibraryPath) ? AddInExternalLibraryPath : TargetFileName;
         }
 
         private void UnpackXll(string xllPath)
@@ -404,6 +446,12 @@ namespace ExcelDna.AddIn.Tasks
         public string TemplateDnaPath { get; set; }
 
         /// <summary>
+        /// The path to ExcelDna.Integration.dll
+        /// </summary>
+        [Required]
+        public string IntegrationDllPath { get; set; }
+
+        /// <summary>
         /// Enable/disable building 32-bit .dna files
         /// </summary>
         public bool Create32BitAddIn { get; set; }
@@ -462,6 +510,22 @@ namespace ExcelDna.AddIn.Tasks
         /// Enable/disable collectible AssemblyLoadContext for .NET 6
         /// </summary>
         public bool DisableAssemblyContextUnload { get; set; }
+
+        /// <summary>
+        /// Path to TlbExp.exe
+        /// </summary>
+        public string TlbExp { get; set; }
+
+        /// <summary>
+        /// Enable/disable .tlb file creation
+        /// </summary>
+        public bool TlbCreate { get; set; }
+
+        /// <summary>
+        /// Use Dscom instead of TlbExp
+        /// </summary>
+        [Required]
+        public bool TlbDscom { get; set; }
 
         /// <summary>
         /// The list of .dna files copied to the output
