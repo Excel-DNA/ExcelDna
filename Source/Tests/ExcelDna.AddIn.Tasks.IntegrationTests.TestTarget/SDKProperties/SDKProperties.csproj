@@ -113,6 +113,14 @@
     <!-- Default value: false -->
     <ExcelAddInTlbCreate></ExcelAddInTlbCreate>
 
+    <!-- Path to signtool.exe. E.g. "c:\Program Files\Microsoft SDKs\Windows\8.1\bin\x64\signtool.exe" or $(MSBuildProjectDirectory)\signtool.exe -->
+    <!-- Default value: empty -->
+    <ExcelAddInSignTool></ExcelAddInSignTool>
+
+    <!-- Options for signtool.exe. E.g. /f "$(MSBuildProjectDirectory)\Contoso.pfx" /p 12345678 -->
+    <!-- Default value: empty -->
+    <ExcelAddInSignOptions></ExcelAddInSignOptions>
+
     <!-- We don't need the extra 'ref' directory and reference assemblies for the Excel add-in -->
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 
