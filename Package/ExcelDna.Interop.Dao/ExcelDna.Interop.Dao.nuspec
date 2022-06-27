@@ -2,14 +2,14 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>ExcelDna.Interop.Dao</id>
-        <version>14.0.2</version>
-        <title>Excel-DNA - Primary Interop Assembly for Access 2010 DAO</title>
+        <version>15.0.0-preview</version>
+        <title>Excel-DNA - Primary Interop Assembly for Access DAO</title>
         <authors>Govert van Drimmelen</authors>
         <projectUrl>http://excel-dna.net</projectUrl>
         <iconUrl>http://docs.excel-dna.net/NuGetIcon.png</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>Provides a local copy of the Microsoft.Office.Interop.Access.Dao.dll assembly from the Microsoft Office 2010: Primary Interop Assemblies Redistributable. Can only be used in the 322-bit version of Excel.</description>
-        <summary>Provides the Primary Interop Assembly for the Access 2010 DAO library (32-bit only)</summary>
+        <description>Provides a local copy of the Microsoft.Office.Interop.Access.Dao.dll primary interop assembly from Microsoft Office.</description>
+        <summary>Provides the Primary Interop Assembly for the Access DAO library.</summary>
         <tags>Excel Interop PIA ExcelDna</tags>
     </metadata>
     <files>

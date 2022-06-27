@@ -2,19 +2,19 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Excel-DNA.Interop</id>
-    <version>14.0.2</version>
-    <title>Excel-DNA - Primary Interop Assemblies for Excel 2010</title>
+    <version>15.0.0-preview</version>
+    <title>Excel-DNA - Primary Interop Assemblies for Excel</title>
     <authors>Excel-DNA Contributors</authors>
     <owners>excel-dna</owners>
     <projectUrl>http://excel-dna.net</projectUrl>
     <repository type="git" url="https://github.com/Excel-DNA/ExcelDna" />
     <iconUrl>http://docs.excel-dna.net/NuGetIcon.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>This package is deprecated, and has been replaced by ExcelDna.Interop - https://www.nuget.org/packages/ExcelDna.Interop/. Provides a local copy of the following assemblies from the Microsoft Office 2010: Primary Interop Assemblies Redistributable - Microsoft.Office.Interop.Excel.dll, Office.dll, Microsoft.Vbe.Interop.dll.</description>
-    <summary>Provides a selection of Excel 2010 Primary Interop Assemblies</summary>
+    <description>This package is deprecated, and has been replaced by ExcelDna.Interop - https://www.nuget.org/packages/ExcelDna.Interop/.</description>
+    <summary>Provides a selection of Excel Primary Interop Assemblies</summary>
     <tags>Excel Interop PIA ExcelDna</tags>
     <dependencies>
-      <dependency id="ExcelDna.Interop" version="[14.0.1]" />
+      <dependency id="ExcelDna.Interop" version="[15.0.0-preview]" />
     </dependencies>
   </metadata>
 </package>
