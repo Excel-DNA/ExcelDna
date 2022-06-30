@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net472;net6.0-windows</TargetFrameworks>
+    <UseWindowsForms>True</UseWindowsForms>
+  </PropertyGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net6.0-windows' ">
+    <Reference Include="ExcelDna.Integration">
+      <HintPath>..\..\.exceldna.addin\tools\net6.0-windows\ExcelDna.Integration.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
+    <Reference Include="ExcelDna.Integration">
+      <HintPath>..\..\.exceldna.addin\tools\net452\ExcelDna.Integration.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <Import Project="$(ProjectDir)..\..\.exceldna.addin\build\ExcelDna.AddIn.targets" />
+
+</Project>

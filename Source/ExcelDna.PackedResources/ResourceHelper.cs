@@ -29,12 +29,12 @@ internal static class ResourceHelper
     private const ushort localeEnglishUS = 1033;
     private const ushort localeEnglishSA = 7177;
 
-    [DllImport("kernel32.dll")]
+    [DllImport("kernel32.dll", SetLastError = true)]
     private static extern IntPtr BeginUpdateResource(
         string pFileName,
         bool bDeleteExistingResources);
 
-    [DllImport("kernel32.dll")]
+    [DllImport("kernel32.dll", SetLastError = true)]
     private static extern bool EndUpdateResource(
         IntPtr hUpdate,
         bool fDiscard);
