@@ -88,7 +88,7 @@ namespace ExcelDna.PackedResources
             Console.WriteLine("Using base add-in " + xllInputPath);
 
             File.Copy(xllInputPath, xllOutputPath, false);
-            ResourceHelper.ResourceUpdater ru = new ResourceHelper.ResourceUpdater(xllOutputPath);
+            ResourceHelper.ResourceUpdater ru = new ResourceHelper.ResourceUpdater(Path.Combine(Directory.GetCurrentDirectory(), xllOutputPath));
             if (File.Exists(configPath))
             {
                 ru.AddFile(File.ReadAllBytes(configPath), "__MAIN__", ResourceHelper.TypeName.CONFIG, false, multithreading);  // Name here must exactly match name in ExcelDnaLoad.cpp.
