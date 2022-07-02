@@ -1,0 +1,13 @@
+{
+    "$schema": "http://json.schemastore.org/template",
+    "author": "Govert van Drimmelen",
+    "classifications": [ "Excel", "Add-in" ],
+    "identity": "ExcelDna.FSFullProject",
+    "sourceName": "FSfull",
+    "name": "Excel-DNA full-featured add-in",
+    "shortName": "exceladdin",
+    "tags": {
+        "language": "F#",
+        "type": "project"
+    }
+}
