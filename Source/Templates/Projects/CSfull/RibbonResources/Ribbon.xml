@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<customUI xmlns='http://schemas.microsoft.com/office/2009/07/customui' loadImage='LoadImage'>
+	<ribbon>
+		<tabs>
+			<tab id='tab1' label='CSfull'>
+				<group id='group1' label='My Group'>
+					<button id='button1' label='My Button' onAction='OnButtonPressed' image='Image1'/>
+				</group>
+			</tab>
+		</tabs>
+	</ribbon>
+</customUI>
