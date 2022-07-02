@@ -3,7 +3,7 @@
     "author": "Govert van Drimmelen",
     "classifications": [ "Excel", "Add-in" ],
     "identity": "ExcelDna.CSFunctionProject",
-    "sourceName": "csfunction",
+    "sourceName": "CSfunction",
     "name": "Excel-DNA Add-In with function",
     "shortName": "excelfunc",
     "tags": {

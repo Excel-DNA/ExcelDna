@@ -1,6 +1,6 @@
 ﻿using ExcelDna.Integration;
 
-namespace csfunction;
+namespace CSfunction;
 
 public static class MyFunctions
 {
