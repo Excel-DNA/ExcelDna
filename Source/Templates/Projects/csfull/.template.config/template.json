@@ -3,7 +3,7 @@
     "author": "Govert van Drimmelen",
     "classifications": [ "Excel", "Add-in" ],
     "identity": "ExcelDna.CSFullProject",
-    "sourceName": "csfull",
+    "sourceName": "CSfull",
     "name": "Excel-DNA full-featured add-in",
     "shortName": "exceladdin",
     "tags": {

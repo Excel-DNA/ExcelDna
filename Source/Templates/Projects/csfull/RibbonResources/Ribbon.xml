@@ -2,7 +2,7 @@
 <customUI xmlns='http://schemas.microsoft.com/office/2009/07/customui' loadImage='LoadImage'>
 	<ribbon>
 		<tabs>
-			<tab id='tab1' label='csfull'>
+			<tab id='tab1' label='CSfull'>
 				<group id='group1' label='My Group'>
 					<button id='button1' label='My Button' onAction='OnButtonPressed' image='Image1'/>
 				</group>

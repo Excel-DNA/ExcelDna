@@ -2,7 +2,7 @@
 using Application = Microsoft.Office.Interop.Excel.Application;
 using Range = Microsoft.Office.Interop.Excel.Range;
 
-namespace csfull;
+namespace CSfull;
 
 public static class MyCommands
 {
@@ -10,7 +10,7 @@ public static class MyCommands
     // * Pressing the quick menu under the Add-ins tab
     // * Pressing the shortcut key Ctrl + Shift + D
     // * Typing the name into the Alt+F8 Macro dialog (add-in macros won't we shown on this list, though)
-    [ExcelCommand(MenuName = "csfull", MenuText = "Dump Data", ShortCut = "^D")]
+    [ExcelCommand(MenuName = "CSfull", MenuText = "Dump Data", ShortCut = "^D")]
     public static void DumpData()
     {
         // We always get the root Application object with a call to ExcelDnaUtil.Application
