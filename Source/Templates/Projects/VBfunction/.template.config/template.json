@@ -1,0 +1,13 @@
+{
+    "$schema": "http://json.schemastore.org/template",
+    "author": "Govert van Drimmelen",
+    "classifications": [ "Excel", "Add-in" ],
+    "identity": "ExcelDna.VBFunctionProject",
+    "sourceName": "VBfunction",
+    "name": "Excel-DNA Add-In with function",
+    "shortName": "excelfunc",
+    "tags": {
+        "language": "VB",
+        "type": "project"
+    }
+}
