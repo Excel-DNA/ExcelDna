@@ -30,5 +30,21 @@
             <EmbedInteropTypes>true</EmbedInteropTypes>
         </COMReference>
     </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="RibbonResources.Designer.vb">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>RibbonResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="RibbonResources.resx">
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>RibbonResources.Designer.vb</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
     
 </Project>
