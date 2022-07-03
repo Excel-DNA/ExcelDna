@@ -2,17 +2,26 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>ExcelDna.Interop.Dao</id>
-        <version>15.0.0-preview</version>
+        <version>15.0.0-preview2</version>
         <title>Excel-DNA - Primary Interop Assembly for Access DAO</title>
         <authors>Govert van Drimmelen</authors>
         <projectUrl>http://excel-dna.net</projectUrl>
-        <iconUrl>http://docs.excel-dna.net/NuGetIcon.png</iconUrl>
+        <icon>images\ExcelDna-nu.png</icon>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>Provides a local copy of the Microsoft.Office.Interop.Access.Dao.dll primary interop assembly from Microsoft Office.</description>
         <summary>Provides the Primary Interop Assembly for the Access DAO library.</summary>
         <tags>Excel Interop PIA ExcelDna</tags>
-    </metadata>
+        <dependencies>
+          <group targetFramework=".NETFramework4.5.2" >
+            <dependency id="Microsoft.CSharp" version="4.3.0" exclude="Build,Analyzers" />
+          </group>
+          <group targetFramework="net6.0-windows7.0" />
+        </dependencies>
+      </metadata>
     <files>
-		<file src="lib\Microsoft.Office.Interop.Access.Dao.dll" target="lib" />
+      <file src="lib\Microsoft.Office.Interop.Access.Dao.dll" target="lib\net452\" />
+      <file src="lib\Microsoft.Office.Interop.Access.Dao.dll" target="lib\net6.0-windows7.0\" />
+      <file src="build\ExcelDna.Interop.Dao.targets" target="build" />
+      <file src="..\images\ExcelDna-nu.png" target="images\" />
     </files>
 </package>

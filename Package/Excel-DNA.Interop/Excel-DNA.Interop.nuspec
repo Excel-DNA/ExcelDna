@@ -2,19 +2,22 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Excel-DNA.Interop</id>
-    <version>15.0.0-preview</version>
+    <version>15.0.0-preview2</version>
     <title>Excel-DNA - Primary Interop Assemblies for Excel</title>
     <authors>Excel-DNA Contributors</authors>
     <owners>excel-dna</owners>
     <projectUrl>http://excel-dna.net</projectUrl>
     <repository type="git" url="https://github.com/Excel-DNA/ExcelDna" />
-    <iconUrl>http://docs.excel-dna.net/NuGetIcon.png</iconUrl>
+    <icon>images\ExcelDna-nu.png</icon>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>This package is deprecated, and has been replaced by ExcelDna.Interop - https://www.nuget.org/packages/ExcelDna.Interop/.</description>
     <summary>Provides a selection of Excel Primary Interop Assemblies</summary>
     <tags>Excel Interop PIA ExcelDna</tags>
     <dependencies>
-      <dependency id="ExcelDna.Interop" version="[15.0.0-preview]" />
+      <dependency id="ExcelDna.Interop" version="[15.0.0-preview2]" />
     </dependencies>
   </metadata>
+  <files>
+      <file src="..\images\ExcelDna-nu.png" target="images\" />
+    </files>
 </package>

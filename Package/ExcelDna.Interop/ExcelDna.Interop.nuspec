@@ -2,19 +2,30 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>ExcelDna.Interop</id>
-        <version>15.0.0-preview</version>
+        <version>15.0.0-preview2</version>
         <title>Excel-DNA - Primary Interop Assemblies for Excel with dependencies</title>
         <authors>Govert van Drimmelen</authors>
         <projectUrl>http://excel-dna.net</projectUrl>
-        <iconUrl>http://docs.excel-dna.net/NuGetIcon.png</iconUrl>
+        <icon>images\ExcelDna-nu.png</icon>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>Provides a local copy of the Primary Interop Assemblies from Microsoft Office: Microsoft.Office.Interop.Excel.dll, Office.dll, Microsoft.Vbe.Interop.dll.</description>
         <summary>Provides a selection of Excel Primary Interop Assemblies</summary>
         <tags>Excel Interop PIA ExcelDna</tags>
+        <dependencies>
+          <group targetFramework=".NETFramework4.5.2" >
+            <dependency id="Microsoft.CSharp" version="4.3.0" exclude="Build,Analyzers" />
+          </group>
+          <group targetFramework="net6.0-windows7.0" />
+        </dependencies>
     </metadata>
     <files>
-		<file src="lib\Microsoft.Office.Interop.Excel.dll" target="lib" />
-		<file src="lib\Microsoft.Vbe.Interop.dll" target="lib" />
-		<file src="lib\Office.dll" target="lib" />
+      <file src="lib\Microsoft.Office.Interop.Excel.dll" target="lib\net452\" />
+      <file src="lib\Microsoft.Vbe.Interop.dll" target="lib\net452\" />
+      <file src="lib\Office.dll" target="lib\net452\" />
+      <file src="lib\Microsoft.Office.Interop.Excel.dll" target="lib\net6.0-windows7.0" />
+      <file src="lib\Microsoft.Vbe.Interop.dll" target="lib\net6.0-windows7.0" />
+      <file src="lib\Office.dll" target="lib\net6.0-windows7.0" />
+      <file src="build\ExcelDna.Interop.targets" target="build\" />
+      <file src="..\images\ExcelDna-nu.png" target="images\" />
     </files>
 </package>
