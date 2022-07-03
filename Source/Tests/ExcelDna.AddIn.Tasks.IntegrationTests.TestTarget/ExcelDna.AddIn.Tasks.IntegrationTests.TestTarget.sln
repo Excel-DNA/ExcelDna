@@ -65,7 +65,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDKDnaComServer", "SDKDnaCo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NET6DnaComServer", "NET6DnaComServer\NET6DnaComServer.csproj", "{47B73109-1742-46DE-A849-2E4B54443432}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NET6Sign", "NET6Sign\NET6Sign.csproj", "{6546D977-7245-4F1C-B983-8369E85218B0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NET6Sign", "NET6Sign\NET6Sign.csproj", "{6546D977-7245-4F1C-B983-8369E85218B0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FrameworksPack", "FrameworksPack\FrameworksPack.csproj", "{486B4265-C5C4-4686-908D-75CB7E9FDCF4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -197,6 +199,10 @@ Global
 		{6546D977-7245-4F1C-B983-8369E85218B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6546D977-7245-4F1C-B983-8369E85218B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6546D977-7245-4F1C-B983-8369E85218B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{486B4265-C5C4-4686-908D-75CB7E9FDCF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{486B4265-C5C4-4686-908D-75CB7E9FDCF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{486B4265-C5C4-4686-908D-75CB7E9FDCF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{486B4265-C5C4-4686-908D-75CB7E9FDCF4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
