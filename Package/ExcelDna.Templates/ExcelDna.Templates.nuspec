@@ -10,9 +10,8 @@
         <repository type="git" url="https://github.com/Excel-DNA/ExcelDna" />
         <iconUrl>http://docs.excel-dna.net/NuGetIcon.png</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>
-          Excel-DNA templates for dotnet new.</description>
-        <summary>Excel-DNA templates for dotnet new.</summary>
+        <description>Excel-DNA templates for new projects.</description>
+        <summary>Excel-DNA templates for new projects.</summary>
         <tags>excel exceldna udf excel-dna</tags>
         <packageTypes>
           <packageType name="Template" />
