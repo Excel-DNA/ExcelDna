@@ -8,7 +8,7 @@
         <owners>Govert van Drimmelen</owners>
         <projectUrl>http://excel-dna.net</projectUrl>
         <repository type="git" url="https://github.com/Excel-DNA/ExcelDna" />
-        <iconUrl>http://docs.excel-dna.net/NuGetIcon.png</iconUrl>
+        <icon>images\ExcelDna-nu.png</icon>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>Deprecated reference library package for Excel-DNA. Use the package ExcelDna.AddIn to create a new add-in. Use the package ExcelDna.Integration to only reference the integration library.</description>
         <summary>Reference library package for Excel-DNA.</summary>
@@ -17,4 +17,7 @@
         <dependency id="ExcelDna.Integration" version="[$ExcelDnaVersion$]" />
       </dependencies>
     </metadata>
+  <files>
+    <file src="..\images\ExcelDna-nu.png" target="images\" />
+  </files>
 </package>

@@ -8,13 +8,16 @@
         <owners>Govert van Drimmelen</owners>
         <projectUrl>http://excel-dna.net</projectUrl>
         <repository type="git" url="https://github.com/Excel-DNA/ExcelDna" />
-        <iconUrl>http://docs.excel-dna.net/NuGetIcon.png</iconUrl>
+        <icon>images\ExcelDna-nu.png</icon>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>This NuGet package is deprecated, and used for compatibility only. The basic Excel-DNA NuGet package is now called ExcelDna.AddIn.</description>
         <summary>Excel-DNA is an independent project to integrate .NET into Excel.</summary>
         <tags>excel exceldna udf excel-dna</tags>
     <dependencies>
-      <dependency id="ExcelDna.AddIn" version="[$ExcelDnaVersion$]" />
+        <dependency id="ExcelDna.AddIn" version="[$ExcelDnaVersion$]" />
     </dependencies>
     </metadata>
+    <files>
+        <file src="..\images\ExcelDna-nu.png" target="images\" />
+    </files>
 </package>

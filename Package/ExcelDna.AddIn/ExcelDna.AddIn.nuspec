@@ -8,7 +8,7 @@
         <owners>Govert van Drimmelen</owners>
         <projectUrl>http://excel-dna.net</projectUrl>
         <repository type="git" url="https://github.com/Excel-DNA/ExcelDna" />
-        <iconUrl>http://docs.excel-dna.net/NuGetIcon.png</iconUrl>
+        <icon>images\ExcelDna-nu.png</icon>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>
           Excel-DNA eases the development of Excel add-ins using .NET.
@@ -23,21 +23,16 @@
         <summary>Excel-DNA is an independent project to integrate .NET into Excel.</summary>
         <tags>excel exceldna udf excel-dna</tags>
         <dependencies>
-          <group targetFramework=".NETFramework4.5.2" >
-            <dependency id="ExcelDna.Integration" version="[$ExcelDnaVersion$]" />
-          </group>
-          <group targetFramework="net6.0-windows" >
-            <dependency id="ExcelDna.Integration" version="[$ExcelDnaVersion$]" />
-          </group>
+          <dependency id="ExcelDna.Integration" version="[$ExcelDnaVersion$]" />
         </dependencies>
     </metadata>
     <files>
         <file src="..\..\Distribution\net452\ExcelDna.Integration.dll" target="tools\net452\ExcelDna.Integration.dll" />
+        <file src="..\..\Distribution\net6.0-windows\ExcelDna.Integration.dll" target="tools\net6.0-windows7.0\ExcelDna.Integration.dll" />
         <file src="..\..\Distribution\net452\ExcelDna.xll" target="tools\net452\ExcelDna.xll" />
         <file src="..\..\Distribution\net452\ExcelDna64.xll" target="tools\net452\ExcelDna64.xll" />
-        <file src="..\..\Distribution\net6.0-windows\ExcelDna.Integration.dll" target="tools\net6.0-windows\ExcelDna.Integration.dll" />
-        <file src="..\..\Distribution\net6.0-windows\ExcelDna.xll" target="tools\net6.0-windows\ExcelDna.xll" />
-        <file src="..\..\Distribution\net6.0-windows\ExcelDna64.xll" target="tools\net6.0-windows\ExcelDna64.xll" />
+        <file src="..\..\Distribution\net6.0-windows\ExcelDna.xll" target="tools\net6.0-windows7.0\ExcelDna.xll" />
+        <file src="..\..\Distribution\net6.0-windows\ExcelDna64.xll" target="tools\net6.0-windows7.0\ExcelDna64.xll" />
         <file src="content\ExcelDna-Template.dna" target="content\ExcelDna-Template.dna" />
         <file src="content\ExcelDna.Build.props" target="content\Properties\ExcelDna.Build.props" />
         <file src="tools\install.ps1" target="tools\net452\install.ps1" />
@@ -47,7 +42,8 @@
         <file src="tools\net452\ExcelDna.AddIn.Tasks.dll" target="tools\net452\ExcelDna.AddIn.Tasks.dll" />
         <file src="tools\net452\EnvDTE.dll" target="tools\net452\EnvDTE.dll" />
         <file src="tools\net452\Newtonsoft.Json.dll" target="tools\net452\Newtonsoft.Json.dll" />
-        <file src="tools\net6.0-windows\ExcelDna.AddIn.Tasks.dll" target="tools\net6.0-windows\ExcelDna.AddIn.Tasks.dll" />
+        <file src="tools\net6.0-windows\ExcelDna.AddIn.Tasks.dll" target="tools\net6.0-windows7.0\ExcelDna.AddIn.Tasks.dll" />
         <file src="readme.txt" target="readme.txt" />
+        <file src="..\images\ExcelDna-nu.png" target="images\" />
     </files>
 </package>
