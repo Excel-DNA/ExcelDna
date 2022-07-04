@@ -14,18 +14,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <COMReference Include="{00020813-0000-0000-c000-000000000046}">
-      <WrapperTool>primary</WrapperTool>
-      <VersionMinor>9</VersionMinor>
-      <VersionMajor>1</VersionMajor>
-      <Guid>00020813-0000-0000-c000-000000000046</Guid>
-      <EmbedInteropTypes>true</EmbedInteropTypes>
-    </COMReference>
-  </ItemGroup>
-  
-  <ItemGroup>
     <PackageReference Include="NUnit" Version="*" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.1.0" />
+    <PackageReference Include="ExcelDna.Interop" Version="*-*" />
   </ItemGroup>
 
   <ItemGroup>
