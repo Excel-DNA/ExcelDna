@@ -1,0 +1,13 @@
+{
+    "$schema": "http://json.schemastore.org/template",
+    "author": "Govert van Drimmelen",
+    "classifications": [ "Excel", "Add-in" ],
+    "identity": "ExcelDna.CSFunctionProject",
+    "sourceName": "CSfunction",
+    "name": "Excel-DNA Add-In with function",
+    "shortName": "excelfunc",
+    "tags": {
+        "language": "C#",
+        "type": "project"
+    }
+}

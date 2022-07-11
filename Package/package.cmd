@@ -11,6 +11,10 @@ if exist "%outputPath%\*.nupkg" del "%outputPath%\*.nupkg"
 if not exist "%outputPath%" mkdir "%outputPath%"
 
 echo on
+
+nuget.exe pack "%basePath%\ExcelDna.Templates\ExcelDna.Templates.nuspec" -BasePath "%basePath%\ExcelDna.Templates" -OutputDirectory "%outputPath%" -Verbosity detailed -NonInteractive -Prop ExcelDnaVersion="%ExcelDnaVersion%"
+@if errorlevel 1 goto end
+
 nuget.exe pack "%basePath%\ExcelDna.AddIn\ExcelDna.AddIn.nuspec" -BasePath "%basePath%\ExcelDna.AddIn" -OutputDirectory "%outputPath%" -Verbosity detailed -NonInteractive -Prop ExcelDnaVersion="%ExcelDnaVersion%"
 @if errorlevel 1 goto end
 
