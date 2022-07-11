@@ -253,4 +253,11 @@
           OverwriteReadOnlyFiles="true"
           SkipUnchangedFiles="true" />
   </Target>
+
+  <Target Name="HideExcelDnaInteropEmbeddableAssemblies" AfterTargets="ResolveReferences" BeforeTargets="FindReferenceAssembliesForReferences">
+		<ItemGroup>
+			<ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' == 'ExcelDna.Interop'" />
+		</ItemGroup>
+  </Target>
+	
 </Project>
