@@ -68,5 +68,10 @@
 		OverwriteReadOnlyFiles="true"
 		SkipUnchangedFiles="true" />
 
+	<ItemGroup>
+		<ExcelDnaTestFilesToMove Include="$(ExcelDnaTestPackageDir)tools\net6.0-windows\*.*" />
+	</ItemGroup>
+	<Move SourceFiles="@(ExcelDnaTestFilesToMove)" DestinationFolder="$(ExcelDnaTestPackageDir)tools\net6.0-windows7.0" />
+
 	</Target>
 </Project>
