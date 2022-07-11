@@ -69,6 +69,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NET6Sign", "NET6Sign\NET6Si
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FrameworksPack", "FrameworksPack\FrameworksPack.csproj", "{486B4265-C5C4-4686-908D-75CB7E9FDCF4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrameworksUseVersionAsOutputVersion", "FrameworksUseVersionAsOutputVersion\FrameworksUseVersionAsOutputVersion.csproj", "{35BE64BA-0143-47E3-BCD6-E08F5C7996B6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -203,6 +205,10 @@ Global
 		{486B4265-C5C4-4686-908D-75CB7E9FDCF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{486B4265-C5C4-4686-908D-75CB7E9FDCF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{486B4265-C5C4-4686-908D-75CB7E9FDCF4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35BE64BA-0143-47E3-BCD6-E08F5C7996B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35BE64BA-0143-47E3-BCD6-E08F5C7996B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35BE64BA-0143-47E3-BCD6-E08F5C7996B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35BE64BA-0143-47E3-BCD6-E08F5C7996B6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

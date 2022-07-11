@@ -188,7 +188,7 @@ namespace ExcelDna.PackedResources
                         }
                         try
                         {
-                            ru.CopyFileVersion(path);
+                            ru.CopyFileVersion(Path.Combine(Directory.GetCurrentDirectory(), path));
                             copiedVersion = true;
                         }
                         catch (Exception e)

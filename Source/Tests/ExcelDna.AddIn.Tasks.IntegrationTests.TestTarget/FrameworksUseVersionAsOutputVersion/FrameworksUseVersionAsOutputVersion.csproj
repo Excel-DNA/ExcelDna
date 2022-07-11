@@ -1,8 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net472;net6.0-windows</TargetFrameworks>
     <UseWindowsForms>True</UseWindowsForms>
+
+    <FileVersion>1.2.3</FileVersion>
+    <InformationalVersion>1.2.3</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net6.0-windows' ">
