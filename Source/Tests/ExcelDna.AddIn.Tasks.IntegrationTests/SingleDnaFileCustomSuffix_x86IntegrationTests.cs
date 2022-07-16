@@ -17,8 +17,8 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
             MsBuild(projectBasePath + "SingleDnaFileCustomSuffix_x86.csproj /p:ExcelDna32BitAddInSuffix=-x86 /p:ExcelDna64BitAddInSuffix=-x64 /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
 
             AssertOutput(projectOutDir, "*.dna", "MyLibrary-AddIn-x86.dna", "MyLibrary-AddIn-x64.dna");
-            AssertOutput(projectOutDir, "*.xll", "MyLibrary-AddIn-x86.xll", "MyLibrary-AddIn-x86-packed.xll", "MyLibrary-AddIn-x64.xll", "MyLibrary-AddIn-x64-packed.xll");
-            AssertOutput(projectOutDir, "*.xll.config", "MyLibrary-AddIn-x86.xll.config", "MyLibrary-AddIn-x86-packed.xll.config", "MyLibrary-AddIn-x64.xll.config", "MyLibrary-AddIn-x64-packed.xll.config");
+            AssertOutput(projectOutDir, "*.xll", "MyLibrary-AddIn-x86.xll", @"publish\MyLibrary-AddIn-x86-packed.xll", "MyLibrary-AddIn-x64.xll", @"publish\MyLibrary-AddIn-x64-packed.xll");
+            AssertOutput(projectOutDir, "*.xll.config", "MyLibrary-AddIn-x86.xll.config", @"publish\MyLibrary-AddIn-x86-packed.xll.config", "MyLibrary-AddIn-x64.xll.config", @"publish\MyLibrary-AddIn-x64-packed.xll.config");
 
             AssertIdentical(projectBasePath + "MyLibrary-AddIn-x86.dna", projectOutDir + "MyLibrary-AddIn-x86.dna");
             AssertIdentical(projectBasePath + "MyLibrary-AddIn-x86.dna", projectOutDir + "MyLibrary-AddIn-x64.dna");
@@ -27,10 +27,10 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
             Assert64BitXll(projectOutDir + "MyLibrary-AddIn-x64.xll");
 
             AssertIdentical(projectBasePath + "App.config", projectOutDir + "MyLibrary-AddIn-x86.xll.config");
-            AssertIdentical(projectBasePath + "App.config", projectOutDir + "MyLibrary-AddIn-x86-packed.xll.config");
+            AssertIdentical(projectBasePath + "App.config", projectOutDir + @"publish\MyLibrary-AddIn-x86-packed.xll.config");
 
             AssertIdentical(projectBasePath + "App.config", projectOutDir + "MyLibrary-AddIn-x64.xll.config");
-            AssertIdentical(projectBasePath + "App.config", projectOutDir + "MyLibrary-AddIn-x64-packed.xll.config");
+            AssertIdentical(projectBasePath + "App.config", projectOutDir + @"publish\MyLibrary-AddIn-x64-packed.xll.config");
         }
     }
 }

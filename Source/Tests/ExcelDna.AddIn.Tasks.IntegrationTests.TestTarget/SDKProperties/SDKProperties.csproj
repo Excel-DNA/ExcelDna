@@ -49,6 +49,10 @@
     <!-- Default value: false -->
     <ExcelDnaUnpack></ExcelDnaUnpack>
 
+    <!-- The output directory for the 'published' add-in. -->
+    <!-- Default value: publish -->
+    <ExcelDnaPublishPath></ExcelDnaPublishPath>
+
     <!-- Enables creating 32bit add-in. -->
     <!-- Default value: true -->
     <ExcelDnaCreate32BitAddIn></ExcelDnaCreate32BitAddIn>

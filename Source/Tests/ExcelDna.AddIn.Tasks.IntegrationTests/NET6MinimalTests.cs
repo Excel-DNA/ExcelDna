@@ -22,7 +22,7 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
         {
             const string projectBasePath = @"NET6Minimal\";
             const string projectOutDir = projectBasePath + @"bin\Release\";
-            string packedFile = Path.Combine(projectOutDir, "MyLibrary-AddIn64-packed.xll");
+            string packedFile = Path.Combine(projectOutDir, @"publish\MyLibrary-AddIn64-packed.xll");
 
             Clean(projectOutDir);
 

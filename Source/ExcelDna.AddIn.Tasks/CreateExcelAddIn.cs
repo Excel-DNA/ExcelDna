@@ -305,10 +305,13 @@ namespace ExcelDna.AddIn.Tasks
                 return;
             }
 
-            var outputPackedXllFileName = !string.IsNullOrWhiteSpace(PackedFileSuffix)
-                ? Path.Combine(Path.GetDirectoryName(outputXllFileName) ?? string.Empty,
-                    Path.GetFileNameWithoutExtension(outputXllFileName) + PackedFileSuffix + ".xll")
-                : outputXllFileName;
+            string outputPackedXllFileName = outputXllFileName;
+            if (!string.IsNullOrWhiteSpace(PackedFileSuffix))
+            {
+                string outputDir = Path.GetDirectoryName(outputXllFileName) ?? string.Empty;
+                outputDir = Path.Combine(outputDir, PublishPath ?? "publish");
+                outputPackedXllFileName = Path.Combine(outputDir, Path.GetFileNameWithoutExtension(outputXllFileName) + PackedFileSuffix + ".xll");
+            }
 
             var metadata = new Hashtable
             {
@@ -485,6 +488,11 @@ namespace ExcelDna.AddIn.Tasks
         /// Packed add-in name suffix
         /// </summary>
         public string PackedFileSuffix { get; set; }
+
+        /// <summary>
+        /// The output directory for the 'published' add-in
+        /// </summary>
+        public string PublishPath { get; set; }
 
         /// <summary>
         /// Custom add-in name

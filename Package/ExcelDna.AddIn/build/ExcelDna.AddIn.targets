@@ -209,6 +209,7 @@
       UnpackIsEnabled="$(ExcelDnaUnpack)"
       PackIsEnabled="$(RunExcelDnaPack)"
       PackedFileSuffix="$(ExcelDnaPackXllSuffix)"
+      PublishPath="$(ExcelDnaPublishPath)"
  	  AddInName="$(ExcelAddInName)"
  	  AddInFileName="$(ExcelAddInFileName)"
  	  AddInInclude="$(ExcelAddInInclude)"
