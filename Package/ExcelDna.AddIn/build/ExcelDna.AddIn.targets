@@ -219,6 +219,7 @@
 	  TlbDscom="$(ExcelDnaTlbDscom)"
 	  TlbExp="$(ExcelAddInTlbExp)"
 	  TlbCreate="$(ExcelAddInTlbCreate)"
+	  UseVersionAsOutputVersion="$(ExcelAddInUseVersionAsOutputVersion)"
 	  IntegrationDllPath="$(ExcelDnaRuntimeToolsPath)ExcelDna.Integration.dll"
 	  TemplateDnaPath="$(MSBuildThisFileDirectory)..\content\ExcelDna-Template.dna">
       <Output TaskParameter="DnaFilesToPack" ItemName="ExcelDnaFilesToPack" />
