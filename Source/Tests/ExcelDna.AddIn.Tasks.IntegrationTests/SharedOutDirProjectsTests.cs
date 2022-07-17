@@ -16,8 +16,8 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
             var projectOutDir = Path.Combine(projectOneBasePath, relativeProjectOutDir);
 
             MsBuild(projectOneBasePath + "SharedOutDirProjectOne.csproj /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", relativeProjectOutDir));
-            MsBuild(projectTwoBasePath + "SharedOutDirProjectTwo.csproj /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", relativeProjectOutDir));
-            MsBuild(projectTwoBasePath + "SharedOutDirProjectTwo.csproj /t:Clean /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", relativeProjectOutDir));
+            MsBuild(projectTwoBasePath + "SharedOutDirProjectTwo.csproj /t:Build /p:Configuration=Release /p:ExcelDnaPublishPath=PublishTwo /v:m " + MsBuildParam("OutputPath", relativeProjectOutDir));
+            MsBuild(projectTwoBasePath + "SharedOutDirProjectTwo.csproj /t:Clean /p:Configuration=Release /p:ExcelDnaPublishPath=PublishTwo /v:m " + MsBuildParam("OutputPath", relativeProjectOutDir));
 
             // The .DNA files, XLL + config files should remain for project one
             AssertFound(projectOutDir, "*.dna", "AddIn-One-x.dna", "AddIn-One-x64.dna");

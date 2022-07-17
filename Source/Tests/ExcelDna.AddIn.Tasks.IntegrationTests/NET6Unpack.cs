@@ -32,6 +32,7 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
             MsBuild(projectBasePath + "NET6Unpack.csproj /t:Clean /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
 
             AssertNotFound(Path.Combine(publishDir, "ExcelDna.ManagedHost.dll"));
+            AssertNotFound(Path.Combine(publishDir, "NET6Unpack.dll"));
         }
 
         [Test]
