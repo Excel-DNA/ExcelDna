@@ -102,7 +102,7 @@ namespace ExcelDna.AddIn.Tasks
                 Path.GetFileNameWithoutExtension(outputDnaFileName) + PackedFileSuffix + ".dna")
             : outputDnaFileName;
 
-            var outputPackedXllFileName = PackExcelAddIn.GetOutputPackedXllFileName(outputXllFileName, PackedFileSuffix, PublishPath);
+            var outputPackedXllFileName = PackExcelAddIn.GetOutputPackedXllFileName(outputXllFileName, PackedFileSuffix, PackExcelAddIn.GetPublishDirectory(OutDirectory, PublishPath));
 
             var outputPackedXllConfigFileName = outputPackedXllFileName + ".config";
 

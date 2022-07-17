@@ -29,7 +29,7 @@ namespace ExcelDna.AddIn.Tasks
             {
                 _log.Debug("Running PackExcelAddIn Task");
 
-                int result = ExcelDna.PackedResources.ExcelDnaPack.Pack(OutputDnaFileName, OutputPackedXllFileName, CompressResources, RunMultithreaded, true, null);
+                int result = ExcelDna.PackedResources.ExcelDnaPack.Pack(OutputDnaFileName, OutputPackedXllFileName, CompressResources, RunMultithreaded, true, null, null);
                 if (result != 0)
                     throw new ApplicationException($"Pack failed with exit code {result}.");
 
@@ -51,12 +51,15 @@ namespace ExcelDna.AddIn.Tasks
             string outputPackedXllFileName = outputXllFileName;
             if (!string.IsNullOrWhiteSpace(packedFileSuffix))
             {
-                string outputDir = Path.GetDirectoryName(outputXllFileName) ?? string.Empty;
-                outputDir = Path.Combine(outputDir, publishPath ?? "publish");
-                outputPackedXllFileName = Path.Combine(outputDir, Path.GetFileNameWithoutExtension(outputXllFileName) + packedFileSuffix + ".xll");
+                outputPackedXllFileName = Path.Combine(publishPath, Path.GetFileNameWithoutExtension(outputXllFileName) + packedFileSuffix + ".xll");
             }
 
             return outputPackedXllFileName;
+        }
+
+        public static string GetPublishDirectory(string outDirectory, string publishPath)
+        {
+            return Path.Combine(outDirectory, publishPath ?? "publish");
         }
 
         /// <summary>

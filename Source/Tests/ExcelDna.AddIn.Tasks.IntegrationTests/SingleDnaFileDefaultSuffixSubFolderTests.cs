@@ -16,8 +16,10 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
             MsBuild(projectBasePath + "SingleDnaFileInSubFolderDefaultSuffix.csproj /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
 
             AssertOutput(projectOutDir + @"MySubFolder\", "*.dna", "MyLibrary-AddIn.dna", "MyLibrary-AddIn64.dna");
-            AssertOutput(projectOutDir + @"MySubFolder\", "*.xll", "MyLibrary-AddIn.xll", @"publish\MyLibrary-AddIn-packed.xll", "MyLibrary-AddIn64.xll", @"publish\MyLibrary-AddIn64-packed.xll");
-            AssertOutput(projectOutDir + @"MySubFolder\", "*.xll.config", "MyLibrary-AddIn.xll.config", @"publish\MyLibrary-AddIn-packed.xll.config", "MyLibrary-AddIn64.xll.config", @"publish\MyLibrary-AddIn64-packed.xll.config");
+            AssertOutput(projectOutDir + @"MySubFolder\", "*.xll", "MyLibrary-AddIn.xll", "MyLibrary-AddIn64.xll");
+            AssertOutput(projectOutDir + @"publish\", "*.xll", "MyLibrary-AddIn-packed.xll", "MyLibrary-AddIn64-packed.xll");
+            AssertOutput(projectOutDir + @"MySubFolder\", "*.xll.config", "MyLibrary-AddIn.xll.config", "MyLibrary-AddIn64.xll.config");
+            AssertOutput(projectOutDir + @"publish\", "*.xll.config", "MyLibrary-AddIn-packed.xll.config", "MyLibrary-AddIn64-packed.xll.config");
 
             AssertIdentical(projectBasePath + @"MySubFolder\MyLibrary-AddIn.dna", projectOutDir + @"MySubFolder\MyLibrary-AddIn.dna");
             AssertIdentical(projectBasePath + @"MySubFolder\MyLibrary-AddIn.dna", projectOutDir + @"MySubFolder\MyLibrary-AddIn64.dna");
@@ -26,10 +28,10 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
             Assert64BitXll(projectOutDir + @"MySubFolder\MyLibrary-AddIn64.xll");
 
             AssertIdentical(projectBasePath + "App.config", projectOutDir + @"MySubFolder\MyLibrary-AddIn.xll.config");
-            AssertIdentical(projectBasePath + "App.config", projectOutDir + @"MySubFolder\publish\MyLibrary-AddIn-packed.xll.config");
+            AssertIdentical(projectBasePath + "App.config", projectOutDir + @"publish\MyLibrary-AddIn-packed.xll.config");
 
             AssertIdentical(projectBasePath + "App.config", projectOutDir + @"MySubFolder\MyLibrary-AddIn64.xll.config");
-            AssertIdentical(projectBasePath + "App.config", projectOutDir + @"MySubFolder\publish\MyLibrary-AddIn64-packed.xll.config");
+            AssertIdentical(projectBasePath + "App.config", projectOutDir + @"publish\MyLibrary-AddIn64-packed.xll.config");
         }
     }
 }
