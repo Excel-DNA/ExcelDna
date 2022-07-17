@@ -102,15 +102,9 @@ namespace ExcelDna.AddIn.Tasks
                 Path.GetFileNameWithoutExtension(outputDnaFileName) + PackedFileSuffix + ".dna")
             : outputDnaFileName;
 
-            var outputPackedXllFileName = !string.IsNullOrWhiteSpace(PackedFileSuffix)
-              ? Path.Combine(Path.GetDirectoryName(outputXllFileName) ?? string.Empty,
-                  Path.GetFileNameWithoutExtension(outputXllFileName) + PackedFileSuffix + ".xll")
-              : outputXllFileName;
+            var outputPackedXllFileName = PackExcelAddIn.GetOutputPackedXllFileName(outputXllFileName, PackedFileSuffix, PublishPath);
 
-            var outputPackedXllConfigFileName = !string.IsNullOrWhiteSpace(PackedFileSuffix)
-            ? Path.Combine(Path.GetDirectoryName(outputXllFileName) ?? string.Empty,
-                Path.GetFileNameWithoutExtension(outputXllFileName) + PackedFileSuffix + ".xll.config")
-            : outputXllConfigFileName;
+            var outputPackedXllConfigFileName = outputPackedXllFileName + ".config";
 
             var metadata = new Hashtable
             {
@@ -225,5 +219,10 @@ namespace ExcelDna.AddIn.Tasks
         /// Custom add-in file name
         /// </summary>
         public string AddInFileName { get; set; }
+
+        /// <summary>
+        /// The output directory for the 'published' add-in
+        /// </summary>
+        public string PublishPath { get; set; }
     }
 }

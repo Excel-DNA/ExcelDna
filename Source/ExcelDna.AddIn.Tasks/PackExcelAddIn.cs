@@ -2,6 +2,7 @@
 using Microsoft.Build.Framework;
 using ExcelDna.AddIn.Tasks.Logging;
 using ExcelDna.AddIn.Tasks.Utils;
+using System.IO;
 
 namespace ExcelDna.AddIn.Tasks
 {
@@ -43,6 +44,19 @@ namespace ExcelDna.AddIn.Tasks
                 _log.Error(ex, ex.ToString());
                 return false;
             }
+        }
+
+        public static string GetOutputPackedXllFileName(string outputXllFileName, string packedFileSuffix, string publishPath)
+        {
+            string outputPackedXllFileName = outputXllFileName;
+            if (!string.IsNullOrWhiteSpace(packedFileSuffix))
+            {
+                string outputDir = Path.GetDirectoryName(outputXllFileName) ?? string.Empty;
+                outputDir = Path.Combine(outputDir, publishPath ?? "publish");
+                outputPackedXllFileName = Path.Combine(outputDir, Path.GetFileNameWithoutExtension(outputXllFileName) + packedFileSuffix + ".xll");
+            }
+
+            return outputPackedXllFileName;
         }
 
         /// <summary>

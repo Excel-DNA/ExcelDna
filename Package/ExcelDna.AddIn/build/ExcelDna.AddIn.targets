@@ -161,6 +161,7 @@
       PackIsEnabled="$(RunExcelDnaPack)"
       PackedFileSuffix="$(ExcelDnaPackXllSuffix)"
  	  AddInFileName="$(ExcelAddInFileName)"
+      PublishPath="$(ExcelDnaPublishPath)"
  	  ProjectName="$(MSBuildProjectName)">
     </CleanExcelAddIn>
   </Target>

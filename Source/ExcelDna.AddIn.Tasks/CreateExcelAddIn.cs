@@ -305,13 +305,7 @@ namespace ExcelDna.AddIn.Tasks
                 return;
             }
 
-            string outputPackedXllFileName = outputXllFileName;
-            if (!string.IsNullOrWhiteSpace(PackedFileSuffix))
-            {
-                string outputDir = Path.GetDirectoryName(outputXllFileName) ?? string.Empty;
-                outputDir = Path.Combine(outputDir, PublishPath ?? "publish");
-                outputPackedXllFileName = Path.Combine(outputDir, Path.GetFileNameWithoutExtension(outputXllFileName) + PackedFileSuffix + ".xll");
-            }
+            string outputPackedXllFileName = PackExcelAddIn.GetOutputPackedXllFileName(outputXllFileName, PackedFileSuffix, PublishPath);
 
             var metadata = new Hashtable
             {
