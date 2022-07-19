@@ -16,21 +16,21 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
             var projectOutDir = Path.Combine(projectOneBasePath, relativeProjectOutDir);
 
             MsBuild(projectOneBasePath + "SharedOutDirProjectOne.csproj /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", relativeProjectOutDir));
-            MsBuild(projectTwoBasePath + "SharedOutDirProjectTwo.csproj /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", relativeProjectOutDir));
-            MsBuild(projectTwoBasePath + "SharedOutDirProjectTwo.csproj /t:Clean /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", relativeProjectOutDir));
+            MsBuild(projectTwoBasePath + "SharedOutDirProjectTwo.csproj /t:Build /p:Configuration=Release /p:ExcelDnaPublishPath=PublishTwo /v:m " + MsBuildParam("OutputPath", relativeProjectOutDir));
+            MsBuild(projectTwoBasePath + "SharedOutDirProjectTwo.csproj /t:Clean /p:Configuration=Release /p:ExcelDnaPublishPath=PublishTwo /v:m " + MsBuildParam("OutputPath", relativeProjectOutDir));
 
             // The .DNA files, XLL + config files should remain for project one
             AssertFound(projectOutDir, "*.dna", "AddIn-One-x.dna", "AddIn-One-x64.dna");
-            AssertFound(projectOutDir, "*.xll", "AddIn-One-x.xll", "AddIn-One-x-packed.xll", "AddIn-One-x64.xll", "AddIn-One-x64-packed.xll");
-            AssertFound(projectOutDir, "*.xll.config", "AddIn-One-x64.xll.config", "AddIn-One-x64-packed.xll.config");
+            AssertFound(projectOutDir, "*.xll", "AddIn-One-x.xll", @"publish\AddIn-One-x-packed.xll", "AddIn-One-x64.xll", @"publish\AddIn-One-x64-packed.xll");
+            AssertFound(projectOutDir, "*.xll.config", "AddIn-One-x64.xll.config", @"publish\AddIn-One-x64-packed.xll.config");
 
             AssertIdentical(projectOneBasePath + "AddIn-One-x64.dna", projectOutDir + "AddIn-One-x64.dna");
             AssertIdentical(projectOneBasePath + "AddIn-One-x64.config", projectOutDir + "AddIn-One-x64.xll.config");
 
             // Assert project two files have been removed
             AssertNotFound(projectOutDir + "AddIn-Two-x-packed.xll");
-            AssertNotFound(projectOutDir + "AddIn-Two-x64-packed.xll.config");
-            AssertNotFound(projectOutDir + "AddIn-Two-x64-packed.xll");
+            AssertNotFound(projectOutDir + @"publish\AddIn-Two-x64-packed.xll.config");
+            AssertNotFound(projectOutDir + @"publish\AddIn-Two-x64-packed.xll");
             AssertNotFound(projectOutDir + "AddIn-Two-x64.xll.config");
             AssertNotFound(projectOutDir + "AddIn-Two-x64.xll");
             AssertNotFound(projectOutDir + "AddIn-Two-x64.dna");
