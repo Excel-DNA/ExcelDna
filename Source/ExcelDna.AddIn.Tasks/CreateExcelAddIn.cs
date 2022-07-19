@@ -338,6 +338,9 @@ namespace ExcelDna.AddIn.Tasks
             if (DisableAssemblyContextUnload)
                 result = result.Replace("<DnaLibrary ", "<DnaLibrary " + "DisableAssemblyContextUnload=\"true\" ");
 
+            if (UseVersionAsOutputVersion)
+                result = result.Replace("<ExternalLibrary ", "<ExternalLibrary " + "UseVersionAsOutputVersion=\"true\" ");
+
             return result.Replace("%OutputFileName%", OutputFileName());
         }
 
@@ -541,6 +544,11 @@ namespace ExcelDna.AddIn.Tasks
         /// </summary>
         [Required]
         public bool TlbDscom { get; set; }
+
+        /// <summary>
+        /// Replace XLL version information with data read from ExternalLibrary assembly
+        /// </summary>
+        public bool UseVersionAsOutputVersion { get; set; }
 
         /// <summary>
         /// The list of .dna files copied to the output
