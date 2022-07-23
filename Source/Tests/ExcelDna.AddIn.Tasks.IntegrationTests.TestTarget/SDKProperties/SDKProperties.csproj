@@ -73,6 +73,14 @@
     <!-- Default value: -packed -->
     <ExcelDnaPackXllSuffix></ExcelDnaPackXllSuffix>
 
+    <!-- Explicit 32bit output file name -->
+    <!-- Default value: empty -->
+    <ExcelDnaPack32BitXllName></ExcelDnaPack32BitXllName>
+
+    <!-- Explicit 64bit output file name -->
+    <!-- Default value: empty -->
+    <ExcelDnaPack64BitXllName></ExcelDnaPack64BitXllName>
+
     <!-- Enables packed add-in compression. -->
     <!-- Default value: true -->
     <ExcelDnaPackCompressResources></ExcelDnaPackCompressResources>
