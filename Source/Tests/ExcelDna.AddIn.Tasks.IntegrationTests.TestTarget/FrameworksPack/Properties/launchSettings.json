@@ -1,9 +1,0 @@
-{
-  "profiles": {
-    "Excel": {
-      "commandName": "Executable",
-      "executablePath": "C:\\Program Files\\Microsoft Office\\root\\Office16\\EXCEL.EXE",
-      "commandLineArgs": "FrameworksPack-AddIn64.xll"
-    }
-  }
-}
