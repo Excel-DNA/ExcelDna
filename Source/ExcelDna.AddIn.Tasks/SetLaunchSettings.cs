@@ -64,7 +64,8 @@ namespace ExcelDna.AddIn.Tasks
 
         private void Update(string settingsPath, object profile)
         {
-            JObject settings = JObject.Parse(File.ReadAllText(settingsPath));
+            string originalFileText = File.ReadAllText(settingsPath);
+            JObject settings = JObject.Parse(originalFileText);
             JObject profiles = (JObject)settings["profiles"];
             if (profiles == null)
             {
@@ -77,7 +78,9 @@ namespace ExcelDna.AddIn.Tasks
             {
                 profiles["Excel"] = JToken.FromObject(profile);
             }
-            File.WriteAllText(settingsPath, settings.ToString());
+            string updatedFileText = settings.ToString();
+            if (updatedFileText != originalFileText)
+                File.WriteAllText(settingsPath, updatedFileText);
         }
 
         /// <summary>
