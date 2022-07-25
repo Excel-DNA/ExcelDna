@@ -175,7 +175,7 @@ namespace ExcelDna.AddIn.Tasks
                     // Copy .config file to build output folder for 32-bit (if exist)
                     TryCopyConfigFileToOutput(item.InputConfigFileNameAs32Bit, item.InputConfigFileNameFallbackAs32Bit, item.OutputConfigFileNameAs32Bit);
 
-                    AddDnaToListOfFilesToPack(item.OutputDnaFileNameAs32Bit, item.OutputXllFileNameAs32Bit, item.OutputConfigFileNameAs32Bit);
+                    AddDnaToListOfFilesToPack(item.OutputDnaFileNameAs32Bit, item.OutputXllFileNameAs32Bit, item.OutputConfigFileNameAs32Bit, Packed32BitXllName);
 
                     if (UnpackIsEnabled)
                         PublishUnpackedAddin(item.OutputDnaFileNameAs32Bit, item.OutputXllFileNameAs32Bit);
@@ -201,7 +201,7 @@ namespace ExcelDna.AddIn.Tasks
                     // Copy .config file to build output folder for 64-bit (if exist)
                     TryCopyConfigFileToOutput(item.InputConfigFileNameAs64Bit, item.InputConfigFileNameFallbackAs64Bit, item.OutputConfigFileNameAs64Bit);
 
-                    AddDnaToListOfFilesToPack(item.OutputDnaFileNameAs64Bit, item.OutputXllFileNameAs64Bit, item.OutputConfigFileNameAs64Bit);
+                    AddDnaToListOfFilesToPack(item.OutputDnaFileNameAs64Bit, item.OutputXllFileNameAs64Bit, item.OutputConfigFileNameAs64Bit, Packed64BitXllName);
 
                     if (UnpackIsEnabled)
                         PublishUnpackedAddin(item.OutputDnaFileNameAs64Bit, item.OutputXllFileNameAs64Bit);
@@ -298,14 +298,14 @@ namespace ExcelDna.AddIn.Tasks
             _fileSystem.WriteFile(sourceFileText, destinationFile);
         }
 
-        private void AddDnaToListOfFilesToPack(string outputDnaFileName, string outputXllFileName, string outputXllConfigFileName)
+        private void AddDnaToListOfFilesToPack(string outputDnaFileName, string outputXllFileName, string outputXllConfigFileName, string packedFileName)
         {
             if (!PackIsEnabled)
             {
                 return;
             }
 
-            string outputPackedXllFileName = PackExcelAddIn.GetOutputPackedXllFileName(outputXllFileName, PackedFileSuffix, PackExcelAddIn.GetPublishDirectory(OutDirectory, PublishPath));
+            string outputPackedXllFileName = PackExcelAddIn.GetOutputPackedXllFileName(outputXllFileName, packedFileName, PackedFileSuffix, PackExcelAddIn.GetPublishDirectory(OutDirectory, PublishPath));
 
             var metadata = new Hashtable
             {
@@ -498,6 +498,16 @@ namespace ExcelDna.AddIn.Tasks
         /// Packed add-in name suffix
         /// </summary>
         public string PackedFileSuffix { get; set; }
+
+        /// <summary>
+        /// Explicit 32-bit output file name
+        /// </summary>
+        public string Packed32BitXllName { get; set; }
+
+        /// <summary>
+        /// Explicit 64-bit output file name
+        /// </summary>
+        public string Packed64BitXllName { get; set; }
 
         /// <summary>
         /// The output directory for the 'published' add-in

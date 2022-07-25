@@ -46,14 +46,17 @@ namespace ExcelDna.AddIn.Tasks
             }
         }
 
-        public static string GetOutputPackedXllFileName(string outputXllFileName, string packedFileSuffix, string publishPath)
+        public static string GetOutputPackedXllFileName(string outputXllFileName, string packedFileName, string packedFileSuffix, string publishPath)
         {
             string outputPackedXllFileName = outputXllFileName;
-            if (!string.IsNullOrWhiteSpace(packedFileSuffix))
+            if (string.IsNullOrWhiteSpace(packedFileName) && !string.IsNullOrWhiteSpace(packedFileSuffix))
             {
-                outputPackedXllFileName = Path.Combine(publishPath, Path.GetFileNameWithoutExtension(outputXllFileName) + packedFileSuffix + ".xll");
+                packedFileName = Path.GetFileNameWithoutExtension(outputXllFileName) + packedFileSuffix;
             }
-
+            if (!string.IsNullOrWhiteSpace(packedFileName))
+            {
+                outputPackedXllFileName = Path.Combine(publishPath, packedFileName + ".xll");
+            }
             return outputPackedXllFileName;
         }
 
