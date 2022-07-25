@@ -210,6 +210,8 @@
       UnpackIsEnabled="$(ExcelDnaUnpack)"
       PackIsEnabled="$(RunExcelDnaPack)"
       PackedFileSuffix="$(ExcelDnaPackXllSuffix)"
+      Packed32BitXllName="$(ExcelDnaPack32BitXllName)"
+      Packed64BitXllName="$(ExcelDnaPack64BitXllName)"
       PublishPath="$(ExcelDnaPublishPath)"
  	  AddInName="$(ExcelAddInName)"
  	  AddInFileName="$(ExcelAddInFileName)"

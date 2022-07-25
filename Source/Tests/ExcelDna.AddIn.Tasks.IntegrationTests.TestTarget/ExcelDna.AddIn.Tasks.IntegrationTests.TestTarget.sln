@@ -77,6 +77,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDKExcelAddInUseVersionAsOu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDKCopyToPublish", "SDKCopyToPublish\SDKCopyToPublish.csproj", "{1E51EFD6-6DF8-4A6E-8FCE-654BF095E33C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDKExcelDnaPackXllName", "SDKExcelDnaPackXllName\SDKExcelDnaPackXllName.csproj", "{8B0DE2CA-9DB7-4275-AAD1-30E4043B1DA3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -227,6 +229,10 @@ Global
 		{1E51EFD6-6DF8-4A6E-8FCE-654BF095E33C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1E51EFD6-6DF8-4A6E-8FCE-654BF095E33C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1E51EFD6-6DF8-4A6E-8FCE-654BF095E33C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B0DE2CA-9DB7-4275-AAD1-30E4043B1DA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B0DE2CA-9DB7-4275-AAD1-30E4043B1DA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B0DE2CA-9DB7-4275-AAD1-30E4043B1DA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B0DE2CA-9DB7-4275-AAD1-30E4043B1DA3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
