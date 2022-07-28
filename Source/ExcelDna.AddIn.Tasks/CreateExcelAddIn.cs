@@ -327,8 +327,9 @@ namespace ExcelDna.AddIn.Tasks
 
             if (!string.IsNullOrEmpty(AddInInclude))
             {
+                string outFiles = AddInInclude.Replace(OutDirectory, "");
                 string includes = "";
-                foreach (string i in AddInInclude.Split(';'))
+                foreach (string i in outFiles.Split(';'))
                 {
                     includes += $"  <Reference Path=\"{i}\" Pack=\"true\" />" + Environment.NewLine;
                 }

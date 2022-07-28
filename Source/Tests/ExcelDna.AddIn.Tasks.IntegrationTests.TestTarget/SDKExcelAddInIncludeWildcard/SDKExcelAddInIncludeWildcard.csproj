@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <UseWindowsForms>True</UseWindowsForms>
+  </PropertyGroup>
+
+  <Target Name="PackedReferences" AfterTargets="AfterBuild" BeforeTargets="ExcelDnaBuild">
+    <ItemGroup>
+      <References Include="$(OutDir)*.dll" Exclude="$(OutDir)$(TargetFileName)"/>
+    </ItemGroup>
+
+    <PropertyGroup>
+      <ExcelAddInInclude>@(References)</ExcelAddInInclude>
+    </PropertyGroup>
+  </Target>
+
+  <ItemGroup>
+    <Reference Include="ExcelDna.Integration">
+      <HintPath>..\..\.exceldna.addin\tools\net452\ExcelDna.Integration.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SDKExcelAddInFileName\SDKExcelAddInFileName.csproj" />
+    <ProjectReference Include="..\SDKExcelAddInName\SDKExcelAddInName.csproj" />
+  </ItemGroup>
+
+  <Import Project="$(ProjectDir)..\..\.exceldna.addin\build\ExcelDna.AddIn.targets" />
+
+</Project>
