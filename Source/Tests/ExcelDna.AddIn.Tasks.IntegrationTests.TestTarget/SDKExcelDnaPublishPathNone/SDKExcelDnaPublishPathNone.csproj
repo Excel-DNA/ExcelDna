@@ -1,4 +1,5 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project>
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk"/>
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
@@ -14,6 +15,8 @@
       <HintPath>..\..\.exceldna.addin\tools\net452\ExcelDna.Integration.dll</HintPath>
     </Reference>
   </ItemGroup>
+
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk"/>
 
   <Import Project="$(ProjectDir)..\..\.exceldna.addin\build\ExcelDna.AddIn.targets" />
 
