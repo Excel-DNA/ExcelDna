@@ -60,8 +60,16 @@ namespace ExcelDna.AddIn.Tasks
             return outputPackedXllFileName;
         }
 
+        public static bool NoPublishPath(string publishPath)
+        {
+            return string.Equals(publishPath, "%none%", StringComparison.OrdinalIgnoreCase);
+        }
+
         public static string GetPublishDirectory(string outDirectory, string publishPath)
         {
+            if (NoPublishPath(publishPath))
+                return outDirectory;
+
             return Path.Combine(outDirectory, publishPath ?? "publish");
         }
 

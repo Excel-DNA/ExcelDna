@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <ExcelDnaPublishPath>MyPublish</ExcelDnaPublishPath>
+    <ExcelDnaPublishPath>%none%</ExcelDnaPublishPath>
   </PropertyGroup>
 
   <ItemGroup>

@@ -49,7 +49,7 @@
     <!-- Default value: false -->
     <ExcelDnaUnpack></ExcelDnaUnpack>
 
-    <!-- The output directory for the 'published' add-in. -->
+    <!-- The output directory for the 'published' add-in. Use %none% to put the files in the same output directory. -->
     <!-- Default value: publish -->
     <ExcelDnaPublishPath></ExcelDnaPublishPath>
 
