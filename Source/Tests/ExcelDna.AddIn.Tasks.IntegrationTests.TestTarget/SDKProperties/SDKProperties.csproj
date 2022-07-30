@@ -69,7 +69,7 @@
     <!-- Default value: 64 -->
     <ExcelDna64BitAddInSuffix></ExcelDna64BitAddInSuffix>
 
-    <!-- Packed add-in name suffix. -->
+    <!-- Packed add-in name suffix.  Use %none% to make the name of the packed output file be the same as the unpacked name. -->
     <!-- Default value: -packed -->
     <ExcelDnaPackXllSuffix></ExcelDnaPackXllSuffix>
 

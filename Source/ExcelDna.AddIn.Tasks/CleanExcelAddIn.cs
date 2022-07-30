@@ -225,7 +225,7 @@ namespace ExcelDna.AddIn.Tasks
         public bool PackIsEnabled { get; set; }
 
         /// <summary>
-        /// Enable/disable running ExcelDnaPack for .dna files
+        /// Packed add-in name suffix
         /// </summary>
         public string PackedFileSuffix { get; set; }
 
