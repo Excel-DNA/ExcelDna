@@ -51,6 +51,8 @@ namespace ExcelDna.AddIn.Tasks
             string outputPackedXllFileName = outputXllFileName;
             if (string.IsNullOrWhiteSpace(packedFileName) && !string.IsNullOrWhiteSpace(packedFileSuffix))
             {
+                if (IsNone(packedFileSuffix))
+                    packedFileSuffix = "";
                 packedFileName = Path.GetFileNameWithoutExtension(outputXllFileName) + packedFileSuffix;
             }
             if (!string.IsNullOrWhiteSpace(packedFileName))
@@ -60,9 +62,22 @@ namespace ExcelDna.AddIn.Tasks
             return outputPackedXllFileName;
         }
 
+        public static bool NoPublishPath(string publishPath)
+        {
+            return IsNone(publishPath);
+        }
+
         public static string GetPublishDirectory(string outDirectory, string publishPath)
         {
+            if (NoPublishPath(publishPath))
+                return outDirectory;
+
             return Path.Combine(outDirectory, publishPath ?? "publish");
+        }
+
+        private static bool IsNone(string s)
+        {
+            return string.Equals(s, "%none%", StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>

@@ -356,6 +356,9 @@ namespace ExcelDna.AddIn.Tasks
             Directory.CreateDirectory(destinationFolder);
             UnpackXll(xllPath, destinationFolder);
 
+            if (PackExcelAddIn.NoPublishPath(PublishPath))
+                return;
+
             List<string> filesToPublish = new List<string>();
             int result = PackedResources.ExcelDnaPack.Pack(dnaPath, null, false, false, false, null, filesToPublish);
             if (result != 0)

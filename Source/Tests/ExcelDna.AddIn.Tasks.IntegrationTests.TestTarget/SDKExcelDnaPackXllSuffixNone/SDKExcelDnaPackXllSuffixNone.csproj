@@ -6,8 +6,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <ExcelDnaPack32BitXllName>MyPacked32Name</ExcelDnaPack32BitXllName>
-    <ExcelDnaPack64BitXllName>My64PackedName</ExcelDnaPack64BitXllName>
+    <ExcelDnaPackXllSuffix>%none%</ExcelDnaPackXllSuffix>
   </PropertyGroup>
 
   <ItemGroup>
