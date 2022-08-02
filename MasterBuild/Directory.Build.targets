@@ -2,6 +2,6 @@
   <ItemGroup>
 	<PackageReference Update="ExcelDna.Integration" Version="_VERSION_" />
 	<PackageReference Update="ExcelDna.AddIn" Version="_VERSION_" />
-	<PackageReference Update="ExcelDna.Interop" Version="15.0.0-preview2" />
+	<PackageReference Update="ExcelDna.Interop" Version="15.0.0-preview3" />
   </ItemGroup>
 </Project>
