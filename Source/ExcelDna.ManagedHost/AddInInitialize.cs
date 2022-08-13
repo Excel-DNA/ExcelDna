@@ -64,7 +64,6 @@ namespace ExcelDna.ManagedHost
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
             }
-            //System.Diagnostics.Debug.WriteLine($"UnloadALC {alcWeakRef.IsAlive}");
         }
 
         private static WeakReference StartUnloadALC()

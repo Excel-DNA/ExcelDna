@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using ExcelDna.Integration;
 using ExcelDna.Loader.Logging;
 
@@ -17,13 +18,14 @@ namespace ExcelDna.Loader
         static readonly List<XlMethodInfo> registeredMethods = new List<XlMethodInfo>();
         static readonly HashSet<string> registeredNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase); // Optimization for our logging check
         static readonly List<string> addedShortCuts = new List<string>();
-        
+        static readonly List<GCHandle> delegateHandles = new List<GCHandle>();
+
         // This list is just to give access to the registration details for UI enhancement.
         // Each entry corresponds exactly to the xlfRegister call (except first entry with xllPath is cleared) 
         // - max length of each array is 255.
         static readonly List<object[]> registrationInfo = new List<object[]>();
         static double registrationInfoVersion = 0.0; // Incremented every time the registration changes, used by GetRegistrationInfo to short-circuit.
-        
+
         public static void RegisterMethods(List<MethodInfo> methods)
         {
             List<object> methodAttributes;
@@ -35,6 +37,7 @@ namespace ExcelDna.Loader
         public static void RegisterMethodsWithAttributes(List<MethodInfo> methods, List<object> methodAttributes, List<List<object>> argumentAttributes)
         {
             List<XlMethodInfo> xlMethods = XlMethodInfo.ConvertToXlMethodInfos(methods, null, null, methodAttributes, argumentAttributes);
+            xlMethods.ForEach(i => delegateHandles.Add(i.DelegateHandle));
             RegisterXlMethods(xlMethods);
         }
 
@@ -84,7 +87,7 @@ namespace ExcelDna.Loader
                      null,
                      new List<object> { functionAttribute },
                      new List<List<object>> { argumentAttributes });
-            RegisterXlMethods(xlMethods); 
+            RegisterXlMethods(xlMethods);
         }
 
         // This function provides access to the registration info from an IntelliSense provider.
@@ -159,7 +162,7 @@ namespace ExcelDna.Loader
                     Logger.Registration.Error("Repeated function name: '{0}' - previous registration will be overwritten. ", registerName);
                 }
             }
-            
+
             // Basically suppress problems here !?
             try
             {
@@ -170,7 +173,7 @@ namespace ExcelDna.Loader
                             xlCallResult);
                 if (xlCallResult is double)
                 {
-                    mi.RegisterId = (double) xlCallResult;
+                    mi.RegisterId = (double)xlCallResult;
                     registeredMethods.Add(mi);
                     if (mi.IsCommand)
                     {
@@ -229,6 +232,9 @@ namespace ExcelDna.Loader
             }
             registeredMethods.Clear();
             registrationInfo.Clear();
+
+            delegateHandles.ForEach(i => i.Free());
+            delegateHandles.Clear();
         }
 
         static void RegisterMenu(XlMethodInfo mi)
