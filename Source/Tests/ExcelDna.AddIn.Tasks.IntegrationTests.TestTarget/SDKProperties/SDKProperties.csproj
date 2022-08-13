@@ -50,7 +50,7 @@
     <ExcelDnaUnpack></ExcelDnaUnpack>
 
     <!-- The output directory for the 'published' add-in. Use %none% to put the files in the same output directory. -->
-    <!-- Default value: publish -->
+    <!-- Default value: publish for SDK-style projects, %none% for old-style projects -->
     <ExcelDnaPublishPath></ExcelDnaPublishPath>
 
     <!-- Enables creating 32bit add-in. -->
