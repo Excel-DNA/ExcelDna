@@ -13,7 +13,7 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
 
             Clean(projectOutDir);
 
-            MsBuild(projectBasePath + "ProjectWithNameEndingIn64.csproj /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
+            MsBuild(projectBasePath + "ProjectWithNameEndingIn64.csproj /t:Build /p:Configuration=Release /p:ExcelDnaPublishPath=publish /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
 
             AssertOutput(projectOutDir, "*.dna", "ProjectWithNameEndingIn64-AddIn.dna", "ProjectWithNameEndingIn64-AddIn64.dna");
             AssertOutput(projectOutDir, "*.xll", "ProjectWithNameEndingIn64-AddIn.xll", @"publish\ProjectWithNameEndingIn64-AddIn-packed.xll", "ProjectWithNameEndingIn64-AddIn64.xll", @"publish\ProjectWithNameEndingIn64-AddIn64-packed.xll");

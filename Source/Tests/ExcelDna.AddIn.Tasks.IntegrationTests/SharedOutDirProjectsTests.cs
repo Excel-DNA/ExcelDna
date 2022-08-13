@@ -15,7 +15,7 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
             const string relativeProjectOutDir = @"..\out\SharedOutDir\";
             var projectOutDir = Path.Combine(projectOneBasePath, relativeProjectOutDir);
 
-            MsBuild(projectOneBasePath + "SharedOutDirProjectOne.csproj /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", relativeProjectOutDir));
+            MsBuild(projectOneBasePath + "SharedOutDirProjectOne.csproj /t:Build /p:Configuration=Release /p:ExcelDnaPublishPath=publish /v:m " + MsBuildParam("OutputPath", relativeProjectOutDir));
             MsBuild(projectTwoBasePath + "SharedOutDirProjectTwo.csproj /t:Build /p:Configuration=Release /p:ExcelDnaPublishPath=PublishTwo /v:m " + MsBuildParam("OutputPath", relativeProjectOutDir));
             MsBuild(projectTwoBasePath + "SharedOutDirProjectTwo.csproj /t:Clean /p:Configuration=Release /p:ExcelDnaPublishPath=PublishTwo /v:m " + MsBuildParam("OutputPath", relativeProjectOutDir));
 

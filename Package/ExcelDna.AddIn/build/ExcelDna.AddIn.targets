@@ -67,6 +67,7 @@
     <ExcelDnaPackXllSuffix Condition="'$(ExcelDnaPackXllSuffix)' == ''">-packed</ExcelDnaPackXllSuffix>
     <ExcelDnaPackCompressResources Condition="'$(ExcelDnaPackCompressResources)' == ''">true</ExcelDnaPackCompressResources>
     <ExcelDnaPackRunMultithreaded Condition="'$(ExcelDnaPackRunMultithreaded)' == ''">true</ExcelDnaPackRunMultithreaded>
+    <ExcelDnaPublishPath Condition="'$(ExcelDnaPublishPath)' == '' AND '$(UsingMicrosoftNETSdk)' != 'true'">%none%</ExcelDnaPublishPath>
   </PropertyGroup>
 
   <!--

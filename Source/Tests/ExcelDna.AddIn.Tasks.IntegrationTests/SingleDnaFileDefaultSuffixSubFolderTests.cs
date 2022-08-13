@@ -13,7 +13,7 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
 
             Clean(projectOutDir);
 
-            MsBuild(projectBasePath + "SingleDnaFileInSubFolderDefaultSuffix.csproj /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
+            MsBuild(projectBasePath + "SingleDnaFileInSubFolderDefaultSuffix.csproj /t:Build /p:Configuration=Release /p:ExcelDnaPublishPath=publish /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
 
             AssertOutput(projectOutDir + @"MySubFolder\", "*.dna", "MyLibrary-AddIn.dna", "MyLibrary-AddIn64.dna");
             AssertOutput(projectOutDir + @"MySubFolder\", "*.xll", "MyLibrary-AddIn.xll", "MyLibrary-AddIn64.xll");

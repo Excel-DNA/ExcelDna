@@ -14,7 +14,7 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
 
             Clean(projectOutDir);
 
-            MsBuild(projectBasePath + "SingleDnaFileCustomSuffix_x64.csproj /p:ExcelDna32BitAddInSuffix=-x86 /p:ExcelDna64BitAddInSuffix=-x64 /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
+            MsBuild(projectBasePath + "SingleDnaFileCustomSuffix_x64.csproj /p:ExcelDna32BitAddInSuffix=-x86 /p:ExcelDna64BitAddInSuffix=-x64 /t:Build /p:Configuration=Release /p:ExcelDnaPublishPath=publish /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
 
             AssertOutput(projectOutDir, "*.dna", "MyLibrary-AddIn-x86.dna", "MyLibrary-AddIn-x64.dna");
             AssertOutput(projectOutDir, "*.xll", "MyLibrary-AddIn-x86.xll", @"publish\MyLibrary-AddIn-x86-packed.xll", "MyLibrary-AddIn-x64.xll", @"publish\MyLibrary-AddIn-x64-packed.xll");
