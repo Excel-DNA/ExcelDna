@@ -35,9 +35,16 @@ namespace ExcelDna.ManagedHost
 #if NETCOREAPP
             AssemblyManager.alc = alc;
 #endif
-            if (!loadedAssemblies.ContainsKey(Assembly.GetExecutingAssembly().FullName))
-                loadedAssemblies.Add(Assembly.GetExecutingAssembly().FullName, Assembly.GetExecutingAssembly());
+            loadedAssemblies.Add(Assembly.GetExecutingAssembly().FullName, Assembly.GetExecutingAssembly());
         }
+
+#if NETCOREAPP
+        internal static void ResetALC()
+        {
+            loadedAssemblies.Clear();
+            alc = null;
+        }
+#endif
 
         [MethodImpl(MethodImplOptions.Synchronized)]
         internal static Assembly AssemblyResolve(AssemblyName assemblyName, bool logMissingResources)

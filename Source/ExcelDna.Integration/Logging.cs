@@ -38,17 +38,17 @@ namespace ExcelDna.Logging
     // The MIT License (MIT)
 
     // Copyright (c) Microsoft Corporation
-       
+
     // Permission is hereby granted, free of charge, to any person obtaining a copy 
     // of this software and associated documentation files (the "Software"), to deal 
     // in the Software without restriction, including without limitation the rights 
     // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
     // copies of the Software, and to permit persons to whom the Software is 
     // furnished to do so, subject to the following conditions: 
-       
+
     // The above copyright notice and this permission notice shall be included in all 
     // copies or substantial portions of the Software. 
-       
+
     // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
     // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
     // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
@@ -64,7 +64,7 @@ namespace ExcelDna.Logging
     enum IntegrationTraceEventId
     {
         Initialization = 1,
-        DnaCompilation = 2, 
+        DnaCompilation = 2,
         Registration = 3,
         ComAddIn = 4,
         RtdServer = 5,
@@ -147,6 +147,12 @@ namespace ExcelDna.Logging
             }
         }
 
+        public static void DeInitialize()
+        {
+            Close();
+            s_AppDomainShutdown = true;
+        }
+
         static bool ValidateSettings(TraceSource traceSource, TraceEventType traceLevel)
         {
             if (!s_LoggingEnabled)
@@ -168,13 +174,13 @@ namespace ExcelDna.Logging
             return true;
         }
 
-        static void ProcessExitEvent(object sender, EventArgs e) 
+        static void ProcessExitEvent(object sender, EventArgs e)
         {
             Close();
             s_AppDomainShutdown = true;
         }
 
-        private static void AppDomainUnloadEvent(object sender, EventArgs e) 
+        private static void AppDomainUnloadEvent(object sender, EventArgs e)
         {
             Close();
             s_AppDomainShutdown = true;
@@ -182,8 +188,15 @@ namespace ExcelDna.Logging
 
         static void Close()
         {
-            if (IntegrationTraceSource != null) 
+            AppDomain currentDomain = AppDomain.CurrentDomain;
+            currentDomain.DomainUnload -= AppDomainUnloadEvent;
+            currentDomain.ProcessExit -= ProcessExitEvent;
+
+            if (IntegrationTraceSource != null)
+            {
                 IntegrationTraceSource.Close();
+                IntegrationTraceSource = null;
+            }
         }
 
     }
