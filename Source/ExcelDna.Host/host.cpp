@@ -69,24 +69,27 @@ int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExpor
 	std::wstring hostFile = PathCombine(basePath, L"ExcelDna.ManagedHost.dll");
 	if (!std::filesystem::exists(hostFile))
 	{
-		HRSRC hResManagedHost = FindResource(hModuleXll, L"EXCELDNA.MANAGEDHOST", L"ASSEMBLY");
-		assert(hResManagedHost != NULL && "Failure: FindResource EXCELDNA.MANAGEDHOST");
-
-		HGLOBAL hManagedHost = LoadResource(hModuleXll, hResManagedHost);
-		assert(hManagedHost != NULL && "Failure: LoadResource EXCELDNA.MANAGEDHOST");
-
-		void* buf = LockResource(hManagedHost);
-		assert(buf != NULL && "Failure: LockResource EXCELDNA.MANAGEDHOST");
-
-		DWORD resSize = SizeofResource(hModuleXll, hResManagedHost);
-		SafeByteArray safeBytes(buf, resSize);
-		XorRecode(safeBytes);
-		byte* pData;
-		int nSize = safeBytes.AccessData(&pData);
-
 		hostFile = PathCombine(tempDir.GetPath(), L"ExcelDna.ManagedHost.dll");
-		HRESULT hr = WriteAllBytes(hostFile, pData, nSize);
-		assert(SUCCEEDED(hr) && "Failure: saving EXCELDNA.MANAGEDHOST");
+		if (!std::filesystem::exists(hostFile))
+		{
+			HRSRC hResManagedHost = FindResource(hModuleXll, L"EXCELDNA.MANAGEDHOST", L"ASSEMBLY");
+			assert(hResManagedHost != NULL && "Failure: FindResource EXCELDNA.MANAGEDHOST");
+
+			HGLOBAL hManagedHost = LoadResource(hModuleXll, hResManagedHost);
+			assert(hManagedHost != NULL && "Failure: LoadResource EXCELDNA.MANAGEDHOST");
+
+			void* buf = LockResource(hManagedHost);
+			assert(buf != NULL && "Failure: LockResource EXCELDNA.MANAGEDHOST");
+
+			DWORD resSize = SizeofResource(hModuleXll, hResManagedHost);
+			SafeByteArray safeBytes(buf, resSize);
+			XorRecode(safeBytes);
+			byte* pData;
+			int nSize = safeBytes.AccessData(&pData);
+
+			HRESULT hr = WriteAllBytes(hostFile, pData, nSize);
+			assert(SUCCEEDED(hr) && "Failure: saving EXCELDNA.MANAGEDHOST");
+		}
 	}
 
 	//
