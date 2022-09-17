@@ -73,6 +73,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelDna.Test", "ExcelDna.T
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "ExcelDna.PackedResources", "ExcelDna.PackedResources\ExcelDna.PackedResources.shproj", "{7EBB8FA9-A153-422E-B454-144C3FB03450}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.PackedResourcesTests", "Tests\ExcelDna.PackedResourcesTests\ExcelDna.PackedResourcesTests.csproj", "{28D046D4-B414-4DAF-818F-897A97B921DF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -160,6 +162,14 @@ Global
 		{BA1BBC2E-E1A6-4682-8901-F596A21FD253}.Release|Win32.ActiveCfg = Release|Any CPU
 		{BA1BBC2E-E1A6-4682-8901-F596A21FD253}.Release|x64.ActiveCfg = Release|Any CPU
 		{BA1BBC2E-E1A6-4682-8901-F596A21FD253}.Release|x64.Build.0 = Release|Any CPU
+		{28D046D4-B414-4DAF-818F-897A97B921DF}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{28D046D4-B414-4DAF-818F-897A97B921DF}.Debug|Win32.Build.0 = Debug|Any CPU
+		{28D046D4-B414-4DAF-818F-897A97B921DF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{28D046D4-B414-4DAF-818F-897A97B921DF}.Debug|x64.Build.0 = Debug|Any CPU
+		{28D046D4-B414-4DAF-818F-897A97B921DF}.Release|Win32.ActiveCfg = Release|Any CPU
+		{28D046D4-B414-4DAF-818F-897A97B921DF}.Release|Win32.Build.0 = Release|Any CPU
+		{28D046D4-B414-4DAF-818F-897A97B921DF}.Release|x64.ActiveCfg = Release|Any CPU
+		{28D046D4-B414-4DAF-818F-897A97B921DF}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -170,11 +180,13 @@ Global
 		{42A3C1DE-5D65-4BC6-BA90-3FDEE42A77C9} = {2A988F4A-6C24-49EB-950D-0984E2CAEE20}
 		{D0B02D05-F536-4C32-9DC0-BA2B5EEAEAB7} = {42A3C1DE-5D65-4BC6-BA90-3FDEE42A77C9}
 		{BA1BBC2E-E1A6-4682-8901-F596A21FD253} = {511CE610-5E55-457F-B818-1522D1A96727}
+		{28D046D4-B414-4DAF-818F-897A97B921DF} = {511CE610-5E55-457F-B818-1522D1A96727}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {69EF43B0-B903-4775-BC81-C7E7E012EDA3}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		ExcelDna.PackedResources\ExcelDna.PackedResources.projitems*{28d046d4-b414-4daf-818f-897a97b921df}*SharedItemsImports = 5
 		ExcelDna.PackedResources\ExcelDna.PackedResources.projitems*{7ebb8fa9-a153-422e-b454-144c3fb03450}*SharedItemsImports = 13
 		ExcelDna.PackedResources\ExcelDna.PackedResources.projitems*{b5cc04d3-0507-4431-9f45-7c60bac3047a}*SharedItemsImports = 5
 		ExcelDna.PackedResources\ExcelDna.PackedResources.projitems*{dc10cec8-c6ce-4148-838f-c3dd4ea2a2a3}*SharedItemsImports = 5

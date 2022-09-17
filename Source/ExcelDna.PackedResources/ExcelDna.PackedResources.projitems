@@ -26,5 +26,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Lzma\SevenZipHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExcelDnaPack.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ResourceHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ResourceHelperX.cs" />
   </ItemGroup>
 </Project>
