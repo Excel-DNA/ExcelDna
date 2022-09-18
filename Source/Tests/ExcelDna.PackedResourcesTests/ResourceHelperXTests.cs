@@ -11,7 +11,11 @@ namespace ExcelDna.PackedResourcesTests
         {
             string outPath = TestdataFilePath("AddIn64-packed-out.dll");
             File.Copy(TestdataFilePath("AddIn64.dll"), outPath, true);
-            ResourceHelperX.AddResource(null, null, null, null);
+            ResourceHelperX.AddResource(outPath, File.ReadAllBytes(TestdataFilePath("test_pack-AddIn.dna.bin")), "__MAIN__", "DNA");
+            ResourceHelperX.AddResource(outPath, File.ReadAllBytes(TestdataFilePath("test_pack.dll.bin")), "TEST_PACK", "ASSEMBLY_LZMA");
+
+            Assert.That(File.ReadAllBytes(outPath), Is.EqualTo(File.ReadAllBytes(TestdataFilePath("AddIn64-packedX.dll"))));
+            File.Delete(outPath);
         }
 
         private static string TestdataFilePath(string relativePath)
