@@ -14,16 +14,6 @@ using System.Globalization;
 
 internal static class ResourceHelper
 {
-    internal enum TypeName
-    {
-        CONFIG = -1,
-        ASSEMBLY = 0,
-        DNA = 1,
-        IMAGE = 2,
-        SOURCE = 3,
-        PDB = 4,
-    }
-
     // TODO: Learn about locales
     private const ushort localeNeutral = 0;
     private const ushort localeEnglishUS = 1033;
@@ -156,14 +146,14 @@ internal static class ResourceHelper
             }
         }
 
-        private void CompressDoUpdateHelper(byte[] content, string name, TypeName typeName, bool compress)
+        private void CompressDoUpdateHelper(byte[] content, string name, ResourceTypeName typeName, bool compress)
         {
             if (compress)
                 content = SevenZipHelper.Compress(content);
             DoUpdateResource(typeName.ToString() + (compress ? "_LZMA" : ""), name, content);
         }
 
-        public string AddFile(byte[] content, string name, TypeName typeName, bool compress, bool multithreading)
+        public string AddFile(byte[] content, string name, ResourceTypeName typeName, bool compress, bool multithreading)
         {
             XorRecode(content);
 
@@ -206,13 +196,13 @@ internal static class ResourceHelper
                     name += "." + cultureInfo.Name.ToUpperInvariant();
                 }
 
-                AddFile(assemblyBytes, name, TypeName.ASSEMBLY, compress, multithreading);
+                AddFile(assemblyBytes, name, ResourceTypeName.ASSEMBLY, compress, multithreading);
 
                 string pdbFile = Path.ChangeExtension(path, "pdb");
                 if (includePdb && File.Exists(pdbFile))
                 {
                     byte[] pdbBytes = File.ReadAllBytes(pdbFile);
-                    AddFile(pdbBytes, name, TypeName.PDB, compress, multithreading);
+                    AddFile(pdbBytes, name, ResourceTypeName.PDB, compress, multithreading);
                 }
                 return name;
             }

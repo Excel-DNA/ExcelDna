@@ -27,5 +27,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)ExcelDnaPack.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ResourceHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ResourceHelperX.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ResourceTypeName.cs" />
   </ItemGroup>
 </Project>
