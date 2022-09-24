@@ -11,7 +11,7 @@ using AsmResolver.PE.Win32Resources.Builder;
 
 namespace ExcelDna.PackedResources
 {
-    internal class ResourceHelperX
+    internal class ResourceHelperManaged
     {
         public static void AddResource(string dll, byte[] resource, string name, string dir)
         {

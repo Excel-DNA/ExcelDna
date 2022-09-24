@@ -1,6 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using System;
 using System.ComponentModel;
+using System.Collections.Generic;
 
 namespace ExcelDna.PackedResources
 {
@@ -42,6 +43,7 @@ namespace ExcelDna.PackedResources
             uint cbData);
 
         private IntPtr _hUpdate;
+        private List<object> updateData = new List<object>();
 
         public void Begin(string fileName)
         {
@@ -57,8 +59,23 @@ namespace ExcelDna.PackedResources
             return UpdateResource(_hUpdate, lpType, intResource, wLanguage, lpData, cbData);
         }
 
-        public bool Update(string lpType, string lpName, ushort wLanguage, IntPtr lpData, uint cbData)
+        public bool Update(string lpType, string lpName, ushort wLanguage, byte[] data)
         {
+            IntPtr lpData;
+            uint cbData;
+            if (data == null)
+            {
+                lpData = IntPtr.Zero;
+                cbData = 0;
+            }
+            else
+            {
+                GCHandle pinHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
+                updateData.Add(pinHandle);
+                lpData = pinHandle.AddrOfPinnedObject();
+                cbData = (uint)data.Length;
+            }
+
             return UpdateResource(_hUpdate, lpType, lpName, wLanguage, lpData, cbData);
         }
 

@@ -27,7 +27,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Lzma\SevenZipHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExcelDnaPack.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ResourceHelper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ResourceHelperX.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ResourceHelperManaged.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ResourceResolverManaged.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ResourceResolverWin.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ResourceTypeName.cs" />
   </ItemGroup>

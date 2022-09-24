@@ -360,7 +360,7 @@ namespace ExcelDna.AddIn.Tasks
                 return;
 
             List<string> filesToPublish = new List<string>();
-            int result = PackedResources.ExcelDnaPack.Pack(dnaPath, null, false, false, false, null, filesToPublish);
+            int result = PackedResources.ExcelDnaPack.Pack(dnaPath, null, false, false, false, null, filesToPublish, false);
             if (result != 0)
                 throw new ApplicationException($"Pack failed with exit code {result}.");
             foreach (string file in filesToPublish)
@@ -407,7 +407,7 @@ namespace ExcelDna.AddIn.Tasks
 
         private void TryRemoveResource(string xllPath, string name, string typeName)
         {
-            var updater = new ResourceHelper.ResourceUpdater(xllPath);
+            var updater = new ResourceHelper.ResourceUpdater(xllPath, false);
             try
             {
                 updater.RemoveResource(typeName, name);

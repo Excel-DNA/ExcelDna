@@ -99,9 +99,18 @@ internal static class ResourceHelper
 
         Queue<ManualResetEvent> finishedTask = new Queue<ManualResetEvent>();
 
-        public ResourceUpdater(string fileName)
+        public ResourceUpdater(string fileName, bool useManagedResourceResolver)
         {
-            resourceResolver = new ResourceResolverWin();
+            if (useManagedResourceResolver)
+            {
+#if ASMRESOLVER
+                resourceResolver = new ResourceResolverManaged();
+#endif
+            }
+            else
+            {
+                resourceResolver = new ResourceResolverWin();
+            }
             resourceResolver.Begin(fileName);
         }
 
@@ -198,10 +207,8 @@ internal static class ResourceHelper
             lock (lockResource)
             {
                 Console.WriteLine(string.Format("  ->  Updating resource: Type: {0}, Name: {1}, Length: {2}", typeName, name, data.Length));
-                GCHandle pinHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
-                updateData.Add(pinHandle);
 
-                bool result = resourceResolver.Update(typeName, name, localeNeutral, pinHandle.AddrOfPinnedObject(), (uint)data.Length);
+                bool result = resourceResolver.Update(typeName, name, localeNeutral, data);
                 if (!result)
                 {
                     throw new Win32Exception();
@@ -213,7 +220,7 @@ internal static class ResourceHelper
         {
             lock (lockResource)
             {
-                bool result = resourceResolver.Update(typeName, name, localeNeutral, IntPtr.Zero, 0);
+                bool result = resourceResolver.Update(typeName, name, localeNeutral, null);
                 if (!result)
                 {
                     throw new Win32Exception();

@@ -29,7 +29,7 @@ namespace ExcelDna.AddIn.Tasks
             {
                 _log.Debug("Running PackExcelAddIn Task");
 
-                int result = ExcelDna.PackedResources.ExcelDnaPack.Pack(OutputDnaFileName, OutputPackedXllFileName, CompressResources, RunMultithreaded, true, null, null);
+                int result = ExcelDna.PackedResources.ExcelDnaPack.Pack(OutputDnaFileName, OutputPackedXllFileName, CompressResources, RunMultithreaded, true, null, null, false);
                 if (result != 0)
                     throw new ApplicationException($"Pack failed with exit code {result}.");
 
