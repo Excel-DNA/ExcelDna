@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using SevenZip.Compression.LZMA;
 using System.Threading;
 using System.Globalization;
+using ExcelDna.PackedResources;
 
 internal static class ResourceHelper
 {
@@ -18,45 +19,6 @@ internal static class ResourceHelper
     private const ushort localeNeutral = 0;
     private const ushort localeEnglishUS = 1033;
     private const ushort localeEnglishSA = 7177;
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern IntPtr BeginUpdateResource(
-        string pFileName,
-        bool bDeleteExistingResources);
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool EndUpdateResource(
-        IntPtr hUpdate,
-        bool fDiscard);
-
-    //, EntryPoint="UpdateResourceA", CharSet=CharSet.Ansi,
-    [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool UpdateResource(
-        IntPtr hUpdate,
-        string lpType,
-        string lpName,
-        ushort wLanguage,
-        IntPtr lpData,
-        uint cbData);
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool UpdateResource(
-        IntPtr hUpdate,
-        string lpType,
-        IntPtr intResource,
-        ushort wLanguage,
-        IntPtr lpData,
-        uint cbData);
-
-    // This overload provides the resource type and name conversions that would be done by MAKEINTRESOURCE
-    [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool UpdateResource(
-        IntPtr hUpdate,
-        uint lpType,
-        uint lpName,
-        ushort wLanguage,
-        IntPtr lpData,
-        uint cbData);
 
     [DllImport("version.dll", SetLastError = true)]
     private static extern uint GetFileVersionInfoSize(
@@ -130,8 +92,8 @@ internal static class ResourceHelper
     internal class ResourceUpdater
     {
         int typelibIndex = 0;
-        IntPtr _hUpdate;
         List<object> updateData = new List<object>();
+        IResourceResolver resourceResolver;
 
         object lockResource = new object();
 
@@ -139,11 +101,8 @@ internal static class ResourceHelper
 
         public ResourceUpdater(string fileName)
         {
-            _hUpdate = BeginUpdateResource(fileName, false);
-            if (_hUpdate == IntPtr.Zero)
-            {
-                throw new Win32Exception();
-            }
+            resourceResolver = new ResourceResolverWin();
+            resourceResolver.Begin(fileName);
         }
 
         private void CompressDoUpdateHelper(byte[] content, string name, ResourceTypeName typeName, bool compress)
@@ -224,7 +183,7 @@ internal static class ResourceHelper
                 GCHandle pinHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
                 updateData.Add(pinHandle);
 
-                bool result = ResourceHelper.UpdateResource(_hUpdate, typeName, (IntPtr)typelibIndex, localeNeutral, pinHandle.AddrOfPinnedObject(), (uint)data.Length);
+                bool result = resourceResolver.Update(typeName, (IntPtr)typelibIndex, localeNeutral, pinHandle.AddrOfPinnedObject(), (uint)data.Length);
                 if (!result)
                 {
                     throw new Win32Exception();
@@ -242,7 +201,7 @@ internal static class ResourceHelper
                 GCHandle pinHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
                 updateData.Add(pinHandle);
 
-                bool result = ResourceHelper.UpdateResource(_hUpdate, typeName, name, localeNeutral, pinHandle.AddrOfPinnedObject(), (uint)data.Length);
+                bool result = resourceResolver.Update(typeName, name, localeNeutral, pinHandle.AddrOfPinnedObject(), (uint)data.Length);
                 if (!result)
                 {
                     throw new Win32Exception();
@@ -254,7 +213,7 @@ internal static class ResourceHelper
         {
             lock (lockResource)
             {
-                bool result = UpdateResource(_hUpdate, typeName, name, localeNeutral, IntPtr.Zero, 0);
+                bool result = resourceResolver.Update(typeName, name, localeNeutral, IntPtr.Zero, 0);
                 if (!result)
                 {
                     throw new Win32Exception();
@@ -285,8 +244,7 @@ internal static class ResourceHelper
                 {
                     uint versionResourceType = 16;
                     uint versionResourceId = 1;
-                    result = ResourceHelper.UpdateResource(
-                        _hUpdate,
+                    result = resourceResolver.Update(
                         versionResourceType,
                         versionResourceId,
                         localeNeutral,
@@ -328,11 +286,7 @@ internal static class ResourceHelper
                 }
             }
 
-            bool result = EndUpdateResource(_hUpdate, discard);
-            if (!result)
-            {
-                throw new Win32Exception();
-            }
+            resourceResolver.End(discard);
         }
 
         // Load the resource, trying also as compressed if no uncompressed version is found.
