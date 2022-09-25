@@ -514,6 +514,11 @@ namespace ExcelDna.AddIn.Tasks
         public string Packed64BitXllName { get; set; }
 
         /// <summary>
+        /// Enable/disable cross-platform resource packing implementation when executing on Windows.
+        /// </summary>
+        public bool PackManagedOnWindows { get; set; }
+
+        /// <summary>
         /// The output directory for the 'published' add-in
         /// </summary>
         public string PublishPath { get; set; }
