@@ -56,16 +56,5 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
 
             MsBuild(projectBasePath + "NET6Minimal.csproj /t:Restore,Build /p:ExcelDnaPackRunMultithreaded=true /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
         }
-
-        [Test]
-        public void ManagedResourcePackingOnWindows()
-        {
-            const string projectBasePath = @"NET6Minimal\";
-            const string projectOutDir = projectBasePath + @"bin\Release\";
-
-            Clean(projectOutDir);
-
-            MsBuild(projectBasePath + "NET6Minimal.csproj /t:Restore,Build /p:ExcelDnaPackManagedResourcePackingOnWindows=true /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
-        }
     }
 }
