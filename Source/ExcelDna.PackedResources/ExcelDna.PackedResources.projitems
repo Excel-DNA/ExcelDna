@@ -30,6 +30,5 @@
     <Compile Include="$(MSBuildThisFileDirectory)ResourceHelperManaged.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ResourceResolverManaged.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ResourceResolverWin.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ResourceTypeName.cs" />
   </ItemGroup>
 </Project>
