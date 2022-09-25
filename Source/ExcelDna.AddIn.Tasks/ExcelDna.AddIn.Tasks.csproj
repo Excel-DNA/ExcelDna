@@ -17,6 +17,10 @@
 
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net6.0-windows' ">
+    <DefineConstants>$(DefineConstants);ASMRESOLVER</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\ExcelDna.Integration\ExcelDna.Integration.csproj" />
   </ItemGroup>
@@ -34,6 +38,7 @@
     <PackageReference Include="Microsoft.Build.Framework" Version="15.9.20" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="15.9.20" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="AsmResolver.PE" Version="4.11.2" />
   </ItemGroup>
 
   <ItemGroup>
