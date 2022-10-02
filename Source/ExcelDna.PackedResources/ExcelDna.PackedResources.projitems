@@ -9,6 +9,7 @@
     <Import_RootNamespace>ExcelDna.PackedResources</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)IResourceResolver.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lzma\CRC.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lzma\ICoder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lzma\IMatchFinder.cs" />
@@ -26,5 +27,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Lzma\SevenZipHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExcelDnaPack.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ResourceHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ResourceHelperManaged.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ResourceResolverManaged.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ResourceResolverWin.cs" />
   </ItemGroup>
 </Project>

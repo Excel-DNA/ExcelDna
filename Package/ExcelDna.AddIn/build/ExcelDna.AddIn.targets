@@ -218,6 +218,7 @@
       PackedFileSuffix="$(ExcelDnaPackXllSuffix)"
       Packed32BitXllName="$(ExcelDnaPack32BitXllName)"
       Packed64BitXllName="$(ExcelDnaPack64BitXllName)"
+      PackManagedOnWindows="$(ExcelDnaPackManagedResourcePackingOnWindows)"
       PublishPath="$(ExcelDnaPublishPath)"
  	  AddInName="$(ExcelAddInName)"
  	  AddInFileName="$(ExcelAddInFileName)"
@@ -249,6 +250,7 @@
 		OutputPackedXllFileName="%(ExcelDnaFilesToPack.OutputPackedXllFileName)"
 		CompressResources="$(ExcelDnaPackCompressResources)"
 		RunMultithreaded="$(ExcelDnaPackRunMultithreaded)"
+		PackManagedOnWindows="$(ExcelDnaPackManagedResourcePackingOnWindows)"
 		SignTool="$(ExcelAddInSignTool)"
 		SignOptions="$(ExcelAddInSignOptions)">
 	</PackExcelAddIn>

@@ -89,6 +89,10 @@
     <!-- Default value: true -->
     <ExcelDnaPackRunMultithreaded></ExcelDnaPackRunMultithreaded>
 
+    <!-- Enables cross-platform resource packing implementation when executing on Windows. -->
+    <!-- Default value: false -->
+    <ExcelDnaPackManagedResourcePackingOnWindows></ExcelDnaPackManagedResourcePackingOnWindows>
+
     <!-- EXCEL.EXE path for debugging. -->
     <!-- Default value: auto detect -->
     <ExcelDnaExcelExePath></ExcelDnaExcelExePath>
