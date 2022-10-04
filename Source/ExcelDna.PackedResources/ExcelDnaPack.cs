@@ -87,6 +87,9 @@ namespace ExcelDna.PackedResources
             }
             Console.WriteLine("Using base add-in " + xllInputPath);
 
+            if (useManagedResourceResolver)
+                Console.WriteLine("Using managed resource packing.");
+
             ResourceHelper.ResourceUpdater ru = null;
             if (filesToPublish == null)
             {
