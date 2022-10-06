@@ -32,13 +32,10 @@ namespace ExcelDna.PackedResources
             var data = new ResourceData(0, contents: new DataSegment(resource));
             data.CodePage = 1252;
             nameDirectory.AddOrReplaceEntry(data);
-            dirDirectory.AddOrReplaceEntry(nameDirectory);
+            InsertInOrder(dirDirectory.Entries, nameDirectory);
 
             if (existingDirDirectory == null)
-            {
-                int i = peImage.Resources.Entries.TakeWhile(i => i.Name != null && string.Compare(dir, i.Name) > 0).Count();
-                peImage.Resources.Entries.Insert(i, dirDirectory);
-            }
+                InsertInOrder(peImage.Resources.Entries, dirDirectory);
 
             var resourceDirectoryBuffer = new ResourceDirectoryBuffer();
             resourceDirectoryBuffer.AddDirectory(peImage.Resources);
@@ -46,6 +43,12 @@ namespace ExcelDna.PackedResources
             PESection rsrc = peFile.Sections.First(x => x.Name == ".rsrc");
             rsrc.Contents = resourceDirectoryBuffer;
             peFile.Write(dll);
+        }
+
+        private static void InsertInOrder(IList<IResourceEntry> entries, IResourceEntry entry)
+        {
+            int i = entries.TakeWhile(i => i.Name != null && string.Compare(entry.Name, i.Name) > 0).Count();
+            entries.Insert(i, entry);
         }
     }
 }
