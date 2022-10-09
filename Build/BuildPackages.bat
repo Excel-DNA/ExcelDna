@@ -21,4 +21,9 @@ cd ..\Package
 call package.cmd %PackageVersion%
 @if errorlevel 1 goto end
 
+set pushfile=push.cmd
+set pushcurrentfile=pushCurrent.cmd
+PowerShell "(Get-Content %pushfile%) -replace '_VERSION_', '%PackageVersion%' | Set-Content %pushcurrentfile%"
+@if errorlevel 1 goto end
+
 :end
