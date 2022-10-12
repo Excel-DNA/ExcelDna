@@ -36,6 +36,7 @@ namespace ExcelDna.ManagedHost
         [UnmanagedCallersOnly]
         public static short Initialize(void* xlAddInExportInfoAddress, void* hModuleXll, void* pPathXLL, byte disableAssemblyContextUnload)
         {
+            UnloadALC();
             ProcessStartupHooks();
 
             string pathXll = Marshal.PtrToStringUni((IntPtr)pPathXLL);
@@ -52,6 +53,28 @@ namespace ExcelDna.ManagedHost
 
             return initOK ? (short)1 : (short)0;
         }
+
+        private static void UnloadALC()
+        {
+            if (_alc == null)
+                return;
+
+            WeakReference alcWeakRef = StartUnloadALC();
+            for (int i = 0; alcWeakRef.IsAlive && (i < 10); i++)
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
+        }
+
+        private static WeakReference StartUnloadALC()
+        {
+            AssemblyManager.ResetALC();
+
+            WeakReference alcWeakRef = new WeakReference(_alc);
+            _alc.Unload();
+            _alc = null;
+            return alcWeakRef;
 
         private static void ProcessStartupHooks()
         {

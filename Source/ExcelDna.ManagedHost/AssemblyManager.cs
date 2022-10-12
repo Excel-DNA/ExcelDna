@@ -39,6 +39,14 @@ namespace ExcelDna.ManagedHost
                 loadedAssemblies.Add(Assembly.GetExecutingAssembly().FullName, Assembly.GetExecutingAssembly());
         }
 
+#if NETCOREAPP
+        internal static void ResetALC()
+        {
+            loadedAssemblies.Clear();
+            alc = null;
+        }
+#endif
+
         [MethodImpl(MethodImplOptions.Synchronized)]
         internal static Assembly AssemblyResolve(AssemblyName assemblyName, bool logMissingResources)
         {
