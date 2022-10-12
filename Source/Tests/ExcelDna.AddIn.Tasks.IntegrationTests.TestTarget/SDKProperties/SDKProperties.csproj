@@ -50,7 +50,7 @@
     <ExcelDnaUnpack></ExcelDnaUnpack>
 
     <!-- The output directory for the 'published' add-in. Use %none% to put the files in the same output directory. -->
-    <!-- Default value: publish -->
+    <!-- Default value: publish for SDK-style projects, %none% for old-style projects -->
     <ExcelDnaPublishPath></ExcelDnaPublishPath>
 
     <!-- Enables creating 32bit add-in. -->
@@ -88,6 +88,10 @@
     <!-- Enables multithreaded add-in packing. -->
     <!-- Default value: true -->
     <ExcelDnaPackRunMultithreaded></ExcelDnaPackRunMultithreaded>
+
+    <!-- Enables cross-platform resource packing implementation when executing on Windows. -->
+    <!-- Default value: false -->
+    <ExcelDnaPackManagedResourcePackingOnWindows></ExcelDnaPackManagedResourcePackingOnWindows>
 
     <!-- EXCEL.EXE path for debugging. -->
     <!-- Default value: auto detect -->

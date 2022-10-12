@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DnaLibrary Name="test_pack Add-In" RuntimeVersion="v4.0" xmlns="http://schemas.excel-dna.net/addin/2020/07/dnalibrary">
+  <ExternalLibrary Path="test_pack.dll" ExplicitExports="false" LoadFromBytes="true" Pack="true" IncludePdb="false" />
+
+  <!--
+       The RuntimeVersion attribute above allows only the following setting:
+       * RuntimeVersion="v4.0" - for .NET 4.5 or higher
+
+       You can have IntelliSense (autocomplete) and validation for this file.
+       See https://github.com/Excel-DNA/ExcelDna/tree/master/Distribution/XmlSchemas/
+
+       Additional referenced assemblies can be specified by adding 'Reference' tags. 
+       These libraries will not be examined and registered with Excel as add-in libraries, 
+       but will be packed into the -packed.xll file and loaded at runtime as needed.
+       For example:
+
+       <Reference Path="Another.Library.dll" Pack="true" />
+
+       Excel-DNA also allows the XML for ribbon UI extensions to be specified in the .dna file.
+       See the main Excel-DNA site at https://excel-dna.net for downloads of the full distribution.
+  -->
+</DnaLibrary>

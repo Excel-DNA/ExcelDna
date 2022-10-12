@@ -8,7 +8,7 @@ namespace ExcelDna.PackedResources
 {
     internal class ExcelDnaPack
     {
-        public static int Pack(string dnaPath, string xllOutputPathParam, bool compress, bool multithreading, bool overwrite, string usageInfo, List<string> filesToPublish)
+        public static int Pack(string dnaPath, string xllOutputPathParam, bool compress, bool multithreading, bool overwrite, string usageInfo, List<string> filesToPublish, bool useManagedResourceResolver)
         {
             string dnaDirectory = Path.GetDirectoryName(dnaPath);
             string dnaFilePrefix = Path.GetFileNameWithoutExtension(dnaPath);
@@ -87,11 +87,14 @@ namespace ExcelDna.PackedResources
             }
             Console.WriteLine("Using base add-in " + xllInputPath);
 
+            if (useManagedResourceResolver)
+                Console.WriteLine("Using managed resource packing.");
+
             ResourceHelper.ResourceUpdater ru = null;
             if (filesToPublish == null)
             {
                 File.Copy(xllInputPath, xllOutputPath, false);
-                ru = new ResourceHelper.ResourceUpdater(Path.Combine(Directory.GetCurrentDirectory(), xllOutputPath));
+                ru = new ResourceHelper.ResourceUpdater(Path.Combine(Directory.GetCurrentDirectory(), xllOutputPath), useManagedResourceResolver);
             }
             else
             {

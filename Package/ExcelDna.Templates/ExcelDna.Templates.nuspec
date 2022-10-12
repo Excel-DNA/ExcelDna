@@ -8,7 +8,7 @@
         <owners>Govert van Drimmelen</owners>
         <projectUrl>http://excel-dna.net</projectUrl>
         <repository type="git" url="https://github.com/Excel-DNA/ExcelDna" />
-        <iconUrl>http://docs.excel-dna.net/NuGetIcon.png</iconUrl>
+        <icon>images\ExcelDna-nu.png</icon>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>Excel-DNA templates for new projects.</description>
         <summary>Excel-DNA templates for new projects.</summary>
@@ -19,5 +19,6 @@
     </metadata>
     <files>
         <file src="..\..\Source\Templates\Projects\**" target="content" />
+        <file src="..\images\ExcelDna-nu.png" target="images\" />
     </files>
 </package>

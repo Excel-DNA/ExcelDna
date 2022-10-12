@@ -124,7 +124,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                 }
             }
 
-            int result = ExcelDna.PackedResources.ExcelDnaPack.Pack(dnaPath, xllOutputPath, compress, multithreading, overwrite, usageInfo, null);
+            int result = ExcelDna.PackedResources.ExcelDnaPack.Pack(dnaPath, xllOutputPath, compress, multithreading, overwrite, usageInfo, null, false);
 
 #if DEBUG
             if (result == 0)
@@ -145,7 +145,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
 
         static void PackXllBuild(string xllFullPath, bool includePdb)
         {
-            ResourceHelper.ResourceUpdater ru = new ResourceHelper.ResourceUpdater(xllFullPath);
+            ResourceHelper.ResourceUpdater ru = new ResourceHelper.ResourceUpdater(xllFullPath, false);
 
             var xllDir = Path.GetDirectoryName(xllFullPath);
             ru.AddAssembly(Path.Combine(xllDir, "ExcelDna.ManagedHost.dll"), compress: false, multithreading: false, includePdb);

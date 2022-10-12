@@ -37,6 +37,7 @@ namespace ExcelDna.ManagedHost
         public static short Initialize(void* xlAddInExportInfoAddress, void* hModuleXll, void* pPathXLL, byte disableAssemblyContextUnload)
         {
             UnloadALC();
+            ProcessStartupHooks();
 
             string pathXll = Marshal.PtrToStringUni((IntPtr)pPathXLL);
             _alc = new ExcelDnaAssemblyLoadContext(pathXll, disableAssemblyContextUnload == 0);
@@ -74,6 +75,18 @@ namespace ExcelDna.ManagedHost
             _alc.Unload();
             _alc = null;
             return alcWeakRef;
+
+        private static void ProcessStartupHooks()
+        {
+            try
+            {
+                Type StartupHookProviderType = Type.GetType($"System.StartupHookProvider, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e");
+                MethodInfo ProcessStartupHooksMethod = StartupHookProviderType.GetMethod("ProcessStartupHooks", BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.InvokeMethod);
+                ProcessStartupHooksMethod.Invoke(null, null);
+            }
+            catch
+            {
+            }
         }
     }
 #endif

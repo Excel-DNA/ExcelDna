@@ -17,10 +17,10 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
             MsBuild(projectBasePath + "SingleDnaFileAppConfigLinked.csproj /t:Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
 
             AssertIdentical(appConfigProjectBasePath + "App.config", projectOutDir + "MyLibrary-AddIn.xll.config");
-            AssertIdentical(appConfigProjectBasePath + "App.config", projectOutDir + @"publish\MyLibrary-AddIn-packed.xll.config");
+            AssertIdentical(appConfigProjectBasePath + "App.config", projectOutDir + @"MyLibrary-AddIn-packed.xll.config");
 
             AssertIdentical(appConfigProjectBasePath + "App.config", projectOutDir + "MyLibrary-AddIn64.xll.config");
-            AssertIdentical(appConfigProjectBasePath + "App.config", projectOutDir + @"publish\MyLibrary-AddIn64-packed.xll.config");
+            AssertIdentical(appConfigProjectBasePath + "App.config", projectOutDir + @"MyLibrary-AddIn64-packed.xll.config");
         }
     }
 }
