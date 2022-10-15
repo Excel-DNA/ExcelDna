@@ -383,11 +383,11 @@ internal static class ResourceHelper
         static readonly byte[] _xorKeys = System.Text.Encoding.ASCII.GetBytes("ExcelDna");
         static void XorRecode(byte[] data)
         {
-            var keys = _xorKeys;
-            for (int i = 0; i < data.Length; i++)
-            {
-                data[i] = (byte)(keys[i % keys.Length] ^ data[i]);
-            }
+            //var keys = _xorKeys;
+            //for (int i = 0; i < data.Length; i++)
+            //{
+            //    data[i] = (byte)(keys[i % keys.Length] ^ data[i]);
+            //}
         }
     }
 }
