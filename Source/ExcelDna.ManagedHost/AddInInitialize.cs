@@ -75,6 +75,7 @@ namespace ExcelDna.ManagedHost
             _alc.Unload();
             _alc = null;
             return alcWeakRef;
+        }
 
         private static void ProcessStartupHooks()
         {
