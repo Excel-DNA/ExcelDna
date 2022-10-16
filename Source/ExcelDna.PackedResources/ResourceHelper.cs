@@ -126,6 +126,8 @@ internal static class ResourceHelper
 
         private void CompressDoUpdateHelper(byte[] content, string name, TypeName typeName, bool compress)
         {
+            compress = false;
+
             if (compress)
                 content = SevenZipHelper.Compress(content);
             DoUpdateResource(typeName.ToString() + (compress ? "_LZMA" : ""), name, content);
@@ -383,11 +385,11 @@ internal static class ResourceHelper
         static readonly byte[] _xorKeys = System.Text.Encoding.ASCII.GetBytes("ExcelDna");
         static void XorRecode(byte[] data)
         {
-            var keys = _xorKeys;
-            for (int i = 0; i < data.Length; i++)
-            {
-                data[i] = (byte)(keys[i % keys.Length] ^ data[i]);
-            }
+            //var keys = _xorKeys;
+            //for (int i = 0; i < data.Length; i++)
+            //{
+            //    data[i] = (byte)(keys[i % keys.Length] ^ data[i]);
+            //}
         }
     }
 }

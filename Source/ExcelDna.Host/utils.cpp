@@ -203,13 +203,13 @@ int XorKeysLength = 8;
 
 void XorRecode(SafeByteArray& data)
 {
-	byte* pData;
-	int cbData = data.AccessData(&pData);
-	for (int i = 0; i < cbData; i++)
-	{
-		pData[i] = (byte)(XorKeys[i % XorKeysLength] ^ pData[i]);
-	}
-	data.UnaccessData();
+	//byte* pData;
+	//int cbData = data.AccessData(&pData);
+	//for (int i = 0; i < cbData; i++)
+	//{
+	//	pData[i] = (byte)(XorKeys[i % XorKeysLength] ^ pData[i]);
+	//}
+	//data.UnaccessData();
 }
 
 HRESULT WriteAllBytes(const std::wstring& filePath, void* buf, DWORD size)
