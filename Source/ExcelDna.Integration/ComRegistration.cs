@@ -2,7 +2,6 @@
 //  Excel-DNA is licensed under the zlib license. See LICENSE.txt for details.
 
 using System;
-using System.Configuration;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -377,21 +376,6 @@ namespace ExcelDna.ComInterop.ComRegistration
             Logger.ComAddIn.Verbose("RegistrationUtil.SetValue({0}, {1}, {2}, {3})", keyName, valueName, value.ToString(), valueKind.ToString());
             Registry.SetValue(keyName, valueName, value, valueKind);
         }
-
-        // Helper for AppSettings (can move somewhere later)
-        static bool AppSettingsFlag(string key)
-        {
-            var value = ConfigurationManager.AppSettings[key];
-            if (value == null)
-                return false;
-            
-            bool flag;
-            if (bool.TryParse(value, out flag))
-                return flag;
-
-            return false;
-        }
-
     }
 
     // Disposable base class
