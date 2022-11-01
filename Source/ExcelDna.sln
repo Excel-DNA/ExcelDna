@@ -50,6 +50,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Directory.Build.props = Directory.Build.props
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MasterBuild", "MasterBuild", "{CEC18D63-D3C7-44F6-8752-C2E53FC6BAF8}"
+	ProjectSection(SolutionItems) = preProject
+		..\MasterBuild\Directory.Build.props = ..\MasterBuild\Directory.Build.props
+		..\MasterBuild\Directory.Build.targets = ..\MasterBuild\Directory.Build.targets
+		..\MasterBuild\MasterBuild.cmd = ..\MasterBuild\MasterBuild.cmd
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{D348847B-A82B-4663-8802-0509AD95399B}"
+	ProjectSection(SolutionItems) = preProject
+		..\Build\build.bat = ..\Build\build.bat
+		..\Build\BuildPackages.bat = ..\Build\BuildPackages.bat
+	EndProjectSection
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelDna.ManagedHost", "ExcelDna.ManagedHost\ExcelDna.ManagedHost.csproj", "{DC10CEC8-C6CE-4148-838F-C3DD4EA2A2A3}"
 	ProjectSection(ProjectDependencies) = postProject
 		{196735BC-5A5C-4A21-9FE4-EC01CB7F3DE9} = {196735BC-5A5C-4A21-9FE4-EC01CB7F3DE9}
