@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using ExcelDna.AddIn.Tasks.Logging;
+using ExcelDna.PackedResources.Logging;
 using Microsoft.Build.Framework;
 using ExcelDna.AddIn.Tasks.Utils;
 
