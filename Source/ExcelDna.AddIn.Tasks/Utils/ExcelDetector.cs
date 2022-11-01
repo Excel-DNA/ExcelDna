@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Security.AccessControl;
 using Microsoft.Win32;
-using ExcelDna.AddIn.Tasks.Logging;
+using ExcelDna.PackedResources.Logging;
 
 namespace ExcelDna.AddIn.Tasks.Utils
 {
