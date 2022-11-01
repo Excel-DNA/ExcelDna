@@ -1,5 +1,12 @@
-Version 1.6.0 (???)
--------------------
+Version 1.6.1 (????)
+--------------------
+* Support building and packing on Linux build machine, using AsmResolver
+* Initial support for add-in reloading under .NET 6
+* Disable encoding and compression for packed add-ins
+* Update pack task output to use buid logging (thanks to @9swampy)
+
+Version 1.6.0 (1 October 2022)
+------------------------------
 * Encode packed files to reduce AV false positives
 * Support for SDK-style project files / PackageReference
 * Preview of .NET 6 support (.net6.0-windows TargetFramework)
