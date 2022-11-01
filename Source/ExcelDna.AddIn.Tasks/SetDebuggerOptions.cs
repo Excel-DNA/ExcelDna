@@ -4,6 +4,7 @@ using System.Linq;
 using ExcelDna.AddIn.Tasks.Logging;
 using Microsoft.Build.Framework;
 using ExcelDna.AddIn.Tasks.Utils;
+using ExcelDna.PackedResources.Logging;
 
 namespace ExcelDna.AddIn.Tasks
 {

@@ -8,6 +8,7 @@ using System.Reflection;
 
 using System.IO;
 using ExcelDna.Integration;
+using ExcelDna.AddIn.Tasks.Logging;
 
 namespace ExcelDnaPack
 {
@@ -124,7 +125,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                 }
             }
 
-            int result = ExcelDna.PackedResources.ExcelDnaPack.Pack(dnaPath, xllOutputPath, compress, multithreading, overwrite, usageInfo, null, false);
+            int result = ExcelDna.PackedResources.ExcelDnaPack.Pack(dnaPath, xllOutputPath, compress, multithreading, overwrite, usageInfo, null, false, new ConsoleLogger(nameof(PackProgram)));
 
 #if DEBUG
             if (result == 0)

@@ -2,6 +2,7 @@
 using Microsoft.Build.Framework;
 using ExcelDna.AddIn.Tasks.Logging;
 using ExcelDna.AddIn.Tasks.Utils;
+using ExcelDna.PackedResources.Logging;
 using System.IO;
 
 namespace ExcelDna.AddIn.Tasks
@@ -34,7 +35,7 @@ namespace ExcelDna.AddIn.Tasks
                 useManagedResourceResolver = PackManagedOnWindows || !OperatingSystem.IsWindows();
 #endif
 
-                int result = ExcelDna.PackedResources.ExcelDnaPack.Pack(OutputDnaFileName, OutputPackedXllFileName, CompressResources, RunMultithreaded, true, null, null, useManagedResourceResolver);
+                int result = ExcelDna.PackedResources.ExcelDnaPack.Pack(OutputDnaFileName, OutputPackedXllFileName, CompressResources, RunMultithreaded, true, null, null, useManagedResourceResolver, _log);
                 if (result != 0)
                     throw new ApplicationException($"Pack failed with exit code {result}.");
 

@@ -10,6 +10,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)IResourceResolver.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Logging\MessageImportance.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Logging\IBuildLogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lzma\CRC.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lzma\ICoder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lzma\IMatchFinder.cs" />

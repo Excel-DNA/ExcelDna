@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text.RegularExpressions;
-using ExcelDna.AddIn.Tasks.Logging;
+using ExcelDna.PackedResources.Logging;
 using Process = System.Diagnostics.Process;
 
 namespace ExcelDna.AddIn.Tasks.Utils
