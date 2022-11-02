@@ -12,6 +12,7 @@ using SevenZip.Compression.LZMA;
 using System.Threading;
 using System.Globalization;
 using ExcelDna.PackedResources;
+using ExcelDna.PackedResources.Logging;
 
 internal static class ResourceHelper
 {
@@ -101,16 +102,19 @@ internal static class ResourceHelper
 
     internal class ResourceUpdater
     {
-        int typelibIndex = 0;
-        List<object> updateData = new List<object>();
-        IResourceResolver resourceResolver;
+        private readonly IBuildLogger buildLogger;
+        private readonly IResourceResolver resourceResolver;
+        private readonly object lockResource = new object();
 
-        object lockResource = new object();
+        private int typelibIndex = 0;
+        private List<object> updateData = new List<object>();
+        private Queue<ManualResetEvent> finishedTask = new Queue<ManualResetEvent>();
 
-        Queue<ManualResetEvent> finishedTask = new Queue<ManualResetEvent>();
+        private static readonly byte[] _xorKeys = System.Text.Encoding.ASCII.GetBytes("ExcelDna");
 
-        public ResourceUpdater(string fileName, bool useManagedResourceResolver)
+        public ResourceUpdater(string fileName, bool useManagedResourceResolver, IBuildLogger buildLogger)
         {
+            this.buildLogger = buildLogger;
             if (useManagedResourceResolver)
             {
 #if ASMRESOLVER
@@ -121,6 +125,7 @@ internal static class ResourceHelper
             {
                 resourceResolver = new ResourceResolverWin();
             }
+
             resourceResolver.Begin(fileName);
         }
 
@@ -129,7 +134,10 @@ internal static class ResourceHelper
             compress = false;
 
             if (compress)
+            {
                 content = SevenZipHelper.Compress(content);
+            }
+
             DoUpdateResource(typeName.ToString() + (compress ? "_LZMA" : ""), name, content);
         }
 
@@ -144,10 +152,10 @@ internal static class ResourceHelper
                 var mre = new ManualResetEvent(false);
                 finishedTask.Enqueue(mre);
                 ThreadPool.QueueUserWorkItem(delegate
-                    {
-                        CompressDoUpdateHelper(content, name, typeName, compress);
-                        mre.Set();
-                    }
+                {
+                    CompressDoUpdateHelper(content, name, typeName, compress);
+                    mre.Set();
+                }
                 );
             }
             else
@@ -184,11 +192,12 @@ internal static class ResourceHelper
                     byte[] pdbBytes = File.ReadAllBytes(pdbFile);
                     AddFile(pdbBytes, name, TypeName.PDB, compress, multithreading);
                 }
+
                 return name;
             }
             catch (Exception e)
             {
-                Console.WriteLine("Assembly at " + path + " could not be packed. Possibly a mixed assembly? (These are not supported yet.)\r\nException: " + e);
+                buildLogger.Error(e, "Assembly at {0} could not be packed. Possibly a mixed assembly? (These are not supported yet.)\r\nException: {1}", path, e);
                 return null;
             }
         }
@@ -200,7 +209,7 @@ internal static class ResourceHelper
                 string typeName = "TYPELIB";
                 typelibIndex++;
 
-                Console.WriteLine(string.Format("  ->  Updating typelib: Type: {0}, Index: {1}, Length: {2}", typeName, typelibIndex, data.Length));
+                buildLogger.Information("  ->  Updating typelib: Type: {0}, Index: {1}, Length: {2}", typeName, typelibIndex, data.Length);
                 GCHandle pinHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
                 updateData.Add(pinHandle);
 
@@ -209,8 +218,8 @@ internal static class ResourceHelper
                 {
                     throw new Win32Exception();
                 }
-
             }
+
             return typelibIndex;
         }
 
@@ -218,7 +227,7 @@ internal static class ResourceHelper
         {
             lock (lockResource)
             {
-                Console.WriteLine(string.Format("  ->  Updating resource: Type: {0}, Name: {1}, Length: {2}", typeName, name, data.Length));
+                buildLogger.Information("  ->  Updating resource: Type: {0}, Name: {1}, Length: {2}", typeName, name, data.Length);
 
                 bool result = resourceResolver.Update(typeName, name, localeNeutral, data);
                 if (!result)
@@ -382,7 +391,6 @@ internal static class ResourceHelper
             return b;
         }
 
-        static readonly byte[] _xorKeys = System.Text.Encoding.ASCII.GetBytes("ExcelDna");
         static void XorRecode(byte[] data)
         {
             //var keys = _xorKeys;

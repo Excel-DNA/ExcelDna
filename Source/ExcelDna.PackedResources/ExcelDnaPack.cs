@@ -86,21 +86,25 @@ namespace ExcelDna.PackedResources
                     }
                 }
             }
+
             buildLogger.Information("Using base add-in " + xllInputPath);
 
             if (useManagedResourceResolver)
+            {
                 buildLogger.Information("Using managed resource packing.");
+            }
 
             ResourceHelper.ResourceUpdater ru = null;
             if (filesToPublish == null)
             {
                 File.Copy(xllInputPath, xllOutputPath, false);
-                ru = new ResourceHelper.ResourceUpdater(Path.Combine(Directory.GetCurrentDirectory(), xllOutputPath), useManagedResourceResolver);
+                ru = new ResourceHelper.ResourceUpdater(Path.Combine(Directory.GetCurrentDirectory(), xllOutputPath), useManagedResourceResolver, buildLogger);
             }
             else
             {
                 filesToPublish.Add(xllInputPath);
             }
+
             if (File.Exists(configPath))
             {
                 if (filesToPublish == null)
@@ -108,6 +112,7 @@ namespace ExcelDna.PackedResources
                 else
                     filesToPublish.Add(configPath);
             }
+
             byte[] dnaBytes = File.ReadAllBytes(dnaPath);
             byte[] dnaContentForPacking = PackDnaLibrary(dnaBytes, dnaDirectory, ru, compress, multithreading, filesToPublish, buildLogger);
             if (filesToPublish == null)
@@ -119,6 +124,7 @@ namespace ExcelDna.PackedResources
             {
                 filesToPublish.Add(dnaPath);
             }
+
             buildLogger.Information("Completed Packing {0}.", xllOutputPath);
 
             // All OK - set process exit code to 'Success'
