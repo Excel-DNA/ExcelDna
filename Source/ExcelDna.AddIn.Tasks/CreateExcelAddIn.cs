@@ -408,7 +408,7 @@ namespace ExcelDna.AddIn.Tasks
 
         private void TryRemoveResource(string xllPath, string name, string typeName)
         {
-            var updater = new ResourceHelper.ResourceUpdater(xllPath, false);
+            var updater = new ResourceHelper.ResourceUpdater(xllPath, false, _log);
             try
             {
                 updater.RemoveResource(typeName, name);
