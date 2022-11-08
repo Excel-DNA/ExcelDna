@@ -83,7 +83,6 @@ int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExpor
 
 			DWORD resSize = SizeofResource(hModuleXll, hResManagedHost);
 			SafeByteArray safeBytes(buf, resSize);
-			XorRecode(safeBytes);
 			byte* pData;
 			int nSize = safeBytes.AccessData(&pData);
 

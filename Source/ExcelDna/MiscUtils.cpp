@@ -195,17 +195,3 @@ std::wstring UTF8toUTF16(const std::string& utf8)
 	}
 	return utf16;
 }
-
-const byte* XorKeys = (byte*)"ExcelDna";
-int XorKeysLength = 8;
-
-void XorRecode(SafeByteArray& data)
-{
-	//byte* pData;
-	//int cbData = data.AccessData(&pData);
-	//for (int i = 0; i < cbData; i++)
-	//{
-	//	pData[i] = (byte)(XorKeys[i % XorKeysLength] ^ pData[i]);
-	//}
-	//data.UnaccessData();
-}

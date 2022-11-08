@@ -421,7 +421,6 @@ HRESULT LoadAppDomain(ICorRuntimeHostPtr pHost, std::wstring addInFullPath, bool
 			DWORD sizeConfig = SizeofResource(hModuleCurrent, hResConfig);
 
 			SafeByteArray configBytes(pConfig, sizeConfig);
-			XorRecode(configBytes);
 
 			byte* pConfigData;
 			int nConfigSize = configBytes.AccessData(&pConfigData);
@@ -533,7 +532,6 @@ HRESULT LoadLoaderIntoAppDomain(_AppDomainPtr& pAppDomain, _AssemblyPtr& pLoader
 		DWORD sizeLoader = SizeofResource(hModuleCurrent, hResInfoLoader);
 
 		SafeByteArray loaderBytes(pLoader, sizeLoader);
-		XorRecode(loaderBytes);
 
 		hr = pAppDomain->Load_3(loaderBytes, &pLoaderAssembly);
 		if (FAILED(hr))
@@ -967,7 +965,6 @@ HRESULT GetDnaHeader(bool showErrors, std::wstring& header)
 
 		headerLength = min(sizeDna, MAX_HEADER_LENGTH);
 		SafeByteArray dnaBytes(pDna, headerLength);
-		XorRecode(dnaBytes);
 
 		void* pData = ((LPSAFEARRAY)dnaBytes)->pvData;
 		CopyMemory(headerBuffer, pData, headerLength);

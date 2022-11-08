@@ -78,4 +78,3 @@ private:
 
 std::wstring UTF8toUTF16(const std::string& utf8);
 
-void XorRecode(SafeByteArray& data);

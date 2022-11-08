@@ -110,8 +110,6 @@ internal static class ResourceHelper
         private List<object> updateData = new List<object>();
         private Queue<ManualResetEvent> finishedTask = new Queue<ManualResetEvent>();
 
-        private static readonly byte[] _xorKeys = System.Text.Encoding.ASCII.GetBytes("ExcelDna");
-
         public ResourceUpdater(string fileName, bool useManagedResourceResolver, IBuildLogger buildLogger)
         {
             this.buildLogger = buildLogger;
@@ -143,8 +141,6 @@ internal static class ResourceHelper
 
         public string AddFile(byte[] content, string name, TypeName typeName, bool compress, bool multithreading)
         {
-            XorRecode(content);
-
             Debug.Assert(name == name.ToUpperInvariant());
 
             if (multithreading)
@@ -362,8 +358,6 @@ internal static class ResourceHelper
                 resultBytes = Decompress(resourceBytes);
             else
                 resultBytes = resourceBytes;
-
-            XorRecode(resultBytes);
             return resultBytes;
         }
 
@@ -389,15 +383,6 @@ internal static class ResourceHelper
             decoder.Code(newInStream, newOutStream, compressedSize, outSize, null);
             byte[] b = newOutStream.ToArray();
             return b;
-        }
-
-        static void XorRecode(byte[] data)
-        {
-            //var keys = _xorKeys;
-            //for (int i = 0; i < data.Length; i++)
-            //{
-            //    data[i] = (byte)(keys[i % keys.Length] ^ data[i]);
-            //}
         }
     }
 }

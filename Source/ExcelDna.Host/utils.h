@@ -78,8 +78,6 @@ private:
 
 std::wstring UTF8toUTF16(const std::string& utf8);
 
-void XorRecode(SafeByteArray& data);
-
 HRESULT WriteAllBytes(const std::wstring& filePath, void* buf, DWORD size);
 
 std::wstring PathCombine(const std::wstring& path1, const std::wstring& path2);

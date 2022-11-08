@@ -30,7 +30,6 @@ HRESULT GetDnaHeader(bool showErrors, std::wstring& header)
 
 		headerLength = min(sizeDna, MAX_HEADER_LENGTH);
 		SafeByteArray dnaBytes(pDna, headerLength);
-		XorRecode(dnaBytes);
 
 		void* pData = ((LPSAFEARRAY)dnaBytes)->pvData;
 		CopyMemory(headerBuffer, pData, headerLength);
