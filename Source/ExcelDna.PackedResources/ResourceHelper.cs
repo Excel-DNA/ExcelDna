@@ -129,8 +129,6 @@ internal static class ResourceHelper
 
         private void CompressDoUpdateHelper(byte[] content, string name, TypeName typeName, bool compress)
         {
-            compress = false;
-
             if (compress)
             {
                 content = SevenZipHelper.Compress(content);

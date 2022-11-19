@@ -32,7 +32,7 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
             MsBuild(projectBasePath + "NET6Minimal.csproj /t:Restore,Build /p:ExcelDnaPackCompressResources=true /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
             long compressed = (new FileInfo(packedFile)).Length;
 
-            Assert.AreEqual(compressed, notCompressed); // Compression is currently disabled.
+            Assert.Less(compressed, notCompressed);
         }
 
         [Test]
