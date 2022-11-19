@@ -346,6 +346,9 @@ namespace ExcelDna.AddIn.Tasks
             if (ExplicitExports)
                 result = result.Replace("ExplicitExports=\"false\"", "ExplicitExports=\"true\"");
 
+            if (ExplicitRegistration)
+                result = result.Replace("<ExternalLibrary ", "<ExternalLibrary " + "ExplicitRegistration=\"true\" ");
+
             return result.Replace("%OutputFileName%", OutputFileName());
         }
 
@@ -577,6 +580,11 @@ namespace ExcelDna.AddIn.Tasks
         /// Prevents every static public function from becomming a UDF, they will need an explicit [ExcelFunction] annotation
         /// </summary>
         public bool ExplicitExports { get; set; }
+
+        /// <summary>
+        /// Prevents automatic registration of functions and commands
+        /// </summary>
+        public bool ExplicitRegistration { get; set; }
 
         /// <summary>
         /// The list of .dna files copied to the output

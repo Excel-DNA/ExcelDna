@@ -145,6 +145,10 @@
     <!-- Default value: false -->
     <ExcelAddInExplicitExports></ExcelAddInExplicitExports>
 
+    <!-- Prevents automatic registration of functions and commands. -->
+    <!-- Default value: false -->
+    <ExcelAddInExplicitRegistration></ExcelAddInExplicitRegistration>
+
     <!-- We don't need the extra 'ref' directory and reference assemblies for the Excel add-in -->
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 

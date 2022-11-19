@@ -87,7 +87,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDKExcelAddInIncludeWildcar
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NET6ManagedPack", "NET6ManagedPack\NET6ManagedPack.csproj", "{8A1C0A1A-8DC3-4405-9B08-49CDF7593386}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDKExcelAddInExplicitExports", "SDKExcelAddInExplicitExports\SDKExcelAddInExplicitExports.csproj", "{160F888D-6E22-4D62-B916-F97541AD5455}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDKExcelAddInExplicitExports", "SDKExcelAddInExplicitExports\SDKExcelAddInExplicitExports.csproj", "{160F888D-6E22-4D62-B916-F97541AD5455}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDKExcelAddInExplicitRegistration", "SDKExcelAddInExplicitRegistration\SDKExcelAddInExplicitRegistration.csproj", "{D4878ED5-86AE-44E6-9908-866AC3503570}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -263,6 +265,10 @@ Global
 		{160F888D-6E22-4D62-B916-F97541AD5455}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{160F888D-6E22-4D62-B916-F97541AD5455}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{160F888D-6E22-4D62-B916-F97541AD5455}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4878ED5-86AE-44E6-9908-866AC3503570}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4878ED5-86AE-44E6-9908-866AC3503570}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4878ED5-86AE-44E6-9908-866AC3503570}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4878ED5-86AE-44E6-9908-866AC3503570}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
