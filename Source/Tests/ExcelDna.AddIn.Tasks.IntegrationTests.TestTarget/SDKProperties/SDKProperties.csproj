@@ -137,9 +137,13 @@
     <!-- Default value: empty -->
     <ExcelAddInSignOptions></ExcelAddInSignOptions>
 
-    <!-- Replace XLL version information with data read from ExternalLibrary assembly -->
+    <!-- Replace XLL version information with data read from ExternalLibrary assembly. -->
     <!-- Default value: false -->
     <ExcelAddInUseVersionAsOutputVersion></ExcelAddInUseVersionAsOutputVersion>
+
+    <!-- Prevents every static public function from becomming a UDF, they will need an explicit [ExcelFunction] annotation. -->
+    <!-- Default value: false -->
+    <ExcelAddInExplicitExports></ExcelAddInExplicitExports>
 
     <!-- We don't need the extra 'ref' directory and reference assemblies for the Excel add-in -->
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
