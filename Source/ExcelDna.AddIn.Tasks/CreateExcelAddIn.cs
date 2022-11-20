@@ -347,6 +347,12 @@ namespace ExcelDna.AddIn.Tasks
             if (UseVersionAsOutputVersion)
                 result = result.Replace("<ExternalLibrary ", "<ExternalLibrary " + "UseVersionAsOutputVersion=\"true\" ");
 
+            if (ExplicitExports)
+                result = result.Replace("ExplicitExports=\"false\"", "ExplicitExports=\"true\"");
+
+            if (ExplicitRegistration)
+                result = result.Replace("<ExternalLibrary ", "<ExternalLibrary " + "ExplicitRegistration=\"true\" ");
+
             return result.Replace("%OutputFileName%", OutputFileName());
         }
 
@@ -618,6 +624,16 @@ namespace ExcelDna.AddIn.Tasks
         /// Replace XLL version information with data read from ExternalLibrary assembly
         /// </summary>
         public bool UseVersionAsOutputVersion { get; set; }
+
+        /// <summary>
+        /// Prevents every static public function from becomming a UDF, they will need an explicit [ExcelFunction] annotation
+        /// </summary>
+        public bool ExplicitExports { get; set; }
+
+        /// <summary>
+        /// Prevents automatic registration of functions and commands
+        /// </summary>
+        public bool ExplicitRegistration { get; set; }
 
         /// <summary>
         /// The list of .dna files copied to the output
