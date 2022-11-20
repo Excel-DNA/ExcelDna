@@ -32,7 +32,7 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
             MsBuild(projectBasePath + "NET6Minimal.csproj /t:Restore,Build /p:ExcelDnaPackCompressResources=true /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
             long compressed = (new FileInfo(packedFile)).Length;
 
-            Assert.Less(compressed, notCompressed);
+            Assert.Less(compressed, notCompressed - 10000); // 10000 is enough to make sure ExcelDna.Integration and ExcelDna.Loader are not compressed, not only NET6Minimal.dll.
         }
 
         [Test]

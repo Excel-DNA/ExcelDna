@@ -180,6 +180,8 @@ namespace ExcelDna.AddIn.Tasks
 
                     if (UnpackIsEnabled)
                         PublishUnpackedAddin(item.OutputDnaFileNameAs32Bit, item.OutputXllFileNameAs32Bit);
+                    else if (!CompressResources)
+                        UncompressXll(item.OutputXllFileNameAs32Bit);
                 }
             }
         }
@@ -206,6 +208,8 @@ namespace ExcelDna.AddIn.Tasks
 
                     if (UnpackIsEnabled)
                         PublishUnpackedAddin(item.OutputDnaFileNameAs64Bit, item.OutputXllFileNameAs64Bit);
+                    else if (!CompressResources)
+                        UncompressXll(item.OutputXllFileNameAs64Bit);
                 }
             }
         }
@@ -368,6 +372,45 @@ namespace ExcelDna.AddIn.Tasks
                 File.Copy(file, Path.Combine(destinationFolder, Path.GetFileName(file)), true);
         }
 
+        private void UncompressXll(string xllPath)
+        {
+            string[] assemblies = { "ExcelDna.Integration", "ExcelDna.Loader" };
+            foreach (var i in assemblies)
+            {
+                string name = i.ToUpperInvariant();
+                UncompressResource(xllPath, name, ResourceHelper.TypeName.ASSEMBLY, "ASSEMBLY_LZMA");
+                UncompressResource(xllPath, name, ResourceHelper.TypeName.PDB, "PDB_LZMA");
+            }
+        }
+
+        private void UncompressResource(string xllPath, string name, ResourceHelper.TypeName typeName, string compressedTypeName)
+        {
+            byte[] data = LoadResource(xllPath, name, compressedTypeName);
+            if (data == null)
+                return;
+
+            ResourceHelper.ResourceUpdater ru = new ResourceHelper.ResourceUpdater(Path.Combine(Directory.GetCurrentDirectory(), xllPath), false, _log);
+            ru.AddFile(data, name, typeName, false, false);
+            ru.RemoveResource(compressedTypeName, name);
+            ru.EndUpdate();
+        }
+
+        private byte[] LoadResource(string xllPath, string name, string typeName)
+        {
+            IntPtr hModule = ResourceHelper.LoadXllResources(xllPath);
+            if (hModule == IntPtr.Zero)
+                throw new InvalidOperationException("Error loading resources from " + xllPath);
+
+            try
+            {
+                return ResourceHelper.ResourceUpdater.LoadResourceBytes(hModule, typeName, name);
+            }
+            finally
+            {
+                ResourceHelper.FreeXllResources(hModule);
+            }
+        }
+
         private void UnpackXll(string xllPath, string destinationFolder)
         {
             string[] assemblies = { "ExcelDna.ManagedHost", "ExcelDna.Integration", "ExcelDna.Loader" };
@@ -468,6 +511,12 @@ namespace ExcelDna.AddIn.Tasks
         /// </summary>
         [Required]
         public string IntegrationDllPath { get; set; }
+
+        /// <summary>
+        /// Compress (LZMA) of resources
+        /// </summary>
+        [Required]
+        public bool CompressResources { get; set; }
 
         /// <summary>
         /// Enable/disable building 32-bit .dna files
