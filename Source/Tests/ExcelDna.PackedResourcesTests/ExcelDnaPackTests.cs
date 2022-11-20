@@ -16,10 +16,10 @@ namespace ExcelDna.PackedResourcesTests
             string dnaFile = TestdataHelper.FilePath("test_pack-AddIn.dna");
             string xllFile = TestdataHelper.FilePath("test_pack-AddIn.xll");
             string outPath = TestdataHelper.FilePath("ExcelDnaPackTests-AddIn64-packed-out.dll");
-            File.Copy(TestdataHelper.FilePath("AddIn64-plain.dll"), xllFile, true);
+            File.Copy(TestdataHelper.FilePath("AddIn64-compressed.dll"), xllFile, true);
             ExcelDnaPack.Pack(dnaFile, outPath, true, false, true, null, null, useManagedResourceResolver, A.Dummy<IBuildLogger>());
 
-            Assert.That(File.ReadAllBytes(outPath), Is.EqualTo(File.ReadAllBytes(TestdataHelper.FilePath(useManagedResourceResolver ? "AddIn64-packedX-plain.dll" : "AddIn64-packed-plain.dll"))));
+            Assert.That(File.ReadAllBytes(outPath), Is.EqualTo(File.ReadAllBytes(TestdataHelper.FilePath(useManagedResourceResolver ? "AddIn64-packedX-compressed.dll" : "AddIn64-packed-compressed.dll"))));
             File.Delete(outPath);
             File.Delete(xllFile);
         }

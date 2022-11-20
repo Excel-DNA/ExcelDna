@@ -220,6 +220,7 @@
       Packed64BitXllName="$(ExcelDnaPack64BitXllName)"
       PackManagedOnWindows="$(ExcelDnaPackManagedResourcePackingOnWindows)"
       PublishPath="$(ExcelDnaPublishPath)"
+      CompressResources="$(ExcelDnaPackCompressResources)"
  	  AddInName="$(ExcelAddInName)"
  	  AddInFileName="$(ExcelAddInFileName)"
  	  AddInInclude="$(ExcelAddInInclude)"
