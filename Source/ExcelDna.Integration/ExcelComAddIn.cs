@@ -39,6 +39,9 @@ namespace ExcelDna.Integration
             _progId = progId;
         }
 
+        public string FriendlyName { get; protected set; }
+        public string Description { get; protected set; }
+
         #region IDTExtensibility2 interface
         public virtual void OnConnection(object Application, ext_ConnectMode ConnectMode, object AddInInst, ref Array custom)
         {
@@ -105,13 +108,15 @@ namespace ExcelDna.Integration
 
             // Put together some nicer descriptions for the Add-ins dialog.
             string friendlyName;
-            if (addIn is ExcelRibbon)
+            if (addIn.FriendlyName != null)
+                friendlyName = addIn.FriendlyName;
+            else if (addIn is ExcelRibbon)
                 friendlyName = addIn.DnaLibrary.Name; // + " (Ribbon Helper)"; (No more - it is displayed in the Ribbon tooltip!)
             else if (addIn is ExcelCustomTaskPaneAddIn)
                 friendlyName = addIn.DnaLibrary.Name + " (Custom Task Pane Helper)";
             else
                 friendlyName = addIn.DnaLibrary.Name + " (COM Add-in Helper)";
-            string description = string.Format("Dynamically created COM Add-in to load custom UI for the Excel Add-in {0}, located at {1}.", addIn.DnaLibrary.Name, DnaLibrary.XllPath);
+            string description = addIn.Description ?? string.Format("Dynamically created COM Add-in to load custom UI for the Excel Add-in {0}, located at {1}.", addIn.DnaLibrary.Name, DnaLibrary.XllPath);
 
 
             Logger.ComAddIn.Verbose("Getting Application object");
