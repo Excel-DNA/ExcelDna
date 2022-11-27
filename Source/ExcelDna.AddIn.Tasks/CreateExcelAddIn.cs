@@ -176,6 +176,8 @@ namespace ExcelDna.AddIn.Tasks
                     // Copy .config file to build output folder for 32-bit (if exist)
                     TryCopyConfigFileToOutput(item.InputConfigFileNameAs32Bit, item.InputConfigFileNameFallbackAs32Bit, item.OutputConfigFileNameAs32Bit);
 
+                    TryCopyDepsJsonToBuildOutput(item.OutputDnaFileNameAs32Bit);
+
                     AddDnaToListOfFilesToPack(item.OutputDnaFileNameAs32Bit, item.OutputXllFileNameAs32Bit, item.OutputConfigFileNameAs32Bit, Packed32BitXllName);
 
                     if (UnpackIsEnabled)
@@ -203,6 +205,8 @@ namespace ExcelDna.AddIn.Tasks
 
                     // Copy .config file to build output folder for 64-bit (if exist)
                     TryCopyConfigFileToOutput(item.InputConfigFileNameAs64Bit, item.InputConfigFileNameFallbackAs64Bit, item.OutputConfigFileNameAs64Bit);
+
+                    TryCopyDepsJsonToBuildOutput(item.OutputDnaFileNameAs64Bit);
 
                     AddDnaToListOfFilesToPack(item.OutputDnaFileNameAs64Bit, item.OutputXllFileNameAs64Bit, item.OutputConfigFileNameAs64Bit, Packed64BitXllName);
 
@@ -275,6 +279,24 @@ namespace ExcelDna.AddIn.Tasks
             }
 
             return null;
+        }
+
+        private void TryCopyDepsJsonToBuildOutput(string outputDnaPath)
+        {
+            Integration.DnaLibrary dna = Integration.DnaLibrary.LoadFrom(File.ReadAllBytes(outputDnaPath), Path.GetDirectoryName(outputDnaPath));
+            if (dna == null || dna.ExternalLibraries == null)
+                return;
+
+            foreach (Integration.ExternalLibrary ext in dna.ExternalLibraries)
+            {
+                string src = dna.ResolvePath(Path.ChangeExtension(ext.Path, "deps.json"));
+                if (File.Exists(src))
+                {
+                    string dst = Path.ChangeExtension(outputDnaPath, "deps.json");
+                    CopyFileToBuildOutput(src, dst, overwrite: true);
+                    return;
+                }
+            }
         }
 
         private void CopyFileToBuildOutput(string sourceFile, string destinationFile, bool overwrite)
