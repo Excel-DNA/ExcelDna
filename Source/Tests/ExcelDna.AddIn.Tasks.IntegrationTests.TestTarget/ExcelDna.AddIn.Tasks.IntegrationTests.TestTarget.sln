@@ -91,7 +91,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDKExcelAddInExplicitExport
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDKExcelAddInExplicitRegistration", "SDKExcelAddInExplicitRegistration\SDKExcelAddInExplicitRegistration.csproj", "{D4878ED5-86AE-44E6-9908-866AC3503570}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NET6CopyDepsJson", "NET6CopyDepsJson\NET6CopyDepsJson.csproj", "{8BF81C2D-3CB8-4C04-86C0-728929C88A92}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NET6CopyDepsJson", "NET6CopyDepsJson\NET6CopyDepsJson.csproj", "{8BF81C2D-3CB8-4C04-86C0-728929C88A92}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NET6PackDeps", "NET6PackDeps\NET6PackDeps.csproj", "{C32D05B2-E0FA-41ED-8EF0-027ACC826DED}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -275,6 +277,10 @@ Global
 		{8BF81C2D-3CB8-4C04-86C0-728929C88A92}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8BF81C2D-3CB8-4C04-86C0-728929C88A92}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8BF81C2D-3CB8-4C04-86C0-728929C88A92}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C32D05B2-E0FA-41ED-8EF0-027ACC826DED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C32D05B2-E0FA-41ED-8EF0-027ACC826DED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C32D05B2-E0FA-41ED-8EF0-027ACC826DED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C32D05B2-E0FA-41ED-8EF0-027ACC826DED}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
