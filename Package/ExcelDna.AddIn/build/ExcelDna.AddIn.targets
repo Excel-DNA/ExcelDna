@@ -251,6 +251,7 @@
 	<PackExcelAddIn
 		OutputDnaFileName="%(ExcelDnaFilesToPack.OutputDnaFileName)"
 		OutputPackedXllFileName="%(ExcelDnaFilesToPack.OutputPackedXllFileName)"
+		OutputBitness="%(ExcelDnaFilesToPack.OutputBitness)"
 		CompressResources="$(ExcelDnaPackCompressResources)"
 		RunMultithreaded="$(ExcelDnaPackRunMultithreaded)"
 		PackManagedOnWindows="$(ExcelDnaPackManagedResourcePackingOnWindows)"

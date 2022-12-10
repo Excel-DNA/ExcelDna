@@ -178,7 +178,7 @@ namespace ExcelDna.AddIn.Tasks
 
                     TryCopyDepsJsonToBuildOutput(item.OutputDnaFileNameAs32Bit);
 
-                    AddDnaToListOfFilesToPack(item.OutputDnaFileNameAs32Bit, item.OutputXllFileNameAs32Bit, item.OutputConfigFileNameAs32Bit, Packed32BitXllName);
+                    AddDnaToListOfFilesToPack(item.OutputDnaFileNameAs32Bit, item.OutputXllFileNameAs32Bit, item.OutputConfigFileNameAs32Bit, Packed32BitXllName, "32");
 
                     if (UnpackIsEnabled)
                         PublishUnpackedAddin(item.OutputDnaFileNameAs32Bit, item.OutputXllFileNameAs32Bit);
@@ -208,7 +208,7 @@ namespace ExcelDna.AddIn.Tasks
 
                     TryCopyDepsJsonToBuildOutput(item.OutputDnaFileNameAs64Bit);
 
-                    AddDnaToListOfFilesToPack(item.OutputDnaFileNameAs64Bit, item.OutputXllFileNameAs64Bit, item.OutputConfigFileNameAs64Bit, Packed64BitXllName);
+                    AddDnaToListOfFilesToPack(item.OutputDnaFileNameAs64Bit, item.OutputXllFileNameAs64Bit, item.OutputConfigFileNameAs64Bit, Packed64BitXllName, "64");
 
                     if (UnpackIsEnabled)
                         PublishUnpackedAddin(item.OutputDnaFileNameAs64Bit, item.OutputXllFileNameAs64Bit);
@@ -325,7 +325,7 @@ namespace ExcelDna.AddIn.Tasks
             _fileSystem.WriteFile(sourceFileText, destinationFile);
         }
 
-        private void AddDnaToListOfFilesToPack(string outputDnaFileName, string outputXllFileName, string outputXllConfigFileName, string packedFileName)
+        private void AddDnaToListOfFilesToPack(string outputDnaFileName, string outputXllFileName, string outputXllConfigFileName, string packedFileName, string outputBitness)
         {
             if (!PackIsEnabled)
             {
@@ -339,6 +339,7 @@ namespace ExcelDna.AddIn.Tasks
                 {"OutputDnaFileName", outputDnaFileName},
                 {"OutputPackedXllFileName", outputPackedXllFileName},
                 {"OutputXllConfigFileName", outputXllConfigFileName },
+                {"OutputBitness", outputBitness },
             };
 
             _dnaFilesToPack.Add(new TaskItem(outputDnaFileName, metadata));

@@ -99,6 +99,12 @@ namespace ExcelDna.AddIn.Tasks
         public string OutputPackedXllFileName { get; set; }
 
         /// <summary>
+        /// Output add-in bitness
+        /// </summary>
+        [Required]
+        public string OutputBitness { get; set; }
+
+        /// <summary>
         /// Compress (LZMA) of resources
         /// </summary>
         [Required]
