@@ -130,6 +130,12 @@ namespace ExcelDna.ManagedHost
             return null;
         }
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        internal static string NativeLibraryResolve(string unmanagedDllName)
+        {
+            return null;
+        }
+
         internal static Assembly LoadFromAssemblyPath(string assemblyPath)
         {
 #if NETCOREAPP
