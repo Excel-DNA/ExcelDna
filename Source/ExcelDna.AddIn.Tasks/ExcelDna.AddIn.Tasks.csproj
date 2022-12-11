@@ -18,7 +18,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net6.0-windows' ">
-    <DefineConstants>$(DefineConstants);ASMRESOLVER</DefineConstants>
+    <DefineConstants>$(DefineConstants);ASMRESOLVER;DEPCONTEXTJSONREADER</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -34,6 +34,7 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net6.0-windows' ">
+    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="7.0.0" />
     <PackageReference Include="envdte" Version="16.9.31023.347" />
     <PackageReference Include="Microsoft.Build.Framework" Version="15.9.20" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="15.9.20" />

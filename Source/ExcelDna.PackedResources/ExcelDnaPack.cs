@@ -4,12 +4,13 @@ using System.IO;
 using ExcelDna.Integration;
 using ExcelDna.PackedResources.Logging;
 using System.Reflection;
+using System.Linq;
 
 namespace ExcelDna.PackedResources
 {
     internal class ExcelDnaPack
     {
-        public static int Pack(string dnaPath, string xllOutputPathParam, bool compress, bool multithreading, bool overwrite, string usageInfo, List<string> filesToPublish, bool useManagedResourceResolver, IBuildLogger buildLogger)
+        public static int Pack(string dnaPath, string xllOutputPathParam, bool compress, bool multithreading, bool overwrite, string usageInfo, List<string> filesToPublish, bool useManagedResourceResolver, string outputBitness, IBuildLogger buildLogger)
         {
             string dnaDirectory = Path.GetDirectoryName(dnaPath);
             string dnaFilePrefix = Path.GetFileNameWithoutExtension(dnaPath);
@@ -111,6 +112,14 @@ namespace ExcelDna.PackedResources
                     ru.AddFile(File.ReadAllBytes(configPath), "__MAIN__", ResourceHelper.TypeName.CONFIG, false, multithreading);  // Name here must exactly match name in ExcelDnaLoad.cpp.
                 else
                     filesToPublish.Add(configPath);
+            }
+
+            if (outputBitness != null && filesToPublish == null)
+            {
+                foreach (string nativeLibrary in FindNativeLibrariesDeps(dnaPath, outputBitness))
+                {
+                    ru.AddFile(File.ReadAllBytes(nativeLibrary), Path.GetFileName(nativeLibrary).ToUpperInvariant(), ResourceHelper.TypeName.NATIVE_LIBRARY, compress, multithreading);
+                }
             }
 
             byte[] dnaBytes = File.ReadAllBytes(dnaPath);
@@ -401,6 +410,37 @@ namespace ExcelDna.PackedResources
             }
 
             return DnaLibrary.Save(dna);
+        }
+
+        static private List<string> FindNativeLibrariesDeps(string dnaPath, string outputBitness)
+        {
+            List<string> result = new List<string>();
+#if NETCOREAPP && DEPCONTEXTJSONREADER
+            string depsJsonPath = Path.ChangeExtension(dnaPath, "deps.json");
+            if (!File.Exists(depsJsonPath))
+                return result;
+
+            Microsoft.Extensions.DependencyModel.DependencyContextJsonReader reader = new();
+            Microsoft.Extensions.DependencyModel.DependencyContext dc = reader.Read(new FileStream(depsJsonPath, FileMode.Open));
+
+            string basePath = Path.GetDirectoryName(dnaPath);
+            foreach (Microsoft.Extensions.DependencyModel.RuntimeLibrary library in dc.RuntimeLibraries)
+            {
+                foreach (Microsoft.Extensions.DependencyModel.RuntimeAssetGroup asset in library.RuntimeAssemblyGroups.Concat(library.NativeLibraryGroups))
+                {
+                    if (asset.Runtime != "win-x" + (outputBitness == "64" ? "64" : "86"))
+                        continue;
+
+                    foreach (var path in asset.AssetPaths)
+                    {
+                        string fullPath = Path.Combine(basePath, path);
+                        if (File.Exists(fullPath))
+                            result.Add(fullPath);
+                    }
+                }
+            }
+#endif
+            return result;
         }
 
         static private int lastPackIndex = 0;

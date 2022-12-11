@@ -35,7 +35,7 @@ namespace ExcelDna.AddIn.Tasks
                 useManagedResourceResolver = PackManagedOnWindows || !OperatingSystem.IsWindows();
 #endif
 
-                int result = ExcelDna.PackedResources.ExcelDnaPack.Pack(OutputDnaFileName, OutputPackedXllFileName, CompressResources, RunMultithreaded, true, null, null, useManagedResourceResolver, _log);
+                int result = ExcelDna.PackedResources.ExcelDnaPack.Pack(OutputDnaFileName, OutputPackedXllFileName, CompressResources, RunMultithreaded, true, null, null, useManagedResourceResolver, OutputBitness, _log);
                 if (result != 0)
                     throw new ApplicationException($"Pack failed with exit code {result}.");
 

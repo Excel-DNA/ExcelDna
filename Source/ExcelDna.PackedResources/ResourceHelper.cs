@@ -24,6 +24,7 @@ internal static class ResourceHelper
         IMAGE = 2,
         SOURCE = 3,
         PDB = 4,
+        NATIVE_LIBRARY = 5,
     }
 
     // TODO: Learn about locales
