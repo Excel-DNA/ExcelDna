@@ -20,6 +20,7 @@ namespace ExcelDna.ManagedHost
         static IntPtr hModule;
         static string pathXll;
         static Dictionary<string, Assembly> loadedAssemblies = new Dictionary<string, Assembly>();
+        static TempDir tempDirForNativeLibraries;
 #if NETCOREAPP
         static ExcelDnaAssemblyLoadContext alc;
 #endif
@@ -133,7 +134,16 @@ namespace ExcelDna.ManagedHost
         [MethodImpl(MethodImplOptions.Synchronized)]
         internal static string NativeLibraryResolve(string unmanagedDllName)
         {
-            return null;
+            byte[] dllBytes = GetResourceBytes(unmanagedDllName.ToUpperInvariant(), 5);
+            if (dllBytes == null)
+                return null;
+
+            if (tempDirForNativeLibraries == null)
+                tempDirForNativeLibraries = new TempDir("ExcelDna.ManagedHost.NativeLibraries");
+
+            string dllPath = Path.Combine(tempDirForNativeLibraries.GetPath(), unmanagedDllName);
+            File.WriteAllBytes(dllPath, dllBytes);
+            return dllPath;
         }
 
         internal static Assembly LoadFromAssemblyPath(string assemblyPath)
@@ -155,12 +165,16 @@ namespace ExcelDna.ManagedHost
         }
 
         // TODO: This method probably should not be here.
-        internal static byte[] GetResourceBytes(string resourceName, int type) // types: 0 - Assembly, 1 - Dna file, 2 - Image
+        internal static byte[] GetResourceBytes(string resourceName, int type)
         {
             // CAREFUL: Can't log here yet as this method is called during Integration.Initialize()
             // Logger.Initialization.Info("GetResourceBytes for resource {0} of type {1}", resourceName, type);
             string typeName;
-            if (type == 0)
+            if (type == -1)
+            {
+                typeName = "CONFIG";
+            }
+            else if (type == 0)
             {
                 typeName = "ASSEMBLY";
             }
@@ -180,9 +194,13 @@ namespace ExcelDna.ManagedHost
             {
                 typeName = "PDB";
             }
+            else if (type == 5)
+            {
+                typeName = "NATIVE_LIBRARY";
+            }
             else
             {
-                throw new ArgumentOutOfRangeException("type", "Unknown resource type. Only types 0 (Assembly), 1 (Dna file), 2 (Image) or 3 (Source) are valid.");
+                throw new ArgumentOutOfRangeException("type", "Unknown resource type.");
             }
             return ResourceHelper.ResourceUpdater.LoadResourceBytes(hModule, typeName, resourceName);
         }
