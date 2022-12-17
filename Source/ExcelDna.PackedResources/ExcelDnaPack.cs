@@ -434,13 +434,44 @@ namespace ExcelDna.PackedResources
                     foreach (var path in asset.AssetPaths)
                     {
                         string fullPath = Path.Combine(basePath, path);
-                        if (File.Exists(fullPath))
+                        if (File.Exists(fullPath) && IsNativeLibrary(fullPath))
                             result.Add(fullPath);
                     }
                 }
             }
 #endif
             return result;
+        }
+
+        static private bool IsNativeLibrary(string path)
+        {
+            bool isPE;
+            if (IsAssembly(path, out isPE))
+                return false;
+
+            return isPE;
+        }
+
+        static private bool IsAssembly(string path, out bool isPE)
+        {
+            isPE = false;
+#if NETCOREAPP && DEPCONTEXTJSONREADER
+            using (FileStream file = File.OpenRead(path))
+            {
+                try
+                {
+                    var peReader = new System.Reflection.PortableExecutable.PEReader(file);
+                    System.Reflection.PortableExecutable.CorHeader corHeader = peReader.PEHeaders.CorHeader;
+
+                    isPE = true; // If peReader.PEHeaders doesn't throw, it is a valid PEImage
+                    return corHeader != null;
+                }
+                catch (BadImageFormatException)
+                {
+                }
+            }
+#endif
+            return false;
         }
 
         static private int lastPackIndex = 0;
