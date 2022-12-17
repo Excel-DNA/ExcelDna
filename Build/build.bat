@@ -18,9 +18,9 @@ copy /Y ..\Source\ExcelDnaPack\bin\Release\net6.0-windows\ExcelDnaPack.runtimeco
 if not exist "..\Package\ExcelDna.AddIn\tools\net452\" mkdir "..\Package\ExcelDna.AddIn\tools\net452\"
 if not exist "..\Package\ExcelDna.AddIn\tools\net6.0-windows\" mkdir "..\Package\ExcelDna.AddIn\tools\net6.0-windows\"
 
-copy /Y ..\Source\ExcelDna.AddIn.Tasks\bin\Release\net452\ExcelDna.AddIn.Tasks.dll ..\Package\ExcelDna.AddIn\tools\net452\
-copy /Y ..\Source\ExcelDna.AddIn.Tasks\bin\Release\net452\ExcelDna.AddIn.Tasks.pdb ..\Package\ExcelDna.AddIn\tools\net452\
-copy /Y ..\Source\ExcelDna.AddIn.Tasks\bin\Release\net452\Newtonsoft.Json.dll ..\Package\ExcelDna.AddIn\tools\net452\
+copy /Y ..\Source\ExcelDna.AddIn.Tasks\bin\Release\net462\ExcelDna.AddIn.Tasks.dll ..\Package\ExcelDna.AddIn\tools\net452\
+copy /Y ..\Source\ExcelDna.AddIn.Tasks\bin\Release\net462\ExcelDna.AddIn.Tasks.pdb ..\Package\ExcelDna.AddIn\tools\net452\
+copy /Y ..\Source\ExcelDna.AddIn.Tasks\bin\Release\net462\Newtonsoft.Json.dll ..\Package\ExcelDna.AddIn\tools\net452\
 copy /Y ..\Source\ExcelDna.AddIn.Tasks\bin\Release\net6.0-windows\ExcelDna.AddIn.Tasks.dll ..\Package\ExcelDna.AddIn\tools\net6.0-windows\
 copy /Y ..\Source\ExcelDna.AddIn.Tasks\bin\Release\net6.0-windows\ExcelDna.AddIn.Tasks.pdb ..\Package\ExcelDna.AddIn\tools\net6.0-windows\
 

@@ -5,7 +5,7 @@
   <PropertyGroup>
     
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net6.0-windows;net452</TargetFrameworks>
+    <TargetFrameworks>net6.0-windows;net462</TargetFrameworks>
 
     <AssemblyTitle>Excel-DNA MSBuild Tasks</AssemblyTitle>
     <Description>MSBuild Tasks for Excel DNA</Description>
@@ -25,7 +25,7 @@
     <ProjectReference Include="..\ExcelDna.Integration\ExcelDna.Integration.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net452' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net462' ">
     <PackageReference Include="envdte" Version="16.9.31023.347" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <Reference Include="Microsoft.Build.Framework" />
