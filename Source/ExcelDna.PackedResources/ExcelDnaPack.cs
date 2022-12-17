@@ -428,7 +428,7 @@ namespace ExcelDna.PackedResources
             {
                 foreach (Microsoft.Extensions.DependencyModel.RuntimeAssetGroup asset in library.RuntimeAssemblyGroups.Concat(library.NativeLibraryGroups))
                 {
-                    if (asset.Runtime != "win-x" + (outputBitness == "64" ? "64" : "86"))
+                    if (!MatchArchitecture(asset.Runtime, outputBitness))
                         continue;
 
                     foreach (var path in asset.AssetPaths)
@@ -441,6 +441,23 @@ namespace ExcelDna.PackedResources
             }
 #endif
             return result;
+        }
+
+        static private bool MatchArchitecture(string runtimeID, string requiredBitness)
+        {
+            if (!runtimeID.StartsWith("win"))
+                return false;
+
+            string matchingArchitecture = "-x" + (requiredBitness == "64" ? "64" : "86");
+            string mismatchingArchitecture = "-x" + (requiredBitness == "64" ? "86" : "64");
+            if (runtimeID.Contains(matchingArchitecture))
+                return true;
+            if (runtimeID.Contains(mismatchingArchitecture))
+                return false;
+            if (runtimeID.Contains("-arm"))
+                return false;
+
+            return true; // runtimeID doesn't specify specific architecture
         }
 
         static private bool IsNativeLibrary(string path)
