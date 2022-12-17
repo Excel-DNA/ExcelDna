@@ -73,5 +73,10 @@
 	</ItemGroup>
 	<Move SourceFiles="@(ExcelDnaTestFilesToMove)" DestinationFolder="$(ExcelDnaTestPackageDir)tools\net6.0-windows7.0" />
 
+	<ItemGroup>
+		<ExcelDnaTestFilesFWToMove Include="$(ExcelDnaTestPackageDir)tools\net462\*.*" />
+	</ItemGroup>
+	<Move SourceFiles="@(ExcelDnaTestFilesFWToMove)" DestinationFolder="$(ExcelDnaTestPackageDir)tools\net452" />		
+
 	</Target>
 </Project>

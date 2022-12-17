@@ -17,6 +17,10 @@
 
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net462' ">
+    <DefineConstants>$(DefineConstants);DEPCONTEXTJSONREADER</DefineConstants>
+  </PropertyGroup>
+  
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net6.0-windows' ">
     <DefineConstants>$(DefineConstants);ASMRESOLVER;DEPCONTEXTJSONREADER</DefineConstants>
   </PropertyGroup>
@@ -26,6 +30,8 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net462' ">
+    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="7.0.0" />
+    <PackageReference Include="System.Reflection.Metadata" Version="7.0.0" />
     <PackageReference Include="envdte" Version="16.9.31023.347" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <Reference Include="Microsoft.Build.Framework" />

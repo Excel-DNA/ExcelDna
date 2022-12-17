@@ -415,12 +415,12 @@ namespace ExcelDna.PackedResources
         static private List<string> FindNativeLibrariesDeps(string dnaPath, string outputBitness)
         {
             List<string> result = new List<string>();
-#if NETCOREAPP && DEPCONTEXTJSONREADER
+#if DEPCONTEXTJSONREADER
             string depsJsonPath = Path.ChangeExtension(dnaPath, "deps.json");
             if (!File.Exists(depsJsonPath))
                 return result;
 
-            Microsoft.Extensions.DependencyModel.DependencyContextJsonReader reader = new();
+            var reader = new Microsoft.Extensions.DependencyModel.DependencyContextJsonReader();
             Microsoft.Extensions.DependencyModel.DependencyContext dc = reader.Read(new FileStream(depsJsonPath, FileMode.Open));
 
             string basePath = Path.GetDirectoryName(dnaPath);
@@ -472,7 +472,7 @@ namespace ExcelDna.PackedResources
         static private bool IsAssembly(string path, out bool isPE)
         {
             isPE = false;
-#if NETCOREAPP && DEPCONTEXTJSONREADER
+#if DEPCONTEXTJSONREADER
             using (FileStream file = File.OpenRead(path))
             {
                 try
