@@ -45,6 +45,7 @@ namespace ExcelDna.ManagedHost
         {
             loadedAssemblies.Clear();
             alc = null;
+            tempDirForNativeLibraries = null;
         }
 #endif
 
