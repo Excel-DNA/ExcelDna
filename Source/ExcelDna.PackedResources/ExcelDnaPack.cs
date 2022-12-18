@@ -443,6 +443,7 @@ namespace ExcelDna.PackedResources
             return result;
         }
 
+#if DEPCONTEXTJSONREADER
         static private bool MatchArchitecture(string runtimeID, string requiredBitness)
         {
             if (!runtimeID.StartsWith("win"))
@@ -472,7 +473,6 @@ namespace ExcelDna.PackedResources
         static private bool IsAssembly(string path, out bool isPE)
         {
             isPE = false;
-#if DEPCONTEXTJSONREADER
             using (FileStream file = File.OpenRead(path))
             {
                 try
@@ -487,9 +487,9 @@ namespace ExcelDna.PackedResources
                 {
                 }
             }
-#endif
             return false;
         }
+#endif
 
         static private int lastPackIndex = 0;
     }
