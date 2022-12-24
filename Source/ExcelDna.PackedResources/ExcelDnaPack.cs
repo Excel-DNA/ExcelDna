@@ -10,7 +10,7 @@ namespace ExcelDna.PackedResources
 {
     internal class ExcelDnaPack
     {
-        public static int Pack(string dnaPath, string xllOutputPathParam, bool compress, bool multithreading, bool overwrite, string usageInfo, List<string> filesToPublish, bool packNativeLibraryDependencies, bool useManagedResourceResolver, string outputBitness, IBuildLogger buildLogger)
+        public static int Pack(string dnaPath, string xllOutputPathParam, bool compress, bool multithreading, bool overwrite, string usageInfo, List<string> filesToPublish, bool packNativeLibraryDependencies, string excludeDependencies, bool useManagedResourceResolver, string outputBitness, IBuildLogger buildLogger)
         {
             string dnaDirectory = Path.GetDirectoryName(dnaPath);
             string dnaFilePrefix = Path.GetFileNameWithoutExtension(dnaPath);
@@ -116,8 +116,12 @@ namespace ExcelDna.PackedResources
 
             if (packNativeLibraryDependencies && outputBitness != null && filesToPublish == null)
             {
+                string[] filesToExclude = (excludeDependencies ?? "").Split(';');
                 foreach (string nativeLibrary in FindNativeLibrariesDeps(dnaPath, outputBitness))
                 {
+                    if (filesToExclude.Contains(Path.GetFileName(nativeLibrary), StringComparer.OrdinalIgnoreCase))
+                        continue;
+
                     ru.AddFile(File.ReadAllBytes(nativeLibrary), Path.GetFileName(nativeLibrary).ToUpperInvariant(), ResourceHelper.TypeName.NATIVE_LIBRARY, compress, multithreading);
                 }
             }

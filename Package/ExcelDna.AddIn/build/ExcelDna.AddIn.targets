@@ -255,6 +255,7 @@
 		CompressResources="$(ExcelDnaPackCompressResources)"
 		RunMultithreaded="$(ExcelDnaPackRunMultithreaded)"
 		PackNativeLibraryDependencies="$(ExcelDnaPackNativeLibraryDependencies)"
+		ExcludeDependencies="$(ExcelDnaPackExcludeDependencies)"
 		PackManagedOnWindows="$(ExcelDnaPackManagedResourcePackingOnWindows)"
 		SignTool="$(ExcelAddInSignTool)"
 		SignOptions="$(ExcelAddInSignOptions)">
