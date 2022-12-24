@@ -93,6 +93,10 @@
     <!-- Default value: false -->
     <ExcelDnaPackManagedResourcePackingOnWindows></ExcelDnaPackManagedResourcePackingOnWindows>
 
+    <!-- Enables packing native libraries from .deps.json. -->
+    <!-- Default value: false -->
+    <ExcelDnaPackNativeLibraryDependencies></ExcelDnaPackNativeLibraryDependencies>
+
     <!-- EXCEL.EXE path for debugging. -->
     <!-- Default value: auto detect -->
     <ExcelDnaExcelExePath></ExcelDnaExcelExePath>

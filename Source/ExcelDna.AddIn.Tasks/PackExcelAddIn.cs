@@ -35,7 +35,7 @@ namespace ExcelDna.AddIn.Tasks
                 useManagedResourceResolver = PackManagedOnWindows || !OperatingSystem.IsWindows();
 #endif
 
-                int result = ExcelDna.PackedResources.ExcelDnaPack.Pack(OutputDnaFileName, OutputPackedXllFileName, CompressResources, RunMultithreaded, true, null, null, useManagedResourceResolver, OutputBitness, _log);
+                int result = ExcelDna.PackedResources.ExcelDnaPack.Pack(OutputDnaFileName, OutputPackedXllFileName, CompressResources, RunMultithreaded, true, null, null, PackNativeLibraryDependencies, useManagedResourceResolver, OutputBitness, _log);
                 if (result != 0)
                     throw new ApplicationException($"Pack failed with exit code {result}.");
 
@@ -115,6 +115,11 @@ namespace ExcelDna.AddIn.Tasks
         /// </summary>
         [Required]
         public bool RunMultithreaded { get; set; }
+
+        /// <summary>
+        /// Enables packing native libraries from .deps.json
+        /// </summary>
+        public bool PackNativeLibraryDependencies { get; set; }
 
         /// <summary>
         /// Enable/disable cross-platform resource packing implementation when executing on Windows.

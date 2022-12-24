@@ -254,6 +254,7 @@
 		OutputBitness="%(ExcelDnaFilesToPack.OutputBitness)"
 		CompressResources="$(ExcelDnaPackCompressResources)"
 		RunMultithreaded="$(ExcelDnaPackRunMultithreaded)"
+		PackNativeLibraryDependencies="$(ExcelDnaPackNativeLibraryDependencies)"
 		PackManagedOnWindows="$(ExcelDnaPackManagedResourcePackingOnWindows)"
 		SignTool="$(ExcelAddInSignTool)"
 		SignOptions="$(ExcelAddInSignOptions)">
