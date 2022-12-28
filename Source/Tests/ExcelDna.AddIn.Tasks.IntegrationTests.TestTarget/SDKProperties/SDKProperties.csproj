@@ -94,7 +94,7 @@
     <ExcelDnaPackManagedResourcePackingOnWindows></ExcelDnaPackManagedResourcePackingOnWindows>
 
     <!-- Enables packing native libraries from .deps.json. -->
-    <!-- Default value: true -->
+    <!-- Default value: false -->
     <ExcelDnaPackNativeLibraryDependencies></ExcelDnaPackNativeLibraryDependencies>
 
     <!-- Semicolon separated file names list to not pack from .deps.json. -->
