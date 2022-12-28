@@ -30,7 +30,7 @@ hostfxr_get_runtime_delegate_fn get_delegate_fptr;
 hostfxr_close_fn close_fptr;
 
 // Forward declarations
-bool load_hostfxr();
+bool load_hostfxr(int& rc);
 load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly();
 
 // Provide a callback for any catastrophic failures.
@@ -51,9 +51,30 @@ int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExpor
 	//
 	// STEP 1: Load HostFxr and get exported hosting functions
 	//
-	if (!load_hostfxr())
+	int rc = 0;
+	if (!load_hostfxr(rc))
 	{
-		assert(false && "Failure: load_hostfxr()");
+		std::string msg;
+		if (rc == CoreHostLibMissingFailure)
+		{
+#if _WIN64
+			std::string bitness = "x64";
+#else
+			std::string bitness = "x86";
+#endif
+			std::string runtime = ".NET Desktop Runtime 6.0 " + bitness;
+			msg = std::format("{0} is not installed, corrupted or incomplete.\n\nYou can download {0} from https://dotnet.microsoft.com/en-us/download/dotnet/6.0", runtime);
+		}
+		else if (rc != 0)
+		{
+			msg = std::format("Failure: load_hostfxr().\n\nError code: {}.", rc);
+		}
+		else
+		{
+			msg = "Failure: load_hostfxr().";
+		}
+		MessageBoxA(NULL, msg.c_str(), "ExcelDna.Host", MB_OK | MB_ICONERROR);
+
 		return EXIT_FAILURE;
 	}
 
@@ -101,7 +122,7 @@ int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExpor
 	// Function pointer to managed delegate with non-default signature
 	typedef short (CORECLR_DELEGATE_CALLTYPE* xladdin_initialize_fn)(void* xlAddInExportInfo, void* hModuleXLL, void* pPathXLL, BYTE disableAssemblyContextUnload);
 	xladdin_initialize_fn init = nullptr;
-	int rc = load_assembly_and_get_function_pointer(
+	rc = load_assembly_and_get_function_pointer(
 		dotnetlib_path.c_str(),
 		dotnet_type,
 		dotnet_type_method,
@@ -139,12 +160,12 @@ void* get_export(void* h, const char* name)
 }
 
 // Using the nethost library, discover the location of hostfxr and get exports
-bool load_hostfxr()
+bool load_hostfxr(int& rc)
 {
 	// Pre-allocate a large buffer for the path to hostfxr
 	char_t buffer[MAX_PATH];
 	size_t buffer_size = sizeof(buffer) / sizeof(char_t);
-	int rc = get_hostfxr_path(buffer, &buffer_size, nullptr);
+	rc = get_hostfxr_path(buffer, &buffer_size, nullptr);
 	if (rc != 0)
 		return false;
 
