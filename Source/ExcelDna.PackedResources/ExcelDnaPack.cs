@@ -4,12 +4,13 @@ using System.IO;
 using ExcelDna.Integration;
 using ExcelDna.PackedResources.Logging;
 using System.Reflection;
+using System.Linq;
 
 namespace ExcelDna.PackedResources
 {
     internal class ExcelDnaPack
     {
-        public static int Pack(string dnaPath, string xllOutputPathParam, bool compress, bool multithreading, bool overwrite, string usageInfo, List<string> filesToPublish, bool useManagedResourceResolver, IBuildLogger buildLogger)
+        public static int Pack(string dnaPath, string xllOutputPathParam, bool compress, bool multithreading, bool overwrite, string usageInfo, List<string> filesToPublish, bool packNativeLibraryDependencies, string excludeDependencies, bool useManagedResourceResolver, string outputBitness, IBuildLogger buildLogger)
         {
             string dnaDirectory = Path.GetDirectoryName(dnaPath);
             string dnaFilePrefix = Path.GetFileNameWithoutExtension(dnaPath);
@@ -111,6 +112,18 @@ namespace ExcelDna.PackedResources
                     ru.AddFile(File.ReadAllBytes(configPath), "__MAIN__", ResourceHelper.TypeName.CONFIG, false, multithreading);  // Name here must exactly match name in ExcelDnaLoad.cpp.
                 else
                     filesToPublish.Add(configPath);
+            }
+
+            if (packNativeLibraryDependencies && outputBitness != null && filesToPublish == null)
+            {
+                string[] filesToExclude = (excludeDependencies ?? "").Split(';');
+                foreach (string nativeLibrary in FindNativeLibrariesDeps(dnaPath, outputBitness))
+                {
+                    if (filesToExclude.Contains(Path.GetFileName(nativeLibrary), StringComparer.OrdinalIgnoreCase))
+                        continue;
+
+                    ru.AddFile(File.ReadAllBytes(nativeLibrary), Path.GetFileName(nativeLibrary).ToUpperInvariant(), ResourceHelper.TypeName.NATIVE_LIBRARY, compress, multithreading);
+                }
             }
 
             byte[] dnaBytes = File.ReadAllBytes(dnaPath);
@@ -402,6 +415,85 @@ namespace ExcelDna.PackedResources
 
             return DnaLibrary.Save(dna);
         }
+
+        static private List<string> FindNativeLibrariesDeps(string dnaPath, string outputBitness)
+        {
+            List<string> result = new List<string>();
+#if DEPCONTEXTJSONREADER
+            string depsJsonPath = Path.ChangeExtension(dnaPath, "deps.json");
+            if (!File.Exists(depsJsonPath))
+                return result;
+
+            var reader = new Microsoft.Extensions.DependencyModel.DependencyContextJsonReader();
+            Microsoft.Extensions.DependencyModel.DependencyContext dc = reader.Read(new FileStream(depsJsonPath, FileMode.Open));
+
+            string basePath = Path.GetDirectoryName(dnaPath);
+            foreach (Microsoft.Extensions.DependencyModel.RuntimeLibrary library in dc.RuntimeLibraries)
+            {
+                foreach (Microsoft.Extensions.DependencyModel.RuntimeAssetGroup asset in library.RuntimeAssemblyGroups.Concat(library.NativeLibraryGroups))
+                {
+                    if (!MatchArchitecture(asset.Runtime, outputBitness))
+                        continue;
+
+                    foreach (var path in asset.AssetPaths)
+                    {
+                        string fullPath = Path.Combine(basePath, path);
+                        if (File.Exists(fullPath) && IsNativeLibrary(fullPath))
+                            result.Add(fullPath);
+                    }
+                }
+            }
+#endif
+            return result;
+        }
+
+#if DEPCONTEXTJSONREADER
+        static private bool MatchArchitecture(string runtimeID, string requiredBitness)
+        {
+            if (!runtimeID.StartsWith("win"))
+                return false;
+
+            string matchingArchitecture = "-x" + (requiredBitness == "64" ? "64" : "86");
+            string mismatchingArchitecture = "-x" + (requiredBitness == "64" ? "86" : "64");
+            if (runtimeID.Contains(matchingArchitecture))
+                return true;
+            if (runtimeID.Contains(mismatchingArchitecture))
+                return false;
+            if (runtimeID.Contains("-arm"))
+                return false;
+
+            return true; // runtimeID doesn't specify specific architecture
+        }
+
+        static private bool IsNativeLibrary(string path)
+        {
+            bool isPE;
+            if (IsAssembly(path, out isPE))
+                return false;
+
+            return isPE;
+        }
+
+        static private bool IsAssembly(string path, out bool isPE)
+        {
+            isPE = false;
+            using (FileStream file = File.OpenRead(path))
+            {
+                try
+                {
+                    var peReader = new System.Reflection.PortableExecutable.PEReader(file);
+                    System.Reflection.PortableExecutable.CorHeader corHeader = peReader.PEHeaders.CorHeader;
+
+                    isPE = true; // If peReader.PEHeaders doesn't throw, it is a valid PEImage
+                    return corHeader != null;
+                }
+                catch (BadImageFormatException)
+                {
+                }
+            }
+            return false;
+        }
+#endif
 
         static private int lastPackIndex = 0;
     }

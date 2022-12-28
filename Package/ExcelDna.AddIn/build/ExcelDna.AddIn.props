@@ -2,5 +2,6 @@
 	<PropertyGroup>
 		<EnableDynamicLoading>true</EnableDynamicLoading>
 		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+		<ExcelDnaPackNativeLibraryDependencies>false</ExcelDnaPackNativeLibraryDependencies>
 	</PropertyGroup>
 </Project>
