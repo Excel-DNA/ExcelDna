@@ -419,7 +419,7 @@ namespace ExcelDna.AddIn.Tasks
                 return;
 
             ResourceHelper.ResourceUpdater ru = new ResourceHelper.ResourceUpdater(Path.Combine(Directory.GetCurrentDirectory(), xllPath), false, _log);
-            ru.AddFile(data, name, typeName, false, false);
+            ru.AddFile(data, name, typeName, null, false, false);
             ru.RemoveResource(compressedTypeName, name);
             ru.EndUpdate();
         }

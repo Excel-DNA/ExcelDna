@@ -109,7 +109,7 @@ namespace ExcelDna.PackedResources
             if (File.Exists(configPath))
             {
                 if (filesToPublish == null)
-                    ru.AddFile(File.ReadAllBytes(configPath), "__MAIN__", ResourceHelper.TypeName.CONFIG, false, multithreading);  // Name here must exactly match name in ExcelDnaLoad.cpp.
+                    ru.AddFile(File.ReadAllBytes(configPath), "__MAIN__", ResourceHelper.TypeName.CONFIG, null, false, multithreading);  // Name here must exactly match name in ExcelDnaLoad.cpp.
                 else
                     filesToPublish.Add(configPath);
             }
@@ -122,7 +122,7 @@ namespace ExcelDna.PackedResources
                     if (dependenciesToExclude.Contains(Path.GetFileName(nativeLibrary), StringComparer.OrdinalIgnoreCase))
                         continue;
 
-                    ru.AddFile(File.ReadAllBytes(nativeLibrary), Path.GetFileName(nativeLibrary).ToUpperInvariant(), ResourceHelper.TypeName.NATIVE_LIBRARY, compress, multithreading);
+                    ru.AddFile(File.ReadAllBytes(nativeLibrary), Path.GetFileName(nativeLibrary).ToUpperInvariant(), ResourceHelper.TypeName.NATIVE_LIBRARY, "Native deps.json", compress, multithreading);
                 }
             }
 
@@ -130,7 +130,7 @@ namespace ExcelDna.PackedResources
             byte[] dnaContentForPacking = PackDnaLibrary(dnaPath, dnaBytes, dnaDirectory, ru, compress, multithreading, filesToPublish, packManagedDependencies, dependenciesToExclude, outputBitness, buildLogger);
             if (filesToPublish == null)
             {
-                ru.AddFile(dnaContentForPacking, "__MAIN__", ResourceHelper.TypeName.DNA, false, multithreading); // Name here must exactly match name in DnaLibrary.Initialize.
+                ru.AddFile(dnaContentForPacking, "__MAIN__", ResourceHelper.TypeName.DNA, null, false, multithreading); // Name here must exactly match name in DnaLibrary.Initialize.
                 ru.EndUpdate();
             }
             else
@@ -182,7 +182,7 @@ namespace ExcelDna.PackedResources
                             byte[] dnaContentForPacking = PackDnaLibrary(path, File.ReadAllBytes(path), Path.GetDirectoryName(path), ru, compress, multithreading, filesToPublish, false, null, outputBitness, buildLogger);
                             if (filesToPublish == null)
                             {
-                                ru.AddFile(dnaContentForPacking, name, ResourceHelper.TypeName.DNA, compress, multithreading);
+                                ru.AddFile(dnaContentForPacking, name, ResourceHelper.TypeName.DNA, null, compress, multithreading);
                                 ext.Path = "packed:" + name;
                             }
                             else
@@ -194,7 +194,7 @@ namespace ExcelDna.PackedResources
                         {
                             if (filesToPublish == null)
                             {
-                                string packedName = ru.AddAssembly(path, compress, multithreading, ext.IncludePdb);
+                                string packedName = ru.AddAssembly(path, null, compress, multithreading, ext.IncludePdb);
                                 if (packedName != null)
                                 {
                                     ext.Path = "packed:" + packedName;
@@ -352,7 +352,7 @@ namespace ExcelDna.PackedResources
                     // It worked!
                     if (filesToPublish == null)
                     {
-                        string packedName = ru.AddAssembly(path, compress, multithreading, rf.IncludePdb);
+                        string packedName = ru.AddAssembly(path, null, compress, multithreading, rf.IncludePdb);
                         if (packedName != null)
                         {
                             rf.Path = "packed:" + packedName;
@@ -381,7 +381,7 @@ namespace ExcelDna.PackedResources
                     {
                         string name = Path.GetFileNameWithoutExtension(path).ToUpperInvariant() + "_" + lastPackIndex++ + Path.GetExtension(path).ToUpperInvariant();
                         byte[] imageBytes = File.ReadAllBytes(path);
-                        ru.AddFile(imageBytes, name, ResourceHelper.TypeName.IMAGE, compress, multithreading);
+                        ru.AddFile(imageBytes, name, ResourceHelper.TypeName.IMAGE, null, compress, multithreading);
                         image.Path = "packed:" + name;
                     }
                     else
@@ -408,7 +408,7 @@ namespace ExcelDna.PackedResources
                         {
                             string name = Path.GetFileNameWithoutExtension(path).ToUpperInvariant() + "_" + lastPackIndex++ + Path.GetExtension(path).ToUpperInvariant();
                             byte[] sourceBytes = File.ReadAllBytes(path);
-                            ru.AddFile(sourceBytes, name, ResourceHelper.TypeName.SOURCE, compress, multithreading);
+                            ru.AddFile(sourceBytes, name, ResourceHelper.TypeName.SOURCE, null, compress, multithreading);
                             source.Path = "packed:" + name;
                         }
                         else
@@ -426,7 +426,7 @@ namespace ExcelDna.PackedResources
                     if (dependenciesToExclude.Contains(Path.GetFileName(assembly), StringComparer.OrdinalIgnoreCase))
                         continue;
 
-                    ru.AddAssembly(assembly, compress, multithreading, false);
+                    ru.AddAssembly(assembly, "Managed deps.json", compress, multithreading, false);
                 }
             }
 
