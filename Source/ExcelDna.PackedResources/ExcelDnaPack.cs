@@ -114,12 +114,12 @@ namespace ExcelDna.PackedResources
                     filesToPublish.Add(configPath);
             }
 
+            string[] dependenciesToExclude = (excludeDependencies ?? "").Split(';');
             if (packNativeLibraryDependencies && outputBitness != null && filesToPublish == null)
             {
-                string[] filesToExclude = (excludeDependencies ?? "").Split(';');
                 foreach (string nativeLibrary in FindNativeLibrariesDeps(dnaPath, outputBitness))
                 {
-                    if (filesToExclude.Contains(Path.GetFileName(nativeLibrary), StringComparer.OrdinalIgnoreCase))
+                    if (dependenciesToExclude.Contains(Path.GetFileName(nativeLibrary), StringComparer.OrdinalIgnoreCase))
                         continue;
 
                     ru.AddFile(File.ReadAllBytes(nativeLibrary), Path.GetFileName(nativeLibrary).ToUpperInvariant(), ResourceHelper.TypeName.NATIVE_LIBRARY, compress, multithreading);
@@ -127,7 +127,7 @@ namespace ExcelDna.PackedResources
             }
 
             byte[] dnaBytes = File.ReadAllBytes(dnaPath);
-            byte[] dnaContentForPacking = PackDnaLibrary(dnaBytes, dnaDirectory, ru, compress, multithreading, filesToPublish, buildLogger);
+            byte[] dnaContentForPacking = PackDnaLibrary(dnaPath, dnaBytes, dnaDirectory, ru, compress, multithreading, filesToPublish, packManagedDependencies, dependenciesToExclude, outputBitness, buildLogger);
             if (filesToPublish == null)
             {
                 ru.AddFile(dnaContentForPacking, "__MAIN__", ResourceHelper.TypeName.DNA, false, multithreading); // Name here must exactly match name in DnaLibrary.Initialize.
@@ -144,8 +144,12 @@ namespace ExcelDna.PackedResources
             return 0;
         }
 
-        static private byte[] PackDnaLibrary(byte[] dnaContent, string dnaDirectory, ResourceHelper.ResourceUpdater ru, bool compress, bool multithreading, List<string> filesToPublish, IBuildLogger buildLogger)
+        static private byte[] PackDnaLibrary(string dnaPath, byte[] dnaContent, string dnaDirectory, ResourceHelper.ResourceUpdater ru, bool compress, bool multithreading, List<string> filesToPublish, bool packManagedDependencies, string[] dependenciesToExcludeParam, string outputBitness, IBuildLogger buildLogger)
         {
+            List<string> dependenciesToExclude = new List<string>();
+            if (dependenciesToExcludeParam != null)
+                dependenciesToExclude.AddRange(dependenciesToExcludeParam);
+
             string errorMessage;
             DnaLibrary dna = DnaLibrary.LoadFrom(dnaContent, dnaDirectory);
             if (dna == null)
@@ -175,7 +179,7 @@ namespace ExcelDna.PackedResources
                         if (Path.GetExtension(path).Equals(".DNA", StringComparison.OrdinalIgnoreCase))
                         {
                             string name = Path.GetFileNameWithoutExtension(path).ToUpperInvariant() + "_" + lastPackIndex++ + ".DNA";
-                            byte[] dnaContentForPacking = PackDnaLibrary(File.ReadAllBytes(path), Path.GetDirectoryName(path), ru, compress, multithreading, filesToPublish, buildLogger);
+                            byte[] dnaContentForPacking = PackDnaLibrary(path, File.ReadAllBytes(path), Path.GetDirectoryName(path), ru, compress, multithreading, filesToPublish, false, null, outputBitness, buildLogger);
                             if (filesToPublish == null)
                             {
                                 ru.AddFile(dnaContentForPacking, name, ResourceHelper.TypeName.DNA, compress, multithreading);
@@ -195,6 +199,7 @@ namespace ExcelDna.PackedResources
                                 {
                                     ext.Path = "packed:" + packedName;
                                 }
+                                dependenciesToExclude.Add(Path.GetFileName(path));
                             }
                             else
                             {
@@ -352,6 +357,7 @@ namespace ExcelDna.PackedResources
                         {
                             rf.Path = "packed:" + packedName;
                         }
+                        dependenciesToExclude.Add(Path.GetFileName(path));
                     }
                     else
                     {
@@ -413,6 +419,17 @@ namespace ExcelDna.PackedResources
                 }
             }
 
+            if (packManagedDependencies && filesToPublish == null)
+            {
+                foreach (string assembly in FindManagedDeps(dnaPath, outputBitness))
+                {
+                    if (dependenciesToExclude.Contains(Path.GetFileName(assembly), StringComparer.OrdinalIgnoreCase))
+                        continue;
+
+                    ru.AddAssembly(assembly, compress, multithreading, false);
+                }
+            }
+
             return DnaLibrary.Save(dna);
         }
 
@@ -420,27 +437,45 @@ namespace ExcelDna.PackedResources
         {
             List<string> result = new List<string>();
 #if DEPCONTEXTJSONREADER
-            string depsJsonPath = Path.ChangeExtension(dnaPath, "deps.json");
-            if (!File.Exists(depsJsonPath))
-                return result;
-
-            var reader = new Microsoft.Extensions.DependencyModel.DependencyContextJsonReader();
-            Microsoft.Extensions.DependencyModel.DependencyContext dc = reader.Read(new FileStream(depsJsonPath, FileMode.Open));
-
             string basePath = Path.GetDirectoryName(dnaPath);
-            foreach (Microsoft.Extensions.DependencyModel.RuntimeLibrary library in dc.RuntimeLibraries)
+            foreach (Microsoft.Extensions.DependencyModel.RuntimeAssetGroup asset in FindDepsAssets(dnaPath))
             {
-                foreach (Microsoft.Extensions.DependencyModel.RuntimeAssetGroup asset in library.RuntimeAssemblyGroups.Concat(library.NativeLibraryGroups))
+                if (!MatchArchitecture(asset.Runtime, outputBitness))
+                    continue;
+
+                foreach (var path in asset.AssetPaths)
                 {
-                    if (!MatchArchitecture(asset.Runtime, outputBitness))
+                    string fullPath = Path.Combine(basePath, path);
+                    if (File.Exists(fullPath) && IsNativeLibrary(fullPath))
+                        result.Add(fullPath);
+                }
+            }
+#endif
+            return result;
+        }
+
+        static private List<string> FindManagedDeps(string dnaPath, string outputBitness)
+        {
+            List<string> result = new List<string>();
+#if DEPCONTEXTJSONREADER
+            string basePath = Path.GetDirectoryName(dnaPath);
+
+            var assets = FindDepsAssets(dnaPath);
+            assets.RemoveAll(i => i.Runtime.Length > 0 && !MatchArchitecture(i.Runtime, outputBitness));
+
+            foreach (Microsoft.Extensions.DependencyModel.RuntimeAssetGroup asset in assets)
+            {
+                foreach (var path in asset.AssetPaths)
+                {
+                    if (asset.Runtime.Length == 0 && FindAssetHavingRuntime(assets, Path.GetFileName(path)))
                         continue;
 
-                    foreach (var path in asset.AssetPaths)
-                    {
-                        string fullPath = Path.Combine(basePath, path);
-                        if (File.Exists(fullPath) && IsNativeLibrary(fullPath))
-                            result.Add(fullPath);
-                    }
+                    string fullPath = Path.Combine(basePath, path);
+                    if (!File.Exists(fullPath))
+                        fullPath = Path.Combine(basePath, Path.GetFileName(path));
+
+                    if (File.Exists(fullPath) && IsManagedAssembly(fullPath))
+                        result.Add(fullPath);
                 }
             }
 #endif
@@ -448,6 +483,46 @@ namespace ExcelDna.PackedResources
         }
 
 #if DEPCONTEXTJSONREADER
+        static private bool FindAssetHavingRuntime(List<Microsoft.Extensions.DependencyModel.RuntimeAssetGroup> assets, string fileName)
+        {
+            foreach (Microsoft.Extensions.DependencyModel.RuntimeAssetGroup asset in assets)
+            {
+                if (asset.Runtime.Length == 0)
+                    continue;
+
+                foreach (var path in asset.AssetPaths)
+                {
+                    if (string.Compare(fileName, Path.GetFileName(path), StringComparison.OrdinalIgnoreCase) == 0)
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        static private List<Microsoft.Extensions.DependencyModel.RuntimeAssetGroup> FindDepsAssets(string dnaPath)
+        {
+            var result = new List<Microsoft.Extensions.DependencyModel.RuntimeAssetGroup>();
+            string depsJsonPath = Path.ChangeExtension(dnaPath, "deps.json");
+            if (!File.Exists(depsJsonPath))
+                return result;
+
+            var reader = new Microsoft.Extensions.DependencyModel.DependencyContextJsonReader();
+            using (FileStream depsStream = new FileStream(depsJsonPath, FileMode.Open))
+            {
+                Microsoft.Extensions.DependencyModel.DependencyContext dc = reader.Read(depsStream);
+                foreach (Microsoft.Extensions.DependencyModel.RuntimeLibrary library in dc.RuntimeLibraries)
+                {
+                    foreach (Microsoft.Extensions.DependencyModel.RuntimeAssetGroup asset in library.RuntimeAssemblyGroups.Concat(library.NativeLibraryGroups))
+                    {
+                        result.Add(asset);
+                    }
+                }
+            }
+
+            return result;
+        }
+
         static private bool MatchArchitecture(string runtimeID, string requiredBitness)
         {
             if (!runtimeID.StartsWith("win"))
@@ -472,6 +547,12 @@ namespace ExcelDna.PackedResources
                 return false;
 
             return isPE;
+        }
+
+        static private bool IsManagedAssembly(string path)
+        {
+            bool isPE;
+            return IsAssembly(path, out isPE);
         }
 
         static private bool IsAssembly(string path, out bool isPE)
