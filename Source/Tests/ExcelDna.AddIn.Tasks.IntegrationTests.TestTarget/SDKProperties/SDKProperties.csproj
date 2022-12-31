@@ -97,6 +97,10 @@
     <!-- Default value: false -->
     <ExcelDnaPackNativeLibraryDependencies></ExcelDnaPackNativeLibraryDependencies>
 
+    <!-- Enables packing managed assemblies from .deps.json. -->
+    <!-- Default value: false -->
+    <ExcelDnaPackManagedDependencies></ExcelDnaPackManagedDependencies>
+
     <!-- Semicolon separated file names list to not pack from .deps.json. -->
     <!-- Default value: empty -->
     <ExcelDnaPackExcludeDependencies></ExcelDnaPackExcludeDependencies>
