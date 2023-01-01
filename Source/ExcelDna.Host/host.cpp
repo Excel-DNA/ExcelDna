@@ -120,7 +120,7 @@ int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExpor
 	const char_t* dotnet_type_method = L"Initialize";
 
 	// Function pointer to managed delegate with non-default signature
-	typedef short (CORECLR_DELEGATE_CALLTYPE* xladdin_initialize_fn)(void* xlAddInExportInfo, void* hModuleXLL, void* pPathXLL, BYTE disableAssemblyContextUnload);
+	typedef short (CORECLR_DELEGATE_CALLTYPE* xladdin_initialize_fn)(void* xlAddInExportInfo, void* hModuleXLL, void* pPathXLL, BYTE disableAssemblyContextUnload, void* pTempDirPath);
 	xladdin_initialize_fn init = nullptr;
 	rc = load_assembly_and_get_function_pointer(
 		dotnetlib_path.c_str(),
@@ -136,7 +136,8 @@ int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExpor
 	if (FAILED(hr))
 		disableAssemblyContextUnload = false;
 
-	short res = init(pExportInfo, hModuleXll, (void*)pathXll, disableAssemblyContextUnload);
+	std::wstring tempDirPath = tempDir.GetPath();
+	short res = init(pExportInfo, hModuleXll, (void*)pathXll, disableAssemblyContextUnload, (void*)tempDirPath.c_str());
 
 	return res == 0 ? EXIT_FAILURE : EXIT_SUCCESS;
 }

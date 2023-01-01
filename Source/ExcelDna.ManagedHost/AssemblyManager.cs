@@ -20,14 +20,14 @@ namespace ExcelDna.ManagedHost
         static IntPtr hModule;
         static string pathXll;
         static Dictionary<string, Assembly> loadedAssemblies = new Dictionary<string, Assembly>();
-        static TempDir tempDirForNativeLibraries;
 #if NETCOREAPP
         static ExcelDnaAssemblyLoadContext alc;
+        static string tempDirPath;
 #endif
 
         internal static void Initialize(IntPtr hModule, string pathXll
 #if NETCOREAPP
-            , ExcelDnaAssemblyLoadContext alc
+            , ExcelDnaAssemblyLoadContext alc, string tempDirPath
 #endif
             )
         {
@@ -35,6 +35,7 @@ namespace ExcelDna.ManagedHost
             AssemblyManager.pathXll = pathXll;
 #if NETCOREAPP
             AssemblyManager.alc = alc;
+            AssemblyManager.tempDirPath = tempDirPath;
 #endif
             if (!loadedAssemblies.ContainsKey(Assembly.GetExecutingAssembly().FullName))
                 loadedAssemblies.Add(Assembly.GetExecutingAssembly().FullName, Assembly.GetExecutingAssembly());
@@ -45,7 +46,6 @@ namespace ExcelDna.ManagedHost
         {
             loadedAssemblies.Clear();
             alc = null;
-            tempDirForNativeLibraries = null;
         }
 #endif
 
@@ -135,16 +135,18 @@ namespace ExcelDna.ManagedHost
         [MethodImpl(MethodImplOptions.Synchronized)]
         internal static string NativeLibraryResolve(string unmanagedDllName)
         {
+#if NETCOREAPP
             byte[] dllBytes = GetResourceBytes(unmanagedDllName.ToUpperInvariant(), 5);
             if (dllBytes == null)
                 return null;
 
-            if (tempDirForNativeLibraries == null)
-                tempDirForNativeLibraries = new TempDir("ExcelDna.ManagedHost.NativeLibraries");
-
-            string dllPath = Path.Combine(tempDirForNativeLibraries.GetPath(), unmanagedDllName);
-            File.WriteAllBytes(dllPath, dllBytes);
+            string dllPath = Path.Combine(tempDirPath, unmanagedDllName);
+            if (!File.Exists(dllPath))
+                File.WriteAllBytes(dllPath, dllBytes);
             return dllPath;
+#else
+            return null;
+#endif
         }
 
         internal static Assembly LoadFromAssemblyPath(string assemblyPath)
