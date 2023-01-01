@@ -1,6 +1,7 @@
 ﻿using ExcelDna.Loader;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -42,7 +43,7 @@ namespace ExcelDna.ManagedHost
             string pathXll = Marshal.PtrToStringUni((IntPtr)pPathXLL);
             string tempDirPath = Marshal.PtrToStringUni((IntPtr)pTempDirPath);
             _alc = new ExcelDnaAssemblyLoadContext(pathXll, disableAssemblyContextUnload == 0);
-            AssemblyManager.Initialize((IntPtr)hModuleXll, pathXll, _alc, tempDirPath);
+            AssemblyManager.Initialize((IntPtr)hModuleXll, pathXll, _alc, Path.Combine(tempDirPath, "ExcelDna.ManagedHost"));
             var loaderAssembly = _alc.LoadFromAssemblyName(new AssemblyName("ExcelDna.Loader"));
             var xlAddInType = loaderAssembly.GetType("ExcelDna.Loader.XlAddIn");
             var initOK = (bool)xlAddInType.InvokeMember("Initialize", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null,

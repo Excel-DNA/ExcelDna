@@ -142,7 +142,10 @@ namespace ExcelDna.ManagedHost
 
             string dllPath = Path.Combine(tempDirPath, unmanagedDllName);
             if (!File.Exists(dllPath))
+            {
+                Directory.CreateDirectory(tempDirPath);
                 File.WriteAllBytes(dllPath, dllBytes);
+            }
             return dllPath;
 #else
             return null;
