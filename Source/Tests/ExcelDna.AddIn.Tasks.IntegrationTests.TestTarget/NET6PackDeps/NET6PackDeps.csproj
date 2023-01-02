@@ -5,8 +5,8 @@
     <UseWindowsForms>True</UseWindowsForms>
     
     <EnableDynamicLoading>true</EnableDynamicLoading>
-    <ExcelAddInInclude>runtimes/win/lib/net6.0/System.Management.dll;System.Data.SQLite.dll</ExcelAddInInclude>
     <ExcelDnaPackNativeLibraryDependencies>true</ExcelDnaPackNativeLibraryDependencies>
+    <ExcelDnaPackManagedDependencies>true</ExcelDnaPackManagedDependencies>
   </PropertyGroup>
 
   <ItemGroup>
