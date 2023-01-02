@@ -22,11 +22,12 @@ namespace ExcelDna.ManagedHost
         static Dictionary<string, Assembly> loadedAssemblies = new Dictionary<string, Assembly>();
 #if NETCOREAPP
         static ExcelDnaAssemblyLoadContext alc;
+        static string tempDirPath;
 #endif
 
         internal static void Initialize(IntPtr hModule, string pathXll
 #if NETCOREAPP
-            , ExcelDnaAssemblyLoadContext alc
+            , ExcelDnaAssemblyLoadContext alc, string tempDirPath
 #endif
             )
         {
@@ -34,6 +35,7 @@ namespace ExcelDna.ManagedHost
             AssemblyManager.pathXll = pathXll;
 #if NETCOREAPP
             AssemblyManager.alc = alc;
+            AssemblyManager.tempDirPath = tempDirPath;
 #endif
             if (!loadedAssemblies.ContainsKey(Assembly.GetExecutingAssembly().FullName))
                 loadedAssemblies.Add(Assembly.GetExecutingAssembly().FullName, Assembly.GetExecutingAssembly());
@@ -130,6 +132,26 @@ namespace ExcelDna.ManagedHost
             return null;
         }
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        internal static string NativeLibraryResolve(string unmanagedDllName)
+        {
+#if NETCOREAPP
+            byte[] dllBytes = GetResourceBytes(unmanagedDllName.ToUpperInvariant(), 5);
+            if (dllBytes == null)
+                return null;
+
+            string dllPath = Path.Combine(tempDirPath, unmanagedDllName);
+            if (!File.Exists(dllPath))
+            {
+                Directory.CreateDirectory(tempDirPath);
+                File.WriteAllBytes(dllPath, dllBytes);
+            }
+            return dllPath;
+#else
+            return null;
+#endif
+        }
+
         internal static Assembly LoadFromAssemblyPath(string assemblyPath)
         {
 #if NETCOREAPP
@@ -149,12 +171,16 @@ namespace ExcelDna.ManagedHost
         }
 
         // TODO: This method probably should not be here.
-        internal static byte[] GetResourceBytes(string resourceName, int type) // types: 0 - Assembly, 1 - Dna file, 2 - Image
+        internal static byte[] GetResourceBytes(string resourceName, int type)
         {
             // CAREFUL: Can't log here yet as this method is called during Integration.Initialize()
             // Logger.Initialization.Info("GetResourceBytes for resource {0} of type {1}", resourceName, type);
             string typeName;
-            if (type == 0)
+            if (type == -1)
+            {
+                typeName = "CONFIG";
+            }
+            else if (type == 0)
             {
                 typeName = "ASSEMBLY";
             }
@@ -174,9 +200,13 @@ namespace ExcelDna.ManagedHost
             {
                 typeName = "PDB";
             }
+            else if (type == 5)
+            {
+                typeName = "NATIVE_LIBRARY";
+            }
             else
             {
-                throw new ArgumentOutOfRangeException("type", "Unknown resource type. Only types 0 (Assembly), 1 (Dna file), 2 (Image) or 3 (Source) are valid.");
+                throw new ArgumentOutOfRangeException("type", "Unknown resource type.");
             }
             return ResourceHelper.ResourceUpdater.LoadResourceBytes(hModule, typeName, resourceName);
         }

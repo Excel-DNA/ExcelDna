@@ -93,6 +93,18 @@
     <!-- Default value: false -->
     <ExcelDnaPackManagedResourcePackingOnWindows></ExcelDnaPackManagedResourcePackingOnWindows>
 
+    <!-- Enables packing native libraries from .deps.json. -->
+    <!-- Default value: false -->
+    <ExcelDnaPackNativeLibraryDependencies></ExcelDnaPackNativeLibraryDependencies>
+
+    <!-- Enables packing managed assemblies from .deps.json. -->
+    <!-- Default value: false -->
+    <ExcelDnaPackManagedDependencies></ExcelDnaPackManagedDependencies>
+
+    <!-- Semicolon separated file names list to not pack from .deps.json. -->
+    <!-- Default value: empty -->
+    <ExcelDnaPackExcludeDependencies></ExcelDnaPackExcludeDependencies>
+
     <!-- EXCEL.EXE path for debugging. -->
     <!-- Default value: auto detect -->
     <ExcelDnaExcelExePath></ExcelDnaExcelExePath>

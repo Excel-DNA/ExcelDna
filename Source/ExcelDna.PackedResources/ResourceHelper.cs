@@ -24,6 +24,7 @@ internal static class ResourceHelper
         IMAGE = 2,
         SOURCE = 3,
         PDB = 4,
+        NATIVE_LIBRARY = 5,
     }
 
     // TODO: Learn about locales
@@ -127,17 +128,17 @@ internal static class ResourceHelper
             resourceResolver.Begin(fileName);
         }
 
-        private void CompressDoUpdateHelper(byte[] content, string name, TypeName typeName, bool compress)
+        private void CompressDoUpdateHelper(byte[] content, string name, TypeName typeName, string source, bool compress)
         {
             if (compress)
             {
                 content = SevenZipHelper.Compress(content);
             }
 
-            DoUpdateResource(typeName.ToString() + (compress ? "_LZMA" : ""), name, content);
+            DoUpdateResource(typeName.ToString() + (compress ? "_LZMA" : ""), name, source, content);
         }
 
-        public string AddFile(byte[] content, string name, TypeName typeName, bool compress, bool multithreading)
+        public string AddFile(byte[] content, string name, TypeName typeName, string source, bool compress, bool multithreading)
         {
             Debug.Assert(name == name.ToUpperInvariant());
 
@@ -147,20 +148,20 @@ internal static class ResourceHelper
                 finishedTask.Enqueue(mre);
                 ThreadPool.QueueUserWorkItem(delegate
                 {
-                    CompressDoUpdateHelper(content, name, typeName, compress);
+                    CompressDoUpdateHelper(content, name, typeName, source, compress);
                     mre.Set();
                 }
                 );
             }
             else
             {
-                CompressDoUpdateHelper(content, name, typeName, compress);
+                CompressDoUpdateHelper(content, name, typeName, source, compress);
             }
 
             return name;
         }
 
-        public string AddAssembly(string path, bool compress, bool multithreading, bool includePdb)
+        public string AddAssembly(string path, string source, bool compress, bool multithreading, bool includePdb)
         {
             try
             {
@@ -178,13 +179,13 @@ internal static class ResourceHelper
                     name += "." + cultureInfo.Name.ToUpperInvariant();
                 }
 
-                AddFile(assemblyBytes, name, TypeName.ASSEMBLY, compress, multithreading);
+                AddFile(assemblyBytes, name, TypeName.ASSEMBLY, source, compress, multithreading);
 
                 string pdbFile = Path.ChangeExtension(path, "pdb");
                 if (includePdb && File.Exists(pdbFile))
                 {
                     byte[] pdbBytes = File.ReadAllBytes(pdbFile);
-                    AddFile(pdbBytes, name, TypeName.PDB, compress, multithreading);
+                    AddFile(pdbBytes, name, TypeName.PDB, source, compress, multithreading);
                 }
 
                 return name;
@@ -217,11 +218,12 @@ internal static class ResourceHelper
             return typelibIndex;
         }
 
-        public void DoUpdateResource(string typeName, string name, byte[] data)
+        public void DoUpdateResource(string typeName, string name, string source, byte[] data)
         {
             lock (lockResource)
             {
-                buildLogger.Information("  ->  Updating resource: Type: {0}, Name: {1}, Length: {2}", typeName, name, data.Length);
+                string sourceInfo = (source != null) ? $" Source: {source}," : null;
+                buildLogger.Information($"  ->  Updating resource: Type: {typeName}, Name: {name},{sourceInfo} Length: {data.Length}");
 
                 bool result = resourceResolver.Update(typeName, name, localeNeutral, data);
                 if (!result)

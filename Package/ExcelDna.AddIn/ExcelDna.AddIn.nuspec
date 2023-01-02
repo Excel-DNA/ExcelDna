@@ -42,6 +42,7 @@
         <file src="tools\net452\ExcelDna.AddIn.Tasks.dll" target="tools\net452\ExcelDna.AddIn.Tasks.dll" />
         <file src="tools\net452\EnvDTE.dll" target="tools\net452\EnvDTE.dll" />
         <file src="tools\net452\Newtonsoft.Json.dll" target="tools\net452\Newtonsoft.Json.dll" />
+        <file src="tools\net452\Microsoft.Extensions.DependencyModel.dll" target="tools\net452\Microsoft.Extensions.DependencyModel.dll" />
         <file src="tools\net6.0-windows\ExcelDna.AddIn.Tasks.dll" target="tools\net6.0-windows7.0\ExcelDna.AddIn.Tasks.dll" />
         <file src="tools\net6.0-windows\AsmResolver.dll" target="tools\net6.0-windows7.0\AsmResolver.dll" />
         <file src="tools\net6.0-windows\AsmResolver.PE.dll" target="tools\net6.0-windows7.0\AsmResolver.PE.dll" />

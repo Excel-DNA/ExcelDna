@@ -251,8 +251,12 @@
 	<PackExcelAddIn
 		OutputDnaFileName="%(ExcelDnaFilesToPack.OutputDnaFileName)"
 		OutputPackedXllFileName="%(ExcelDnaFilesToPack.OutputPackedXllFileName)"
+		OutputBitness="%(ExcelDnaFilesToPack.OutputBitness)"
 		CompressResources="$(ExcelDnaPackCompressResources)"
 		RunMultithreaded="$(ExcelDnaPackRunMultithreaded)"
+		PackNativeLibraryDependencies="$(ExcelDnaPackNativeLibraryDependencies)"
+		PackManagedDependencies="$(ExcelDnaPackManagedDependencies)"
+		ExcludeDependencies="$(ExcelDnaPackExcludeDependencies)"
 		PackManagedOnWindows="$(ExcelDnaPackManagedResourcePackingOnWindows)"
 		SignTool="$(ExcelAddInSignTool)"
 		SignOptions="$(ExcelAddInSignOptions)">

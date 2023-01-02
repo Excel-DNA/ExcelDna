@@ -176,7 +176,9 @@ namespace ExcelDna.AddIn.Tasks
                     // Copy .config file to build output folder for 32-bit (if exist)
                     TryCopyConfigFileToOutput(item.InputConfigFileNameAs32Bit, item.InputConfigFileNameFallbackAs32Bit, item.OutputConfigFileNameAs32Bit);
 
-                    AddDnaToListOfFilesToPack(item.OutputDnaFileNameAs32Bit, item.OutputXllFileNameAs32Bit, item.OutputConfigFileNameAs32Bit, Packed32BitXllName);
+                    TryCopyDepsJsonToBuildOutput(item.OutputDnaFileNameAs32Bit);
+
+                    AddDnaToListOfFilesToPack(item.OutputDnaFileNameAs32Bit, item.OutputXllFileNameAs32Bit, item.OutputConfigFileNameAs32Bit, Packed32BitXllName, "32");
 
                     if (UnpackIsEnabled)
                         PublishUnpackedAddin(item.OutputDnaFileNameAs32Bit, item.OutputXllFileNameAs32Bit);
@@ -204,7 +206,9 @@ namespace ExcelDna.AddIn.Tasks
                     // Copy .config file to build output folder for 64-bit (if exist)
                     TryCopyConfigFileToOutput(item.InputConfigFileNameAs64Bit, item.InputConfigFileNameFallbackAs64Bit, item.OutputConfigFileNameAs64Bit);
 
-                    AddDnaToListOfFilesToPack(item.OutputDnaFileNameAs64Bit, item.OutputXllFileNameAs64Bit, item.OutputConfigFileNameAs64Bit, Packed64BitXllName);
+                    TryCopyDepsJsonToBuildOutput(item.OutputDnaFileNameAs64Bit);
+
+                    AddDnaToListOfFilesToPack(item.OutputDnaFileNameAs64Bit, item.OutputXllFileNameAs64Bit, item.OutputConfigFileNameAs64Bit, Packed64BitXllName, "64");
 
                     if (UnpackIsEnabled)
                         PublishUnpackedAddin(item.OutputDnaFileNameAs64Bit, item.OutputXllFileNameAs64Bit);
@@ -277,6 +281,24 @@ namespace ExcelDna.AddIn.Tasks
             return null;
         }
 
+        private void TryCopyDepsJsonToBuildOutput(string outputDnaPath)
+        {
+            Integration.DnaLibrary dna = Integration.DnaLibrary.LoadFrom(File.ReadAllBytes(outputDnaPath), Path.GetDirectoryName(outputDnaPath));
+            if (dna == null || dna.ExternalLibraries == null)
+                return;
+
+            foreach (Integration.ExternalLibrary ext in dna.ExternalLibraries)
+            {
+                string src = dna.ResolvePath(Path.ChangeExtension(ext.Path, "deps.json"));
+                if (File.Exists(src))
+                {
+                    string dst = Path.ChangeExtension(outputDnaPath, "deps.json");
+                    CopyFileToBuildOutput(src, dst, overwrite: true);
+                    return;
+                }
+            }
+        }
+
         private void CopyFileToBuildOutput(string sourceFile, string destinationFile, bool overwrite)
         {
             _log.Information(_fileSystem.GetRelativePath(sourceFile) + " -> " + _fileSystem.GetRelativePath(destinationFile));
@@ -303,7 +325,7 @@ namespace ExcelDna.AddIn.Tasks
             _fileSystem.WriteFile(sourceFileText, destinationFile);
         }
 
-        private void AddDnaToListOfFilesToPack(string outputDnaFileName, string outputXllFileName, string outputXllConfigFileName, string packedFileName)
+        private void AddDnaToListOfFilesToPack(string outputDnaFileName, string outputXllFileName, string outputXllConfigFileName, string packedFileName, string outputBitness)
         {
             if (!PackIsEnabled)
             {
@@ -317,6 +339,7 @@ namespace ExcelDna.AddIn.Tasks
                 {"OutputDnaFileName", outputDnaFileName},
                 {"OutputPackedXllFileName", outputPackedXllFileName},
                 {"OutputXllConfigFileName", outputXllConfigFileName },
+                {"OutputBitness", outputBitness },
             };
 
             _dnaFilesToPack.Add(new TaskItem(outputDnaFileName, metadata));
@@ -371,7 +394,7 @@ namespace ExcelDna.AddIn.Tasks
                 return;
 
             List<string> filesToPublish = new List<string>();
-            int result = PackedResources.ExcelDnaPack.Pack(dnaPath, null, false, false, false, null, filesToPublish, false, _log);
+            int result = PackedResources.ExcelDnaPack.Pack(dnaPath, null, false, false, false, null, filesToPublish, false, false, null, false, null, _log);
             if (result != 0)
                 throw new ApplicationException($"Pack failed with exit code {result}.");
             foreach (string file in filesToPublish)
@@ -396,7 +419,7 @@ namespace ExcelDna.AddIn.Tasks
                 return;
 
             ResourceHelper.ResourceUpdater ru = new ResourceHelper.ResourceUpdater(Path.Combine(Directory.GetCurrentDirectory(), xllPath), false, _log);
-            ru.AddFile(data, name, typeName, false, false);
+            ru.AddFile(data, name, typeName, null, false, false);
             ru.RemoveResource(compressedTypeName, name);
             ru.EndUpdate();
         }
