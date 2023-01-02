@@ -1,6 +1,7 @@
 ﻿using ExcelDna.Loader;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -34,14 +35,15 @@ namespace ExcelDna.ManagedHost
         static ExcelDnaAssemblyLoadContext _alc;
 
         [UnmanagedCallersOnly]
-        public static short Initialize(void* xlAddInExportInfoAddress, void* hModuleXll, void* pPathXLL, byte disableAssemblyContextUnload)
+        public static short Initialize(void* xlAddInExportInfoAddress, void* hModuleXll, void* pPathXLL, byte disableAssemblyContextUnload, void* pTempDirPath)
         {
             UnloadALC();
             ProcessStartupHooks();
 
             string pathXll = Marshal.PtrToStringUni((IntPtr)pPathXLL);
+            string tempDirPath = Marshal.PtrToStringUni((IntPtr)pTempDirPath);
             _alc = new ExcelDnaAssemblyLoadContext(pathXll, disableAssemblyContextUnload == 0);
-            AssemblyManager.Initialize((IntPtr)hModuleXll, pathXll, _alc);
+            AssemblyManager.Initialize((IntPtr)hModuleXll, pathXll, _alc, Path.Combine(tempDirPath, "ExcelDna.ManagedHost"));
             var loaderAssembly = _alc.LoadFromAssemblyName(new AssemblyName("ExcelDna.Loader"));
             var xlAddInType = loaderAssembly.GetType("ExcelDna.Loader.XlAddIn");
             var initOK = (bool)xlAddInType.InvokeMember("Initialize", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null,
