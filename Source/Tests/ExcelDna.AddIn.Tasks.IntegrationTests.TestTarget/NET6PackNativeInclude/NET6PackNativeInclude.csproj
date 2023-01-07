@@ -6,7 +6,7 @@
 
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <ExcelDnaPackNativeLibraryDependencies>false</ExcelDnaPackNativeLibraryDependencies>
-    <!--<ExcelAddInInclude>MyNativeLibrary.dll</ExcelAddInInclude>-->
+    <ExcelAddInInclude>MyNativeLibrary.dll</ExcelAddInInclude>
   </PropertyGroup>
 
   <ItemGroup>

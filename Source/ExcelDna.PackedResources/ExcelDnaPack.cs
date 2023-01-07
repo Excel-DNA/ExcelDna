@@ -352,10 +352,21 @@ namespace ExcelDna.PackedResources
                     // It worked!
                     if (filesToPublish == null)
                     {
-                        string packedName = ru.AddAssembly(path, null, compress, multithreading, rf.IncludePdb);
-                        if (packedName != null)
+                        bool isNativeLibrary = false;
+#if PACKEXTENDEDDEPS
+                        isNativeLibrary = IsNativeLibrary(path);
+#endif
+                        if (isNativeLibrary)
                         {
-                            rf.Path = "packed:" + packedName;
+                            ru.AddFile(File.ReadAllBytes(path), Path.GetFileName(path).ToUpperInvariant(), ResourceHelper.TypeName.NATIVE_LIBRARY, null, compress, multithreading);
+                        }
+                        else
+                        {
+                            string packedName = ru.AddAssembly(path, null, compress, multithreading, rf.IncludePdb);
+                            if (packedName != null)
+                            {
+                                rf.Path = "packed:" + packedName;
+                            }
                         }
                         dependenciesToExclude.Add(Path.GetFileName(path));
                     }
@@ -436,7 +447,7 @@ namespace ExcelDna.PackedResources
         static private List<string> FindNativeLibrariesDeps(string dnaPath, string outputBitness)
         {
             List<string> result = new List<string>();
-#if DEPCONTEXTJSONREADER
+#if PACKEXTENDEDDEPS
             string basePath = Path.GetDirectoryName(dnaPath);
             foreach (Microsoft.Extensions.DependencyModel.RuntimeAssetGroup asset in FindDepsAssets(dnaPath))
             {
@@ -457,7 +468,7 @@ namespace ExcelDna.PackedResources
         static private List<string> FindManagedDeps(string dnaPath, string outputBitness)
         {
             List<string> result = new List<string>();
-#if DEPCONTEXTJSONREADER
+#if PACKEXTENDEDDEPS
             string basePath = Path.GetDirectoryName(dnaPath);
 
             var assets = FindDepsAssets(dnaPath);
@@ -482,7 +493,7 @@ namespace ExcelDna.PackedResources
             return result;
         }
 
-#if DEPCONTEXTJSONREADER
+#if PACKEXTENDEDDEPS
         static private bool FindAssetHavingRuntime(List<Microsoft.Extensions.DependencyModel.RuntimeAssetGroup> assets, string fileName)
         {
             foreach (Microsoft.Extensions.DependencyModel.RuntimeAssetGroup asset in assets)
