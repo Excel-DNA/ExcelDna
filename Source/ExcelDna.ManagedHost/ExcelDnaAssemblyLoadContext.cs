@@ -51,6 +51,9 @@ namespace ExcelDna.ManagedHost
                 libraryPath = _resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
 
             if (libraryPath == null)
+                libraryPath = ResolveDllFromBaseDirectory(unmanagedDllName);
+
+            if (libraryPath == null)
                 libraryPath = AssemblyManager.NativeLibraryResolve(unmanagedDllName);
 
             unmanagedDllsResolutionCache[unmanagedDllName] = libraryPath;
@@ -88,6 +91,15 @@ namespace ExcelDna.ManagedHost
             {
                 return LoadFromStream(new MemoryStream(assemblyBytes), new MemoryStream(pdbBytes));
             }
+        }
+
+        private string ResolveDllFromBaseDirectory(string dllName)
+        {
+            string result = Path.Combine(Path.GetDirectoryName(_basePath), dllName);
+            if (File.Exists(result))
+                return result;
+
+            return null;
         }
     }
 }
