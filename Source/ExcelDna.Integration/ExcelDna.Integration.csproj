@@ -6,7 +6,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>CS1591</NoWarn>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
     
     <AssemblyTitle>Excel-DNA Integration Library</AssemblyTitle>
     <Description>Integration library for Excel-DNA</Description>
