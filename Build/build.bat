@@ -7,7 +7,9 @@ copy /Y ..\Source\ExcelDna.Host\bin\Release\x86\ExcelDna.Host.x86.xll ..\Distrib
 copy /Y ..\Source\ExcelDna.Host\bin\Release\x64\ExcelDna.Host.x64.xll ..\Distribution\net6.0-windows\ExcelDna64.xll
 
 copy /Y ..\Source\ExcelDna.Integration\bin\Release\net452\ExcelDna.Integration.dll ..\Distribution\net452\
+copy /Y ..\Source\ExcelDna.Integration\bin\Release\net452\ExcelDna.Integration.xml ..\Distribution\net452\
 copy /Y ..\Source\ExcelDna.Integration\bin\Release\net6.0-windows\ExcelDna.Integration.dll ..\Distribution\net6.0-windows\
+copy /Y ..\Source\ExcelDna.Integration\bin\Release\net6.0-windows\ExcelDna.Integration.xml ..\Distribution\net6.0-windows\
 
 copy /Y ..\Source\ExcelDnaPack\bin\Release\net452\ExcelDnaPack.exe ..\Distribution\net452\
 copy /Y ..\Source\ExcelDnaPack\bin\Release\net452\ExcelDnaPack.exe.config ..\Distribution\net452\
