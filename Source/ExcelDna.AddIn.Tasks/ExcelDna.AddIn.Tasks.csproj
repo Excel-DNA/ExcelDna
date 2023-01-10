@@ -18,11 +18,11 @@
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net462' ">
-    <DefineConstants>$(DefineConstants);DEPCONTEXTJSONREADER</DefineConstants>
+    <DefineConstants>$(DefineConstants);PACKEXTENDEDDEPS</DefineConstants>
   </PropertyGroup>
   
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net6.0-windows' ">
-    <DefineConstants>$(DefineConstants);ASMRESOLVER;DEPCONTEXTJSONREADER</DefineConstants>
+    <DefineConstants>$(DefineConstants);ASMRESOLVER;PACKEXTENDEDDEPS</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
