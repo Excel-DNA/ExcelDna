@@ -4,7 +4,10 @@
     
     <TargetFrameworks>net452;net6.0-windows</TargetFrameworks>
     <UseWindowsForms>true</UseWindowsForms>
-
+    
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    
     <AssemblyTitle>Excel-DNA Integration Library</AssemblyTitle>
     <Description>Integration library for Excel-DNA</Description>
 
