@@ -18,7 +18,7 @@ nuget.exe pack "%basePath%\ExcelDna.Templates\ExcelDna.Templates.nuspec" -BasePa
 nuget.exe pack "%basePath%\ExcelDna.AddIn\ExcelDna.AddIn.nuspec" -BasePath "%basePath%\ExcelDna.AddIn" -OutputDirectory "%outputPath%" -Verbosity detailed -NonInteractive -Prop ExcelDnaVersion="%ExcelDnaVersion%"
 @if errorlevel 1 goto end
 
-nuget.exe pack "%basePath%\ExcelDna.Integration\ExcelDna.Integration.nuspec" -BasePath "%basePath%\ExcelDna.Integration" -OutputDirectory "%outputPath%" -Verbosity detailed -NonInteractive -Prop ExcelDnaVersion="%ExcelDnaVersion%"
+nuget.exe pack "%basePath%\ExcelDna.Integration\ExcelDna.Integration.nuspec" -BasePath "%basePath%\ExcelDna.Integration" -OutputDirectory "%outputPath%" -Verbosity detailed -NonInteractive -Prop ExcelDnaVersion="%ExcelDnaVersion%" -Symbols -SymbolPackageFormat snupkg
 @if errorlevel 1 goto end
 
 nuget.exe pack "%basePath%\ExcelDna.XmlSchemas\ExcelDna.XmlSchemas.nuspec" -BasePath "%basePath%\ExcelDna.XmlSchemas" -OutputDirectory "%outputPath%" -Verbosity detailed -NonInteractive

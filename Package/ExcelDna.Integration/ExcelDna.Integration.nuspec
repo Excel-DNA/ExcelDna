@@ -21,8 +21,10 @@
     <files>
         <file src="..\..\Distribution\net452\ExcelDna.Integration.dll" target="lib\net452\ExcelDna.Integration.dll" />
         <file src="..\..\Distribution\net452\ExcelDna.Integration.xml" target="lib\net452\ExcelDna.Integration.xml" />
+        <file src="..\..\Distribution\net452\ExcelDna.Integration.pdb" target="lib\net452\ExcelDna.Integration.pdb" />
         <file src="..\..\Distribution\net6.0-windows\ExcelDna.Integration.dll" target="lib\net6.0-windows7.0\ExcelDna.Integration.dll" />
         <file src="..\..\Distribution\net6.0-windows\ExcelDna.Integration.xml" target="lib\net6.0-windows7.0\ExcelDna.Integration.xml" />
+        <file src="..\..\Distribution\net6.0-windows\ExcelDna.Integration.pdb" target="lib\net6.0-windows7.0\ExcelDna.Integration.pdb" />
       <file src="..\images\ExcelDna-nu.png" target="images\" />
     </files>
 </package>
