@@ -581,8 +581,18 @@ namespace ExcelDna.Integration
         }
         #endregion
 
-        #region Version Helpers
-        // This version is used internally - it seems a bit safer than the API calls.
+        #region IsInFormualEditMode
+        public static bool IsInFormulaEditMode()
+        {
+            if (!IsMainThread)
+                throw new InvalidOperationException("IsInFormulaEditMode can only be called from the main thread.");
+
+            return RunMacroSynchronization.IsInFormulaEditMode();
+        }
+        #endregion
+
+            #region Version Helpers
+            // This version is used internally - it seems a bit safer than the API calls.
         private static FileVersionInfo _excelExecutableInfo = null;
         internal static FileVersionInfo ExcelExecutableInfo
         {
