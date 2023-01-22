@@ -9,6 +9,7 @@
         <projectUrl>http://excel-dna.net</projectUrl>
         <repository type="git" url="https://github.com/Excel-DNA/ExcelDna" />
         <icon>images\ExcelDna-nu.png</icon>
+        <license type="expression">Zlib</license>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>
           Excel-DNA eases the development of Excel add-ins using .NET.

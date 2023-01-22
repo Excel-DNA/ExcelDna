@@ -7,6 +7,7 @@
         <authors>Govert van Drimmelen</authors>
         <projectUrl>http://excel-dna.net</projectUrl>
         <icon>images\ExcelDna-nu.png</icon>
+        <license type="expression">MIT</license>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>Provides a local copy of the Primary Interop Assemblies from Microsoft Office: Microsoft.Office.Interop.Excel.dll, Office.dll, Microsoft.Vbe.Interop.dll.</description>
         <summary>Provides a selection of Excel Primary Interop Assemblies</summary>
