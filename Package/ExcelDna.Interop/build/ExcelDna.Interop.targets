@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Target Name="LinkExcelDnaInteropEmbeddableAssemblies" AfterTargets="ResolveReferences" BeforeTargets="FindReferenceAssembliesForReferences">
-    <ItemGroup>
+  <Target Name="LinkExcelDnaInteropEmbeddableAssemblies" AfterTargets="ResolveReferences" BeforeTargets="FindReferenceAssembliesForReferences" Condition="$(MSBuildProjectExtension)!='.fsproj'">
+		<ItemGroup>
       <ReferencePath Condition="
               '%(FileName)' == 'Microsoft.Office.Interop.Excel'
            or '%(FileName)' == 'Microsoft.Vbe.Interop'
@@ -10,7 +10,7 @@
         <EmbedInteropTypes>true</EmbedInteropTypes>
       </ReferencePath>
     </ItemGroup>
-    <ItemGroup>
+		<ItemGroup>
       <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' == 'ExcelDna.Interop'" />
     </ItemGroup>
   </Target>
