@@ -1,3 +1,0 @@
-<DnaLibrary RuntimeVersion="v4.0" Description="PackLib Test Add-In" Language="CS">
-	<ExternalLibrary Path="MyLib.dll" Pack="true" />
-</DnaLibrary>

@@ -1,6 +1,0 @@
-<DnaLibrary RuntimeVersion="v4.0" Name="PackDna">
-  <Project Language="C#">
-    <Reference Name="System.Windows.Forms" />
-    <SourceItem Path="TheSource.cs" Pack="true" />
-  </Project>
-</DnaLibrary>
