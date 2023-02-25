@@ -65,7 +65,7 @@
     <!-- Default value: none -->
     <ExcelDna32BitAddInSuffix></ExcelDna32BitAddInSuffix>
 
-    <!-- 64bit add-in name suffix. -->
+    <!-- 64bit add-in name suffix. Use %none% for no suffix. -->
     <!-- Default value: 64 -->
     <ExcelDna64BitAddInSuffix></ExcelDna64BitAddInSuffix>
 
@@ -94,11 +94,11 @@
     <ExcelDnaPackManagedResourcePackingOnWindows></ExcelDnaPackManagedResourcePackingOnWindows>
 
     <!-- Enables packing native libraries from .deps.json. -->
-    <!-- Default value: false -->
+    <!-- Default value: true -->
     <ExcelDnaPackNativeLibraryDependencies></ExcelDnaPackNativeLibraryDependencies>
 
     <!-- Enables packing managed assemblies from .deps.json. -->
-    <!-- Default value: false -->
+    <!-- Default value: true -->
     <ExcelDnaPackManagedDependencies></ExcelDnaPackManagedDependencies>
 
     <!-- Semicolon separated file names list to not pack from .deps.json. -->
