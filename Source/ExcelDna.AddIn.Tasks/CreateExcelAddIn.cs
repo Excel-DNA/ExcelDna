@@ -107,7 +107,7 @@ namespace ExcelDna.AddIn.Tasks
                 throw new InvalidOperationException("File does not exist (Xll64FilePath): " + Xll64FilePath);
             }
 
-            if (string.Equals(FileSuffix32Bit, FileSuffix64Bit, StringComparison.OrdinalIgnoreCase))
+            if (Create32BitAddIn && Create64BitAddIn && string.Equals(FileSuffix32Bit, FileSuffix64Bit, StringComparison.OrdinalIgnoreCase))
             {
                 throw new InvalidOperationException("32-bit add-in suffix and 64-bit add-in suffix cannot be identical");
             }
@@ -565,7 +565,13 @@ namespace ExcelDna.AddIn.Tasks
         /// <summary>
         /// The name suffix for 64-bit .dna files
         /// </summary>
-        public string FileSuffix64Bit { get; set; }
+        public string FileSuffix64Bit
+        {
+            get { return BuildTaskCommon.IsNone(_FileSuffix64Bit) ? null : _FileSuffix64Bit; }
+            set { _FileSuffix64Bit = value; }
+        }
+
+        private string _FileSuffix64Bit;
 
         /// <summary>
         /// Enable/disable to have an .xll file with no packed assemblies

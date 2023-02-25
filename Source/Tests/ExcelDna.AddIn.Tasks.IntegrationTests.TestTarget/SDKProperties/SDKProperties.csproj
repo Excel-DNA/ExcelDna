@@ -65,7 +65,7 @@
     <!-- Default value: none -->
     <ExcelDna32BitAddInSuffix></ExcelDna32BitAddInSuffix>
 
-    <!-- 64bit add-in name suffix. -->
+    <!-- 64bit add-in name suffix. Use %none% for no suffix. -->
     <!-- Default value: 64 -->
     <ExcelDna64BitAddInSuffix></ExcelDna64BitAddInSuffix>
 
