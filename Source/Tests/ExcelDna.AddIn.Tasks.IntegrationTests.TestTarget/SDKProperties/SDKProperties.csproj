@@ -94,11 +94,11 @@
     <ExcelDnaPackManagedResourcePackingOnWindows></ExcelDnaPackManagedResourcePackingOnWindows>
 
     <!-- Enables packing native libraries from .deps.json. -->
-    <!-- Default value: false -->
+    <!-- Default value: true -->
     <ExcelDnaPackNativeLibraryDependencies></ExcelDnaPackNativeLibraryDependencies>
 
     <!-- Enables packing managed assemblies from .deps.json. -->
-    <!-- Default value: false -->
+    <!-- Default value: true -->
     <ExcelDnaPackManagedDependencies></ExcelDnaPackManagedDependencies>
 
     <!-- Semicolon separated file names list to not pack from .deps.json. -->
