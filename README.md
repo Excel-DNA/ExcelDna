@@ -9,6 +9,12 @@
 
 This repository contains the core Excel-DNA library.
 
-See the [Excel-DNA home page](http://excel-dna.net), [Wiki Pages on GitHub](https://github.com/Excel-DNA/ExcelDna/wiki) and the [documentation pages](https://docs.excel-dna.net) for more details.
+Please refer to
+* [Excel-DNA Website](http://excel-dna.net), 
+* [Excel-DNA Wiki Pages (on GitHub)](https://github.com/Excel-DNA/ExcelDna/wiki), and 
+* [Excel-DNA Documentation](https://excel-dna.net/docs/introduction)
+
+for additional information.
+
 Support is on the [Excel-DNA Google group](https://groups.google.com/forum/#!forum/exceldna).
 
