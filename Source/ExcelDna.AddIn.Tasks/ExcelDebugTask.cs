@@ -137,7 +137,13 @@ namespace ExcelDna.AddIn.Tasks
         /// <summary>
         /// The name suffix for 64-bit .dna files
         /// </summary>
-        public string FileSuffix64Bit { get; set; }
+        public string FileSuffix64Bit
+        {
+            get { return BuildTaskCommon.IsNone(_FileSuffix64Bit) ? null : _FileSuffix64Bit; }
+            set { _FileSuffix64Bit = value; }
+        }
+
+        private string _FileSuffix64Bit;
 
         /// <summary>
         /// Custom add-in file name
