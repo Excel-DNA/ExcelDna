@@ -54,6 +54,8 @@ namespace ExcelDna.AddIn.Tasks
 
                 TryCreateTlb();
 
+                TryPublishDoc();
+
                 TryBuildAddInFor32Bit(buildItemsForDnaFiles);
 
                 _log.Information("---", MessageImportance.High);
@@ -146,6 +148,21 @@ namespace ExcelDna.AddIn.Tasks
                 if (!outputIntegrationDllExists)
                     File.Delete(outputIntegrationDllPath);
             }
+        }
+
+        private void TryPublishDoc()
+        {
+            string docFile = AddInFileName ?? ProjectName + "-AddIn" + ".chm";
+            string docFilePath = Path.Combine(OutDirectory, docFile);
+            if (!File.Exists(docFilePath))
+                return;
+
+            if (PackExcelAddIn.NoPublishPath(PublishPath))
+                return;
+
+            string destinationFolder = PackExcelAddIn.GetPublishDirectory(OutDirectory, PublishPath);
+            Directory.CreateDirectory(destinationFolder);
+            File.Copy(docFilePath, Path.Combine(destinationFolder, docFile), true);
         }
 
         private ITaskItem[] GetConfigFilesInProject()
