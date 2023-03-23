@@ -152,7 +152,7 @@ namespace ExcelDna.AddIn.Tasks
 
         private void TryPublishDoc()
         {
-            string docFile = AddInFileName ?? ProjectName + "-AddIn" + ".chm";
+            string docFile = (AddInFileName ?? ProjectName + "-AddIn") + ".chm";
             string docFilePath = Path.Combine(OutDirectory, docFile);
             if (!File.Exists(docFilePath))
                 return;
