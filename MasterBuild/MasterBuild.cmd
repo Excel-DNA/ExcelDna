@@ -1,8 +1,8 @@
 setlocal
 
-set PackageVersion=1.7.0-rc2
-set PackageReferenceVersion=1.7.0-rc2
-set DllVersion=1.7.0.1
+set PackageVersion=1.7.0-rc3
+set PackageReferenceVersion=1.7.0-rc3
+set DllVersion=1.7.0.2
 
 set MSBuildPath="c:\Program Files\Microsoft Visual Studio\2022\Professional\Msbuild\Current\Bin\amd64\MSBuild.exe"
 
