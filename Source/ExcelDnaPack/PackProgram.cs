@@ -94,6 +94,7 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
             bool overwrite = false;
             bool compress = true;
             bool multithreading = true;
+            string outputBitness = "32";
 
             // TODO: Replace with an args-parsing routine.
             if (args.Length > 1)
@@ -124,10 +125,15 @@ Other assemblies are packed if marked with Pack=""true"" in the .dna file.
                     {
                         multithreading = false;
                     }
+                    else
+                    if (args[i].Equals("/x64", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        outputBitness = "64";
+                    }
                 }
             }
 
-            int result = ExcelDna.PackedResources.ExcelDnaPack.Pack(dnaPath, xllOutputPath, compress, multithreading, overwrite, usageInfo, null, false, false, null, false, null, buildLogger);
+            int result = ExcelDna.PackedResources.ExcelDnaPack.Pack(dnaPath, xllOutputPath, compress, multithreading, overwrite, usageInfo, null, false, false, null, false, outputBitness, buildLogger);
 
 #if DEBUG
             if (result == 0)
