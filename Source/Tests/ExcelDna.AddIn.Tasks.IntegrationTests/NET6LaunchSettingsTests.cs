@@ -27,6 +27,46 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
         }
 
         [Test]
+        public void WithSpace()
+        {
+            const string projectBasePath = @"NET6LaunchSettings With Space\";
+            const string projectOutDir = projectBasePath + @"bin\Release\";
+
+            Clean(projectOutDir);
+
+            try
+            {
+                MsBuild("\"" + projectBasePath + "NET6LaunchSettings With Space.csproj\" /t:Restore,Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
+
+                AssertFileContains(Path.Combine(projectBasePath, "Properties", "launchSettings.json"), "\\\"NET6LaunchSettings With Space-AddIn");
+            }
+            finally
+            {
+                DeleteProperties(projectBasePath);
+            }
+        }
+
+        [Test]
+        public void NewInstance()
+        {
+            const string projectBasePath = @"NET6LaunchSettings\";
+            const string projectOutDir = projectBasePath + @"bin\Release\";
+
+            Clean(projectOutDir);
+
+            try
+            {
+                MsBuild(projectBasePath + "NET6LaunchSettings.csproj /t:Restore,Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
+
+                AssertFileContains(Path.Combine(projectBasePath, "Properties", "launchSettings.json"), "/x \\\"NET6LaunchSettings-AddIn");
+            }
+            finally
+            {
+                DeleteProperties(projectBasePath);
+            }
+        }
+
+        [Test]
         [TestCase("launchSettingsExistingProfile.json")]
         [TestCase("launchSettingsNoProfile.json")]
         [TestCase("launchSettingsNoProfiles.json")]
