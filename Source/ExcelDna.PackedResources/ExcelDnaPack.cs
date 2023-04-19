@@ -12,6 +12,7 @@ namespace ExcelDna.PackedResources
     {
         public static int Pack(string dnaPath, string xllOutputPathParam, bool compress, bool multithreading, bool overwrite, string usageInfo, List<string> filesToPublish, bool packNativeLibraryDependencies, bool packManagedDependencies, string excludeDependencies, bool useManagedResourceResolver, string outputBitness, IBuildLogger buildLogger)
         {
+            string HostXLL = outputBitness == "64" ? "ExcelDna64.xll" : "ExcelDna.xll";
             string dnaDirectory = Path.GetDirectoryName(dnaPath);
             string dnaFilePrefix = Path.GetFileNameWithoutExtension(dnaPath);
             string configPath = Path.ChangeExtension(dnaPath, ".xll.config");
@@ -75,11 +76,11 @@ namespace ExcelDna.PackedResources
             {
                 // CONSIDER: Maybe the next two (old) search locations should be deprecated?
                 // Then try one called ExcelDna.xll next to the .dna file
-                xllInputPath = Path.Combine(dnaDirectory, "ExcelDna.xll");
+                xllInputPath = Path.Combine(dnaDirectory, HostXLL);
                 if (!File.Exists(xllInputPath))
                 {
                     // Then try one called ExcelDna.xll next to the ExcelDnaPack.exe
-                    xllInputPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ExcelDna.xll");
+                    xllInputPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, HostXLL);
                     if (!File.Exists(xllInputPath))
                     {
                         buildLogger.Error(typeof(ExcelDnaPack), "ERROR: Base add-in not found.\r\n\r\n {0}", usageInfo);
