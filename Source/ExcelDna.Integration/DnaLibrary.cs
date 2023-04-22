@@ -141,6 +141,14 @@ namespace ExcelDna.Integration
             set { _DefaultImports = value; }
         }
 
+        private bool _DisableAssemblyContextUnload = false;
+        [XmlAttribute]
+        public bool DisableAssemblyContextUnload
+        {
+            get { return _DisableAssemblyContextUnload; }
+            set { _DisableAssemblyContextUnload = value; }
+        }
+
         // No ExplicitExports flag on the DnaLibrary (for now), because it might cause confusion when mixed with ExternalLibraries.
         // Projects can be marked as ExplicitExports by adding an explicit <Project> tag.
         //private bool _ExplicitExports = false;

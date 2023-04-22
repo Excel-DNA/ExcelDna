@@ -1,4 +1,6 @@
 ﻿using System.IO;
+using System.Reflection;
+using System.Runtime.Loader;
 using System.Windows.Forms;
 using ExcelDna.Integration;
 
@@ -8,10 +10,11 @@ namespace NET6DisableAssemblyContextUnload
     {
         public void AutoOpen()
         {
+            bool collectible = AssemblyLoadContext.GetLoadContext(Assembly.GetExecutingAssembly())!.IsCollectible;
             var thisAddInName = Path.GetFileName((string)XlCall.Excel(XlCall.xlGetName));
-            var message = string.Format("Excel-DNA Add-In '{0}' loaded!", thisAddInName);
+            var message = $"Excel-DNA Add-In '{thisAddInName}' loaded! IsCollectible={collectible}.";
 
-            MessageBox.Show(message, thisAddInName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(message, thisAddInName, MessageBoxButtons.OK, collectible ? MessageBoxIcon.Error : MessageBoxIcon.Information);
         }
 
         public void AutoClose()
