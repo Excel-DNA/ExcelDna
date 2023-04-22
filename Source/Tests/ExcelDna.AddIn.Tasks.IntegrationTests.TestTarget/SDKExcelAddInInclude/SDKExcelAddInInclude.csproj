@@ -6,7 +6,10 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <ExcelAddInInclude>SDKExcelAddInName.dll;SDKExcelAddInFileName.dll</ExcelAddInInclude>
+    <ExcelAddInInclude>
+         SDKExcelAddInName.dll;
+         SDKExcelAddInFileName.dll;
+    </ExcelAddInInclude>
   </PropertyGroup>
 
   <ItemGroup>
