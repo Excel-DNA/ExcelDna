@@ -365,6 +365,13 @@ namespace ExcelDna.AddIn.Tasks
         private string GetDefaultDnaText()
         {
             string result = File.ReadAllText(TemplateDnaPath);
+
+            {
+                int startIndex = result.IndexOf("<!--");
+                int endIndex = result.IndexOf("-->") + 3;
+                result = result.Remove(startIndex, endIndex - startIndex);
+            }
+
             if (!string.IsNullOrEmpty(AddInName))
                 result = result.Replace("%ProjectName% Add-In", AddInName);
             else
