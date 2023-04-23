@@ -370,13 +370,15 @@ namespace ExcelDna.AddIn.Tasks
             else
                 result = result.Replace("%ProjectName%", ProjectName);
 
-            if (!string.IsNullOrEmpty(AddInInclude))
+            if (!string.IsNullOrWhiteSpace(AddInInclude))
             {
                 string outFiles = AddInInclude.Replace(OutDirectory, "");
                 string includes = "";
                 foreach (string i in outFiles.Split(';'))
                 {
-                    includes += $"  <Reference Path=\"{i}\" Pack=\"true\" />" + Environment.NewLine;
+                    string path = i.Trim();
+                    if (path.Length > 0)
+                        includes += $"  <Reference Path=\"{path}\" Pack=\"true\" />" + Environment.NewLine;
                 }
                 result = result.Replace("</DnaLibrary>", includes + "</DnaLibrary>");
             }
