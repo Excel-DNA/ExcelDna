@@ -379,19 +379,55 @@ namespace ExcelDna.AddIn.Tasks
 
             if (!string.IsNullOrWhiteSpace(AddInInclude))
             {
-                string outFiles = AddInInclude.Replace(OutDirectory, "");
                 string includes = "";
-                foreach (string i in outFiles.Split(';'))
-                {
-                    string path = i.Trim();
-                    if (path.Length > 0)
-                        includes += $"  <Reference Path=\"{path}\" Pack=\"true\" />" + Environment.NewLine;
-                }
+                foreach (string path in SplitDlls(AddInInclude))
+                    includes += $"  <Reference Path=\"{path}\" Pack=\"true\" />" + Environment.NewLine;
                 result = result.Replace("</DnaLibrary>", includes + "</DnaLibrary>");
             }
 
             if (DisableAssemblyContextUnload)
                 result = result.Replace("<DnaLibrary ", "<DnaLibrary " + "DisableAssemblyContextUnload=\"true\" ");
+
+            result = UpdateExternalLibraries(result);
+
+            return result;
+        }
+
+        private IEnumerable<string> SplitDlls(string dlls)
+        {
+            List<string> result = new List<string>();
+
+            string outFiles = dlls.Replace(OutDirectory, "");
+            foreach (string i in outFiles.Split(';'))
+            {
+                string path = i.Trim();
+                if (path.Length > 0)
+                    result.Add(path);
+            }
+
+            return result;
+        }
+
+        private string UpdateExternalLibraries(string dna)
+        {
+            int begin = dna.IndexOf("<ExternalLibrary ");
+            int end = dna.IndexOf("/>", begin) + 2;
+            string template = dna.Substring(begin, end - begin);
+
+            string libraries = UpdateExternalLibrary(template, OutputFileName());
+            if (!string.IsNullOrWhiteSpace(AddInExports))
+            {
+                foreach (string path in SplitDlls(AddInExports))
+                    libraries += Environment.NewLine + $"  {UpdateExternalLibrary(template, path)}";
+            }
+
+            dna = dna.Remove(begin, end - begin);
+            return dna.Insert(begin, libraries);
+        }
+
+        private string UpdateExternalLibrary(string template, string dllFileName)
+        {
+            string result = template;
 
             if (UseVersionAsOutputVersion)
                 result = result.Replace("<ExternalLibrary ", "<ExternalLibrary " + "UseVersionAsOutputVersion=\"true\" ");
@@ -402,7 +438,7 @@ namespace ExcelDna.AddIn.Tasks
             if (ExplicitRegistration)
                 result = result.Replace("<ExternalLibrary ", "<ExternalLibrary " + "ExplicitRegistration=\"true\" ");
 
-            return result.Replace("%OutputFileName%", OutputFileName());
+            return result.Replace("%OutputFileName%", dllFileName);
         }
 
         private string OutputFileName()
@@ -648,6 +684,11 @@ namespace ExcelDna.AddIn.Tasks
         /// Semicolon separated list of references written to the .dna file
         /// </summary>
         public string AddInInclude { get; set; }
+
+        /// <summary>
+        /// Semicolon separated external libraries to include in the .dna file
+        /// </summary>
+        public string AddInExports { get; set; }
 
         /// <summary>
         /// Custom path for ExternalLibrary

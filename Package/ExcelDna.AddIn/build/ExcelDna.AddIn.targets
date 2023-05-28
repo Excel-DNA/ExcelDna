@@ -224,6 +224,7 @@
  	  AddInName="$(ExcelAddInName)"
  	  AddInFileName="$(ExcelAddInFileName)"
  	  AddInInclude="$(ExcelAddInInclude)"
+ 	  AddInExports="$(ExcelAddInExports)"
  	  AddInExternalLibraryPath="$(ExcelAddInExternalLibraryPath)"
  	  DisableAssemblyContextUnload="$(ExcelAddInDisableAssemblyContextUnload)"
  	  ProjectName="$(MSBuildProjectName)"

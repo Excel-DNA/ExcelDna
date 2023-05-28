@@ -125,6 +125,10 @@
     <!-- Default value: empty -->
     <ExcelAddInInclude></ExcelAddInInclude>
 
+    <!-- Semicolon separated external libraries to include in .dna. -->
+    <!-- Default value: empty -->
+    <ExcelAddInExports></ExcelAddInExports>
+
     <!-- ExternalLibrary Path in .dna. -->
     <!-- Default value: $(TargetFileName) -->
     <ExcelAddInExternalLibraryPath></ExcelAddInExternalLibraryPath>
