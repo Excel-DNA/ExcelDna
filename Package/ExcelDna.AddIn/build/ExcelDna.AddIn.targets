@@ -175,7 +175,7 @@
   <Target Name="ExcelDnaBuild" BeforeTargets="PostBuildEvent" Condition="'$(RunExcelDnaBuild)' == 'true'">
 
 	<PropertyGroup>
-		<ExcelDnaTlbDscom>false</ExcelDnaTlbDscom>
+		<ExcelDnaTlbDscom Condition="'$(ExcelDnaTlbDscom)' == ''">false</ExcelDnaTlbDscom>
 	</PropertyGroup>
 		
 	<PropertyGroup Condition="'$(TargetFrameworkVersion.Length())' >= '2' AND '$(TargetFrameworkVersion.Substring(1,1))' >= '6'">
