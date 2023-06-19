@@ -441,7 +441,7 @@ namespace ExcelDna.AddIn.Tasks
             if (ComServer)
                 result = result.Replace("<ExternalLibrary ", "<ExternalLibrary " + "ComServer=\"true\" ");
 
-            return result.Replace("%OutputFileName%", OutputFileName());
+            return result.Replace("%OutputFileName%", dllFileName);
         }
 
         private string OutputFileName()
