@@ -6,9 +6,11 @@
 
 	<PropertyGroup Condition="'$(MSBuildRuntimeType)' == 'Core'">
 		<ExcelDnaTasksPath>$(ExcelDnaToolsPath)net6.0-windows7.0\</ExcelDnaTasksPath>
-	</PropertyGroup>
+		<ExcelDnaDscomIntegrationPath>$(ExcelDnaToolsPath)net6.0-windows7.0</ExcelDnaDscomIntegrationPath>
+</PropertyGroup>
 	<PropertyGroup Condition="'$(MSBuildRuntimeType)' != 'Core'">
 		<ExcelDnaTasksPath>$(ExcelDnaToolsPath)net452\</ExcelDnaTasksPath>
+		<ExcelDnaDscomIntegrationPath>$(ExcelDnaToolsPath)net452</ExcelDnaDscomIntegrationPath>
 	</PropertyGroup>
 	
 	<UsingTask TaskName="ExcelDna.AddIn.Tasks.SetDebuggerOptions" AssemblyFile="$(ExcelDnaTasksPath)ExcelDna.AddIn.Tasks.dll" />
@@ -69,6 +71,12 @@
     <ExcelDnaPackRunMultithreaded Condition="'$(ExcelDnaPackRunMultithreaded)' == ''">true</ExcelDnaPackRunMultithreaded>
     <ExcelDnaPublishPath Condition="'$(ExcelDnaPublishPath)' == '' AND '$(UsingMicrosoftNETSdk)' != 'true'">%none%</ExcelDnaPublishPath>
   </PropertyGroup>
+
+	<Target Name="ExcelDnaDscomIntegration" BeforeTargets="DsComExportTypeLibraryAfterBuild">
+		<ItemGroup>
+			<DsComTlbExportAssemblyPaths Include="$(ExcelDnaDscomIntegrationPath)" />
+		</ItemGroup>
+	</Target>
 
   <!--
     Target that ensures ExcelDna.Integration.dll is not copied to the output folder
