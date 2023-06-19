@@ -22,6 +22,9 @@ namespace ExcelDna.AddIn.Tasks.Utils
 
         public void CopyFile(string sourceFileName, string destFileName, bool overwrite)
         {
+            if (string.Equals(Path.GetFullPath(sourceFileName), Path.GetFullPath(destFileName), StringComparison.OrdinalIgnoreCase))
+                return;
+
             if (overwrite)
             {
                 var destFileInfo = new FileInfo(destFileName);
