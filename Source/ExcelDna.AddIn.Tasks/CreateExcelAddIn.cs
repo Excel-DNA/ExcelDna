@@ -402,6 +402,9 @@ namespace ExcelDna.AddIn.Tasks
             if (ExplicitRegistration)
                 result = result.Replace("<ExternalLibrary ", "<ExternalLibrary " + "ExplicitRegistration=\"true\" ");
 
+            if (ComServer)
+                result = result.Replace("<ExternalLibrary ", "<ExternalLibrary " + "ComServer=\"true\" ");
+
             return result.Replace("%OutputFileName%", OutputFileName());
         }
 
@@ -689,6 +692,11 @@ namespace ExcelDna.AddIn.Tasks
         /// Prevents automatic registration of functions and commands
         /// </summary>
         public bool ExplicitRegistration { get; set; }
+
+        /// <summary>
+        /// Enable/disable COM Server support
+        /// </summary>
+        public bool ComServer { get; set; }
 
         /// <summary>
         /// The list of .dna files copied to the output
