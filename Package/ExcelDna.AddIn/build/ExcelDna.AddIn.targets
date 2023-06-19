@@ -235,6 +235,7 @@
 	  UseVersionAsOutputVersion="$(ExcelAddInUseVersionAsOutputVersion)"
 	  ExplicitExports="$(ExcelAddInExplicitExports)"
 	  ExplicitRegistration="$(ExcelAddInExplicitRegistration)"
+		ComServer="$(ExcelAddInComServer)"
 	  IntegrationDllPath="$(ExcelDnaRuntimeToolsPath)ExcelDna.Integration.dll"
 	  TemplateDnaPath="$(MSBuildThisFileDirectory)..\content\ExcelDna-Template.dna">
       <Output TaskParameter="DnaFilesToPack" ItemName="ExcelDnaFilesToPack" />

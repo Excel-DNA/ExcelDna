@@ -165,6 +165,10 @@
     <!-- Default value: false -->
     <ExcelAddInExplicitRegistration></ExcelAddInExplicitRegistration>
 
+    <!-- Enable/disable COM Server support. -->
+    <!-- Default value: false -->
+    <ExcelAddInComServer></ExcelAddInComServer>
+
     <!-- We don't need the extra 'ref' directory and reference assemblies for the Excel add-in -->
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 
