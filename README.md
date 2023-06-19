@@ -18,3 +18,5 @@ for additional information.
 
 Support is on the [Excel-DNA Google group](https://groups.google.com/forum/#!forum/exceldna).
 
+xxx
+

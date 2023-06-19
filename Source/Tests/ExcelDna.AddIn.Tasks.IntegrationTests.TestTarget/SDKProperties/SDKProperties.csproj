@@ -125,6 +125,10 @@
     <!-- Default value: empty -->
     <ExcelAddInInclude></ExcelAddInInclude>
 
+    <!-- Semicolon separated external libraries to include in .dna. -->
+    <!-- Default value: empty -->
+    <ExcelAddInExports></ExcelAddInExports>
+
     <!-- ExternalLibrary Path in .dna. -->
     <!-- Default value: $(TargetFileName) -->
     <ExcelAddInExternalLibraryPath></ExcelAddInExternalLibraryPath>
@@ -160,6 +164,10 @@
     <!-- Prevents automatic registration of functions and commands. -->
     <!-- Default value: false -->
     <ExcelAddInExplicitRegistration></ExcelAddInExplicitRegistration>
+
+    <!-- Enable/disable COM Server support. -->
+    <!-- Default value: false -->
+    <ExcelAddInComServer></ExcelAddInComServer>
 
     <!-- We don't need the extra 'ref' directory and reference assemblies for the Excel add-in -->
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>

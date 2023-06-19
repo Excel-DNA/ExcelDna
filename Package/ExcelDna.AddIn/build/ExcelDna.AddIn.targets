@@ -183,7 +183,7 @@
   <Target Name="ExcelDnaBuild" BeforeTargets="PostBuildEvent" Condition="'$(RunExcelDnaBuild)' == 'true'">
 
 	<PropertyGroup>
-		<ExcelDnaTlbDscom>false</ExcelDnaTlbDscom>
+		<ExcelDnaTlbDscom Condition="'$(ExcelDnaTlbDscom)' == ''">false</ExcelDnaTlbDscom>
 	</PropertyGroup>
 		
 	<PropertyGroup Condition="'$(TargetFrameworkVersion.Length())' >= '2' AND '$(TargetFrameworkVersion.Substring(1,1))' >= '6'">
@@ -232,6 +232,7 @@
  	  AddInName="$(ExcelAddInName)"
  	  AddInFileName="$(ExcelAddInFileName)"
  	  AddInInclude="$(ExcelAddInInclude)"
+ 	  AddInExports="$(ExcelAddInExports)"
  	  AddInExternalLibraryPath="$(ExcelAddInExternalLibraryPath)"
  	  DisableAssemblyContextUnload="$(ExcelAddInDisableAssemblyContextUnload)"
  	  ProjectName="$(MSBuildProjectName)"
@@ -242,6 +243,7 @@
 	  UseVersionAsOutputVersion="$(ExcelAddInUseVersionAsOutputVersion)"
 	  ExplicitExports="$(ExcelAddInExplicitExports)"
 	  ExplicitRegistration="$(ExcelAddInExplicitRegistration)"
+		ComServer="$(ExcelAddInComServer)"
 	  IntegrationDllPath="$(ExcelDnaRuntimeToolsPath)ExcelDna.Integration.dll"
 	  TemplateDnaPath="$(MSBuildThisFileDirectory)..\content\ExcelDna-Template.dna">
       <Output TaskParameter="DnaFilesToPack" ItemName="ExcelDnaFilesToPack" />

@@ -105,6 +105,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NET6LaunchSettings With Spa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NET4DsComTlbExportAssemblyPaths", "NET4DsComTlbExportAssemblyPaths\NET4DsComTlbExportAssemblyPaths.csproj", "{A20960C3-7E86-426C-8574-01391927B3C3}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NET4Dscom", "NET4Dscom\NET4Dscom.csproj", "{02F8E59E-D34A-411E-9B73-31802D4C37C7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDKExcelAddInExports", "SDKExcelAddInExports\SDKExcelAddInExports.csproj", "{FDF4BCAF-8905-4C7E-B8D2-47EB145CFC11}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NET6SameAddInFileName", "NET6SameAddInFileName\NET6SameAddInFileName.csproj", "{A0E0400D-65D4-4260-8FB8-4F3E7CC7183F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NET6ExcelAddInComServer", "NET6ExcelAddInComServer\NET6ExcelAddInComServer.csproj", "{91ADA150-762D-4D71-ADD6-3B32B289C668}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -311,6 +319,22 @@ Global
 		{A20960C3-7E86-426C-8574-01391927B3C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A20960C3-7E86-426C-8574-01391927B3C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A20960C3-7E86-426C-8574-01391927B3C3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{02F8E59E-D34A-411E-9B73-31802D4C37C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02F8E59E-D34A-411E-9B73-31802D4C37C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02F8E59E-D34A-411E-9B73-31802D4C37C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02F8E59E-D34A-411E-9B73-31802D4C37C7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FDF4BCAF-8905-4C7E-B8D2-47EB145CFC11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDF4BCAF-8905-4C7E-B8D2-47EB145CFC11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDF4BCAF-8905-4C7E-B8D2-47EB145CFC11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDF4BCAF-8905-4C7E-B8D2-47EB145CFC11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0E0400D-65D4-4260-8FB8-4F3E7CC7183F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0E0400D-65D4-4260-8FB8-4F3E7CC7183F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0E0400D-65D4-4260-8FB8-4F3E7CC7183F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0E0400D-65D4-4260-8FB8-4F3E7CC7183F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{91ADA150-762D-4D71-ADD6-3B32B289C668}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91ADA150-762D-4D71-ADD6-3B32B289C668}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91ADA150-762D-4D71-ADD6-3B32B289C668}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91ADA150-762D-4D71-ADD6-3B32B289C668}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
