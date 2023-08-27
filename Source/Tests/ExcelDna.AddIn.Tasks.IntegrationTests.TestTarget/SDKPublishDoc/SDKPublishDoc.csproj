@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ExcelDnaDoc" Version="1.7.0-rc2" />
+    <PackageReference Include="ExcelDnaDoc" Version="1.7.0-rc6" />
   </ItemGroup>
 
   <Import Project="$(ProjectDir)..\..\.exceldna.addin\build\ExcelDna.AddIn.targets" />
