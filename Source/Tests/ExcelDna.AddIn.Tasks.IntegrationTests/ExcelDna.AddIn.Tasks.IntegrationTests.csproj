@@ -13,7 +13,7 @@
     <PackageReference Include="ExcelDna.Interop" Version="*-*" />
     <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="3.0.4492" />
     <PackageReference Include="NUnit" Version="*" />
-    <PackageReference Include="NUnit3TestAdapter" Version="4.1.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
     </ItemGroup>
 
   <ItemGroup>

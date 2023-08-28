@@ -6,7 +6,6 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
     public class SDKPublishDocTests : IntegrationTestBase
     {
         [Test]
-        [Ignore("Requires ExcelDnaDoc package that creates .chm before addin publish.")]
         public void Packed()
         {
             const string projectBasePath = @"SDKPublishDoc\";
@@ -15,7 +14,9 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
 
             Clean(projectOutDir);
 
-            MsBuild(projectBasePath + "SDKPublishDoc.csproj /t:Restore,Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
+            // The first build on a clean project doesn't create .chm at all, but the second run creates .chm and publishes it: 
+            for (int i = 0; i < 2; ++i)
+                MsBuild(projectBasePath + "SDKPublishDoc.csproj /t:Restore,Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
 
             AssertOutput(publishDir, "*.chm", "SDKPublishDoc-AddIn.chm");
         }
