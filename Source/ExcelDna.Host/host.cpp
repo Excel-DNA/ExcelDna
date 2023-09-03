@@ -96,13 +96,25 @@ int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExpor
 		if (!std::filesystem::exists(hostFile))
 		{
 			HRSRC hResManagedHost = FindResource(hModuleXll, L"EXCELDNA.MANAGEDHOST", L"ASSEMBLY");
-			assert(hResManagedHost != NULL && "Failure: FindResource EXCELDNA.MANAGEDHOST");
+			if (hResManagedHost == NULL)
+			{
+				ShowHostError(L"Failure to find resource EXCELDNA.MANAGEDHOST");
+				return EXIT_FAILURE;
+			}
 
 			HGLOBAL hManagedHost = LoadResource(hModuleXll, hResManagedHost);
-			assert(hManagedHost != NULL && "Failure: LoadResource EXCELDNA.MANAGEDHOST");
+			if (hManagedHost == NULL)
+			{
+				ShowHostError(L"Failure to load resource EXCELDNA.MANAGEDHOST");
+				return EXIT_FAILURE;
+			}
 
 			void* buf = LockResource(hManagedHost);
-			assert(buf != NULL && "Failure: LockResource EXCELDNA.MANAGEDHOST");
+			if (buf == NULL)
+			{
+				ShowHostError(L"Failure to lock resource EXCELDNA.MANAGEDHOST");
+				return EXIT_FAILURE;
+			}
 
 			DWORD resSize = SizeofResource(hModuleXll, hResManagedHost);
 			SafeByteArray safeBytes(buf, resSize);
@@ -110,7 +122,13 @@ int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExpor
 			int nSize = safeBytes.AccessData(&pData);
 
 			HRESULT hr = WriteAllBytes(hostFile, pData, nSize);
-			assert(SUCCEEDED(hr) && "Failure: saving EXCELDNA.MANAGEDHOST");
+			if (FAILED(hr))
+			{
+				std::wstringstream stream;
+				stream << "Saving EXCELDNA.MANAGEDHOST failed: " << std::hex << std::showbase << hr;
+				ShowHostError(stream.str());
+				return EXIT_FAILURE;
+			}
 		}
 	}
 
