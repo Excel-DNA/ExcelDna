@@ -125,7 +125,7 @@ int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExpor
 			if (FAILED(hr))
 			{
 				std::wstringstream stream;
-				stream << "Saving EXCELDNA.MANAGEDHOST failed: " << std::hex << std::showbase << hr;
+				stream << L"Saving EXCELDNA.MANAGEDHOST failed: " << std::hex << std::showbase << hr;
 				ShowHostError(stream.str());
 				return EXIT_FAILURE;
 			}
@@ -149,7 +149,13 @@ int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExpor
 		UNMANAGEDCALLERSONLY_METHOD,
 		nullptr,
 		(void**)&init);
-	assert(rc == 0 && init != nullptr && "Failure: load_assembly_and_get_function_pointer()");
+	if (rc != 0 || init == nullptr)
+	{
+		std::wstringstream stream;
+		stream << L"Loading ExcelDna.ManagedHost failed: " << std::hex << std::showbase << rc;
+		ShowHostError(stream.str());
+		return EXIT_FAILURE;
+	}
 
 	bool disableAssemblyContextUnload;
 	HRESULT hr = GetDisableAssemblyContextUnload(disableAssemblyContextUnload);
