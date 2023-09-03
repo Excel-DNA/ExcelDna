@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <tchar.h>
 #include <comdef.h>
+#include "dnainfo.h"
 
 extern HMODULE hModuleCurrent;
 
@@ -135,6 +136,14 @@ void StripPath(std::wstring& filePath)
 	size_t dirSepInd = filePath.find_last_of(L'\\');
 	if (dirSepInd >= 0)
 		filePath.erase(0, dirSepInd + 1);
+}
+
+std::wstring GetDirectoryName(const std::wstring& filePath)
+{
+	std::wstring result(filePath);
+	RemoveFileSpecFromPath(result);
+	StripPath(result);
+	return result;
 }
 
 void RemoveExtension(std::wstring& filePath)
@@ -322,6 +331,20 @@ void ShowMessage(int headerId, int bodyId, int footerId, HRESULT hr)
 	{
 		ShowMessageError(hwndExcel);
 	}
+}
+
+void ShowHostError(const std::wstring& msg)
+{
+	std::wstring title = L"ExcelDna.Host";
+
+	std::wstring addInName;
+	HRESULT hr = GetAddInName(addInName);
+	if (!FAILED(hr))
+	{
+		title = addInName + L" - " + title;
+	}
+
+	MessageBox(FindCurrentExcelWindow(), msg.c_str(), title.c_str(), MB_OK | MB_ICONERROR);
 }
 
 std::wstring GetAddInFullPath()
