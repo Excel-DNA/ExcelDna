@@ -27,6 +27,7 @@ using string_t = std::basic_string<char_t>;
 // Globals to hold hostfxr exports
 hostfxr_initialize_for_runtime_config_fn init_fptr;
 hostfxr_get_runtime_delegate_fn get_delegate_fptr;
+hostfxr_get_runtime_property_value_fn get_property_fptr;
 hostfxr_close_fn close_fptr;
 
 // Forward declarations
@@ -54,26 +55,26 @@ int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExpor
 	int rc = 0;
 	if (!load_hostfxr(rc))
 	{
-		std::string msg;
+		std::wstring msg;
 		if (rc == CoreHostLibMissingFailure)
 		{
 #if _WIN64
-			std::string bitness = "x64";
+			std::wstring bitness = L"x64";
 #else
-			std::string bitness = "x86";
+			std::wstring bitness = L"x86";
 #endif
-			std::string runtime = ".NET Desktop Runtime 6.0 " + bitness;
-			msg = std::format("{0} is not installed, corrupted or incomplete.\n\nYou can download {0} from https://dotnet.microsoft.com/en-us/download/dotnet/6.0", runtime);
+			std::wstring runtime = L".NET Desktop Runtime 6.0 " + bitness;
+			msg = std::format(L"{0} is not installed, corrupted or incomplete.\n\nYou can download {0} from https://dotnet.microsoft.com/en-us/download/dotnet/6.0", runtime);
 		}
 		else if (rc != 0)
 		{
-			msg = std::format("Failure: load_hostfxr().\n\nError code: {}.", rc);
+			msg = std::format(L"Failure: load_hostfxr().\n\nError code: {}.", rc);
 		}
 		else
 		{
-			msg = "Failure: load_hostfxr().";
+			msg = L"Failure: load_hostfxr().";
 		}
-		MessageBoxA(NULL, msg.c_str(), "ExcelDna.Host", MB_OK | MB_ICONERROR);
+		ShowHostError(msg);
 
 		return EXIT_FAILURE;
 	}
@@ -82,7 +83,8 @@ int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExpor
 	// STEP 2: Initialize and start the .NET Core runtime
 	//
 	load_assembly_and_get_function_pointer_fn load_assembly_and_get_function_pointer = get_dotnet_load_assembly();
-	assert(load_assembly_and_get_function_pointer != nullptr && "Failure: get_dotnet_load_assembly()");
+	if (load_assembly_and_get_function_pointer == nullptr)
+		return EXIT_FAILURE;
 
 	//
 	// STEP 3: Copy managed assembly from resources to some temp file if needed
@@ -94,13 +96,25 @@ int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExpor
 		if (!std::filesystem::exists(hostFile))
 		{
 			HRSRC hResManagedHost = FindResource(hModuleXll, L"EXCELDNA.MANAGEDHOST", L"ASSEMBLY");
-			assert(hResManagedHost != NULL && "Failure: FindResource EXCELDNA.MANAGEDHOST");
+			if (hResManagedHost == NULL)
+			{
+				ShowHostError(L"Failure to find resource EXCELDNA.MANAGEDHOST");
+				return EXIT_FAILURE;
+			}
 
 			HGLOBAL hManagedHost = LoadResource(hModuleXll, hResManagedHost);
-			assert(hManagedHost != NULL && "Failure: LoadResource EXCELDNA.MANAGEDHOST");
+			if (hManagedHost == NULL)
+			{
+				ShowHostError(L"Failure to load resource EXCELDNA.MANAGEDHOST");
+				return EXIT_FAILURE;
+			}
 
 			void* buf = LockResource(hManagedHost);
-			assert(buf != NULL && "Failure: LockResource EXCELDNA.MANAGEDHOST");
+			if (buf == NULL)
+			{
+				ShowHostError(L"Failure to lock resource EXCELDNA.MANAGEDHOST");
+				return EXIT_FAILURE;
+			}
 
 			DWORD resSize = SizeofResource(hModuleXll, hResManagedHost);
 			SafeByteArray safeBytes(buf, resSize);
@@ -108,7 +122,13 @@ int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExpor
 			int nSize = safeBytes.AccessData(&pData);
 
 			HRESULT hr = WriteAllBytes(hostFile, pData, nSize);
-			assert(SUCCEEDED(hr) && "Failure: saving EXCELDNA.MANAGEDHOST");
+			if (FAILED(hr))
+			{
+				std::wstringstream stream;
+				stream << L"Saving EXCELDNA.MANAGEDHOST failed: " << std::hex << std::showbase << hr;
+				ShowHostError(stream.str());
+				return EXIT_FAILURE;
+			}
 		}
 	}
 
@@ -129,7 +149,13 @@ int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExpor
 		UNMANAGEDCALLERSONLY_METHOD,
 		nullptr,
 		(void**)&init);
-	assert(rc == 0 && init != nullptr && "Failure: load_assembly_and_get_function_pointer()");
+	if (rc != 0 || init == nullptr)
+	{
+		std::wstringstream stream;
+		stream << L"Loading ExcelDna.ManagedHost failed: " << std::hex << std::showbase << rc;
+		ShowHostError(stream.str());
+		return EXIT_FAILURE;
+	}
 
 	bool disableAssemblyContextUnload;
 	HRESULT hr = GetDisableAssemblyContextUnload(disableAssemblyContextUnload);
@@ -174,9 +200,27 @@ bool load_hostfxr(int& rc)
 	void* lib = load_library(buffer);
 	init_fptr = (hostfxr_initialize_for_runtime_config_fn)get_export(lib, "hostfxr_initialize_for_runtime_config");
 	get_delegate_fptr = (hostfxr_get_runtime_delegate_fn)get_export(lib, "hostfxr_get_runtime_delegate");
+	get_property_fptr = (hostfxr_get_runtime_property_value_fn)get_export(lib, "hostfxr_get_runtime_property_value");
 	close_fptr = (hostfxr_close_fn)get_export(lib, "hostfxr_close");
 
 	return (init_fptr && get_delegate_fptr && close_fptr);
+}
+
+std::wstring get_runtime_property(const hostfxr_handle host_context_handle, const std::wstring& name)
+{
+	const wchar_t* value = NULL;
+	int rc = get_property_fptr(host_context_handle, name.c_str(), &value);
+	if (STATUS_CODE_SUCCEEDED(rc) && value != NULL)
+	{
+		return value;
+	}
+
+	return L"";
+}
+
+std::wstring get_loaded_runtime_version()
+{
+	return GetDirectoryName(get_runtime_property(NULL, L"FX_DEPS_FILE"));
 }
 
 // Load and initialize .NET Core and get desired function pointer for scenario
@@ -195,7 +239,9 @@ load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly()
 	HRESULT hr = WriteAllBytes(configFile, (void*)configText.c_str(), static_cast<DWORD>(configText.length()));
 	if (FAILED(hr))
 	{
-		std::cerr << "Saving ExcelDna.Host.runtimeconfig.json failed: " << std::hex << std::showbase << hr << std::endl;
+		std::wstringstream stream;
+		stream << "Saving ExcelDna.Host.runtimeconfig.json failed: " << std::hex << std::showbase << hr;
+		ShowHostError(stream.str());
 		return nullptr;
 	}
 
@@ -205,7 +251,18 @@ load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly()
 	int rc = init_fptr(configFile.c_str(), nullptr, &cxt);
 	if (!STATUS_CODE_SUCCEEDED(rc) || cxt == nullptr)
 	{
-		std::cerr << "Init failed: " << std::hex << std::showbase << rc << std::endl;
+		if (rc == CoreHostIncompatibleConfig)
+		{
+			std::wstring msg = L"The required .NET 6 runtime is incompatible with the runtime " + get_loaded_runtime_version() + L" already loaded in the process.\n\nYou can try to disable other Excel add-ins to resolve the conflict.";
+			ShowHostError(msg);
+		}
+		else
+		{
+			std::wstringstream stream;
+			stream << L".NET runtime initialization failed: " << std::hex << std::showbase << rc << std::endl << std::endl;
+			stream << L"You can find more information about this error at https://github.com/dotnet/runtime/blob/main/docs/design/features/host-error-codes.md";
+			ShowHostError(stream.str());
+		}
 		close_fptr(cxt);
 		return nullptr;
 	}
@@ -215,8 +272,15 @@ load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly()
 		cxt,
 		hdt_load_assembly_and_get_function_pointer,
 		&load_assembly_and_get_function_pointer);
-	if (rc != 0 || load_assembly_and_get_function_pointer == nullptr)
-		std::cerr << "Get delegate failed: " << std::hex << std::showbase << rc << std::endl;
+	if (!STATUS_CODE_SUCCEEDED(rc) || load_assembly_and_get_function_pointer == nullptr)
+	{
+		std::wstringstream stream;
+		stream << "Get .NET runtime delegate failed: " << std::hex << std::showbase << rc << std::endl << std::endl;
+		stream << L"You can find more information about this error at https://github.com/dotnet/runtime/blob/main/docs/design/features/host-error-codes.md";
+		ShowHostError(stream.str());
+		close_fptr(cxt);
+		return nullptr;
+	}
 
 	close_fptr(cxt);
 	return (load_assembly_and_get_function_pointer_fn)load_assembly_and_get_function_pointer;

@@ -59,6 +59,8 @@ void RemoveFileSpecFromPath(std::wstring& filePath);
 
 void StripPath(std::wstring& filePath);
 
+std::wstring GetDirectoryName(const std::wstring& filePath);
+
 void RemoveExtension(std::wstring& filePath);
 
 void RenameExtension(std::wstring& filePath, std::wstring ext);
@@ -84,6 +86,7 @@ std::wstring PathCombine(const std::wstring& path1, const std::wstring& path2);
 std::wstring PathCombine(const std::wstring& path1, const std::wstring& path2, const std::wstring& path3);
 
 void ShowMessage(int headerId, int bodyId, int footerId, HRESULT hr);
+void ShowHostError(const std::wstring& msg);
 
 std::wstring GetAddInFullPath();
 
