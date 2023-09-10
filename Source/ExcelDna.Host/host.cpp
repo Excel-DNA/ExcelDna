@@ -176,18 +176,12 @@ int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExpor
 void* load_library(const char_t* path)
 {
 	HMODULE h = ::LoadLibraryW(path);
-	if (h == nullptr)
-	{
-		ShowHostError(std::format(L"Loading library {} failed.", path));
-		return nullptr;
-	}
 	return (void*)h;
 }
 
 void* get_export(void* h, const char* name)
 {
 	void* f = ::GetProcAddress((HMODULE)h, name);
-	assert(f != nullptr);
 	return f;
 }
 
@@ -199,19 +193,48 @@ bool load_hostfxr(int& rc)
 	size_t buffer_size = sizeof(buffer) / sizeof(char_t);
 	rc = get_hostfxr_path(buffer, &buffer_size, nullptr);
 	if (rc != 0)
+	{
+		ShowHostError(L"Getting hostfxr path failed.");
 		return false;
+	}
 
 	// Load hostfxr and get desired exports
 	void* lib = load_library(buffer);
 	if (lib == nullptr)
+	{
+		ShowHostError(std::format(L"Loading library {} failed.", buffer));
 		return false;
+	}
 
 	init_fptr = (hostfxr_initialize_for_runtime_config_fn)get_export(lib, "hostfxr_initialize_for_runtime_config");
-	get_delegate_fptr = (hostfxr_get_runtime_delegate_fn)get_export(lib, "hostfxr_get_runtime_delegate");
-	get_property_fptr = (hostfxr_get_runtime_property_value_fn)get_export(lib, "hostfxr_get_runtime_property_value");
-	close_fptr = (hostfxr_close_fn)get_export(lib, "hostfxr_close");
+	if (init_fptr == nullptr)
+	{
+		ShowHostError(L"Retrieving the address of the exported function hostfxr_initialize_for_runtime_config failed.");
+		return false;
+	}
 
-	return (init_fptr && get_delegate_fptr && close_fptr);
+	get_delegate_fptr = (hostfxr_get_runtime_delegate_fn)get_export(lib, "hostfxr_get_runtime_delegate");
+	if (get_delegate_fptr == nullptr)
+	{
+		ShowHostError(L"Retrieving the address of the exported function hostfxr_get_runtime_delegate failed.");
+		return false;
+	}
+
+	get_property_fptr = (hostfxr_get_runtime_property_value_fn)get_export(lib, "hostfxr_get_runtime_property_value");
+	if (get_property_fptr == nullptr)
+	{
+		ShowHostError(L"Retrieving the address of the exported function hostfxr_get_runtime_property_value failed.");
+		return false;
+	}
+
+	close_fptr = (hostfxr_close_fn)get_export(lib, "hostfxr_close");
+	if (close_fptr == nullptr)
+	{
+		ShowHostError(L"Retrieving the address of the exported function hostfxr_close failed.");
+		return false;
+	}
+
+	return true;
 }
 
 std::wstring get_runtime_property(const hostfxr_handle host_context_handle, const std::wstring& name)
