@@ -31,7 +31,7 @@ hostfxr_get_runtime_property_value_fn get_property_fptr;
 hostfxr_close_fn close_fptr;
 
 // Forward declarations
-bool load_hostfxr(int& rc);
+bool load_hostfxr(int& rc, std::wstring& loadError);
 load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly();
 
 // Provide a callback for any catastrophic failures.
@@ -53,7 +53,8 @@ int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExpor
 	// STEP 1: Load HostFxr and get exported hosting functions
 	//
 	int rc = 0;
-	if (!load_hostfxr(rc))
+	std::wstring loadError;
+	if (!load_hostfxr(rc, loadError))
 	{
 		std::wstring msg;
 		if (rc == CoreHostLibMissingFailure)
@@ -66,13 +67,9 @@ int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExpor
 			std::wstring runtime = L".NET Desktop Runtime 6.0 " + bitness;
 			msg = std::format(L"{0} is not installed, corrupted or incomplete.\n\nYou can download {0} from https://dotnet.microsoft.com/en-us/download/dotnet/6.0", runtime);
 		}
-		else if (rc != 0)
-		{
-			msg = std::format(L"Failure: load_hostfxr().\n\nError code: {}.", rc);
-		}
 		else
 		{
-			msg = L"Failure: load_hostfxr().";
+			msg = loadError;
 		}
 		ShowHostError(msg);
 
@@ -186,7 +183,7 @@ void* get_export(void* h, const char* name)
 }
 
 // Using the nethost library, discover the location of hostfxr and get exports
-bool load_hostfxr(int& rc)
+bool load_hostfxr(int& rc, std::wstring& loadError)
 {
 	// Pre-allocate a large buffer for the path to hostfxr
 	char_t buffer[MAX_PATH];
@@ -194,7 +191,9 @@ bool load_hostfxr(int& rc)
 	rc = get_hostfxr_path(buffer, &buffer_size, nullptr);
 	if (rc != 0)
 	{
-		ShowHostError(L"Getting hostfxr path failed.");
+		std::wstringstream stream;
+		stream << "Getting hostfxr path failed.\n\nError code: " << std::hex << std::showbase << rc << ".";
+		loadError = stream.str();
 		return false;
 	}
 
@@ -202,35 +201,35 @@ bool load_hostfxr(int& rc)
 	void* lib = load_library(buffer);
 	if (lib == nullptr)
 	{
-		ShowHostError(std::format(L"Loading library {} failed.", buffer));
+		loadError = std::format(L"Loading library {} failed.", buffer);
 		return false;
 	}
 
 	init_fptr = (hostfxr_initialize_for_runtime_config_fn)get_export(lib, "hostfxr_initialize_for_runtime_config");
 	if (init_fptr == nullptr)
 	{
-		ShowHostError(L"Retrieving the address of the exported function hostfxr_initialize_for_runtime_config failed.");
+		loadError = L"Retrieving the address of the exported function hostfxr_initialize_for_runtime_config failed.";
 		return false;
 	}
 
 	get_delegate_fptr = (hostfxr_get_runtime_delegate_fn)get_export(lib, "hostfxr_get_runtime_delegate");
 	if (get_delegate_fptr == nullptr)
 	{
-		ShowHostError(L"Retrieving the address of the exported function hostfxr_get_runtime_delegate failed.");
+		loadError = L"Retrieving the address of the exported function hostfxr_get_runtime_delegate failed.";
 		return false;
 	}
 
 	get_property_fptr = (hostfxr_get_runtime_property_value_fn)get_export(lib, "hostfxr_get_runtime_property_value");
 	if (get_property_fptr == nullptr)
 	{
-		ShowHostError(L"Retrieving the address of the exported function hostfxr_get_runtime_property_value failed.");
+		loadError = L"Retrieving the address of the exported function hostfxr_get_runtime_property_value failed.";
 		return false;
 	}
 
 	close_fptr = (hostfxr_close_fn)get_export(lib, "hostfxr_close");
 	if (close_fptr == nullptr)
 	{
-		ShowHostError(L"Retrieving the address of the exported function hostfxr_close failed.");
+		loadError = L"Retrieving the address of the exported function hostfxr_close failed.";
 		return false;
 	}
 
