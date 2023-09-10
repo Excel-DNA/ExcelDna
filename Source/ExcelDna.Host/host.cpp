@@ -24,6 +24,13 @@
 
 using string_t = std::basic_string<char_t>;
 
+#if _WIN64
+const std::wstring requiredBitness = L"x64";
+#else
+const std::wstring requiredBitness = L"x86";
+#endif
+const std::wstring requiredRuntime = L".NET Desktop Runtime 6.0.2+ " + requiredBitness;
+
 // Globals to hold hostfxr exports
 hostfxr_initialize_for_runtime_config_fn init_fptr;
 hostfxr_get_runtime_delegate_fn get_delegate_fptr;
@@ -59,13 +66,7 @@ int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExpor
 		std::wstring msg;
 		if (rc == CoreHostLibMissingFailure)
 		{
-#if _WIN64
-			std::wstring bitness = L"x64";
-#else
-			std::wstring bitness = L"x86";
-#endif
-			std::wstring runtime = L".NET Desktop Runtime 6.0 " + bitness;
-			msg = std::format(L"{0} is not installed, corrupted or incomplete.\n\nYou can download {0} from https://dotnet.microsoft.com/en-us/download/dotnet/6.0", runtime);
+			msg = std::format(L"{0} is not installed, corrupted or incomplete.\n\nYou can download {0} from https://dotnet.microsoft.com/en-us/download/dotnet/6.0", requiredRuntime);
 		}
 		else
 		{
@@ -261,7 +262,7 @@ load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly()
     "tfm": "net6.0",
     "framework": {
       "name": "Microsoft.WindowsDesktop.App",
-      "version": "6.0.0"
+      "version": "6.0.2"
     }
   }
 })";
@@ -283,7 +284,12 @@ load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly()
 	{
 		if (rc == CoreHostIncompatibleConfig)
 		{
-			std::wstring msg = L"The required .NET 6 runtime is incompatible with the runtime " + get_loaded_runtime_version() + L" already loaded in the process.\n\nYou can try to disable other Excel add-ins to resolve the conflict.";
+			std::wstring msg = L"The required " + requiredRuntime + L" is incompatible with the runtime " + get_loaded_runtime_version() + L" already loaded in the process.\n\nYou can try to disable other Excel add-ins to resolve the conflict.";
+			ShowHostError(msg);
+		}
+		else if (rc == FrameworkMissingFailure)
+		{
+			std::wstring msg = std::format(L"It was not possible to find a compatible framework version for {0}.\n\nYou can download {0} from https://dotnet.microsoft.com/en-us/download/dotnet/6.0", requiredRuntime);
 			ShowHostError(msg);
 		}
 		else
