@@ -274,21 +274,18 @@ namespace ExcelDna.Loader
                 ExcelIntegration.DnaLibraryAutoOpen();
 
                 result = 1; // All is OK
+
+                // Clear the status bar message
+                XlCallImpl.TryExcelImpl(XlCallImpl.xlcMessage, out xlCallResult /*Ignored*/ , false);
+                // Debug.Print("Clear status bar message result: " + xlCallResult);
             }
             catch (Exception e)
             {
-                // Can't use logging here
-                string alertMessage = string.Format("A problem occurred while an add-in was being initialized (InitializeIntegration failed - {1}).\r\nThe add-in is built with ExcelDna and is being loaded from {0}", PathXll, e.Message);
+                // Can't use logging, xlcAlert and xlcMessage with length >220 here
+                string message = string.Format("ExcelDna add-in InitializeIntegration failed - {1} - {0}", PathXll, e.Message);
                 object xlCallResult;
-                XlCallImpl.TryExcelImpl(XlCallImpl.xlcAlert, out xlCallResult /*Ignored*/, alertMessage, 3 /* Only OK Button, Warning Icon*/);
+                XlCallImpl.TryExcelImpl(XlCallImpl.xlcMessage, out xlCallResult /*Ignore*/ , true, message.Substring(0, 220));
                 result = 0;
-            }
-            finally
-            {
-                // Clear the status bar message
-                object xlCallResult;
-                XlCallImpl.TryExcelImpl(XlCallImpl.xlcMessage, out xlCallResult /*Ignored*/ , false);
-                // Debug.Print("Clear status bar message result: " + xlCallResult);
             }
             return result;
         }
