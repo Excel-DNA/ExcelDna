@@ -176,9 +176,14 @@ int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExpor
 void* load_library(const char_t* path)
 {
 	HMODULE h = ::LoadLibraryW(path);
-	assert(h != nullptr);
+	if (h == nullptr)
+	{
+		ShowHostError(std::format(L"Loading library {} failed.", path));
+		return nullptr;
+	}
 	return (void*)h;
 }
+
 void* get_export(void* h, const char* name)
 {
 	void* f = ::GetProcAddress((HMODULE)h, name);
@@ -198,6 +203,9 @@ bool load_hostfxr(int& rc)
 
 	// Load hostfxr and get desired exports
 	void* lib = load_library(buffer);
+	if (lib == nullptr)
+		return false;
+
 	init_fptr = (hostfxr_initialize_for_runtime_config_fn)get_export(lib, "hostfxr_initialize_for_runtime_config");
 	get_delegate_fptr = (hostfxr_get_runtime_delegate_fn)get_export(lib, "hostfxr_get_runtime_delegate");
 	get_property_fptr = (hostfxr_get_runtime_property_value_fn)get_export(lib, "hostfxr_get_runtime_property_value");
