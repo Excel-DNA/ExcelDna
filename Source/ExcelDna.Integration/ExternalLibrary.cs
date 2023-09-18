@@ -10,23 +10,23 @@ using ExcelDna.Logging;
 
 namespace ExcelDna.Integration
 {
-	// TODO: Allow Com References (via TlbImp?)/Exported Libraries
-	// DOCUMENT When loading ExternalLibraries, we check first the path given in the Path attribute:
-	// if there is no such file, we try to find a file with the right name in the same 
-	// directory as the .xll.
-	// We load files with .dna extension as Dna Libraries
+    // TODO: Allow Com References (via TlbImp?)/Exported Libraries
+    // DOCUMENT When loading ExternalLibraries, we check first the path given in the Path attribute:
+    // if there is no such file, we try to find a file with the right name in the same 
+    // directory as the .xll.
+    // We load files with .dna extension as Dna Libraries
 
-	[Serializable]
-	[XmlType(AnonymousType = true)]
-	public class ExternalLibrary
-	{
-		private string _Path;
-		[XmlAttribute]
-		public string Path
-		{
-			get { return _Path; }
-			set { _Path = value; }
-		}
+    [Serializable]
+    [XmlType(AnonymousType = true)]
+    public class ExternalLibrary
+    {
+        private string _Path;
+        [XmlAttribute]
+        public string Path
+        {
+            get { return _Path; }
+            set { _Path = value; }
+        }
 
         private string _TypeLibPath;
         [XmlAttribute]
@@ -44,13 +44,13 @@ namespace ExcelDna.Integration
             set { _ComServer = value; }
         }
 
-		private bool _Pack = false;
-		[XmlAttribute]
-		public bool Pack
-		{
-			get { return _Pack; }
-			set { _Pack = value; }
-		}
+        private bool _Pack = false;
+        [XmlAttribute]
+        public bool Pack
+        {
+            get { return _Pack; }
+            set { _Pack = value; }
+        }
 
         private bool _LoadFromBytes = false;
         [XmlAttribute]
@@ -60,13 +60,13 @@ namespace ExcelDna.Integration
             set { _LoadFromBytes = value; }
         }
 
-		private bool _ExplicitExports = false;
-		[XmlAttribute]
-		public bool ExplicitExports
-		{
-			get { return _ExplicitExports; }
-			set { _ExplicitExports = value; }
-		}
+        private bool _ExplicitExports = false;
+        [XmlAttribute]
+        public bool ExplicitExports
+        {
+            get { return _ExplicitExports; }
+            set { _ExplicitExports = value; }
+        }
 
         private bool _ExplicitRegistration = false;
         [XmlAttribute]
@@ -76,13 +76,13 @@ namespace ExcelDna.Integration
             set { _ExplicitRegistration = value; }
         }
 
-	    private bool _UseVersionAsOutputVersion = false;
-	    [XmlAttribute]
-	    public bool UseVersionAsOutputVersion
+        private bool _UseVersionAsOutputVersion = false;
+        [XmlAttribute]
+        public bool UseVersionAsOutputVersion
         {
-	        get { return _UseVersionAsOutputVersion; }
+            get { return _UseVersionAsOutputVersion; }
             set { _UseVersionAsOutputVersion = value; }
-	    }
+        }
 
         private bool _IncludePdb = false;
         [XmlAttribute]
@@ -92,32 +92,32 @@ namespace ExcelDna.Integration
             set { _IncludePdb = value; }
         }
 
-		internal List<ExportedAssembly> GetAssemblies(string pathResolveRoot, DnaLibrary dnaLibrary)
-		{
+        internal List<ExportedAssembly> GetAssemblies(string pathResolveRoot, DnaLibrary dnaLibrary)
+        {
             List<ExportedAssembly> list = new List<ExportedAssembly>();
 
-			try
-			{
+            try
+            {
                 string realPath = Path;
-				if (Path.StartsWith("packed:"))
-				{
+                if (Path.StartsWith("packed:"))
+                {
                     // The ExternalLibrary is packed.
                     // We'll have to load it from resources.
-					string resourceName = Path.Substring(7);
-					if (Path.EndsWith(".DNA", StringComparison.OrdinalIgnoreCase))
-					{
-						byte[] dnaContent = ExcelIntegration.GetDnaFileBytes(resourceName);
-						DnaLibrary lib = DnaLibrary.LoadFrom(dnaContent, pathResolveRoot);
-						if (lib == null)
-						{
+                    string resourceName = Path.Substring(7);
+                    if (Path.EndsWith(".DNA", StringComparison.OrdinalIgnoreCase))
+                    {
+                        byte[] dnaContent = ExcelIntegration.GetDnaFileBytes(resourceName);
+                        DnaLibrary lib = DnaLibrary.LoadFrom(dnaContent, pathResolveRoot);
+                        if (lib == null)
+                        {
                             Logger.Initialization.Error("External library could not be registered - Path: {0}\r\n - Packed DnaLibrary could not be loaded", Path);
-							return list;
-						}
+                            return list;
+                        }
 
-						return lib.GetAssemblies(pathResolveRoot);
-					}
-					else
-					{
+                        return lib.GetAssemblies(pathResolveRoot);
+                    }
+                    else
+                    {
                         // DOCUMENT: TypeLibPath which is a resource in a library is denoted as fileName.dll\4
                         // For packed assemblies, we set TypeLibPath="packed:2"
                         string typeLibPath = null;
@@ -137,12 +137,12 @@ namespace ExcelDna.Integration
                         byte[] rawAssembly = ExcelIntegration.GetAssemblyBytes(resourceName);
                         byte[] rawPdb = ExcelIntegration.GetPdbBytes(resourceName);
                         Assembly assembly = ExcelIntegration.LoadFromAssemblyBytes(rawAssembly, rawPdb);
-						list.Add(new ExportedAssembly(assembly, ExplicitExports, ExplicitRegistration, ComServer, false, typeLibPath, dnaLibrary));
-						return list;
-					}
-				}
-				if (Uri.IsWellFormedUriString(Path, UriKind.Absolute))
-				{
+                        list.Add(new ExportedAssembly(assembly, ExplicitExports, ExplicitRegistration, ComServer, false, typeLibPath, dnaLibrary));
+                        return list;
+                    }
+                }
+                if (Uri.IsWellFormedUriString(Path, UriKind.Absolute))
+                {
                     Uri uri = new Uri(Path, UriKind.Absolute);
                     if (uri.IsUnc)
                     {
@@ -159,23 +159,23 @@ namespace ExcelDna.Integration
                 string resolvedPath = DnaLibrary.ResolvePath(realPath, pathResolveRoot);
                 if (resolvedPath == null)
                 {
-                    Logger.Initialization.Error("External library could not be registered - Path: {0} - The library could not be found at this location" + Path);
+                    Logger.Initialization.Error("External library could not be registered - Path: {0} - The library could not be found at this location", Path);
                     return list;
-				}
+                }
                 if (System.IO.Path.GetExtension(resolvedPath).Equals(".DNA", StringComparison.OrdinalIgnoreCase))
-				{
-					// Load as a DnaLibrary
+                {
+                    // Load as a DnaLibrary
                     DnaLibrary lib = DnaLibrary.LoadFrom(resolvedPath);
-					if (lib == null)
-					{
-                        Logger.Initialization.Error("External library could not be registered - Path: {0} - DnaLibrary could not be loaded" + Path);
+                    if (lib == null)
+                    {
+                        Logger.Initialization.Error("External library could not be registered - Path: {0} - DnaLibrary could not be loaded", Path);
                         return list;
-					}
+                    }
 
                     string pathResolveRelative = System.IO.Path.GetDirectoryName(resolvedPath);
-					return lib.GetAssemblies(pathResolveRelative);
-				}
-				else
+                    return lib.GetAssemblies(pathResolveRelative);
+                }
+                else
                 {
                     Assembly assembly;
                     // Load as a regular assembly
@@ -228,17 +228,17 @@ namespace ExcelDna.Integration
                         }
                     }
                     list.Add(new ExportedAssembly(assembly, ExplicitExports, ExplicitRegistration, ComServer, false, resolvedTypeLibPath, dnaLibrary));
-					return list;
-				}
-			}
-			catch (Exception e)
-			{
-				// Assembly could not be loaded.
-				Logger.Initialization.Error(e, "External library could not be registered - Path: {0}", Path);
+                    return list;
+                }
+            }
+            catch (Exception e)
+            {
+                // Assembly could not be loaded.
+                Logger.Initialization.Error(e, "External library could not be registered - Path: {0}", Path);
                 return list;
-			}
-		}
-        
+            }
+        }
+
         // Similar copy to this method lives in ExcelDna.Loader - AssemblyManager.cs
         // But here we don't deal with .resources assemblies
         static Assembly GetAssemblyIfLoaded(string assemblyName)
@@ -254,5 +254,5 @@ namespace ExcelDna.Integration
         }
 
 
-	}
+    }
 }

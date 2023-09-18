@@ -302,6 +302,13 @@ namespace ExcelDna.Integration
                         addIn.AutoOpenMethod.Invoke(addIn.Instance, null);
                     }
                 }
+                catch (TargetInvocationException e)
+                {
+                    if (e.InnerException != null)
+                        Logger.Initialization.Error(e.InnerException, "DnaLibrary AutoOpen Invoke Error");
+                    else
+                        Logger.Initialization.Error("DnaLibrary AutoOpen Invoke Error: {0}", e.Message);
+                }
                 catch (Exception e)
                 {
                     // TODO: What to do here?
@@ -325,6 +332,13 @@ namespace ExcelDna.Integration
                     {
                         addIn.AutoCloseMethod.Invoke(addIn.Instance, null);
                     }
+                }
+                catch (TargetInvocationException e)
+                {
+                    if (e.InnerException != null)
+                        Logger.Initialization.Warn("DnaLibrary AutoClose Invoke Error: {0}", e.InnerException.Message);
+                    else
+                        Logger.Initialization.Warn("DnaLibrary AutoClose Invoke Error: {0}", e.Message);
                 }
                 catch (Exception e)
                 {
