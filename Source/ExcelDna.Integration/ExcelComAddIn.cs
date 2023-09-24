@@ -29,6 +29,7 @@ namespace ExcelDna.Integration
     {
         internal DnaLibrary DnaLibrary { get; set; }
         private string _progId;
+        private object _addInInst;
         protected string ProgId
         {
             get { return _progId; }
@@ -45,11 +46,13 @@ namespace ExcelDna.Integration
         #region IDTExtensibility2 interface
         public virtual void OnConnection(object Application, ext_ConnectMode ConnectMode, object AddInInst, ref Array custom)
         {
+            _addInInst = AddInInst;
             Logger.ComAddIn.Verbose("ExcelComAddIn.OnConnection");
         }
 
         public virtual void OnDisconnection(ext_DisconnectMode RemoveMode, ref Array custom)
         {
+            ExcelComAddInHelper.OnUnloadComAddIn(this, _addInInst);
             Logger.ComAddIn.Verbose("ExcelComAddIn.OnDisconnection");
         }
 
@@ -74,6 +77,11 @@ namespace ExcelDna.Integration
     {
         // Com Add-ins loaded for Ribbons.
         static List<object> loadedComAddIns = new List<object>();
+
+        public static void OnUnloadComAddIn(ExcelComAddIn addIn, object addInInst)
+        {
+            loadedComAddIns.Remove(addInInst);
+        }
 
         public static void LoadComAddIn(ExcelComAddIn addIn)
         {
@@ -182,7 +190,7 @@ namespace ExcelDna.Integration
         internal static void UnloadComAddIns()
         {
             CultureInfo ci = new CultureInfo(1033);
-            foreach (object comAddIn in loadedComAddIns)
+            foreach (object comAddIn in loadedComAddIns.ToArray()) // Disconnecting an add-in removes it from loadedComAddIns, so we operate on a copy of the collection.
             {
                 comAddIn.GetType().InvokeMember("Connect", System.Reflection.BindingFlags.SetProperty, null, comAddIn, new object[] { false }, ci);
                 Logger.ComAddIn.Info("Ribbon/COM Add-In Unloaded.");
