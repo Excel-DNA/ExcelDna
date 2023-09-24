@@ -11,12 +11,12 @@ using ExcelDna.Logging;
 
 namespace ExcelDna.Integration
 {
-	// Loads the managed assembly, finds all the methods to be exported to Excel
-	// and build the method information.
+    // Loads the managed assembly, finds all the methods to be exported to Excel
+    // and build the method information.
 
     // DOCUMENT: There is a lot of magic here, and many arbitrary decisions about what to register, and how.
-	internal class AssemblyLoader
-	{
+    internal class AssemblyLoader
+    {
         // We consolidate the TraceSources for both ExcelDna.Integration and ExcelDna.Loader under the Excel.Integration name 
         // (since it is the public contract for ExcelDna).
         // For the first version we don't make separate TraceSources for each class, though in future we might specialize under 
@@ -36,7 +36,8 @@ namespace ExcelDna.Integration
 
             foreach (ExportedAssembly assembly in assemblies)
             {
-                Logger.Initialization.Verbose("Processing assembly {0}. ExplicitExports {1}, ExplicitRegistration {2}, ComServer {3}, IsDynamic {4}", 
+                int initialObjectsCount = methods.Count + addIns.Count + rtdServerTypes.Count + comClassTypes.Count;
+                Logger.Initialization.Verbose("Processing assembly {0}. ExplicitExports {1}, ExplicitRegistration {2}, ComServer {3}, IsDynamic {4}",
                     assembly.Assembly.FullName, assembly.ExplicitExports, assembly.ExplicitRegistration, assembly.ComServer, assembly.IsDynamic);
                 // Patch contributed by y_i on CodePlex:
                 // http://stackoverflow.com/questions/11915389/assembly-gettypes-throwing-an-exception
@@ -49,6 +50,7 @@ namespace ExcelDna.Integration
                 }
                 catch (ReflectionTypeLoadException e)
                 {
+                    Logger.Initialization.Verbose("Assembly.GetTypes() error: {0}", e.ToString());
                     // From MSDN:
                     // [...]contains the array of classes (Types property) that were defined in the module and were loaded. 
                     // The array can contain some null values.
@@ -77,8 +79,13 @@ namespace ExcelDna.Integration
                     }
                     catch (Exception e)
                     {
-                        Logger.Initialization.Warn("Type {0} could not be processed. Error: {1}", type.FullName, e.ToString()); 
+                        Logger.Initialization.Warn("Type {0} could not be processed. Error: {1}", type.FullName, e.ToString());
                     }
+                }
+
+                if (methods.Count + addIns.Count + rtdServerTypes.Count + comClassTypes.Count == initialObjectsCount)
+                {
+                    Logger.Initialization.Error("No objects loaded from {0}", assembly.Assembly.FullName);
                 }
             }
         }
@@ -150,21 +157,21 @@ namespace ExcelDna.Integration
             return isSupported;
         }
 
-		// CAUTION: This check needs to match the usage in ExcelDna.Loader.XlMethodInfo.SetAttributeInfo()
-		static bool IsMethodMarkedForExport(MethodInfo mi)
-		{
-			object[] atts = mi.GetCustomAttributes(false);
-			foreach (object att in atts)
-			{
-				Type attType = att.GetType();
+        // CAUTION: This check needs to match the usage in ExcelDna.Loader.XlMethodInfo.SetAttributeInfo()
+        static bool IsMethodMarkedForExport(MethodInfo mi)
+        {
+            object[] atts = mi.GetCustomAttributes(false);
+            foreach (object att in atts)
+            {
+                Type attType = att.GetType();
                 if (TypeHasAncestorWithFullName(attType, "ExcelDna.Integration.ExcelFunctionAttribute") ||
-                    TypeHasAncestorWithFullName(attType, "ExcelDna.Integration.ExcelCommandAttribute" ) )
-				{
-					return true;
-				}
-			}
-			return false;
-		}
+                    TypeHasAncestorWithFullName(attType, "ExcelDna.Integration.ExcelCommandAttribute"))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
 
         static readonly List<Type> _supportedParameterTypes = new List<Type>
         {
@@ -187,11 +194,11 @@ namespace ExcelDna.Integration
 
         static bool IsParameterTypeSupported(Type type)
         {
-            return _supportedParameterTypes.Contains(type) || 
+            return _supportedParameterTypes.Contains(type) ||
                    (ExcelDnaUtil.ExcelVersion >= 14.0 && type == typeof(ExcelAsyncHandle));    // Only Excel 2010+
         }
 
-	    // Some support for creating add-ins that are notified of open and close
+        // Some support for creating add-ins that are notified of open and close
         // this allows the add-in to add menus, toolbar buttons etc.
         // Also records whether this class should be loaded as a ComAddIn (for the Ribbon).
         public class ExcelAddInInfo
@@ -203,8 +210,8 @@ namespace ExcelDna.Integration
             public DnaLibrary ParentDnaLibrary;
         }
 
-		static public void GetExcelAddIns(ExportedAssembly assembly, Type t, bool loadRibbons, List<ExcelAddInInfo> addIns)
-		{
+        static public void GetExcelAddIns(ExportedAssembly assembly, Type t, bool loadRibbons, List<ExcelAddInInfo> addIns)
+        {
             // NOTE: We probably should have restricted this to public types, but didn't. Now it's too late.
             //       So internal classes that implement IExcelAddIn are also loaded.
             try
@@ -217,7 +224,7 @@ namespace ExcelDna.Integration
 
                 Type addInType = t.GetInterface("ExcelDna.Integration.IExcelAddIn");
                 bool isRibbon = IsRibbonType(t);
-                if (addInType != null || (isRibbon && loadRibbons) )
+                if (addInType != null || (isRibbon && loadRibbons))
                 {
                     ExcelAddInInfo info = new ExcelAddInInfo();
                     if (addInType != null)
@@ -237,7 +244,7 @@ namespace ExcelDna.Integration
                 Logger.Initialization.Warn("GetExcelAddIns CreateInstance problem for type: {0} - exception: {1}", t.FullName, e);
             }
 
-		}
+        }
 
         // DOCUMENT: We register types that implement an interface with the IRtdServer Guid. These include
         //           "Microsoft.Office.Interop.Excel.IRtdServer" and
@@ -331,8 +338,8 @@ namespace ExcelDna.Integration
 
             // Current design will load only the least-derived concrete class.
 
-            bool isRibbon = 
-                    type != null && 
+            bool isRibbon =
+                    type != null &&
                     TypeHasAncestorWithFullName(type.BaseType, "ExcelDna.Integration.CustomUI.ExcelRibbon") &&
                     !type.IsAbstract &&
                     !IsRibbonType(type.BaseType);
@@ -346,5 +353,5 @@ namespace ExcelDna.Integration
             if (type.FullName == fullName) return true;
             return TypeHasAncestorWithFullName(type.BaseType, fullName);
         }
-	}
+    }
 }
