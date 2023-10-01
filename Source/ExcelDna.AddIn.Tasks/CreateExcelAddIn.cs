@@ -388,6 +388,11 @@ namespace ExcelDna.AddIn.Tasks
             if (DisableAssemblyContextUnload)
                 result = result.Replace("<DnaLibrary ", "<DnaLibrary " + "DisableAssemblyContextUnload=\"true\" ");
 
+            if (!string.IsNullOrWhiteSpace(RollForward))
+            {
+                result = result.Replace("<DnaLibrary ", "<DnaLibrary " + $"RollForward=\"{RollForward}\" ");
+            }
+
             result = result.Replace(" RuntimeVersion=\"v4.0\"", $" RuntimeVersion=\"{TargetFrameworkVersion}\"");
 
             result = UpdateExternalLibraries(result);

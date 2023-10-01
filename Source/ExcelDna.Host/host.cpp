@@ -38,7 +38,7 @@ hostfxr_close_fn close_fptr;
 
 // Forward declarations
 bool load_hostfxr(int& rc, std::wstring& loadError);
-load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(int majorRuntimeVersion);
+load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(int majorRuntimeVersion, const std::wstring& rollForward);
 
 // Provide a callback for any catastrophic failures.
 // The provided callback will be the last call prior to a rude-abort of the process.
@@ -84,7 +84,13 @@ int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExpor
 	HRESULT hr = GetMajorRuntimeVersion(majorRuntimeVersion);
 	if (FAILED(hr))
 		majorRuntimeVersion = 6;
-	load_assembly_and_get_function_pointer_fn load_assembly_and_get_function_pointer = get_dotnet_load_assembly(majorRuntimeVersion);
+
+	std::wstring rollForward;
+	hr = GetRollForward(rollForward);
+	if (FAILED(hr))
+		rollForward = L"";
+
+	load_assembly_and_get_function_pointer_fn load_assembly_and_get_function_pointer = get_dotnet_load_assembly(majorRuntimeVersion, rollForward);
 	if (load_assembly_and_get_function_pointer == nullptr)
 		return EXIT_FAILURE;
 
@@ -259,20 +265,22 @@ std::wstring get_loaded_runtime_version()
 }
 
 // Load and initialize .NET Core and get desired function pointer for scenario
-load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(int majorRuntimeVersion)
+load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(int majorRuntimeVersion, const std::wstring& rollForward)
 {
 	std::string tfm(std::format("net{0}.0", majorRuntimeVersion));
 	std::string version(majorRuntimeVersion >= 7 ? std::format("{0}.0.0", majorRuntimeVersion) : "6.0.2");
+	std::string rollForwardOption = rollForward.length() > 0 ? std::format(R"("rollForward": "{0}",)", ANSIWStringToString(rollForward)) : "";
 
 	std::string configText = std::format(R"({{
   "runtimeOptions": {{
     "tfm": "{0}",
+    {2}
     "framework": {{
       "name": "Microsoft.WindowsDesktop.App",
       "version": "{1}"
     }}
   }}
-}})", tfm, version);
+}})", tfm, version, rollForwardOption);
 	std::wstring configFile = PathCombine(tempDir.GetPath(), L"ExcelDna.Host.runtimeconfig.json");
 	HRESULT hr = WriteAllBytes(configFile, (void*)configText.c_str(), static_cast<DWORD>(configText.length()));
 	if (FAILED(hr))
