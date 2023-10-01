@@ -39,7 +39,7 @@ hostfxr_close_fn close_fptr;
 
 // Forward declarations
 bool load_hostfxr(int& rc, std::wstring& loadError);
-load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly();
+load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(int majorRuntimeVersion);
 
 // Provide a callback for any catastrophic failures.
 // The provided callback will be the last call prior to a rude-abort of the process.
@@ -80,7 +80,11 @@ int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExpor
 	//
 	// STEP 2: Initialize and start the .NET Core runtime
 	//
-	load_assembly_and_get_function_pointer_fn load_assembly_and_get_function_pointer = get_dotnet_load_assembly();
+	int majorRuntimeVersion;
+	HRESULT hr = GetMajorRuntimeVersion(majorRuntimeVersion);
+	if (FAILED(hr))
+		majorRuntimeVersion = 6;
+	load_assembly_and_get_function_pointer_fn load_assembly_and_get_function_pointer = get_dotnet_load_assembly(majorRuntimeVersion);
 	if (load_assembly_and_get_function_pointer == nullptr)
 		return EXIT_FAILURE;
 
@@ -156,7 +160,7 @@ int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExpor
 	}
 
 	bool disableAssemblyContextUnload;
-	HRESULT hr = GetDisableAssemblyContextUnload(disableAssemblyContextUnload);
+	hr = GetDisableAssemblyContextUnload(disableAssemblyContextUnload);
 	if (FAILED(hr))
 		disableAssemblyContextUnload = false;
 
@@ -255,17 +259,20 @@ std::wstring get_loaded_runtime_version()
 }
 
 // Load and initialize .NET Core and get desired function pointer for scenario
-load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly()
+load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(int majorRuntimeVersion)
 {
-	std::string configText = R"({
-  "runtimeOptions": {
-    "tfm": "net6.0",
-    "framework": {
+	std::string tfm(std::format("net{0}.0", majorRuntimeVersion));
+	std::string version(majorRuntimeVersion >= 7 ? std::format("{0}.0.0", majorRuntimeVersion) : "6.0.2");
+
+	std::string configText = std::format(R"({{
+  "runtimeOptions": {{
+    "tfm": "{0}",
+    "framework": {{
       "name": "Microsoft.WindowsDesktop.App",
-      "version": "6.0.2"
-    }
-  }
-})";
+      "version": "{1}"
+    }}
+  }}
+}})", tfm, version);
 	std::wstring configFile = PathCombine(tempDir.GetPath(), L"ExcelDna.Host.runtimeconfig.json");
 	HRESULT hr = WriteAllBytes(configFile, (void*)configText.c_str(), static_cast<DWORD>(configText.length()));
 	if (FAILED(hr))

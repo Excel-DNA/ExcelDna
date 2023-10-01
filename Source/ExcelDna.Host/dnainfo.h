@@ -7,3 +7,4 @@
 
 HRESULT GetAddInName(std::wstring& addInName);
 HRESULT GetDisableAssemblyContextUnload(bool& disableAssemblyContextUnload);
+HRESULT GetMajorRuntimeVersion(int& majorRuntimeVersion);

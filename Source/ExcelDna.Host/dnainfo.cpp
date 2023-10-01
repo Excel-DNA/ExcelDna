@@ -287,3 +287,34 @@ HRESULT GetDisableAssemblyContextUnload(bool& disableAssemblyContextUnload)
 	}
 	return hr;
 }
+
+HRESULT GetMajorRuntimeVersion(int& majorRuntimeVersion)
+{
+	HRESULT hr;
+	std::wstring addInName;
+	std::wstring header;
+	std::wstring clrVersion;
+	bool shadowCopyFiles;
+	std::wstring createSandboxedAppDomainValue;
+	bool cancelAddInIsolation;
+	bool disableAssemblyContextUnload;
+	hr = GetDnaHeader(false, header);	// Don't show errors here.
+	if (!FAILED(hr))
+	{
+		hr = ParseDnaHeader(header, addInName, clrVersion, shadowCopyFiles, createSandboxedAppDomainValue, cancelAddInIsolation, disableAssemblyContextUnload); // No errors yet.
+		if (FAILED(hr) || clrVersion.length() < 2 || clrVersion[0] != L'v')
+		{
+			return E_FAIL;
+		}
+
+		try
+		{
+			majorRuntimeVersion = std::stoi(clrVersion.substr(1));
+		}
+		catch (const std::exception&)
+		{
+			return E_FAIL;
+		}
+	}
+	return hr;
+}

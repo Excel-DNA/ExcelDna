@@ -388,6 +388,8 @@ namespace ExcelDna.AddIn.Tasks
             if (DisableAssemblyContextUnload)
                 result = result.Replace("<DnaLibrary ", "<DnaLibrary " + "DisableAssemblyContextUnload=\"true\" ");
 
+            result = result.Replace(" RuntimeVersion=\"v4.0\"", $" RuntimeVersion=\"{TargetFrameworkVersion}\"");
+
             result = UpdateExternalLibraries(result);
 
             return result;
@@ -595,6 +597,12 @@ namespace ExcelDna.AddIn.Tasks
         public string TargetFileName { get; set; }
 
         /// <summary>
+        /// The version of the .NET that is required to run the add-in
+        /// </summary>
+        [Required]
+        public string TargetFrameworkVersion { get; set; }
+
+        /// <summary>
         /// The path to ExcelDna-Template.dna
         /// </summary>
         [Required]
@@ -611,6 +619,11 @@ namespace ExcelDna.AddIn.Tasks
         /// </summary>
         [Required]
         public bool CompressResources { get; set; }
+
+        /// <summary>
+        /// Controls how the add-in chooses a runtime when multiple runtime versions are available
+        /// </summary>
+        public string RollForward { get; set; }
 
         /// <summary>
         /// Enable/disable building 32-bit .dna files
