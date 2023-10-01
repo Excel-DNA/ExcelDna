@@ -29,7 +29,6 @@ const std::wstring requiredBitness = L"x64";
 #else
 const std::wstring requiredBitness = L"x86";
 #endif
-const std::wstring requiredRuntime = L".NET Desktop Runtime 6.0.2+ " + requiredBitness;
 
 // Globals to hold hostfxr exports
 hostfxr_initialize_for_runtime_config_fn init_fptr;
@@ -66,6 +65,7 @@ int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExpor
 		std::wstring msg;
 		if (rc == CoreHostLibMissingFailure)
 		{
+			std::wstring requiredRuntime = L".NET Desktop Runtime 6.0.2+ " + requiredBitness;
 			msg = std::format(L"{0} is not installed, corrupted or incomplete.\n\nYou can download {0} from https://dotnet.microsoft.com/en-us/download/dotnet/6.0", requiredRuntime);
 		}
 		else
@@ -289,6 +289,7 @@ load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(int majorRunt
 	int rc = init_fptr(configFile.c_str(), nullptr, &cxt);
 	if (!STATUS_CODE_SUCCEEDED(rc) || cxt == nullptr)
 	{
+		std::wstring requiredRuntime = std::format(L".NET Desktop Runtime {0} {1}", std::wstring(version.begin(), version.end()), requiredBitness);
 		if (rc == CoreHostIncompatibleConfig)
 		{
 			std::wstring msg = L"The required " + requiredRuntime + L" is incompatible with the runtime " + get_loaded_runtime_version() + L" already loaded in the process.\n\nYou can try to disable other Excel add-ins to resolve the conflict.";
@@ -296,7 +297,7 @@ load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(int majorRunt
 		}
 		else if (rc == FrameworkMissingFailure)
 		{
-			std::wstring msg = std::format(L"It was not possible to find a compatible framework version for {0}.\n\nYou can download {0} from https://dotnet.microsoft.com/en-us/download/dotnet/6.0", requiredRuntime);
+			std::wstring msg = std::format(L"It was not possible to find a compatible framework version for {0}.\n\nYou can download {0} from https://dotnet.microsoft.com/en-us/download/dotnet/", requiredRuntime);
 			ShowHostError(msg);
 		}
 		else
