@@ -78,6 +78,22 @@
 		</ItemGroup>
 	</Target>
 
+	<!--
+    Executes DsComExportTypeLibraryAfterBuild target if available
+  -->
+	<Target Name="ExcelDnaDscomRunner" DependsOnTargets="ExcelDnaDscomPackageDetection;ExcelDnaDscomRunnerImpl">
+	</Target>
+
+	<Target Name="ExcelDnaDscomRunnerImpl" DependsOnTargets="DsComExportTypeLibraryAfterBuild" Condition="'$(ExcelDnaDscomPackageDetected)'== 'true'">
+	</Target>
+
+	<Target Name="ExcelDnaDscomPackageDetection">
+		<PropertyGroup>
+			<ExcelDnaDscomPackageDetected>false</ExcelDnaDscomPackageDetected>
+			<ExcelDnaDscomPackageDetected Condition="'%(PackageReference.Identity)' == 'dSPACE.Runtime.InteropServices.BuildTasks'">true</ExcelDnaDscomPackageDetected>
+		</PropertyGroup>
+	</Target>
+
   <!--
     Target that ensures ExcelDna.Integration.dll is not copied to the output folder
     https://github.com/Excel-DNA/ExcelDna/issues/188
@@ -255,7 +271,7 @@
   <!--
     Target that packs files for each .dna copied to the build output folder
   -->
-  <Target Name="ExcelDnaPack" DependsOnTargets="ExcelDnaBuild" BeforeTargets="PostBuildEvent" Condition="('$(ExcelDnaUnpack)' != 'true') AND ('$(RunExcelDnaPack)' == 'true') AND ('@(ExcelDnaFilesToPack->Count())' &gt; 0)" Outputs="%(ExcelDnaFilesToPack.Identity)">
+  <Target Name="ExcelDnaPack" DependsOnTargets="ExcelDnaBuild;ExcelDnaDscomRunner" BeforeTargets="PostBuildEvent" Condition="('$(ExcelDnaUnpack)' != 'true') AND ('$(RunExcelDnaPack)' == 'true') AND ('@(ExcelDnaFilesToPack->Count())' &gt; 0)" Outputs="%(ExcelDnaFilesToPack.Identity)">
 
     <Message Text="ExcelDnaPack: %(ExcelDnaFilesToPack.OutputDnaFileName) -> %(ExcelDnaFilesToPack.OutputPackedXllFileName)" Importance="High" />
 	<PackExcelAddIn
