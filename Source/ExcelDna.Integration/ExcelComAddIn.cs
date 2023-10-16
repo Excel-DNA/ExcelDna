@@ -73,6 +73,40 @@ namespace ExcelDna.Integration
         #endregion
     }
 
+    [ComVisible(true)]
+#pragma warning disable CS0618 // Type or member is obsolete (but probably not forever)
+    [ClassInterface(ClassInterfaceType.AutoDispatch)]
+#pragma warning restore CS0618 // Type or member is obsolete
+    public class DummyComAddIn : IDTExtensibility2
+    {
+        #region IDTExtensibility2 interface
+        public virtual void OnConnection(object Application, ext_ConnectMode ConnectMode, object AddInInst, ref Array custom)
+        {
+            Logger.ComAddIn.Verbose("DummyComAddIn.OnConnection");
+        }
+
+        public virtual void OnDisconnection(ext_DisconnectMode RemoveMode, ref Array custom)
+        {
+            Logger.ComAddIn.Verbose("DummyComAddIn.OnDisconnection");
+        }
+
+        public virtual void OnAddInsUpdate(ref Array custom)
+        {
+            Logger.ComAddIn.Verbose("DummyComAddIn.OnAddInsUpdate");
+        }
+
+        public virtual void OnStartupComplete(ref Array custom)
+        {
+            Logger.ComAddIn.Verbose("DummyComAddIn.OnStartupComplete");
+        }
+
+        public virtual void OnBeginShutdown(ref Array custom)
+        {
+            Logger.ComAddIn.Verbose("DummyComAddIn.OnBeginShutdown");
+        }
+        #endregion
+    }
+    
     public static class ExcelComAddInHelper
     {
         // Com Add-ins loaded for Ribbons.
@@ -141,32 +175,40 @@ namespace ExcelDna.Integration
                 Logger.ComAddIn.Verbose("Loading Ribbon/COM Add-In {0} ({1}) {2} / {3}",
                     addIn.GetType().FullName, friendlyName, progId, clsId);
 
-                using (new SingletonClassFactoryRegistration(addIn, clsId))
                 using (new ProgIdRegistration(progId, clsId))
                 using (new ClsIdRegistration(clsId, progId))
                 using (new ComAddInRegistration(progId, friendlyName, description))
                 using (new AutomationSecurityOverride(app))
                 {
-                    excelComAddIns = appType.InvokeMember("COMAddIns", BindingFlags.GetProperty, null, app, null, ci);
-                    //                            Debug.Print("Got COMAddins object: " + excelComAddIns.GetType().ToString());
-                    appType.InvokeMember("Update", BindingFlags.InvokeMethod, null, excelComAddIns, null, ci);
-                    //                            Debug.Print("Updated COMAddins object with AddIn registered");
-                    comAddIn = excelComAddIns.GetType().InvokeMember("Item", BindingFlags.InvokeMethod, null, excelComAddIns, new object[] { progId }, ci);
-                    //                            Debug.Print("Got the COMAddin object: " + comAddIn.GetType().ToString());
+                    // NOTE: A bug was introduced in Excel around version 2310 (16.0.16921.20000) that broke some of the COM add-in load scenarios for ribbons and CTP
+                    // This point in the code will (at least under these versions) load the add-in via COM DllGetClassObject
+                    // But the add-in is not 'fully' loaded, e.g. the Ribbon is not loaded
+                    // However, events on the add-in object will fire, specifically the OnDisconnect event when we do Connect = false later.
+                    // So to avoid inconvenience to our 'real' add-in, we give Excel a dummy add-in for now
+                    var dummyAddIn = new DummyComAddIn();
+                    using (new SingletonClassFactoryRegistration(dummyAddIn, clsId))
+                    {
+                        excelComAddIns = appType.InvokeMember("COMAddIns", BindingFlags.GetProperty, null, app, null, ci);
 
-                    // At this point Excel knows how to load our add-in by CLSID, so we could clean up the 
-                    // registry aggressively, before the actual (dangerous?) loading starts.
-                    // But this seems to lead to some distress - Excel has some assertion checked when 
-                    // it updates the LoadBehavior after a successful load....
+                        //                            Debug.Print("Got COMAddins object: " + excelComAddIns.GetType().ToString());
+                        appType.InvokeMember("Update", BindingFlags.InvokeMethod, null, excelComAddIns, null, ci);
+                        //                            Debug.Print("Updated COMAddins object with AddIn registered");
+                        comAddIn = excelComAddIns.GetType().InvokeMember("Item", BindingFlags.InvokeMethod, null, excelComAddIns, new object[] { progId }, ci);
+                        //                            Debug.Print("Got the COMAddin object: " + comAddIn.GetType().ToString());
 
-                    // NOTE: A bug was introduced in Excel around version 2310 (16.0.16921.20000) that causes the COMAddIn.Connect = true setting to not load the add-in
-                    // To work around this, it seems to be necessary to explicitly first set the Connect property to false
-                    // (which is the current state, as we have just added the new ComAddIn) before setting to true.
-                    
-                    // object connectState = comAddIn.GetType().InvokeMember("Connect", BindingFlags.GetProperty, null, comAddIn, null, ci);
-                    comAddIn.GetType().InvokeMember("Connect", BindingFlags.SetProperty, null, comAddIn, new object[] { false }, ci);
-                    comAddIn.GetType().InvokeMember("Connect", BindingFlags.SetProperty, null, comAddIn, new object[] { true }, ci);
-                    
+                        // At this point Excel knows how to load our add-in by CLSID, so we could clean up the 
+                        // registry aggressively, before the actual (dangerous?) loading starts.
+                        // But this seems to lead to some distress - Excel has some assertion checked when 
+                        // it updates the LoadBehavior after a successful load....
+
+                        object connectState = comAddIn.GetType().InvokeMember("Connect", BindingFlags.GetProperty, null, comAddIn, null, ci);
+                        comAddIn.GetType().InvokeMember("Connect", BindingFlags.SetProperty, null, comAddIn, new object[] { false }, ci);
+                    }
+                    // Swap out the dummy add-in for the real one
+                    using (new SingletonClassFactoryRegistration(addIn, clsId))
+                    {
+                        comAddIn.GetType().InvokeMember("Connect", BindingFlags.SetProperty, null, comAddIn, new object[] { true }, ci);
+                    }
                     //                            Debug.Print("COMAddin is loaded.");
                     loadedComAddIns.Add(comAddIn);
 
