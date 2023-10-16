@@ -158,7 +158,15 @@ namespace ExcelDna.Integration
                     // registry aggressively, before the actual (dangerous?) loading starts.
                     // But this seems to lead to some distress - Excel has some assertion checked when 
                     // it updates the LoadBehavior after a successful load....
+
+                    // NOTE: A bug was introduced in Excel around version 2310 (16.0.16921.20000) that causes the COMAddIn.Connect = true setting to not load the add-in
+                    // To work around this, it seems to be necessary to explicitly first set the Connect property to false
+                    // (which is the current state, as we have just added the new ComAddIn) before setting to true.
+                    
+                    // object connectState = comAddIn.GetType().InvokeMember("Connect", BindingFlags.GetProperty, null, comAddIn, null, ci);
+                    comAddIn.GetType().InvokeMember("Connect", BindingFlags.SetProperty, null, comAddIn, new object[] { false }, ci);
                     comAddIn.GetType().InvokeMember("Connect", BindingFlags.SetProperty, null, comAddIn, new object[] { true }, ci);
+                    
                     //                            Debug.Print("COMAddin is loaded.");
                     loadedComAddIns.Add(comAddIn);
 
