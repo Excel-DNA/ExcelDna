@@ -77,7 +77,7 @@ namespace ExcelDna.Integration
 #pragma warning disable CS0618 // Type or member is obsolete (but probably not forever)
     [ClassInterface(ClassInterfaceType.AutoDispatch)]
 #pragma warning restore CS0618 // Type or member is obsolete
-    public class DummyComAddIn : IDTExtensibility2
+    internal class DummyComAddIn : IDTExtensibility2
     {
         #region IDTExtensibility2 interface
         public virtual void OnConnection(object Application, ext_ConnectMode ConnectMode, object AddInInst, ref Array custom)
