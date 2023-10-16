@@ -77,6 +77,9 @@ namespace ExcelDna.Integration
 
         internal static int LPenHelper(int wCode, ref XlCall.FmlaInfo fmlaInfo)
         {
+            if (!ExcelDnaUtil.IsMainThread)
+                throw new InvalidOperationException("PenHelper can only be called from the main thread.");
+
             return _integrationHost.LPenHelper(wCode, ref fmlaInfo);
         }
 
