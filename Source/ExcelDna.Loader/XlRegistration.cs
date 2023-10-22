@@ -57,12 +57,14 @@ namespace ExcelDna.Loader
                 targets.Add(del);
             }
             List<XlMethodInfo> xlMethods = XlMethodInfo.ConvertToXlMethodInfos(methods, targets, null, methodAttributes, argumentAttributes);
+            xlMethods.ForEach(i => delegateHandles.Add(i.DelegateHandle));
             RegisterXlMethods(xlMethods);
         }
 
         public static void RegisterLambdaExpressionsWithAttributes(List<LambdaExpression> lambdaExpressions, List<object> methodAttributes, List<List<object>> argumentAttributes)
         {
             List<XlMethodInfo> xlMethods = XlMethodInfo.ConvertToXlMethodInfos(null, null, lambdaExpressions, methodAttributes, argumentAttributes);
+            xlMethods.ForEach(i => delegateHandles.Add(i.DelegateHandle));
             RegisterXlMethods(xlMethods);
         }
 
@@ -87,6 +89,7 @@ namespace ExcelDna.Loader
                      null,
                      new List<object> { functionAttribute },
                      new List<List<object>> { argumentAttributes });
+            xlMethods.ForEach(i => delegateHandles.Add(i.DelegateHandle));
             RegisterXlMethods(xlMethods);
         }
 
