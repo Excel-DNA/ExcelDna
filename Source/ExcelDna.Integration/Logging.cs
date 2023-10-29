@@ -197,6 +197,8 @@ namespace ExcelDna.Logging
                 IntegrationTraceSource.Close();
                 IntegrationTraceSource = null;
             }
+
+            s_LoggingInitialized = false;
         }
 
     }
