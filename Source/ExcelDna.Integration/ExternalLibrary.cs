@@ -243,12 +243,24 @@ namespace ExcelDna.Integration
         // But here we don't deal with .resources assemblies
         static Assembly GetAssemblyIfLoaded(string assemblyName)
         {
-            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            foreach (Assembly loadedAssembly in assemblies)
+            IEnumerable<Assembly> assemblies = null;
+#if NETCOREAPP
+            var alc = System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(Assembly.GetExecutingAssembly());
+            if (alc != null)
             {
-                AssemblyName loadedAssemblyName = loadedAssembly.GetName();
-                if (string.Equals(assemblyName, loadedAssemblyName.Name, StringComparison.OrdinalIgnoreCase))
-                    return loadedAssembly;
+                assemblies = alc.Assemblies;
+            }
+#else
+            assemblies = AppDomain.CurrentDomain.GetAssemblies();
+#endif
+            if (assemblies != null)
+            {
+                foreach (Assembly loadedAssembly in assemblies)
+                {
+                    AssemblyName loadedAssemblyName = loadedAssembly.GetName();
+                    if (string.Equals(assemblyName, loadedAssemblyName.Name, StringComparison.OrdinalIgnoreCase))
+                        return loadedAssembly;
+                }
             }
             return null;
         }
