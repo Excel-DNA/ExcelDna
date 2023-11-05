@@ -9,6 +9,8 @@ namespace ExcelDna.Logging
         public SourceLevels SourceLevel { get; }
         public TraceEventType? LogDisplayLevel { get; }
         public TraceEventType? DebuggerLevel { get; }
+        public TraceEventType? FileLevel { get; }
+        public string FileName { get; }
 
         public LoggingSettings()
         {
@@ -19,6 +21,11 @@ namespace ExcelDna.Logging
 
             if (Enum.TryParse(GetCustomSetting("DEBUGGER_LEVEL", "DebuggerLevel"), out TraceEventType debuggerLevelResult))
                 DebuggerLevel = debuggerLevelResult;
+
+            if (Enum.TryParse(GetCustomSetting("FILE_LEVEL", "FileLevel"), out TraceEventType fileLevelResult))
+                FileLevel = fileLevelResult;
+
+            FileName = GetCustomSetting("FILE_NAME", "FileName");
         }
 
         private static string GetCustomSetting(string environmentName, string registryName)

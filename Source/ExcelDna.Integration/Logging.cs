@@ -143,6 +143,16 @@ namespace ExcelDna.Logging
                         IntegrationTraceSource.Listeners.Add(new LogDisplayTraceListener("LogDisplay", settings.LogDisplayLevel));
                     }
 
+                    if (!string.IsNullOrWhiteSpace(settings.FileName))
+                    {
+                        Trace.AutoFlush = true;
+
+                        TextWriterTraceListener textWriterTraceListener = new TextWriterTraceListener(settings.FileName, "FileWriter");
+                        if (settings.FileLevel.HasValue)
+                            textWriterTraceListener.Filter = new DiagnosticsFilter(settings.FileLevel.Value);
+                        IntegrationTraceSource.Listeners.Add(textWriterTraceListener);
+                    }
+
                     AppDomain currentDomain = AppDomain.CurrentDomain;
                     //currentDomain.UnhandledException += UnhandledExceptionHandler;
                     currentDomain.DomainUnload += AppDomainUnloadEvent;
