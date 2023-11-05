@@ -111,6 +111,10 @@ namespace ExcelDna.Logging
                         }
                         logDisplayTraceListenerIsConfigured = true;
                     }
+                    else if (tl.Name == "Default" && settings.DebuggerLevel.HasValue)
+                    {
+                        tl.Filter = new DiagnosticsFilter(settings.DebuggerLevel.Value);
+                    }
                 }
 
                 try

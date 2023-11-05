@@ -8,6 +8,7 @@ namespace ExcelDna.Logging
     {
         public SourceLevels SourceLevel { get; }
         public TraceEventType? LogDisplayLevel { get; }
+        public TraceEventType? DebuggerLevel { get; }
 
         public LoggingSettings()
         {
@@ -15,6 +16,9 @@ namespace ExcelDna.Logging
 
             if (Enum.TryParse(GetCustomSetting("LOGDISPLAY_LEVEL", "LogDisplayLevel"), out TraceEventType logDisplayLevelResult))
                 LogDisplayLevel = logDisplayLevelResult;
+
+            if (Enum.TryParse(GetCustomSetting("DEBUGGER_LEVEL", "DebuggerLevel"), out TraceEventType debuggerLevelResult))
+                DebuggerLevel = debuggerLevelResult;
         }
 
         private static string GetCustomSetting(string environmentName, string registryName)
