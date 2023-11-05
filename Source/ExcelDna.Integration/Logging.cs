@@ -136,7 +136,7 @@ namespace ExcelDna.Logging
                     else
                     {
                         // No explicit configuration for this default listener, so we add it
-                        IntegrationTraceSource.Listeners.Add(new LogDisplayTraceListener("LogDisplay"));
+                        IntegrationTraceSource.Listeners.Add(new LogDisplayTraceListener("LogDisplay", settings.LogDisplayLevel));
                     }
 
                     AppDomain currentDomain = AppDomain.CurrentDomain;

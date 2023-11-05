@@ -7,10 +7,14 @@ namespace ExcelDna.Logging
     internal class LoggingSettings
     {
         public SourceLevels SourceLevel { get; }
+        public TraceEventType? LogDisplayLevel { get; }
 
         public LoggingSettings()
         {
-            SourceLevel = Enum.TryParse(GetCustomSetting("SOURCE_LEVEL", "SourceLevel"), out SourceLevels result) ? result : SourceLevels.Warning;
+            SourceLevel = Enum.TryParse(GetCustomSetting("SOURCE_LEVEL", "SourceLevel"), out SourceLevels sourceLevelResult) ? sourceLevelResult : SourceLevels.Warning;
+
+            if (Enum.TryParse(GetCustomSetting("LOGDISPLAY_LEVEL", "LogDisplayLevel"), out TraceEventType logDisplayLevelResult))
+                LogDisplayLevel = logDisplayLevelResult;
         }
 
         private static string GetCustomSetting(string environmentName, string registryName)
