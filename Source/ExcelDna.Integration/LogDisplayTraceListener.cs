@@ -13,8 +13,6 @@ namespace ExcelDna.Logging
     //           This might allow the source and EventType (and maybe a sequence) to be separate columns.
     public class LogDisplayTraceListener : TraceListener
     {
-        private TraceEventType? filterLevel;
-
         public LogDisplayTraceListener()
         {
         }
@@ -22,7 +20,8 @@ namespace ExcelDna.Logging
         public LogDisplayTraceListener(string name, TraceEventType? filterLevel)
             : base(name)
         {
-            this.filterLevel = filterLevel;
+            if (filterLevel.HasValue)
+                Filter = new DiagnosticsFilter(filterLevel.Value);
         }
 
         public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string message)
@@ -33,9 +32,6 @@ namespace ExcelDna.Logging
         public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string format, params object[] args)
         {
             if (Filter != null && !Filter.ShouldTrace(eventCache, source, eventType, id, format, args, null, null))
-                return;
-
-            if (filterLevel.HasValue && eventType > filterLevel.Value)
                 return;
 
             string idDescription;
