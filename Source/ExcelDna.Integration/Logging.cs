@@ -87,10 +87,12 @@ namespace ExcelDna.Logging
         {
             if (!s_LoggingInitialized)
             {
+                LoggingSettings settings = new LoggingSettings();
+
                 bool loggingEnabled = false;
                 // DOCUMENT: By default the TraceSource is configured to source only Warning, Error and Fatal.
                 //           the configuration can override this.
-                IntegrationTraceSource = new TraceSource(TraceSourceName, SourceLevels.Warning);
+                IntegrationTraceSource = new TraceSource(TraceSourceName, settings.SourceLevel);
 
                 bool logDisplayTraceListenerIsConfigured = false;
                 TraceListener logDisplayTraceListenerToRemove = null; // The one we want to remove if configured as "Off"
@@ -108,6 +110,10 @@ namespace ExcelDna.Logging
                             logDisplayTraceListenerToRemove = tl;
                         }
                         logDisplayTraceListenerIsConfigured = true;
+                    }
+                    else if (tl.Name == "Default" && settings.DebuggerLevel.HasValue)
+                    {
+                        tl.Filter = new DiagnosticsFilter(settings.DebuggerLevel.Value);
                     }
                 }
 
@@ -134,7 +140,17 @@ namespace ExcelDna.Logging
                     else
                     {
                         // No explicit configuration for this default listener, so we add it
-                        IntegrationTraceSource.Listeners.Add(new LogDisplayTraceListener("LogDisplay"));
+                        IntegrationTraceSource.Listeners.Add(new LogDisplayTraceListener("LogDisplay", settings.LogDisplayLevel));
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(settings.FileName))
+                    {
+                        Trace.AutoFlush = true;
+
+                        TextWriterTraceListener textWriterTraceListener = new TextWriterTraceListener(settings.FileName, "FileWriter");
+                        if (settings.FileLevel.HasValue)
+                            textWriterTraceListener.Filter = new DiagnosticsFilter(settings.FileLevel.Value);
+                        IntegrationTraceSource.Listeners.Add(textWriterTraceListener);
                     }
 
                     AppDomain currentDomain = AppDomain.CurrentDomain;

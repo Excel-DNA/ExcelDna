@@ -17,9 +17,11 @@ namespace ExcelDna.Logging
         {
         }
 
-        public LogDisplayTraceListener(string name)
+        public LogDisplayTraceListener(string name, TraceEventType? filterLevel)
             : base(name)
         {
+            if (filterLevel.HasValue)
+                Filter = new DiagnosticsFilter(filterLevel.Value);
         }
 
         public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string message)
