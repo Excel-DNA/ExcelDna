@@ -34,7 +34,7 @@ namespace ExcelDna.ComInterop.ComRegistration
 
         public ClassFactory(Type type)
         {
-            _comClass = new ExcelComClassType 
+            _comClass = new ExcelComClassType
             {
                 Type = type,
                 IsRtdServer = false
@@ -177,7 +177,7 @@ namespace ExcelDna.ComInterop.ComRegistration
                 if (_classesRootKey == null)
                 {
                     // 3/22/2016: We use the intended hard coded reference of the HKCU hive to address the issue: https://groups.google.com/forum/#!topic/exceldna/CF_aNXTmV2Y
-                    if (CanWriteMachineHive())
+                    if (IsInAdminRole() && CanWriteMachineHive())
                     {
                         // GvD 2020/06/24 - Changed here from HKLM\Software\Classes to deal with DeleteKey error - see comments in CanWriteMachineHive
                         Logger.ComAddIn.Verbose(@"RegistrationUtil.ClassesRootKey - Using HKCR");
@@ -209,6 +209,17 @@ namespace ExcelDna.ComInterop.ComRegistration
                     _clsIdRootKey = ClassesRootKey.CreateSubKey("CLSID", RegistryKeyPermissionCheck.ReadWriteSubTree);
                 }
                 return _clsIdRootKey;
+            }
+        }
+
+        static bool IsInAdminRole()
+        {
+            using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
+            {
+                WindowsPrincipal principal = new WindowsPrincipal(identity);
+                bool result = principal.IsInRole(WindowsBuiltInRole.Administrator);
+                Logger.ComAddIn.Verbose($"RegistrationUtil.IsInAdminRole - returning {result}");
+                return result;
             }
         }
 
@@ -400,7 +411,7 @@ namespace ExcelDna.ComInterop.ComRegistration
         {
             // Not thread-safe...
             if (!_disposed)
-            {                
+            {
                 // if (disposing)
                 // {
                 //     // Here comes explicit free of other managed disposable objects.
