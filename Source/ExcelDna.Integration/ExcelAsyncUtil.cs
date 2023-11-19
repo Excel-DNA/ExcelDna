@@ -55,11 +55,13 @@ namespace ExcelDna.Integration
 
         // Async observable support
         // This is the most general RTD registration
+        // ThreadSafe
         public static object Observe(string callerFunctionName, object callerParameters, ExcelObservableSource observableSource)
         {
             return AsyncObservableImpl.ProcessObservable(callerFunctionName, callerParameters, observableSource);
         }
 
+        // ThreadSafe
         [Obsolete("Can't support the NoAutoStartOnOpen option anymore - call without ExcelObservableOptions")]
         public static object Observe(string callerFunctionName, object callerParameters, ExcelObservableOptions options, ExcelObservableSource observableSource)
         {
@@ -67,6 +69,7 @@ namespace ExcelDna.Integration
         }
 
         // Async function support
+        // ThreadSafe
         public static object Run(string callerFunctionName, object callerParameters, ExcelFunc asyncFunc)
         {
             Debug.Print("ExcelAsyncUtil.Run - {0} : {1}", callerFunctionName, callerParameters);
@@ -74,8 +77,8 @@ namespace ExcelDna.Integration
         }
 
         // Async function with ExcelAsyncHandle
-        // The function will run on the main thread (like an Excel 2010+ native async function), 
-        // but can spawn a thread and return the value later.
+        // Can spawn a thread and return the value later
+        // ThreadSafe
         public static object Run(string callerFunctionName, object callerParameters, ExcelFuncAsyncHandle asyncFunc)
         {
             return AsyncObservableImpl.ProcessFuncAsyncHandle(callerFunctionName, callerParameters, asyncFunc);

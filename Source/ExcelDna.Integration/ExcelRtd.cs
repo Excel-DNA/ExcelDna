@@ -39,6 +39,9 @@ namespace ExcelDna.Integration.Rtd
         // Map names of loaded Rtd servers to a registered ProgId - "RtdSrv_A1B2C3...."
         static readonly Dictionary<string, string> loadedRtdServers = new Dictionary<string, string>();
 
+        static object registeredRtdServerTypesLock = new object();
+        static object loadedRtdServersLock = new object();
+
         public static void RegisterRtdServerTypes(IEnumerable<Type> rtdServerTypes)
         {
             foreach (Type rtdType in rtdServerTypes)
@@ -48,12 +51,18 @@ namespace ExcelDna.Integration.Rtd
                 if (attrs.Length >= 1)
                 {
                     ProgIdAttribute progIdAtt = (ProgIdAttribute)attrs[0];
-                    registeredRtdServerTypes[progIdAtt.Value] = rtdType;
+                    lock (registeredRtdServerTypesLock)
+                    {
+                        registeredRtdServerTypes[progIdAtt.Value] = rtdType;
+                    }
                     Logger.Initialization.Verbose("RTD Server found - Type {0}, ProgId {1}", rtdType.FullName, progIdAtt.Value);
                 }
                 else
                 {
-                    registeredRtdServerTypes[rtdType.FullName] = rtdType;
+                    lock (registeredRtdServerTypesLock)
+                    {
+                        registeredRtdServerTypes[rtdType.FullName] = rtdType;
+                    }
                     Logger.Initialization.Verbose("RTD Server found - Type {0} (No ProgId)", rtdType.FullName);
                 }
             }
@@ -70,100 +79,111 @@ namespace ExcelDna.Integration.Rtd
             Debug.Print("### RtdRegistration.RTD " + progId);
             // Check if this is any of our business.
             Type rtdServerType;
-            if (!string.IsNullOrEmpty(server) || !registeredRtdServerTypes.TryGetValue(progId, out rtdServerType))
+            if (!string.IsNullOrEmpty(server))
             {
                 // Just pass on to Excel.
                 return TryCallRTD(out result, progId, null, topics);
+            }
+            lock (registeredRtdServerTypesLock)
+            {
+                if (!registeredRtdServerTypes.TryGetValue(progId, out rtdServerType))
+                {
+                    // Just pass on to Excel.
+                    return TryCallRTD(out result, progId, null, topics);
+                }
             }
 
             // TODO: Check that ExcelRtdServer with stable ProgId case also works right here - 
             //       might need to add to loadedRtdServers somehow
 
-            // Check if already loaded.
-            string loadedProgId;
-            if (loadedRtdServers.TryGetValue(progId, out loadedProgId))
+            lock (loadedRtdServersLock)
             {
+                // Check if already loaded.
+                string loadedProgId;
+                if (loadedRtdServers.TryGetValue(progId, out loadedProgId))
+                {
+                    if (ExcelRtd2010BugHelper.ExcelVersionHasRtdBug && rtdServerType.IsSubclassOf(typeof(ExcelRtdServer)))
+                    {
+                        ExcelRtd2010BugHelper.RecordRtdCall(progId, topics);
+                    }
+                    // Call Excel using the synthetic RtdSrv_xxx (or actual from attribute) ProgId
+                    return TryCallRTD(out result, loadedProgId, null, topics);
+                }
+
+                // Not loaded already - need to get the Rtd server loaded
+                // TODO: Need to reconsider registration here.....
+                //       Sometimes need stable ProgIds.
+                object rtdServer;
                 if (ExcelRtd2010BugHelper.ExcelVersionHasRtdBug && rtdServerType.IsSubclassOf(typeof(ExcelRtdServer)))
                 {
-                    ExcelRtd2010BugHelper.RecordRtdCall(progId, topics);
-                }
-                // Call Excel using the synthetic RtdSrv_xxx (or actual from attribute) ProgId
-                return TryCallRTD(out result, loadedProgId, null, topics);
-            }
-
-            // Not loaded already - need to get the Rtd server loaded
-            // TODO: Need to reconsider registration here.....
-            //       Sometimes need stable ProgIds.
-            object rtdServer;
-            if (ExcelRtd2010BugHelper.ExcelVersionHasRtdBug && rtdServerType.IsSubclassOf(typeof(ExcelRtdServer)))
-            {
-                Debug.Print("### Creating Wrapper " + progId);
-                rtdServer = new ExcelRtd2010BugHelper(progId, rtdServerType);
-            }
-            else
-            {
-                using (XlCall.Suspend())
-                {
-                    rtdServer = Activator.CreateInstance(rtdServerType);
-                }
-                ExcelRtdServer excelRtdServer = rtdServer as ExcelRtdServer;
-                if (excelRtdServer != null)
-                {
-                    // Set ProgId so that it can be 'unregistered' (removed from loadedRtdServers) when the RTD server terminates.
-                    excelRtdServer.RegisteredProgId = progId;
+                    Debug.Print("### Creating Wrapper " + progId);
+                    rtdServer = new ExcelRtd2010BugHelper(progId, rtdServerType);
                 }
                 else
                 {
-                    // Make a wrapper if we are not an ExcelRtdServer
-                    // (ExcelRtdServer implements exception-handling and XLCall supension itself)
-                    rtdServer = new RtdServerWrapper(rtdServer, progId);
-                }
-            }
-            
-            // We pick a new Guid as ClassId for this add-in...
-            CLSID clsId = Guid.NewGuid();
-
-            // ... (bad idea - this will cause Excel to try to load this RTD server while it is not registered.)
-            // Guid typeGuid = GuidUtilit.CreateGuid(..., DnaLibrary.XllPath + ":" + rtdServerType.FullName);
-            // or something based on ExcelDnaUtil.XllGuid
-            // string progIdRegistered = "RtdSrv_" + typeGuid.ToString("N");
-
-            // by making a fresh progId, we are sure Excel will try to load when we are ready.
-            // Change from RtdSrv.xxx to RtdSrv_xxx to avoid McAfee bug that blocks registry writes with a "." anywhere
-            string progIdRegistered = "RtdSrv_" + clsId.ToString("N");
-            Debug.Print("RTD - Using ProgId: {0} for type: {1}", progIdRegistered, rtdServerType.FullName);
-
-            try
-            {
-                using (new SingletonClassFactoryRegistration(rtdServer, clsId))
-                using (new ProgIdRegistration(progIdRegistered, clsId))
-                using (new ClsIdRegistration(clsId, progIdRegistered))
-                {
-                    Debug.Print("### About to call TryCallRTD " + progId);
-                    if (TryCallRTD(out result, progIdRegistered, null, topics))
+                    using (XlCall.Suspend())
                     {
-                        // Mark as loaded - ServerTerminate in the wrapper will remove.
-                        loadedRtdServers[progId] = progIdRegistered;
-                        Debug.Print("### Added to loadedRtdServers " + progId);
-                        return true;
+                        rtdServer = Activator.CreateInstance(rtdServerType);
                     }
-                    return false;
+                    ExcelRtdServer excelRtdServer = rtdServer as ExcelRtdServer;
+                    if (excelRtdServer != null)
+                    {
+                        // Set ProgId so that it can be 'unregistered' (removed from loadedRtdServers) when the RTD server terminates.
+                        excelRtdServer.RegisteredProgId = progId;
+                    }
+                    else
+                    {
+                        // Make a wrapper if we are not an ExcelRtdServer
+                        // (ExcelRtdServer implements exception-handling and XLCall supension itself)
+                        rtdServer = new RtdServerWrapper(rtdServer, progId);
+                    }
                 }
-            }
-            catch (UnauthorizedAccessException secex)
-            {
-                Logger.RtdServer.Error("The RTD server of type {0} required by add-in {1} could not be registered.\r\nThis may be due to restricted permissions on the user's HKCU\\Software\\Classes key.\r\nError message: {2}", rtdServerType.FullName, DnaLibrary.CurrentLibrary.Name, secex.Message);
-                result = ExcelErrorUtil.ToComError(ExcelError.ExcelErrorValue);
-                // Return true to have the #VALUE stick, just as it was before the array-call refactoring
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Logger.RtdServer.Error("The RTD server of type {0} required by add-in {1} could not be registered.\r\nThis is an unexpected error.\r\nError message: {2}", rtdServerType.FullName, DnaLibrary.CurrentLibrary.Name, ex.Message);
-                Debug.Print("RtdRegistration.RTD exception: " + ex.ToString());
-                result = ExcelErrorUtil.ToComError(ExcelError.ExcelErrorValue);
-                // Return true to have the #VALUE stick, just as it was before the array-call refactoring
-                return true;
+
+                // We pick a new Guid as ClassId for this add-in...
+                CLSID clsId = Guid.NewGuid();
+
+                // ... (bad idea - this will cause Excel to try to load this RTD server while it is not registered.)
+                // Guid typeGuid = GuidUtilit.CreateGuid(..., DnaLibrary.XllPath + ":" + rtdServerType.FullName);
+                // or something based on ExcelDnaUtil.XllGuid
+                // string progIdRegistered = "RtdSrv_" + typeGuid.ToString("N");
+
+                // by making a fresh progId, we are sure Excel will try to load when we are ready.
+                // Change from RtdSrv.xxx to RtdSrv_xxx to avoid McAfee bug that blocks registry writes with a "." anywhere
+                string progIdRegistered = "RtdSrv_" + clsId.ToString("N");
+                Debug.Print("RTD - Using ProgId: {0} for type: {1}", progIdRegistered, rtdServerType.FullName);
+
+                try
+                {
+                    using (new SingletonClassFactoryRegistration(rtdServer, clsId))
+                    using (new ProgIdRegistration(progIdRegistered, clsId))
+                    using (new ClsIdRegistration(clsId, progIdRegistered))
+                    {
+                        Debug.Print("### About to call TryCallRTD " + progId);
+                        if (TryCallRTD(out result, progIdRegistered, null, topics))
+                        {
+                            // Mark as loaded - ServerTerminate in the wrapper will remove.
+                            loadedRtdServers[progId] = progIdRegistered;
+                            Debug.Print("### Added to loadedRtdServers " + progId);
+                            return true;
+                        }
+                        return false;
+                    }
+                }
+                catch (UnauthorizedAccessException secex)
+                {
+                    Logger.RtdServer.Error("The RTD server of type {0} required by add-in {1} could not be registered.\r\nThis may be due to restricted permissions on the user's HKCU\\Software\\Classes key.\r\nError message: {2}", rtdServerType.FullName, DnaLibrary.CurrentLibrary.Name, secex.Message);
+                    result = ExcelErrorUtil.ToComError(ExcelError.ExcelErrorValue);
+                    // Return true to have the #VALUE stick, just as it was before the array-call refactoring
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Logger.RtdServer.Error("The RTD server of type {0} required by add-in {1} could not be registered.\r\nThis is an unexpected error.\r\nError message: {2}", rtdServerType.FullName, DnaLibrary.CurrentLibrary.Name, ex.Message);
+                    Debug.Print("RtdRegistration.RTD exception: " + ex.ToString());
+                    result = ExcelErrorUtil.ToComError(ExcelError.ExcelErrorValue);
+                    // Return true to have the #VALUE stick, just as it was before the array-call refactoring
+                    return true;
+                }
             }
         }
 
@@ -198,7 +218,10 @@ namespace ExcelDna.Integration.Rtd
             // Dictionary.Remove is safe to call even if the key does not exist (just returns false)
             if (progId != null)
             {
-                loadedRtdServers.Remove(progId);
+                lock (loadedRtdServersLock)
+                {
+                    loadedRtdServers.Remove(progId);
+                }
             }
         }
     }
