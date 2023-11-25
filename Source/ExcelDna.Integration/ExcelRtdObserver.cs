@@ -2,6 +2,7 @@
 //  Excel-DNA is licensed under the zlib license. See LICENSE.txt for details.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -13,7 +14,7 @@ namespace ExcelDna.Integration.Rtd
     internal static class AsyncObservableImpl
     {
         static readonly Dictionary<AsyncCallInfo, Guid> _asyncCallIds = new Dictionary<AsyncCallInfo, Guid>();
-        static readonly Dictionary<Guid, AsyncObservableState> _observableStates = new Dictionary<Guid, AsyncObservableState>();
+        static readonly ConcurrentDictionary<Guid, AsyncObservableState> _observableStates = new ConcurrentDictionary<Guid, AsyncObservableState>();
         static readonly object _asyncCallIdsAndObservableStatesLock = new object();
 
         // This is the most general RTD registration
@@ -92,7 +93,7 @@ namespace ExcelDna.Integration.Rtd
                 Debug.Print("AsyncObservableImpl.RegisterObservable (GetValue Error) - Remove Id: {0}", id);
                 // Problem case - array-caller with RTD call that failed.
                 // Clean up state and return null - we'll be called again later and everything will be better.
-                _observableStates.Remove(id);
+                _observableStates.TryRemove(id, out _);
                 _asyncCallIds.Remove(callInfo);
                 return null;
             }
@@ -107,12 +108,7 @@ namespace ExcelDna.Integration.Rtd
             // It's an error if the id is not on the list - the ExcelObserverRtdServer should protect is from the onw known case 
             // - when RTD is called from sheet open
             AsyncObservableState state;
-            bool gotState;
-            lock(_asyncCallIdsAndObservableStatesLock)
-            {
-                gotState = _observableStates.TryGetValue(id, out state);
-            }
-            if (gotState)
+            if (_observableStates.TryGetValue(id, out state))
             {
                 // Start the work for this AsyncCallInfo, and subscribe the topic to the result
                 state.Subscribe(rtdObserver);
@@ -136,7 +132,7 @@ namespace ExcelDna.Integration.Rtd
                 if (_observableStates.TryGetValue(id, out state))
                 {
                     state.Unsubscribe();
-                    _observableStates.Remove(id);   // Remove is safe even if key is not found.
+                    _observableStates.TryRemove(id,out _);   // Remove is safe even if key is not found.
                     _asyncCallIds.Remove(state.GetCallInfo());
                 }
             }
