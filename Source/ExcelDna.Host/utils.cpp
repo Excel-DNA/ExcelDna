@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <tchar.h>
 #include <comdef.h>
+#include <algorithm>
 #include "dnainfo.h"
 
 extern HMODULE hModuleCurrent;
@@ -205,6 +206,15 @@ std::wstring UTF8toUTF16(const std::string& utf8)
 		utf16.resize(len);
 	}
 	return utf16;
+}
+
+std::string ANSIWStringToString(const std::wstring& ws)
+{
+	std::string result(ws.length(), 0);
+	std::transform(ws.begin(), ws.end(), result.begin(), [](wchar_t c) {
+		return static_cast<char>(c);
+		});
+	return result;
 }
 
 HRESULT WriteAllBytes(const std::wstring& filePath, void* buf, DWORD size)

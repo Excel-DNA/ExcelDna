@@ -79,6 +79,7 @@ private:
 };
 
 std::wstring UTF8toUTF16(const std::string& utf8);
+std::string ANSIWStringToString(const std::wstring& ws);
 
 HRESULT WriteAllBytes(const std::wstring& filePath, void* buf, DWORD size);
 

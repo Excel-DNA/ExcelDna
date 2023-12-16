@@ -3,8 +3,9 @@
   <ExternalLibrary Path="%OutputFileName%" ExplicitExports="false" LoadFromBytes="true" Pack="true" IncludePdb="false" />
 
   <!--
-       The RuntimeVersion attribute above allows only the following setting:
-       * RuntimeVersion="v4.0" - for .NET 4.5 or higher
+       The RuntimeVersion attribute above allows the following settings:
+       * RuntimeVersion="v4.0" - for .NET Framework 4.5 or higher
+       * v6.0, v7.0, v8.0 etc. for .NET
 
        You can have IntelliSense (autocomplete) and validation for this file.
        See https://github.com/Excel-DNA/ExcelDna/tree/master/Distribution/XmlSchemas/
