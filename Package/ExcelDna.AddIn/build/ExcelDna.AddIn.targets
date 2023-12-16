@@ -253,6 +253,8 @@
  	  DisableAssemblyContextUnload="$(ExcelAddInDisableAssemblyContextUnload)"
  	  ProjectName="$(MSBuildProjectName)"
 	  TargetFileName="$(TargetFileName)"
+	  RollForward="$(RollForward)"
+	  TargetFrameworkVersion="$(TargetFrameworkVersion)"
 	  TlbDscom="$(ExcelDnaTlbDscom)"
 	  TlbExp="$(ExcelAddInTlbExp)"
 	  TlbCreate="$(ExcelAddInTlbCreate)"
