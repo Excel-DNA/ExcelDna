@@ -67,6 +67,9 @@ namespace ExcelDna.ManagedHost
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
             }
+
+            if (alcWeakRef.IsAlive)
+                Logger.Initialization.Warn("Failed to unload AssemblyLoadContext");
         }
 
         private static WeakReference StartUnloadALC()

@@ -37,7 +37,6 @@ namespace ExcelDna.Loader
         public static void RegisterMethodsWithAttributes(List<MethodInfo> methods, List<object> methodAttributes, List<List<object>> argumentAttributes)
         {
             List<XlMethodInfo> xlMethods = XlMethodInfo.ConvertToXlMethodInfos(methods, null, null, methodAttributes, argumentAttributes);
-            xlMethods.ForEach(i => delegateHandles.Add(i.DelegateHandle));
             RegisterXlMethods(xlMethods);
         }
 
@@ -140,6 +139,8 @@ namespace ExcelDna.Loader
 
         static void RegisterXlMethod(XlMethodInfo mi)
         {
+            delegateHandles.Add(mi.DelegateHandle);
+
             int index = registeredMethods.Count;
             XlAddIn.SetJump(index, mi.FunctionPointer);
             string exportedProcName = string.Format("f{0}", index);

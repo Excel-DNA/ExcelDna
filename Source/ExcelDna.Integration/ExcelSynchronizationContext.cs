@@ -502,18 +502,13 @@ namespace ExcelDna.Integration
             return openMenuButton.Enabled;
         }
 
-        static int CallPenHelper(int wCode, ref XlCall.FmlaInfo fmlaInfo)
-        {
-            return ExcelIntegration.LPenHelper(XlCall.xlGetFmlaInfo, ref fmlaInfo);
-        }
-
         public static bool IsInFormulaEditMode()
         {
             // check edit state directly
             var fmlaInfo = new XlCall.FmlaInfo();
 
-            // If Excel is shutting down, CallPenHelper will throw an InvalidOperationException.
-            var result = CallPenHelper(XlCall.xlGetFmlaInfo, ref fmlaInfo);
+            // If Excel is shutting down, PenHelper will throw an InvalidOperationException.
+            var result = XlCall.PenHelper(XlCall.xlGetFmlaInfo, ref fmlaInfo);
             if (result == 0)
             {
                 // Succeeded

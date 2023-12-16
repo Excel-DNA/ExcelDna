@@ -1113,11 +1113,14 @@ namespace ExcelDna.Integration
 
 
         #region PenHelper
-        [DllImport("XLCALL32.DLL")]
-        internal static extern int LPenHelper(int wCode, ref FmlaInfo fmlaInfo); // 'long' return value means 'int' in C (so why different?)
+        // Not called via P/Invoke anymore - this seemed to cause AccessViolations, especially during shutdown
+        // Now we call through a native code implementation which can handle the exceptions better
+        
+        //[DllImport("XLCALL32.DLL")]
+        //internal static extern int LPenHelper(int wCode, ref FmlaInfo fmlaInfo); // 'long' return value means 'int' in C (so why different?)
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct FmlaInfo
+        public struct FmlaInfo
         {
             public int wPointMode;    // current edit mode.  0 => rest of struct undefined
             public int cch;           // count of characters in formula
@@ -1125,6 +1128,11 @@ namespace ExcelDna.Integration
             public int ichFirst;      // char offset to start of selection
             public int ichLast;       // char offset to end of selection (may be > cch)
             public int ichCaret;      // char offset to blinking caret
+        }
+        
+        public static int PenHelper(int code, ref FmlaInfo fmlaInfo)
+        {
+            return ExcelIntegration.LPenHelper(code, ref fmlaInfo);
         }
         #endregion
 
