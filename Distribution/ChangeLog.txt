@@ -1,9 +1,15 @@
-Version 1.6.1 (????)
---------------------
+Version 1.7.0 (27 November 2023)
+--------------------------------
 * Support building and packing on Linux build machine, using AsmResolver
 * Initial support for add-in reloading under .NET 6
 * Disable encoding and compression for packed add-ins
 * Update pack task output to use buid logging (thanks to @9swampy)
+* Expanded support for SDK-style project files (targeting both .NET Framework 4.x and .NET 6).
+* Support for packing native dependencies.
+* Automatic dependency detection for packed add-ins under .NET 6.
+* Improved robustness and better error messages during add-in startup.
+* Improved COM Server build and packing support using DsCom.
+* Added simple logging configuration under .NET 6.
 
 Version 1.6.0 (1 October 2022)
 ------------------------------

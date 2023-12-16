@@ -5,13 +5,10 @@ Excel-DNA brings .NET to Excel power users and developers. The primary target is
 
 Excel-DNA is free for all use, and distributed under a permissive open-source license that also allows commercial use (the OSI approved zlib license).
 
-Excel-DNA is developed using .NET 2.0, and users have to install the freely available .NET Framework 2.0 runtime (.NET 4 is also supported). The integration is by an Excel Add-In (.xll) that exposes .NET code to Excel. The user code can be in text-based (.dna) script files (Visual Basic, C# or F#), or compiled .NET libraries from any language.
-See the GettingStarted.txt file for help in making your first Excel-DNA add-in.
-
 More details can be found at:
 * http://excel-dna.net
 * https://groups.google.com/forum/#!forum/exceldna
 
 Govert van Drimmelen
-govert@icon.co.za
-27 April 2019
+govert@dnakode.com
+4 December 2023

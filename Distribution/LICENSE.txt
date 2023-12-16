@@ -1,7 +1,7 @@
 Excel-DNA is licensed under the zlib license:
 =============================================
 
-Copyright (C) 2005-2020 Govert van Drimmelen
+Copyright (C) 2005-2023 Govert van Drimmelen
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any damages
@@ -20,4 +20,4 @@ freely, subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 
 Govert van Drimmelen
-govert@icon.co.za
+govert@dnakode.com
