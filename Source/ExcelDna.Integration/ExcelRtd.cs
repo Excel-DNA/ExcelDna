@@ -67,6 +67,7 @@ namespace ExcelDna.Integration.Rtd
         //          When it fails, the xlfRtd call returns xlReturnUncalced.
         //          In that case, this function returns null, and does not keep a reference to the created server object.
         //          The next call should then succeed (though a new server object will be created).
+        // ThreadSafe
         public static bool TryRTD(out object result, string progId, string server, params string[] topics)
         {
             Debug.Print("### RtdRegistration.RTD " + progId);

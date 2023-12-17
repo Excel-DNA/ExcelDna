@@ -658,6 +658,7 @@ namespace ExcelDna.Integration.Rtd
     }
 
     // This manages the information for a single Observable (one UDF+callinfo).
+    // ThreadSafe
     internal class AsyncObservableState
     {
         const string _observerRtdServerProgId = "ExcelDna.Integration.Rtd.ExcelObserverRtdServer";
@@ -667,6 +668,7 @@ namespace ExcelDna.Integration.Rtd
         readonly IExcelObservable _observable;
         ExcelRtdObserver _currentObserver;
         IDisposable _currentSubscription;
+        readonly object _lock = new object();
 
         // caller may be null when not called as a worksheet function.
         public AsyncObservableState(Guid id, AsyncCallInfo callInfo, ExcelReference caller, IExcelObservable observable)
@@ -686,7 +688,16 @@ namespace ExcelDna.Integration.Rtd
             bool isCallerArray = caller != null &&
                                  (caller.RowFirst != caller.RowLast ||
                                   caller.ColumnFirst != caller.ColumnLast);
-            if (_currentObserver == null || isCallerArray || !IsCompleted())
+
+            bool refreshRTDCall;
+            bool recordRtdComplete;
+            lock (_lock)
+            {
+                refreshRTDCall = (_currentObserver == null || isCallerArray || !IsCompleted());
+                recordRtdComplete = (_currentObserver != null && IsCompleted());
+            }
+
+            if (refreshRTDCall)
             {
                 // NOTE: At this point the SynchronizationManager must be registered!
                 if (!SynchronizationManager.IsInstalled)
@@ -710,7 +721,7 @@ namespace ExcelDna.Integration.Rtd
                     return false;
                 }
             }
-            else if (_currentObserver != null && IsCompleted())
+            else if (recordRtdComplete)
             {
                 // Special call for the Excel 2010 bug helper to indicate we are not refreshing (due to completion)
                 if (ExcelRtd2010BugHelper.ExcelVersionHasRtdBug)
@@ -721,34 +732,43 @@ namespace ExcelDna.Integration.Rtd
 
             // No assumptions about previous state here - could have re-entered this class
 
-            // We use #N/A as the 'busy' indicator, as RTD does normally.
-            // Add-in creator can remap the 'busy' result in the UDF or another wrapper.
-            if (_currentObserver == null)
+            lock (_lock)
             {
-                value = ExcelError.ExcelErrorNA;
+                // We use #N/A as the 'busy' indicator, as RTD does normally.
+                // Add-in creator can remap the 'busy' result in the UDF or another wrapper.
+                if (_currentObserver == null)
+                {
+                    value = ExcelError.ExcelErrorNA;
+                    return true;
+                }
+
+                // Subsequent calls get value from Observer
+                value = _currentObserver.Value;
                 return true;
             }
-
-            // Subsequent calls get value from Observer
-            value = _currentObserver.Value;
-            return true;
         }
 
         public void Subscribe(ExcelRtdObserver rtdObserver)
         {
-            _currentObserver = rtdObserver;
-            _callerState.AddObserver(_currentObserver);
-            _currentSubscription = _observable.Subscribe(rtdObserver);
+            lock (_lock)
+            {
+                _currentObserver = rtdObserver;
+                _callerState.AddObserver(_currentObserver);
+                _currentSubscription = _observable.Subscribe(rtdObserver);
+            }
         }
 
         // Under unpatched Excel 2010, we rely on the ExcelRtd2010BugHelper to ensure we get a good Unsubscribe...
         public void Unsubscribe()
         {
             Debug.Assert(_currentSubscription != null);
-            _currentSubscription.Dispose();
-            _currentSubscription = null;
-            _callerState.RemoveObserver(_currentObserver);
-            _currentObserver = null;
+            lock (_lock)
+            {
+                _currentSubscription.Dispose();
+                _currentSubscription = null;
+                _callerState.RemoveObserver(_currentObserver);
+                _currentObserver = null;
+            }
         }
 
         public AsyncCallInfo GetCallInfo()
@@ -758,8 +778,11 @@ namespace ExcelDna.Integration.Rtd
 
         bool IsCompleted()
         {
-            if (!_currentObserver.IsCompleted) return false;
-            return _callerState.AreObserversCompleted();
+            lock (_lock)
+            {
+                if (!_currentObserver.IsCompleted) return false;
+                return _callerState.AreObserversCompleted();
+            }
         }
     }
 
