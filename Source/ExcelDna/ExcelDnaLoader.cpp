@@ -785,7 +785,7 @@ HRESULT GetClrOptions(std::wstring& clrVersion, bool& shadowCopyFiles, bool& cre
 		
 		// Default version expansions
 		if (clrVersion == L"v2.0") clrVersion = L"v2.0.50727";
-		if (clrVersion == L"v4.0") clrVersion = L"v4.0.30319";
+		if (clrVersion.substr(0,3) == L"v4.") clrVersion = L"v4.0.30319";
 
 		// Default sandboxedAppDomain options
 		if (CompareNoCase(createSandboxedAppDomainValue, L"true") == 0)

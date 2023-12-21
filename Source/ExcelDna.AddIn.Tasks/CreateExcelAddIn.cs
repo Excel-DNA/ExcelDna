@@ -393,7 +393,11 @@ namespace ExcelDna.AddIn.Tasks
                 result = result.Replace("<DnaLibrary ", "<DnaLibrary " + $"RollForward=\"{RollForward}\" ");
             }
 
-            result = result.Replace(" RuntimeVersion=\"v4.0\"", $" RuntimeVersion=\"{TargetFrameworkVersion}\"");
+            // For compatibility with .NET Framework 4 loader, we only set the exact version if its .NET 6+
+            if (!TargetFrameworkVersion.StartsWith("v4."))
+            {
+                result = result.Replace(" RuntimeVersion=\"v4.0\"", $" RuntimeVersion=\"{TargetFrameworkVersion}\"");
+            }
 
             result = UpdateExternalLibraries(result);
 
