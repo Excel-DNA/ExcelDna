@@ -1,3 +1,7 @@
+Version 1.8.0 (????)
+--------------------
+* Add support for .NET 7/8 and RollForward property.
+
 Version 1.7.0 (27 November 2023)
 --------------------------------
 * Support building and packing on Linux build machine, using AsmResolver
