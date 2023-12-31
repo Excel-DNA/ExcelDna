@@ -252,6 +252,9 @@ namespace ExcelDna.Integration.Rtd
 
         public void OnCompleted()
         {
+            if (IsCompleted)
+                return;
+
             IsCompleted = true;
 
             if (GetIsCompleted())
@@ -275,10 +278,10 @@ namespace ExcelDna.Integration.Rtd
             {
                 LastValue = result;
                 _topic.UpdateValue((((double)_topic.Value) + 1) % MaxTopicValue);
-            }
 
-            if (GetIsCompleted())
-                _topic.UpdateValue(ExcelObserverRtdServer.TopicValueCompleted);
+                if (GetIsCompleted())
+                    _topic.UpdateValue(ExcelObserverRtdServer.TopicValueCompleted);
+            }
 
             return LastValue;
         }
@@ -698,9 +701,9 @@ namespace ExcelDna.Integration.Rtd
         // Called on the main thread
         public bool AreObserversCompleted()
         {
-            foreach (ExcelRtdObserver observer in _observers)
+            foreach (IExcelRtdObserver observer in _observers)
             {
-                if (!observer.IsCompleted) return false;
+                if (!observer.GetIsCompleted()) return false;
             }
             return true;
         }
