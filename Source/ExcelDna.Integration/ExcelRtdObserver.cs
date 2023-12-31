@@ -145,6 +145,12 @@ namespace ExcelDna.Integration.Rtd
         }
     }
 
+    internal interface IExcelRtdObserver : IExcelObserver
+    {
+        object GetValue();
+        bool IsCompleted();
+    }
+
     // Pushes data to Excel via the RTD topic.
     // Observes a single Observable. 
     // Needs to coordinate the IsCompleted status with all the other Observers for the Caller, to ensure coordinated 'completion'.
@@ -158,22 +164,22 @@ namespace ExcelDna.Integration.Rtd
 
         // Indicates whether the RTD Topic should be shut down
         // Set to true if the work is completed or if an error is signalled.
-        public bool IsCompleted { get; private set; }
+        private bool _isCompleted;
         // Keeping our own value, since the RTD Topic.Value is insufficient (e.g. string length limitation)
         // This may be an issue if we want to support startup OldValues (currently we don't)
-        public object Value { get; private set; }
+        private object _value;
 
         internal ExcelRtdObserver(ExcelRtdServer.Topic topic)
         {
             _topic = topic;
             // Set our wrapper Value, but not the internal Topic value 
             // (which must never be #N/A if we want re-open restart).
-            Value = ExcelError.ExcelErrorNA;
+            _value = ExcelError.ExcelErrorNA;
         }
 
         public void OnCompleted()
         {
-            IsCompleted = true;
+            _isCompleted = true;
 
             // 2016-11-04: We have to ensure that the UpdateNotify call is still called if 
             //             OnCompleted happens during the ConnectData
@@ -184,13 +190,13 @@ namespace ExcelDna.Integration.Rtd
 
         public void OnError(Exception exception)
         {
-            Value = ExcelIntegration.HandleUnhandledException(exception);
+            _value = ExcelIntegration.HandleUnhandledException(exception);
             OnCompleted();
         }
 
         public void OnNext(object value)
         {
-            Value = value;
+            _value = value;
 
             // This code has had  alot of churn
             // Old versions set the Topic Value, then many versions did not
@@ -220,12 +226,12 @@ namespace ExcelDna.Integration.Rtd
 
         public object GetValue()
         {
-            return Value;
+            return _value;
         }
 
-        public bool GetIsCompleted()
+        public bool IsCompleted()
         {
-            return IsCompleted;
+            return _isCompleted;
         }
     }
 
@@ -236,28 +242,28 @@ namespace ExcelDna.Integration.Rtd
         // 2^52 -1 - we'll roll over the TopicValue here, so that the double representation of the incrementing integer is always unique
         const long MaxTopicValue = 4503599627370495;
 
-        private object LastValue { get; set; }
+        private object _lastValue { get; set; }
 
         // Indicates whether the RTD Topic should be shut down
         // Set to true if the work is completed or if an error is signalled.
-        private bool IsCompleted { get; set; }
+        private bool _isCompleted;
 
         private ConcurrentQueue<object> _values = new ConcurrentQueue<object>();
 
         internal ExcelRtdLosslessObserver(ExcelRtdServer.Topic topic)
         {
             _topic = topic;
-            LastValue = ExcelError.ExcelErrorNA;
+            _lastValue = ExcelError.ExcelErrorNA;
         }
 
         public void OnCompleted()
         {
-            if (IsCompleted)
+            if (_isCompleted)
                 return;
 
-            IsCompleted = true;
+            _isCompleted = true;
 
-            if (GetIsCompleted())
+            if (IsCompleted())
                 _topic.UpdateValue(ExcelObserverRtdServer.TopicValueCompleted);
         }
 
@@ -276,19 +282,19 @@ namespace ExcelDna.Integration.Rtd
         {
             if (_values.TryDequeue(out object result))
             {
-                LastValue = result;
+                _lastValue = result;
                 _topic.UpdateValue((((double)_topic.Value) + 1) % MaxTopicValue);
 
-                if (GetIsCompleted())
+                if (IsCompleted())
                     _topic.UpdateValue(ExcelObserverRtdServer.TopicValueCompleted);
             }
 
-            return LastValue;
+            return _lastValue;
         }
 
-        public bool GetIsCompleted()
+        public bool IsCompleted()
         {
-            return IsCompleted && _values.IsEmpty;
+            return _isCompleted && _values.IsEmpty;
         }
     }
 
@@ -703,7 +709,7 @@ namespace ExcelDna.Integration.Rtd
         {
             foreach (IExcelRtdObserver observer in _observers)
             {
-                if (!observer.GetIsCompleted()) return false;
+                if (!observer.IsCompleted()) return false;
             }
             return true;
         }
@@ -817,7 +823,7 @@ namespace ExcelDna.Integration.Rtd
 
         bool IsCompleted()
         {
-            if (!_currentObserver.GetIsCompleted()) return false;
+            if (!_currentObserver.IsCompleted()) return false;
             return _callerState.AreObserversCompleted();
         }
     }

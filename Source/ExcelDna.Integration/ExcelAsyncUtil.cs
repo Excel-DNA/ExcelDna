@@ -38,12 +38,6 @@ namespace ExcelDna.Integration
         void OnNext(object value);
     }
 
-    public interface IExcelRtdObserver : IExcelObserver
-    {
-        object GetValue();
-        bool GetIsCompleted();
-    }
-
     [Flags]
     public enum ExcelObservableOptions
     {
