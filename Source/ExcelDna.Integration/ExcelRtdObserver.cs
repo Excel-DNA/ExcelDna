@@ -260,7 +260,7 @@ namespace ExcelDna.Integration.Rtd
     {
         private TopicUpdater _topicUpdater;
         private bool _isCompleted;
-        private ConcurrentQueue<object> _values = new ConcurrentQueue<object>();
+        private Queue<object> _values = new Queue<object>();
         private object _lastValue;
 
         internal ExcelRtdLosslessObserver(ExcelRtdServer.Topic topic)
@@ -282,6 +282,11 @@ namespace ExcelDna.Integration.Rtd
 
         public void OnError(Exception exception)
         {
+            _lastValue = ExcelIntegration.HandleUnhandledException(exception);
+            _values.Clear();
+            _isCompleted = true;
+
+            _topicUpdater.Complete();
         }
 
         public void OnNext(object value)
@@ -292,9 +297,9 @@ namespace ExcelDna.Integration.Rtd
 
         public object GetValue()
         {
-            if (_values.TryDequeue(out object result))
+            if (_values.Count > 0)
             {
-                _lastValue = result;
+                _lastValue = _values.Dequeue();
                 _topicUpdater.Update();
 
                 if (IsCompleted())
@@ -306,7 +311,7 @@ namespace ExcelDna.Integration.Rtd
 
         public bool IsCompleted()
         {
-            return _isCompleted && _values.IsEmpty;
+            return _isCompleted && (_values.Count == 0);
         }
     }
 
@@ -370,7 +375,7 @@ namespace ExcelDna.Integration.Rtd
 
             // Create a new ExcelRtdObserver, for the Topic, which will listen to the Observable
             // (Internally this will also set the initial value of the Observer wrapper to #N/A)
-            IExcelRtdObserver rtdObserver = observableOptions.HasFlag(ExcelObservableOptions.Lossless) ? (IExcelRtdObserver)new ExcelRtdLosslessObserver(topic) : new ExcelRtdObserver(topic);
+            IExcelRtdObserver rtdObserver = observableOptions.HasFlag(ExcelObservableOptions.Lossless) ? (IExcelRtdObserver)new ExcelRtdLosslessObserver(topic) : (IExcelRtdObserver)new ExcelRtdObserver(topic);
             // ... and subscribe it
             AsyncObservableImpl.ConnectObserver(id, rtdObserver);
 
