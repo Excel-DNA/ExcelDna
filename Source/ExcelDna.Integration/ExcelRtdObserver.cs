@@ -2,7 +2,6 @@
 //  Excel-DNA is licensed under the zlib license. See LICENSE.txt for details.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
