@@ -151,27 +151,48 @@ namespace ExcelDna.Integration.Rtd
         bool IsCompleted();
     }
 
-    // Pushes data to Excel via the RTD topic.
-    // Observes a single Observable. 
-    // Needs to coordinate the IsCompleted status with all the other Observers for the Caller, to ensure coordinated 'completion'.
-
-    internal class ExcelRtdObserver : IExcelRtdObserver
+    internal class TopicUpdater
     {
         readonly ExcelRtdServer.Topic _topic;
 
         // 2^52 -1 - we'll roll over the TopicValue here, so that the double representation of the incrementing integer is always unique
         const long MaxTopicValue = 4503599627370495;
 
+        public TopicUpdater(ExcelRtdServer.Topic topic)
+        {
+            _topic = topic;
+        }
+
+        public void Update()
+        {
+            _topic.UpdateValue((((double)_topic.Value) + 1) % MaxTopicValue);
+        }
+
+        public void Complete()
+        {
+            _topic.UpdateValue(ExcelObserverRtdServer.TopicValueCompleted);
+        }
+    }
+
+    // Pushes data to Excel via the RTD topic.
+    // Observes a single Observable. 
+    // Needs to coordinate the IsCompleted status with all the other Observers for the Caller, to ensure coordinated 'completion'.
+    internal class ExcelRtdObserver : IExcelRtdObserver
+    {
+        private TopicUpdater _topicUpdater;
+
         // Indicates whether the RTD Topic should be shut down
         // Set to true if the work is completed or if an error is signalled.
         private bool _isCompleted;
+
         // Keeping our own value, since the RTD Topic.Value is insufficient (e.g. string length limitation)
         // This may be an issue if we want to support startup OldValues (currently we don't)
         private object _value;
 
         internal ExcelRtdObserver(ExcelRtdServer.Topic topic)
         {
-            _topic = topic;
+            _topicUpdater = new TopicUpdater(topic);
+
             // Set our wrapper Value, but not the internal Topic value 
             // (which must never be #N/A if we want re-open restart).
             _value = ExcelError.ExcelErrorNA;
@@ -185,7 +206,7 @@ namespace ExcelDna.Integration.Rtd
             //             OnCompleted happens during the ConnectData
             //             To ensure this we set the internal topic value
 
-            _topic.UpdateValue(ExcelObserverRtdServer.TopicValueCompleted);
+            _topicUpdater.Complete();
         }
 
         public void OnError(Exception exception)
@@ -221,7 +242,7 @@ namespace ExcelDna.Integration.Rtd
             //             Now we really update again, but with something more careful than before to not have the millisecond problem
             //             We're not worried about a race condition here - multiple thread might update at once, but we just need one to succeed in setting a new value
 
-            _topic.UpdateValue((((double)_topic.Value) + 1) % MaxTopicValue);
+            _topicUpdater.Update();
         }
 
         public object GetValue()
@@ -237,22 +258,14 @@ namespace ExcelDna.Integration.Rtd
 
     internal class ExcelRtdLosslessObserver : IExcelRtdObserver
     {
-        readonly ExcelRtdServer.Topic _topic;
-
-        // 2^52 -1 - we'll roll over the TopicValue here, so that the double representation of the incrementing integer is always unique
-        const long MaxTopicValue = 4503599627370495;
-
-        private object _lastValue { get; set; }
-
-        // Indicates whether the RTD Topic should be shut down
-        // Set to true if the work is completed or if an error is signalled.
+        private TopicUpdater _topicUpdater;
         private bool _isCompleted;
-
         private ConcurrentQueue<object> _values = new ConcurrentQueue<object>();
+        private object _lastValue;
 
         internal ExcelRtdLosslessObserver(ExcelRtdServer.Topic topic)
         {
-            _topic = topic;
+            _topicUpdater = new TopicUpdater(topic);
             _lastValue = ExcelError.ExcelErrorNA;
         }
 
@@ -264,7 +277,7 @@ namespace ExcelDna.Integration.Rtd
             _isCompleted = true;
 
             if (IsCompleted())
-                _topic.UpdateValue(ExcelObserverRtdServer.TopicValueCompleted);
+                _topicUpdater.Complete();
         }
 
         public void OnError(Exception exception)
@@ -274,8 +287,7 @@ namespace ExcelDna.Integration.Rtd
         public void OnNext(object value)
         {
             _values.Enqueue(value);
-
-            _topic.UpdateValue((((double)_topic.Value) + 1) % MaxTopicValue);
+            _topicUpdater.Update();
         }
 
         public object GetValue()
@@ -283,10 +295,10 @@ namespace ExcelDna.Integration.Rtd
             if (_values.TryDequeue(out object result))
             {
                 _lastValue = result;
-                _topic.UpdateValue((((double)_topic.Value) + 1) % MaxTopicValue);
+                _topicUpdater.Update();
 
                 if (IsCompleted())
-                    _topic.UpdateValue(ExcelObserverRtdServer.TopicValueCompleted);
+                    _topicUpdater.Complete();
             }
 
             return _lastValue;
