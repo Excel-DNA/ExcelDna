@@ -18,7 +18,7 @@ namespace ExcelDna.Integration.Rtd
         static readonly object _registrationLock = new object();
 
         // This is the most general RTD registration
-        public static object ProcessObservable(string functionName, object parameters, ExcelObservableSource getObservable)
+        public static object ProcessObservable(string functionName, object parameters, ExcelObservableOptions options, ExcelObservableSource getObservable)
         {
             if (!SynchronizationManager.IsInstalled)
             {
@@ -58,13 +58,13 @@ namespace ExcelDna.Integration.Rtd
         // Make a one-shot 'Observable' from the func
         public static object ProcessFunc(string functionName, object parameters, ExcelFunc func)
         {
-            return ProcessObservable(functionName, parameters,
+            return ProcessObservable(functionName, parameters, ExcelObservableOptions.None,
                 delegate { return new ThreadPoolDelegateObservable(func); });
         }
 
         public static object ProcessFuncAsyncHandle(string functionName, object parameters, ExcelFuncAsyncHandle func)
         {
-            return ProcessObservable(functionName, parameters,
+            return ProcessObservable(functionName, parameters, ExcelObservableOptions.None,
                 delegate
                 {
                     ExcelAsyncHandleObservable asyncHandleObservable = new ExcelAsyncHandleObservable();
@@ -96,7 +96,7 @@ namespace ExcelDna.Integration.Rtd
                     id = Guid.NewGuid();
                     Debug.Print("AsyncObservableImpl.RegisterObservable - Id: {0}", id);
                     _asyncCallIds[callInfo] = id;
-                    state = new AsyncObservableState(id, callInfo, caller, observable);
+                    state = new AsyncObservableState(id, callInfo, options, caller, observable);
                     _observableStates[id] = state;
                 }
             }
@@ -217,7 +217,7 @@ namespace ExcelDna.Integration.Rtd
 
             // Set our wrapper Value, but not the internal Topic value 
             // (which must never be #N/A if we want re-open restart).
-            Value = ExcelError.ExcelErrorNA;
+            _value = ExcelError.ExcelErrorNA;
         }
 
         public void OnCompleted()
@@ -777,6 +777,7 @@ namespace ExcelDna.Integration.Rtd
         IExcelRtdObserver _currentObserver;
         IDisposable _currentSubscription;
         readonly object _lock = new object();
+        ExcelObservableOptions _options;
 
         // caller may be null when not called as a worksheet function.
         public AsyncObservableState(Guid id, AsyncCallInfo callInfo, ExcelObservableOptions options, ExcelReference caller, IExcelObservable observable)
@@ -852,7 +853,7 @@ namespace ExcelDna.Integration.Rtd
                 }
 
                 // Subsequent calls get value from Observer
-                value = _currentObserver.Value;
+                value = _currentObserver.GetValue();
                 return true;
             }
         }
@@ -894,7 +895,7 @@ namespace ExcelDna.Integration.Rtd
         {
             lock (_lock)
             {
-                if (!_currentObserver.IsCompleted) return false;
+                if (!_currentObserver.IsCompleted()) return false;
                 return _callerState.AreObserversCompleted();
             }
         }
