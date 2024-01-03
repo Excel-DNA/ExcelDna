@@ -2,6 +2,7 @@
 //  Excel-DNA is licensed under the zlib license. See LICENSE.txt for details.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -9,34 +10,38 @@ using System.Threading;
 
 namespace ExcelDna.Integration.Rtd
 {
+    // ThreadSafe
     internal static class AsyncObservableImpl
     {
-        static readonly Dictionary<AsyncCallInfo, Guid> _asyncCallIds = new Dictionary<AsyncCallInfo, Guid>();
-        static readonly Dictionary<Guid, AsyncObservableState> _observableStates = new Dictionary<Guid, AsyncObservableState>();
+        static readonly ConcurrentDictionary<AsyncCallInfo, Guid> _asyncCallIds = new ConcurrentDictionary<AsyncCallInfo, Guid>();
+        static readonly ConcurrentDictionary<Guid, AsyncObservableState> _observableStates = new ConcurrentDictionary<Guid, AsyncObservableState>();
+        static readonly object _registrationLock = new object();
 
         // This is the most general RTD registration
-        // This should not be called from a ThreadSafe function.
-        public static object ProcessObservable(string functionName, object parameters, ExcelObservableOptions options, ExcelObservableSource getObservable)
+        public static object ProcessObservable(string functionName, object parameters, ExcelObservableSource getObservable)
         {
             if (!SynchronizationManager.IsInstalled)
             {
                 throw new InvalidOperationException("ExcelAsyncUtil has not been initialized. This is an unexpected error.");
             }
-            if (!ExcelDnaUtil.IsMainThread)
-            {
-                throw new InvalidOperationException("ExcelAsyncUtil.Run / ExcelAsyncUtil.Observe may not be called from a ThreadSafe function.");
-            }
 
             // CONSIDER: Why not same problems with all RTD servers?
             AsyncCallInfo callInfo = new AsyncCallInfo(functionName, parameters);
+            AsyncObservableState state = null;
+            lock (_registrationLock)
+            {
+                Guid id;
+                if (_asyncCallIds.TryGetValue(callInfo, out id))
+                {
+                    // Already registered.
+                    Debug.Print("AsyncObservableImpl GetValueIfRegistered - Found Id: {0}", id);
+                    state = _observableStates[id];
+                }
+            }
 
             // Shortcut if already registered
-            Guid id;
-            if (_asyncCallIds.TryGetValue(callInfo, out id))
+            if (state != null)
             {
-                // Already registered.
-                Debug.Print("AsyncObservableImpl GetValueIfRegistered - Found Id: {0}", id);
-                AsyncObservableState state = _observableStates[id];
                 object value;
                 // The TryGetValue call here is a big deal - it eventually calls Excel's RTD function 
                 // (or not, it the observable is complete).
@@ -53,13 +58,13 @@ namespace ExcelDna.Integration.Rtd
         // Make a one-shot 'Observable' from the func
         public static object ProcessFunc(string functionName, object parameters, ExcelFunc func)
         {
-            return ProcessObservable(functionName, parameters, ExcelObservableOptions.None,
+            return ProcessObservable(functionName, parameters,
                 delegate { return new ThreadPoolDelegateObservable(func); });
         }
 
         public static object ProcessFuncAsyncHandle(string functionName, object parameters, ExcelFuncAsyncHandle func)
         {
-            return ProcessObservable(functionName, parameters, ExcelObservableOptions.None,
+            return ProcessObservable(functionName, parameters,
                 delegate
                 {
                     ExcelAsyncHandleObservable asyncHandleObservable = new ExcelAsyncHandleObservable();
@@ -72,17 +77,29 @@ namespace ExcelDna.Integration.Rtd
         // Returns null if it failed (due to RTD array-caller first call)
         static object RegisterObservable(AsyncCallInfo callInfo, ExcelObservableOptions options, IExcelObservable observable)
         {
-            // Check it's not registered already
-            Debug.Assert(!_asyncCallIds.ContainsKey(callInfo));
-
-            // Set up ObservableState and keep track of things
-            // Caller might be null if not from worksheet
-            ExcelReference caller = XlCall.Excel(XlCall.xlfCaller) as ExcelReference;
-            Guid id = Guid.NewGuid();
-            Debug.Print("AsyncObservableImpl.RegisterObservable - Id: {0}", id);
-            _asyncCallIds[callInfo] = id;
-            AsyncObservableState state = new AsyncObservableState(id, callInfo, options, caller, observable);
-            _observableStates[id] = state;
+            AsyncObservableState state;
+            Guid id;
+            lock (_registrationLock)
+            {
+                // Check it's not registered already
+                if (_asyncCallIds.TryGetValue(callInfo, out id))
+                {
+                    // Already registered.
+                    Debug.Print("AsyncObservableImpl GetValueIfRegistered - Found Id: {0}", id);
+                    state = _observableStates[id];
+                }
+                else
+                {
+                    // Set up ObservableState and keep track of things
+                    // Caller might be null if not from worksheet
+                    ExcelReference caller = XlCall.Excel(XlCall.xlfCaller) as ExcelReference;
+                    id = Guid.NewGuid();
+                    Debug.Print("AsyncObservableImpl.RegisterObservable - Id: {0}", id);
+                    _asyncCallIds[callInfo] = id;
+                    state = new AsyncObservableState(id, callInfo, caller, observable);
+                    _observableStates[id] = state;
+                }
+            }
 
             // Will spin up RTD server and topic if required, causing us to be called again...
             object value;
@@ -91,8 +108,11 @@ namespace ExcelDna.Integration.Rtd
                 Debug.Print("AsyncObservableImpl.RegisterObservable (GetValue Error) - Remove Id: {0}", id);
                 // Problem case - array-caller with RTD call that failed.
                 // Clean up state and return null - we'll be called again later and everything will be better.
-                _observableStates.Remove(id);
-                _asyncCallIds.Remove(callInfo);
+                lock (_registrationLock)
+                {
+                    _observableStates.TryRemove(id, out _);
+                    _asyncCallIds.TryRemove(callInfo, out _);
+                }
                 return null;
             }
             return value;
@@ -124,12 +144,15 @@ namespace ExcelDna.Integration.Rtd
         {
             Debug.Print("AsyncObservableImpl.DisconnectObserver - Id: {0}", id);
 
-            AsyncObservableState state;
-            if (_observableStates.TryGetValue(id, out state))
+            lock (_registrationLock)
             {
-                state.Unsubscribe();
-                _observableStates.Remove(id);   // Remove is safe even if key is not found.
-                _asyncCallIds.Remove(state.GetCallInfo());
+                AsyncObservableState state;
+                if (_observableStates.TryGetValue(id, out state))
+                {
+                    state.Unsubscribe();
+                    _observableStates.TryRemove(id, out _);   // Remove is safe even if key is not found.
+                    _asyncCallIds.TryRemove(state.GetCallInfo(), out _);
+                }
             }
         }
 
@@ -194,7 +217,7 @@ namespace ExcelDna.Integration.Rtd
 
             // Set our wrapper Value, but not the internal Topic value 
             // (which must never be #N/A if we want re-open restart).
-            _value = ExcelError.ExcelErrorNA;
+            Value = ExcelError.ExcelErrorNA;
         }
 
         public void OnCompleted()
@@ -423,13 +446,17 @@ namespace ExcelDna.Integration.Rtd
         // This makes sure the hook up with the registration-free RTD loading is in place.
         // For a user RTD server the add-in loading would ensure this, but not for this class since it is declared inside Excel-DNA.
         static bool _isRegistered = false;
+        static object _isRegisteredLock = new object();
         internal static void EnsureRtdServerRegistered()
         {
-            if (!_isRegistered)
+            lock (_isRegisteredLock)
             {
-                RtdRegistration.RegisterRtdServerTypes(new Type[] { typeof(ExcelObserverRtdServer) });
+                if (!_isRegistered)
+                {
+                    RtdRegistration.RegisterRtdServerTypes(new Type[] { typeof(ExcelObserverRtdServer) });
+                }
+                _isRegistered = true;
             }
-            _isRegistered = true;
         }
     }
 
@@ -681,20 +708,24 @@ namespace ExcelDna.Integration.Rtd
 
     // This manages the information for a single Caller (maybe multiple UDF+callinfos)
     // Added to allow IsComplete synchronization per Caller
-    // We expect all calls into the class to be on the main thread
+    // ThreadSafe
     internal class AsyncCallerState
     {
         static readonly Dictionary<ExcelReference, AsyncCallerState> _callerStates = new Dictionary<ExcelReference, AsyncCallerState>();
+        static object _callerStatesLock = new object();
         // caller might be null
         public static AsyncCallerState GetCallerState(ExcelReference caller)
         {
             if (caller == null) return new AsyncCallerState(null);
 
             AsyncCallerState callerState;
-            if (!_callerStates.TryGetValue(caller, out callerState))
+            lock (_callerStatesLock)
             {
-                callerState = new AsyncCallerState(caller);
-                _callerStates[caller] = callerState;
+                if (!_callerStates.TryGetValue(caller, out callerState))
+                {
+                    callerState = new AsyncCallerState(caller);
+                    _callerStates[caller] = callerState;
+                }
             }
             return callerState;
         }
@@ -716,7 +747,10 @@ namespace ExcelDna.Integration.Rtd
             _observers.Remove(observer);
             if (_observers.Count == 0 && _caller != null)
             {
-                _callerStates.Remove(_caller);
+                lock (_callerStatesLock)
+                {
+                    _callerStates.Remove(_caller);
+                }
             }
         }
 
@@ -732,6 +766,7 @@ namespace ExcelDna.Integration.Rtd
     }
 
     // This manages the information for a single Observable (one UDF+callinfo).
+    // ThreadSafe
     internal class AsyncObservableState
     {
         const string _observerRtdServerProgId = "ExcelDna.Integration.Rtd.ExcelObserverRtdServer";
@@ -741,7 +776,7 @@ namespace ExcelDna.Integration.Rtd
         readonly IExcelObservable _observable;
         IExcelRtdObserver _currentObserver;
         IDisposable _currentSubscription;
-        ExcelObservableOptions _options;
+        readonly object _lock = new object();
 
         // caller may be null when not called as a worksheet function.
         public AsyncObservableState(Guid id, AsyncCallInfo callInfo, ExcelObservableOptions options, ExcelReference caller, IExcelObservable observable)
@@ -762,7 +797,16 @@ namespace ExcelDna.Integration.Rtd
             bool isCallerArray = caller != null &&
                                  (caller.RowFirst != caller.RowLast ||
                                   caller.ColumnFirst != caller.ColumnLast);
-            if (_currentObserver == null || isCallerArray || !IsCompleted())
+
+            bool refreshRTDCall;
+            bool recordRtdComplete;
+            lock (_lock)
+            {
+                refreshRTDCall = (_currentObserver == null || isCallerArray || !IsCompleted());
+                recordRtdComplete = (_currentObserver != null && IsCompleted());
+            }
+
+            if (refreshRTDCall)
             {
                 // NOTE: At this point the SynchronizationManager must be registered!
                 if (!SynchronizationManager.IsInstalled)
@@ -786,7 +830,7 @@ namespace ExcelDna.Integration.Rtd
                     return false;
                 }
             }
-            else if (_currentObserver != null && IsCompleted())
+            else if (recordRtdComplete)
             {
                 // Special call for the Excel 2010 bug helper to indicate we are not refreshing (due to completion)
                 if (ExcelRtd2010BugHelper.ExcelVersionHasRtdBug)
@@ -797,34 +841,43 @@ namespace ExcelDna.Integration.Rtd
 
             // No assumptions about previous state here - could have re-entered this class
 
-            // We use #N/A as the 'busy' indicator, as RTD does normally.
-            // Add-in creator can remap the 'busy' result in the UDF or another wrapper.
-            if (_currentObserver == null)
+            lock (_lock)
             {
-                value = ExcelError.ExcelErrorNA;
+                // We use #N/A as the 'busy' indicator, as RTD does normally.
+                // Add-in creator can remap the 'busy' result in the UDF or another wrapper.
+                if (_currentObserver == null)
+                {
+                    value = ExcelError.ExcelErrorNA;
+                    return true;
+                }
+
+                // Subsequent calls get value from Observer
+                value = _currentObserver.Value;
                 return true;
             }
-
-            // Subsequent calls get value from Observer
-            value = _currentObserver.GetValue();
-            return true;
         }
 
         public void Subscribe(IExcelRtdObserver rtdObserver)
         {
-            _currentObserver = rtdObserver;
-            _callerState.AddObserver(_currentObserver);
-            _currentSubscription = _observable.Subscribe(rtdObserver);
+            lock (_lock)
+            {
+                _currentObserver = rtdObserver;
+                _callerState.AddObserver(_currentObserver);
+                _currentSubscription = _observable.Subscribe(rtdObserver);
+            }
         }
 
         // Under unpatched Excel 2010, we rely on the ExcelRtd2010BugHelper to ensure we get a good Unsubscribe...
         public void Unsubscribe()
         {
             Debug.Assert(_currentSubscription != null);
-            _currentSubscription.Dispose();
-            _currentSubscription = null;
-            _callerState.RemoveObserver(_currentObserver);
-            _currentObserver = null;
+            lock (_lock)
+            {
+                _currentSubscription.Dispose();
+                _currentSubscription = null;
+                _callerState.RemoveObserver(_currentObserver);
+                _currentObserver = null;
+            }
         }
 
         public AsyncCallInfo GetCallInfo()
@@ -839,8 +892,11 @@ namespace ExcelDna.Integration.Rtd
 
         bool IsCompleted()
         {
-            if (!_currentObserver.IsCompleted()) return false;
-            return _callerState.AreObserversCompleted();
+            lock (_lock)
+            {
+                if (!_currentObserver.IsCompleted) return false;
+                return _callerState.AreObserversCompleted();
+            }
         }
     }
 
