@@ -164,7 +164,7 @@ namespace ExcelDna.Integration.Rtd
                     }
                 }
             }
-            
+
         }
 
         // The next few are the core RTD methods to be overridden by implementations
@@ -216,7 +216,7 @@ namespace ExcelDna.Integration.Rtd
                 // (we might be processing the update from another thread, after DisconnectData has been called)
                 // and ensure the active topic really is this one.
                 Topic activeTopic;
-                if (!_activeTopics.TryGetValue(topic.TopicId, out activeTopic) || 
+                if (!_activeTopics.TryGetValue(topic.TopicId, out activeTopic) ||
                     !ReferenceEquals(topic, activeTopic))
                 {
                     return;
@@ -269,10 +269,7 @@ namespace ExcelDna.Integration.Rtd
                 // Check for an active topic with the same topicId 
                 // - this is unexpected, but is reported as a bug in an earlier Excel version.
                 // (Thanks ngm)
-                
-                // (Does not address the Excel 2010 bug documented here:
-                // http://social.msdn.microsoft.com/Forums/en-US/exceldev/thread/ba06ac78-7b64-449b-bce4-9a03ac91f0eb/
-                // fixed by hotfix: http://support.microsoft.com/kb/2405840 and SP1. This problem is fixed by the ExcelRtd2010BugHelper. )
+
                 if (_activeTopics.ContainsKey(topicId))
                 {
                     using (XlCall.Suspend())
@@ -432,7 +429,7 @@ namespace ExcelDna.Integration.Rtd
                 {
                     _updateSync.DeregisterUpdateNotify(_callbackObject);
                 }
-                
+
                 using (XlCall.Suspend())
                 {
                     ServerTerminate();
