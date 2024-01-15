@@ -800,11 +800,9 @@ namespace ExcelDna.Integration.Rtd
                                   caller.ColumnFirst != caller.ColumnLast);
 
             bool refreshRTDCall;
-            bool recordRtdComplete;
             lock (_lock)
             {
                 refreshRTDCall = (_currentObserver == null || isCallerArray || !IsCompleted());
-                recordRtdComplete = (_currentObserver != null && IsCompleted());
             }
 
             if (refreshRTDCall)
@@ -829,14 +827,6 @@ namespace ExcelDna.Integration.Rtd
                     // We return false - to the state creation function that indicates the state should not be saved.
                     value = ExcelError.ExcelErrorNA;
                     return false;
-                }
-            }
-            else if (recordRtdComplete)
-            {
-                // Special call for the Excel 2010 bug helper to indicate we are not refreshing (due to completion)
-                if (ExcelRtd2010BugHelper.ExcelVersionHasRtdBug)
-                {
-                    ExcelRtd2010BugHelper.RecordRtdComplete(_observerRtdServerProgId, _topics);
                 }
             }
 
@@ -868,7 +858,6 @@ namespace ExcelDna.Integration.Rtd
             }
         }
 
-        // Under unpatched Excel 2010, we rely on the ExcelRtd2010BugHelper to ensure we get a good Unsubscribe...
         public void Unsubscribe()
         {
             Debug.Assert(_currentSubscription != null);
