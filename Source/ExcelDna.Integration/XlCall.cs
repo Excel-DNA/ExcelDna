@@ -1153,6 +1153,7 @@ namespace ExcelDna.Integration
 
         // Support for suspending calls to the C API
         // Used in the RTD Server wrapper - otherwise C API calls from the RTD methods can crash Excel.
+        [ThreadStatic]
         static bool _suspended = false;
 
         internal static IDisposable Suspend()
