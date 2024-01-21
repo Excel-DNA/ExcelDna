@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ExcelDna.Integration.Rtd
 {
@@ -935,6 +936,132 @@ namespace ExcelDna.Integration.Rtd
 
             public void Dispose()
             {
+            }
+        }
+    }
+
+    // Helper class to wrap a Task in an Observable - allowing one Subscriber.
+    internal class ExcelTaskObservable<TResult> : IExcelObservable
+    {
+        readonly Task<TResult> _task;
+        readonly CancellationTokenSource _cts;
+
+        public ExcelTaskObservable(Task<TResult> task)
+        {
+            _task = task;
+        }
+
+        public ExcelTaskObservable(Task<TResult> task, CancellationTokenSource cts)
+            : this(task)
+        {
+            _cts = cts;
+        }
+
+        public IDisposable Subscribe(IExcelObserver observer)
+        {
+            // Start with a disposable that does nothing
+            // Possibly set to a CancellationDisposable later
+            IDisposable disp = DefaultDisposable.Instance;
+
+            switch (_task.Status)
+            {
+                case TaskStatus.RanToCompletion:
+                    observer.OnNext(_task.Result);
+                    observer.OnCompleted();
+                    break;
+                case TaskStatus.Faulted:
+                    observer.OnError(_task.Exception.InnerException);
+                    break;
+                case TaskStatus.Canceled:
+                    observer.OnError(new TaskCanceledException(_task));
+                    break;
+                default:
+                    var task = _task;
+                    // OK - the Task has not completed synchronously
+                    // First set up a continuation that will suppress Cancel after the Task completes
+                    if (_cts != null)
+                    {
+                        var cancelDisp = new CancellationDisposable(_cts);
+                        task = _task.ContinueWith(t =>
+                        {
+                            cancelDisp.SuppressCancel();
+                            return t;
+                        }).Unwrap();
+
+                        // Then this will be the IDisposable we return from Subscribe
+                        disp = cancelDisp;
+                    }
+                    // And handle the Task completion
+                    task.ContinueWith(t =>
+                    {
+                        switch (t.Status)
+                        {
+                            case TaskStatus.RanToCompletion:
+                                observer.OnNext(t.Result);
+                                observer.OnCompleted();
+                                break;
+                            case TaskStatus.Faulted:
+                                observer.OnError(t.Exception.InnerException);
+                                break;
+                            case TaskStatus.Canceled:
+                                observer.OnError(new TaskCanceledException(t));
+                                break;
+                        }
+                    });
+                    break;
+            }
+
+            return disp;
+        }
+
+        sealed class DefaultDisposable : IDisposable
+        {
+            public static readonly DefaultDisposable Instance = new DefaultDisposable();
+
+            // Prevent external instantiation
+            DefaultDisposable()
+            {
+            }
+
+            public void Dispose()
+            {
+                // no op
+            }
+        }
+
+        sealed class CancellationDisposable : IDisposable
+        {
+            bool _suppress;
+            readonly CancellationTokenSource _cts;
+            public CancellationDisposable(CancellationTokenSource cts)
+            {
+                if (cts == null)
+                {
+                    throw new ArgumentNullException("cts");
+                }
+
+                _cts = cts;
+            }
+
+            public CancellationDisposable()
+                : this(new CancellationTokenSource())
+            {
+            }
+
+            public void SuppressCancel()
+            {
+                _suppress = true;
+            }
+
+            public CancellationToken Token
+            {
+                get { return _cts.Token; }
+            }
+
+            public void Dispose()
+            {
+                if (!_suppress) _cts.Cancel();
+                _cts.Dispose();  // Not really needed...
             }
         }
     }
