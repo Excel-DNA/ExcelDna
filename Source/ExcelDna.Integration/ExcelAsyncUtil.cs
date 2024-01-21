@@ -70,6 +70,11 @@ namespace ExcelDna.Integration
             return AsyncObservableImpl.ProcessObservable(callerFunctionName, callerParameters, options, observableSource);
         }
 
+        public static object Observe<T>(string callerFunctionName, object callerParameters, Func<IObservable<T>> observableSource)
+        {
+            return Observe(callerFunctionName, callerParameters, () => new ExcelObservable<T>(observableSource()));
+        }
+
         // Async function support
         // ThreadSafe
         public static object Run(string callerFunctionName, object callerParameters, ExcelFunc asyncFunc)

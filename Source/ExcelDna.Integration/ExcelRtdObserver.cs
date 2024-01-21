@@ -1065,4 +1065,63 @@ namespace ExcelDna.Integration.Rtd
             }
         }
     }
+
+    // An IExcelObservable that wraps an IObservable
+    internal class ExcelObservable<T> : IExcelObservable
+    {
+        readonly IObservable<T> _observable;
+
+        public ExcelObservable(IObservable<T> observable)
+        {
+            _observable = observable;
+        }
+
+        public IDisposable Subscribe(IExcelObserver excelObserver)
+        {
+            var observer = new AnonymousObserver<T>(value => excelObserver.OnNext(value), excelObserver.OnError, excelObserver.OnCompleted);
+            return _observable.Subscribe(observer);
+        }
+
+        // An IObserver that forwards the inputs to given methods.
+        class AnonymousObserver<OT> : IObserver<OT>
+        {
+            readonly Action<OT> _onNext;
+            readonly Action<Exception> _onError;
+            readonly Action _onCompleted;
+
+            public AnonymousObserver(Action<OT> onNext, Action<Exception> onError, Action onCompleted)
+            {
+                if (onNext == null)
+                {
+                    throw new ArgumentNullException("onNext");
+                }
+                if (onError == null)
+                {
+                    throw new ArgumentNullException("onError");
+                }
+                if (onCompleted == null)
+                {
+                    throw new ArgumentNullException("onCompleted");
+                }
+                _onNext = onNext;
+                _onError = onError;
+                _onCompleted = onCompleted;
+            }
+
+            public void OnNext(OT value)
+            {
+                _onNext(value);
+            }
+
+            public void OnError(Exception error)
+            {
+                _onError(error);
+            }
+
+            public void OnCompleted()
+            {
+                _onCompleted();
+            }
+        }
+    }
 }
