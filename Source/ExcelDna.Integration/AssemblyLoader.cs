@@ -28,6 +28,7 @@ namespace ExcelDna.Integration
         public static void ProcessAssemblies(
                     List<ExportedAssembly> assemblies,
                     List<MethodInfo> methods,
+                    List<ExtendedRegistration.ExcelFunction> excelFunctionsExtendedRegistration,
                     List<ExcelAddInInfo> addIns,
                     List<Type> rtdServerTypes,
                     List<ExcelComClassType> comClassTypes)
@@ -71,7 +72,7 @@ namespace ExcelDna.Integration
 
                         if (!explicitRegistration)
                         {
-                            GetExcelMethods(type, explicitExports, methods);
+                            GetExcelMethods(type, explicitExports, methods, excelFunctionsExtendedRegistration);
                         }
                         GetExcelAddIns(assembly, type, loadRibbons, addIns);
                         GetRtdServerTypes(type, rtdServerTypes, out isRtdServer);
@@ -90,7 +91,7 @@ namespace ExcelDna.Integration
             }
         }
 
-        static void GetExcelMethods(Type t, bool explicitExports, List<MethodInfo> excelMethods)
+        static void GetExcelMethods(Type t, bool explicitExports, List<MethodInfo> excelMethods, List<ExtendedRegistration.ExcelFunction> excelFunctionsExtendedRegistration)
         {
             // DOCUMENT: Exclude if not a class, not public, /*abstract,*/ an array,  
             // open generic type or in "My" namespace.
@@ -110,7 +111,21 @@ namespace ExcelDna.Integration
             // Filter list first - LINQ would be nice here :-)
             foreach (MethodInfo mi in mis)
             {
-                if (IsMethodSupported(mi, explicitExports))
+                bool isSupported = IsMethodSupported(mi, explicitExports);
+
+                // We want to log methods that are marked for export, but have unsupported types.
+                if (!isSupported && IsMethodMarkedForExport(mi))
+                {
+                    //Logger.Initialization.Error("Method not registered - unsupported signature, abstract or generic: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
+                    excelFunctionsExtendedRegistration.Add(new ExtendedRegistration.ExcelFunction(mi));
+                }
+                else if (!isSupported)
+                {
+                    // CONSIDER: More detailed logging
+                    Logger.Initialization.Info("Method not registered - unsupported signature, abstract or generic: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
+                }
+
+                if (isSupported)
                     excelMethods.Add(mi);
             }
         }
@@ -141,17 +156,6 @@ namespace ExcelDna.Integration
                     if (!IsParameterTypeSupported(pi.ParameterType))
                         isSupported = false;
                 }
-            }
-
-            // We want to log methods that are marked for export, but have unsupported types.
-            if (!isSupported && IsMethodMarkedForExport(mi))
-            {
-                Logger.Initialization.Error("Method not registered - unsupported signature, abstract or generic: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
-            }
-            else if (!isSupported)
-            {
-                // CONSIDER: More detailed logging
-                Logger.Initialization.Info("Method not registered - unsupported signature, abstract or generic: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
             }
 
             return isSupported;

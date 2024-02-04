@@ -9,5 +9,17 @@ namespace ExcelDna.AddIn.RuntimeTests
         {
             return $"Hello {name}";
         }
+
+        [ExcelFunction]
+        public static string MyDouble(double d)
+        {
+            return d.ToString();
+        }
+
+        [ExcelFunction]
+        public static string MyNullableDouble(double? d)
+        {
+            return "Nullable VAL: " + (d.HasValue ? d : "NULL");
+        }
     }
 }
