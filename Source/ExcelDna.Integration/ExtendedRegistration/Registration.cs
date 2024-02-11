@@ -16,6 +16,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             var postAsyncReturnConfig = GetPostAsyncReturnConversionConfig();
 
             var entries = functions
+                .ProcessMapArrayFunctions(conversionConfig)
                 .ProcessParameterConversions(conversionConfig)
                 .ProcessParameterConversions(postAsyncReturnConfig)
                 .ToList();

@@ -94,4 +94,36 @@ namespace ExcelDna.Integration
             Description = description;
         }
     }
+
+    /// <summary>
+    /// Attribute for functions that will be mapped to an Excel UDF,
+    /// using property reflection to convert Excel arrays to/from .NET enumerables.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
+    [MeansImplicitUse]
+    public class ExcelMapArrayFunctionAttribute : ExcelFunctionAttribute
+    {
+    }
+
+    /// <summary>
+    /// Optional attribute for parameters and return values of an [ExcelMapArrayFunction] function.
+    /// An enumerable of records is mapped to an Excel array, where the first row of the array contains
+    /// column headers which correspond to the public properties of the record type.
+    ///
+    /// E.g.
+    ///     struct Output { int Out; }
+    ///     struct Input  { int In1; int In2; }
+    ///     IEnumerable<typeparamref name="Output"/> MyFunc(IEnumerable<typeparamref name="Input"/>) { ... }
+    /// In Excel, use an Array Formula, e.g.
+    ///       | A       B       C       
+    ///     --+-------------------------
+    ///     1 | In1     In2     {=MyFunc(A1:B3)} -> Out
+    ///     2 | 1.0     2.0     {=MyFunc(A1:B3)} -> 1.5
+    ///     3 | 2.0     3.0     {=MyFunc(A1:B3)} -> 2.5
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue, Inherited = false, AllowMultiple = false)]
+    [MeansImplicitUse]
+    public class ExcelMapPropertiesToColumnHeadersAttribute : Attribute
+    {
+    }
 }

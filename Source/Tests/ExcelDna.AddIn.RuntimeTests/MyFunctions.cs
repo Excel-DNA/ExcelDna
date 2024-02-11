@@ -33,5 +33,11 @@ namespace ExcelDna.AddIn.RuntimeTests
         {
             return "Enum VAL: " + e.ToString();
         }
+
+        [ExcelMapArrayFunction]
+        public static IEnumerable<string> MyMapArray(IEnumerable<DateTimeKind> a)
+        {
+            return a.Select(i => "Array element VAL: " + i.ToString());
+        }
     }
 }

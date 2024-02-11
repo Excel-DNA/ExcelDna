@@ -60,6 +60,31 @@ namespace ExcelDna.RuntimeTests
             functionRange.Formula = "=MyEnum(1)";
             Assert.Equal("Enum VAL: Utc", functionRange.Value.ToString());
         }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
+        public void MapArray()
+        {
+            Range a1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A1:A1"];
+            a1.Value = "Utc";
+
+            Range a2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A2:A2"];
+            a2.Value = "Local";
+
+            Range a3 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A3:A3"];
+            a3.Value = "Unspecified";
+
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B3"];
+            functionRange.FormulaArray = "=MyMapArray(A1:A3)";
+
+            Range b1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
+            Assert.Equal("Array element VAL: Utc", b1.Value.ToString());
+
+            Range b2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B2:B2"];
+            Assert.Equal("Array element VAL: Local", b2.Value.ToString());
+
+            Range b3 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B3:B3"];
+            Assert.Equal("Array element VAL: Unspecified", b3.Value.ToString());
+        }
 #endif
     }
 }
