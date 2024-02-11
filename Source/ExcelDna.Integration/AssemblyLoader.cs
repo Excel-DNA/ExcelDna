@@ -113,10 +113,8 @@ namespace ExcelDna.Integration
             {
                 bool isSupported = IsMethodSupported(mi, explicitExports);
 
-                // We want to log methods that are marked for export, but have unsupported types.
                 if (!isSupported && IsMethodMarkedForExport(mi))
                 {
-                    //Logger.Initialization.Error("Method not registered - unsupported signature, abstract or generic: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
                     excelFunctionsExtendedRegistration.Add(new ExtendedRegistration.ExcelFunction(mi));
                 }
                 else if (!isSupported)
