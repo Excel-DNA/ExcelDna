@@ -21,5 +21,11 @@ namespace ExcelDna.AddIn.RuntimeTests
         {
             return "Nullable VAL: " + (d.HasValue ? d : "NULL");
         }
+
+        [ExcelFunction]
+        public static string MyOptionalDouble(double d = 1.23)
+        {
+            return "Optional VAL: " + d.ToString();
+        }
     }
 }

@@ -151,7 +151,7 @@ namespace ExcelDna.Integration
             {
                 foreach (ParameterInfo pi in mi.GetParameters())
                 {
-                    if (!IsParameterTypeSupported(pi.ParameterType))
+                    if (pi.IsOptional || !IsParameterTypeSupported(pi.ParameterType))
                         isSupported = false;
                 }
             }

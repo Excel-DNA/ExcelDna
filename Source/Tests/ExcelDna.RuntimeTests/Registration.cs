@@ -3,9 +3,9 @@ using Range = Microsoft.Office.Interop.Excel.Range;
 
 namespace ExcelDna.RuntimeTests
 {
+#if DEBUG
     public class Registration
     {
-#if DEBUG
         [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
         public void SayHello()
         {
@@ -34,6 +34,17 @@ namespace ExcelDna.RuntimeTests
 
             functionRange.Formula = "=MyNullableDouble()";
             Assert.Equal("Nullable VAL: NULL", functionRange.Value.ToString());
+        }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
+        public void OptionalDouble()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
+            functionRange.Formula = "=MyOptionalDouble(2.3)";
+            Assert.Equal("Optional VAL: 2.3", functionRange.Value.ToString());
+
+            functionRange.Formula = "=MyOptionalDouble()";
+            Assert.Equal("Optional VAL: 1.23", functionRange.Value.ToString());
         }
 #endif
     }
