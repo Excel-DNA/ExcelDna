@@ -27,5 +27,11 @@ namespace ExcelDna.AddIn.RuntimeTests
         {
             return "Optional VAL: " + d.ToString();
         }
+
+        [ExcelFunction]
+        public static string MyEnum(DateTimeKind e)
+        {
+            return "Enum VAL: " + e.ToString();
+        }
     }
 }

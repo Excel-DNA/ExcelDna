@@ -46,6 +46,20 @@ namespace ExcelDna.RuntimeTests
             functionRange.Formula = "=MyOptionalDouble()";
             Assert.Equal("Optional VAL: 1.23", functionRange.Value.ToString());
         }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
+        public void Enum()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
+            functionRange.Formula = "=MyEnum(\"Unspecified\")";
+            Assert.Equal("Enum VAL: Unspecified", functionRange.Value.ToString());
+
+            functionRange.Formula = "=MyEnum(\"Local\")";
+            Assert.Equal("Enum VAL: Local", functionRange.Value.ToString());
+
+            functionRange.Formula = "=MyEnum(1)";
+            Assert.Equal("Enum VAL: Utc", functionRange.Value.ToString());
+        }
 #endif
     }
 }
