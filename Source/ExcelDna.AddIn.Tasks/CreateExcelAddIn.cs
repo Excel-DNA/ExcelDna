@@ -388,6 +388,9 @@ namespace ExcelDna.AddIn.Tasks
             if (DisableAssemblyContextUnload)
                 result = result.Replace("<DnaLibrary ", "<DnaLibrary " + "DisableAssemblyContextUnload=\"true\" ");
 
+            if (CustomRuntimeConfiguration)
+                result = result.Replace("<DnaLibrary ", "<DnaLibrary " + "CustomRuntimeConfiguration=\"true\" ");
+
             if (!string.IsNullOrWhiteSpace(RollForward))
             {
                 result = result.Replace("<DnaLibrary ", "<DnaLibrary " + $"RollForward=\"{RollForward}\" ");
@@ -724,6 +727,11 @@ namespace ExcelDna.AddIn.Tasks
         /// Enable/disable collectible AssemblyLoadContext for .NET 6
         /// </summary>
         public bool DisableAssemblyContextUnload { get; set; }
+
+        /// <summary>
+        /// Enable/disable using the project's output runtimeconfig.json file for .NET 6
+        /// </summary>
+        public bool CustomRuntimeConfiguration { get; set; }
 
         /// <summary>
         /// Path to TlbExp.exe
