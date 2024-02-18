@@ -116,9 +116,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NET7Minimal", "NET7Minimal\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NET8Minimal", "NET8Minimal\NET8Minimal.csproj", "{AB20C94A-1582-49E0-A0FE-9B3732BBD999}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NET6RollForward", "NET6RollForward\NET6RollForward.csproj", "{99FB5A39-7B86-4A3C-8119-3D12DBEA0D83}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NET6RollForward", "NET6RollForward\NET6RollForward.csproj", "{99FB5A39-7B86-4A3C-8119-3D12DBEA0D83}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NET6DscomPack", "NET6DscomPack\NET6DscomPack.csproj", "{C34FF559-E694-4457-919D-0EB17CD04246}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NET6CustomRuntimeConfiguration", "NET6CustomRuntimeConfiguration\NET6CustomRuntimeConfiguration.csproj", "{6014C2AE-6D16-4598-B8BA-6D8F906A1E09}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -358,6 +360,10 @@ Global
 		{C34FF559-E694-4457-919D-0EB17CD04246}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C34FF559-E694-4457-919D-0EB17CD04246}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C34FF559-E694-4457-919D-0EB17CD04246}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6014C2AE-6D16-4598-B8BA-6D8F906A1E09}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6014C2AE-6D16-4598-B8BA-6D8F906A1E09}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6014C2AE-6D16-4598-B8BA-6D8F906A1E09}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6014C2AE-6D16-4598-B8BA-6D8F906A1E09}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
