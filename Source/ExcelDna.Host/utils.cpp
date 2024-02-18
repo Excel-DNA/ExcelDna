@@ -139,10 +139,16 @@ void StripPath(std::wstring& filePath)
 		filePath.erase(0, dirSepInd + 1);
 }
 
-std::wstring GetDirectoryName(const std::wstring& filePath)
+std::wstring GetDirectory(const std::wstring& filePath)
 {
 	std::wstring result(filePath);
 	RemoveFileSpecFromPath(result);
+	return result;
+}
+
+std::wstring GetDirectoryName(const std::wstring& filePath)
+{
+	std::wstring result(GetDirectory(filePath));
 	StripPath(result);
 	return result;
 }
@@ -162,6 +168,11 @@ void RenameExtension(std::wstring& filePath, std::wstring ext)
 HRESULT HResultFromLastError()
 {
 	return HRESULT_FROM_WIN32(GetLastError());
+}
+
+std::wstring GetLastErrorMessage()
+{
+	return _com_error(HResultFromLastError()).ErrorMessage();
 }
 
 SafeFile::SafeFile()

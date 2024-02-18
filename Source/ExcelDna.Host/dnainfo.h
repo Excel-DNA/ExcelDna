@@ -7,5 +7,6 @@
 
 HRESULT GetAddInName(std::wstring& addInName);
 HRESULT GetDisableAssemblyContextUnload(bool& disableAssemblyContextUnload);
+HRESULT GetCustomRuntimeConfiguration(std::wstring& customRuntimeConfiguration);
 HRESULT GetMajorRuntimeVersion(int& majorRuntimeVersion);
 HRESULT GetRollForward(std::wstring& rollForward);

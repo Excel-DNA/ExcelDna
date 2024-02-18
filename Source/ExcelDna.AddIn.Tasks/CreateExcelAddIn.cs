@@ -389,7 +389,7 @@ namespace ExcelDna.AddIn.Tasks
                 result = result.Replace("<DnaLibrary ", "<DnaLibrary " + "DisableAssemblyContextUnload=\"true\" ");
 
             if (CustomRuntimeConfiguration)
-                result = result.Replace("<DnaLibrary ", "<DnaLibrary " + "CustomRuntimeConfiguration=\"true\" ");
+                result = result.Replace("<DnaLibrary ", "<DnaLibrary " + $"CustomRuntimeConfiguration=\"{ProjectName}.runtimeconfig.json\" ");
 
             if (!string.IsNullOrWhiteSpace(RollForward))
             {

@@ -267,11 +267,17 @@ std::wstring get_loaded_runtime_version()
 // Load and initialize .NET Core and get desired function pointer for scenario
 load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(int majorRuntimeVersion, const std::wstring& rollForward)
 {
-	std::string tfm(std::format("net{0}.0", majorRuntimeVersion));
+	std::wstring configFile = PathCombine(tempDir.GetPath(), L"ExcelDna.Host.runtimeconfig.json");
 	std::string version(majorRuntimeVersion >= 7 ? std::format("{0}.0.0", majorRuntimeVersion) : "6.0.2");
-	std::string rollForwardOption = rollForward.length() > 0 ? std::format(R"("rollForward": "{0}",)", ANSIWStringToString(rollForward)) : "";
 
-	std::string configText = std::format(R"({{
+	std::wstring customRuntimeConfiguration;
+	HRESULT hr = GetCustomRuntimeConfiguration(customRuntimeConfiguration);
+	if (FAILED(hr) || customRuntimeConfiguration.empty())
+	{
+		std::string tfm(std::format("net{0}.0", majorRuntimeVersion));
+		std::string rollForwardOption = rollForward.length() > 0 ? std::format(R"("rollForward": "{0}",)", ANSIWStringToString(rollForward)) : "";
+
+		std::string configText = std::format(R"({{
   "runtimeOptions": {{
     "tfm": "{0}",
     {2}
@@ -281,14 +287,26 @@ load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(int majorRunt
     }}
   }}
 }})", tfm, version, rollForwardOption);
-	std::wstring configFile = PathCombine(tempDir.GetPath(), L"ExcelDna.Host.runtimeconfig.json");
-	HRESULT hr = WriteAllBytes(configFile, (void*)configText.c_str(), static_cast<DWORD>(configText.length()));
-	if (FAILED(hr))
+		HRESULT hr = WriteAllBytes(configFile, (void*)configText.c_str(), static_cast<DWORD>(configText.length()));
+		if (FAILED(hr))
+		{
+			std::wstringstream stream;
+			stream << "Saving ExcelDna.Host.runtimeconfig.json failed: " << std::hex << std::showbase << hr;
+			ShowHostError(stream.str());
+			return nullptr;
+		}
+	}
+	else
 	{
-		std::wstringstream stream;
-		stream << "Saving ExcelDna.Host.runtimeconfig.json failed: " << std::hex << std::showbase << hr;
-		ShowHostError(stream.str());
-		return nullptr;
+		std::wstring customRuntimeConfigurationFilePath = PathCombine(GetDirectory(GetAddInFullPath()), customRuntimeConfiguration);
+		if (!CopyFile(customRuntimeConfigurationFilePath.c_str(), configFile.c_str(), FALSE))
+		{
+			std::wstring lastErrorMessage = GetLastErrorMessage();
+			std::wstringstream stream;
+			stream << "Copying " << customRuntimeConfiguration << " failed: " << lastErrorMessage;
+			ShowHostError(stream.str());
+			return nullptr;
+		}
 	}
 
 	// Load .NET Core
