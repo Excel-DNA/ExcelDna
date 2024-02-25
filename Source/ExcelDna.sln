@@ -86,7 +86,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelDna.Test", "ExcelDna.T
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "ExcelDna.PackedResources", "ExcelDna.PackedResources\ExcelDna.PackedResources.shproj", "{7EBB8FA9-A153-422E-B454-144C3FB03450}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.PackedResourcesTests", "Tests\ExcelDna.PackedResourcesTests\ExcelDna.PackedResourcesTests.csproj", "{28D046D4-B414-4DAF-818F-897A97B921DF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelDna.PackedResourcesTests", "Tests\ExcelDna.PackedResourcesTests\ExcelDna.PackedResourcesTests.csproj", "{28D046D4-B414-4DAF-818F-897A97B921DF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.AddIn.Tasks.IntegrationRuntimeTests", "Tests\ExcelDna.AddIn.Tasks.IntegrationRuntimeTests\ExcelDna.AddIn.Tasks.IntegrationRuntimeTests.csproj", "{238F95C5-87DF-4973-88C2-5A9509C3935F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -183,6 +185,14 @@ Global
 		{28D046D4-B414-4DAF-818F-897A97B921DF}.Release|Win32.Build.0 = Release|Any CPU
 		{28D046D4-B414-4DAF-818F-897A97B921DF}.Release|x64.ActiveCfg = Release|Any CPU
 		{28D046D4-B414-4DAF-818F-897A97B921DF}.Release|x64.Build.0 = Release|Any CPU
+		{238F95C5-87DF-4973-88C2-5A9509C3935F}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{238F95C5-87DF-4973-88C2-5A9509C3935F}.Debug|Win32.Build.0 = Debug|Any CPU
+		{238F95C5-87DF-4973-88C2-5A9509C3935F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{238F95C5-87DF-4973-88C2-5A9509C3935F}.Debug|x64.Build.0 = Debug|Any CPU
+		{238F95C5-87DF-4973-88C2-5A9509C3935F}.Release|Win32.ActiveCfg = Release|Any CPU
+		{238F95C5-87DF-4973-88C2-5A9509C3935F}.Release|Win32.Build.0 = Release|Any CPU
+		{238F95C5-87DF-4973-88C2-5A9509C3935F}.Release|x64.ActiveCfg = Release|Any CPU
+		{238F95C5-87DF-4973-88C2-5A9509C3935F}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -194,6 +204,7 @@ Global
 		{D0B02D05-F536-4C32-9DC0-BA2B5EEAEAB7} = {42A3C1DE-5D65-4BC6-BA90-3FDEE42A77C9}
 		{BA1BBC2E-E1A6-4682-8901-F596A21FD253} = {511CE610-5E55-457F-B818-1522D1A96727}
 		{28D046D4-B414-4DAF-818F-897A97B921DF} = {511CE610-5E55-457F-B818-1522D1A96727}
+		{238F95C5-87DF-4973-88C2-5A9509C3935F} = {511CE610-5E55-457F-B818-1522D1A96727}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {69EF43B0-B903-4775-BC81-C7E7E012EDA3}
