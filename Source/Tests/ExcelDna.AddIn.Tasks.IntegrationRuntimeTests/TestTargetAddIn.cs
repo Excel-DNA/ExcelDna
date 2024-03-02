@@ -5,16 +5,24 @@ namespace ExcelDna.AddIn.Tasks.IntegrationRuntimeTests
 {
     internal class TestTargetAddIn
     {
-        public static void BuildAndRegister(string projectName)
+        public static void Build(string projectName)
         {
-            string testTargetPath = Path.GetFullPath(@"..\..\..\..\ExcelDna.AddIn.Tasks.IntegrationTests.TestTarget");
-            string outputPath = @"bin\Release\";
-            string projectDirPath = Path.Combine(testTargetPath, projectName);
-            string xllPath = Path.Combine(projectDirPath, outputPath, $"{projectName}-AddIn64.xll");
+            MsBuild.Build(Path.Combine(GetProjectDir(projectName), $"{projectName}.csproj") + " /t:Restore,Build /p:Configuration=Release /v:m " + MsBuild.Param("OutputPath", outputPath));
+        }
 
-            MsBuild.Build(Path.Combine(projectDirPath, $"{projectName}.csproj") + " /t:Restore,Build /p:Configuration=Release /v:m " + MsBuild.Param("OutputPath", outputPath));
+        public static void Register(string projectName, bool packed)
+        {
+            string xllPath = Path.Combine(GetProjectDir(projectName), outputPath, packed ? Path.Combine("publish", $"{projectName}-AddIn64-packed.xll") : $"{projectName}-AddIn64.xll");
 
             Util.Application.RegisterXLL(xllPath);
         }
+
+        private static string GetProjectDir(string projectName)
+        {
+            string testTargetPath = Path.GetFullPath(@"..\..\..\..\ExcelDna.AddIn.Tasks.IntegrationTests.TestTarget");
+            return Path.Combine(testTargetPath, projectName);
+        }
+
+        private const string outputPath = @"bin\Release\";
     }
 }

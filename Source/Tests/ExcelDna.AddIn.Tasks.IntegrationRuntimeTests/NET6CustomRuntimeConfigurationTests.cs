@@ -9,12 +9,24 @@ namespace ExcelDna.AddIn.Tasks.IntegrationRuntimeTests
     {
         public NET6CustomRuntimeConfigurationTests()
         {
-            TestTargetAddIn.BuildAndRegister("NET6CustomRuntimeConfiguration");
+            TestTargetAddIn.Build("NET6CustomRuntimeConfiguration");
         }
 
         [ExcelFact(Workbook = "")]
         public void NotYetPacked()
         {
+            TestTargetAddIn.Register("NET6CustomRuntimeConfiguration", false);
+
+            Range functionRange = ((Worksheet)Util.Workbook.Sheets[1]).Range["B1:B1"];
+            functionRange.Formula = "=SayHello(\"world\")";
+            Assert.Equal("world WebApplication Environment: Production.", functionRange.Value.ToString());
+        }
+
+        [ExcelFact(Workbook = "")]
+        public void Packed()
+        {
+            TestTargetAddIn.Register("NET6CustomRuntimeConfiguration", true);
+
             Range functionRange = ((Worksheet)Util.Workbook.Sheets[1]).Range["B1:B1"];
             functionRange.Formula = "=SayHello(\"world\")";
             Assert.Equal("world WebApplication Environment: Production.", functionRange.Value.ToString());
