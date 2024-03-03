@@ -5,16 +5,18 @@ namespace ExcelDna.AddIn.Tasks.IntegrationRuntimeTests
 {
     internal class TestTargetAddIn
     {
-        public static void Build(string projectName)
+        public static void Build(string projectName, string? parameters = null)
         {
-            MsBuild.Build(Path.Combine(GetProjectDir(projectName), $"{projectName}.csproj") + " /t:Restore,Build /p:Configuration=Release /v:m " + MsBuild.Param("OutputPath", outputPath));
+            Directory.Delete(Path.Combine(GetProjectDir(projectName), outputPath), true);
+
+            MsBuild.Build(Path.Combine(GetProjectDir(projectName), $"{projectName}.csproj") + $" /t:Restore,Build /p:Configuration=Release {parameters} /v:m " + MsBuild.Param("OutputPath", outputPath));
         }
 
-        public static void Register(string projectName, bool packed)
+        public static bool Register(string projectName, string xllName)
         {
-            string xllPath = Path.Combine(GetProjectDir(projectName), outputPath, packed ? Path.Combine("publish", $"{projectName}-AddIn64-packed.xll") : $"{projectName}-AddIn64.xll");
+            string xllPath = Path.Combine(GetProjectDir(projectName), outputPath, xllName);
 
-            Util.Application.RegisterXLL(xllPath);
+            return Util.Application.RegisterXLL(xllPath);
         }
 
         private static string GetProjectDir(string projectName)
