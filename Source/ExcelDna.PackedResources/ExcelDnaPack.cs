@@ -442,6 +442,23 @@ namespace ExcelDna.PackedResources
                 }
             }
 
+            if (!string.IsNullOrWhiteSpace(dna.CustomRuntimeConfiguration))
+            {
+                string path = dna.ResolvePath(dna.CustomRuntimeConfiguration);
+                if (path == null)
+                {
+                    var format = "  ~~> ERROR: Custom runtime configuration path {0} NOT RESOLVED.";
+                    errorMessage = string.Format(format, dna.CustomRuntimeConfiguration);
+                    buildLogger.Error(typeof(ExcelDnaPack), format, dna.CustomRuntimeConfiguration);
+                    throw new InvalidOperationException(errorMessage);
+                }
+
+                if (filesToPublish == null)
+                {
+                    ru.AddFile(File.ReadAllBytes(path), "__CUSTOM_RUNTIMECONFIG__", ResourceHelper.TypeName.SOURCE, null, false, multithreading);
+                }
+            }
+
             return DnaLibrary.Save(dna);
         }
 
