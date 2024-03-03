@@ -149,6 +149,14 @@ namespace ExcelDna.Integration
             set { _DisableAssemblyContextUnload = value; }
         }
 
+        private string _CustomRuntimeConfiguration;
+        [XmlAttribute]
+        public string CustomRuntimeConfiguration
+        {
+            get { return _CustomRuntimeConfiguration; }
+            set { _CustomRuntimeConfiguration = value; }
+        }
+
         private string _RollForward;
         [XmlAttribute]
         public string RollForward
