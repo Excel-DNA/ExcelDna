@@ -457,6 +457,10 @@ namespace ExcelDna.PackedResources
                 {
                     ru.AddFile(File.ReadAllBytes(path), "__CUSTOM_RUNTIMECONFIG__", ResourceHelper.TypeName.SOURCE, null, false, multithreading);
                 }
+                else
+                {
+                    filesToPublish.Add(path);
+                }
             }
 
             return DnaLibrary.Save(dna);
