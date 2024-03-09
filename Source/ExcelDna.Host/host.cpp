@@ -271,14 +271,7 @@ load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(HMODULE hModu
 		std::wstring customRuntimeConfigurationFilePath = PathCombine(GetDirectory(GetAddInFullPath()), customRuntimeConfiguration);
 		if (std::filesystem::exists(customRuntimeConfigurationFilePath))
 		{
-			if (!CopyFile(customRuntimeConfigurationFilePath.c_str(), configFile.c_str(), FALSE))
-			{
-				std::wstring lastErrorMessage = GetLastErrorMessage();
-				std::wstringstream stream;
-				stream << "Copying " << customRuntimeConfiguration << " failed: " << lastErrorMessage;
-				ShowHostError(stream.str());
-				return nullptr;
-			}
+			configFile = customRuntimeConfigurationFilePath;
 		}
 		else
 		{
