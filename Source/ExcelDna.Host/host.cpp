@@ -241,8 +241,8 @@ load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(HMODULE hModu
 	std::string version(majorRuntimeVersion >= 7 ? std::format("{0}.0.0", majorRuntimeVersion) : "6.0.2");
 
 	std::wstring customRuntimeConfiguration;
-	HRESULT hr = GetCustomRuntimeConfiguration(customRuntimeConfiguration);
-	if (FAILED(hr) || customRuntimeConfiguration.empty())
+	bool useCustomRuntimeConfiguration = (SUCCEEDED(GetCustomRuntimeConfiguration(customRuntimeConfiguration)) && !customRuntimeConfiguration.empty());
+	if (!useCustomRuntimeConfiguration)
 	{
 		std::string tfm(std::format("net{0}.0", majorRuntimeVersion));
 		std::string rollForwardOption = rollForward.length() > 0 ? std::format(R"("rollForward": "{0}",)", ANSIWStringToString(rollForward)) : "";
@@ -294,7 +294,7 @@ load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(HMODULE hModu
 	int rc = init_fptr(configFile.c_str(), nullptr, &cxt);
 	if (!STATUS_CODE_SUCCEEDED(rc) || cxt == nullptr)
 	{
-		std::wstring requiredRuntime = std::format(L".NET Desktop Runtime {0} {1}", std::wstring(version.begin(), version.end()), requiredBitness);
+		std::wstring requiredRuntime = (useCustomRuntimeConfiguration ? L"custom .NET runtime" : std::format(L".NET Desktop Runtime {0} {1}", std::wstring(version.begin(), version.end()), requiredBitness));
 		if (rc == CoreHostIncompatibleConfig)
 		{
 			std::wstring msg = L"The required " + requiredRuntime + L" is incompatible with the runtime " + get_loaded_runtime_version() + L" already loaded in the process.\n\nYou can try to disable other Excel add-ins to resolve the conflict.";
