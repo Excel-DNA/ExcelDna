@@ -251,6 +251,7 @@
  	  AddInExports="$(ExcelAddInExports)"
  	  AddInExternalLibraryPath="$(ExcelAddInExternalLibraryPath)"
  	  DisableAssemblyContextUnload="$(ExcelAddInDisableAssemblyContextUnload)"
+ 	  CustomRuntimeConfiguration="$(ExcelAddInCustomRuntimeConfiguration)"
  	  ProjectName="$(MSBuildProjectName)"
 	  TargetFileName="$(TargetFileName)"
 	  RollForward="$(RollForward)"

@@ -137,6 +137,10 @@
     <!-- Default value: false -->
     <ExcelAddInDisableAssemblyContextUnload></ExcelAddInDisableAssemblyContextUnload>
 
+    <!-- Enable/disable using the project's output runtimeconfig.json file for .NET 6. -->
+    <!-- Default value: false -->
+    <ExcelAddInCustomRuntimeConfiguration></ExcelAddInCustomRuntimeConfiguration>
+
     <!-- Path to TlbExp.exe. E.g. "c:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools\x64\TlbExp.exe" or $(MSBuildProjectDirectory)\TlbExp.exe.-->
     <!-- Default value: empty -->
     <ExcelAddInTlbExp></ExcelAddInTlbExp>

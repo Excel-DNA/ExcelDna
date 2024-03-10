@@ -38,7 +38,8 @@ hostfxr_close_fn close_fptr;
 
 // Forward declarations
 bool load_hostfxr(int& rc, std::wstring& loadError);
-load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(int majorRuntimeVersion, const std::wstring& rollForward);
+int write_resource_to_file(HMODULE hModuleXll, const std::wstring& resourceName, const std::wstring& resourceType, const std::wstring& filePath);
+load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(HMODULE hModuleXll, int majorRuntimeVersion, const std::wstring& rollForward);
 
 // Provide a callback for any catastrophic failures.
 // The provided callback will be the last call prior to a rude-abort of the process.
@@ -90,7 +91,7 @@ int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExpor
 	if (FAILED(hr))
 		rollForward = L"";
 
-	load_assembly_and_get_function_pointer_fn load_assembly_and_get_function_pointer = get_dotnet_load_assembly(majorRuntimeVersion, rollForward);
+	load_assembly_and_get_function_pointer_fn load_assembly_and_get_function_pointer = get_dotnet_load_assembly(hModuleXll, majorRuntimeVersion, rollForward);
 	if (load_assembly_and_get_function_pointer == nullptr)
 		return EXIT_FAILURE;
 
@@ -103,40 +104,9 @@ int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExpor
 		hostFile = PathCombine(tempDir.GetPath(), L"ExcelDna.ManagedHost.dll");
 		if (!std::filesystem::exists(hostFile))
 		{
-			HRSRC hResManagedHost = FindResource(hModuleXll, L"EXCELDNA.MANAGEDHOST", L"ASSEMBLY");
-			if (hResManagedHost == NULL)
-			{
-				ShowHostError(L"Failure to find resource EXCELDNA.MANAGEDHOST");
-				return EXIT_FAILURE;
-			}
-
-			HGLOBAL hManagedHost = LoadResource(hModuleXll, hResManagedHost);
-			if (hManagedHost == NULL)
-			{
-				ShowHostError(L"Failure to load resource EXCELDNA.MANAGEDHOST");
-				return EXIT_FAILURE;
-			}
-
-			void* buf = LockResource(hManagedHost);
-			if (buf == NULL)
-			{
-				ShowHostError(L"Failure to lock resource EXCELDNA.MANAGEDHOST");
-				return EXIT_FAILURE;
-			}
-
-			DWORD resSize = SizeofResource(hModuleXll, hResManagedHost);
-			SafeByteArray safeBytes(buf, resSize);
-			byte* pData;
-			int nSize = safeBytes.AccessData(&pData);
-
-			HRESULT hr = WriteAllBytes(hostFile, pData, nSize);
-			if (FAILED(hr))
-			{
-				std::wstringstream stream;
-				stream << L"Saving EXCELDNA.MANAGEDHOST failed: " << std::hex << std::showbase << hr;
-				ShowHostError(stream.str());
-				return EXIT_FAILURE;
-			}
+			int r = write_resource_to_file(hModuleXll, L"EXCELDNA.MANAGEDHOST", L"ASSEMBLY", hostFile);
+			if (r != EXIT_SUCCESS)
+				return r;
 		}
 	}
 
@@ -265,13 +235,19 @@ std::wstring get_loaded_runtime_version()
 }
 
 // Load and initialize .NET Core and get desired function pointer for scenario
-load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(int majorRuntimeVersion, const std::wstring& rollForward)
+load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(HMODULE hModuleXll, int majorRuntimeVersion, const std::wstring& rollForward)
 {
-	std::string tfm(std::format("net{0}.0", majorRuntimeVersion));
+	std::wstring configFile = PathCombine(tempDir.GetPath(), L"ExcelDna.Host.runtimeconfig.json");
 	std::string version(majorRuntimeVersion >= 7 ? std::format("{0}.0.0", majorRuntimeVersion) : "6.0.2");
-	std::string rollForwardOption = rollForward.length() > 0 ? std::format(R"("rollForward": "{0}",)", ANSIWStringToString(rollForward)) : "";
 
-	std::string configText = std::format(R"({{
+	std::wstring customRuntimeConfiguration;
+	bool useCustomRuntimeConfiguration = (SUCCEEDED(GetCustomRuntimeConfiguration(customRuntimeConfiguration)) && !customRuntimeConfiguration.empty());
+	if (!useCustomRuntimeConfiguration)
+	{
+		std::string tfm(std::format("net{0}.0", majorRuntimeVersion));
+		std::string rollForwardOption = rollForward.length() > 0 ? std::format(R"("rollForward": "{0}",)", ANSIWStringToString(rollForward)) : "";
+
+		std::string configText = std::format(R"({{
   "runtimeOptions": {{
     "tfm": "{0}",
     {2}
@@ -281,14 +257,28 @@ load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(int majorRunt
     }}
   }}
 }})", tfm, version, rollForwardOption);
-	std::wstring configFile = PathCombine(tempDir.GetPath(), L"ExcelDna.Host.runtimeconfig.json");
-	HRESULT hr = WriteAllBytes(configFile, (void*)configText.c_str(), static_cast<DWORD>(configText.length()));
-	if (FAILED(hr))
+		HRESULT hr = WriteAllBytes(configFile, (void*)configText.c_str(), static_cast<DWORD>(configText.length()));
+		if (FAILED(hr))
+		{
+			std::wstringstream stream;
+			stream << "Saving ExcelDna.Host.runtimeconfig.json failed: " << std::hex << std::showbase << hr;
+			ShowHostError(stream.str());
+			return nullptr;
+		}
+	}
+	else
 	{
-		std::wstringstream stream;
-		stream << "Saving ExcelDna.Host.runtimeconfig.json failed: " << std::hex << std::showbase << hr;
-		ShowHostError(stream.str());
-		return nullptr;
+		std::wstring customRuntimeConfigurationFilePath = PathCombine(GetDirectory(GetAddInFullPath()), customRuntimeConfiguration);
+		if (std::filesystem::exists(customRuntimeConfigurationFilePath))
+		{
+			configFile = customRuntimeConfigurationFilePath;
+		}
+		else
+		{
+			int r = write_resource_to_file(hModuleXll, L"__CUSTOM_RUNTIMECONFIG__", L"SOURCE", configFile);
+			if (r != EXIT_SUCCESS)
+				return nullptr;
+		}
 	}
 
 	// Load .NET Core
@@ -297,7 +287,7 @@ load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(int majorRunt
 	int rc = init_fptr(configFile.c_str(), nullptr, &cxt);
 	if (!STATUS_CODE_SUCCEEDED(rc) || cxt == nullptr)
 	{
-		std::wstring requiredRuntime = std::format(L".NET Desktop Runtime {0} {1}", std::wstring(version.begin(), version.end()), requiredBitness);
+		std::wstring requiredRuntime = (useCustomRuntimeConfiguration ? L"custom .NET runtime" : std::format(L".NET Desktop Runtime {0} {1}", std::wstring(version.begin(), version.end()), requiredBitness));
 		if (rc == CoreHostIncompatibleConfig)
 		{
 			std::wstring msg = L"The required " + requiredRuntime + L" is incompatible with the runtime " + get_loaded_runtime_version() + L" already loaded in the process.\n\nYou can try to disable other Excel add-ins to resolve the conflict.";
@@ -336,4 +326,44 @@ load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(int majorRunt
 
 	close_fptr(cxt);
 	return (load_assembly_and_get_function_pointer_fn)load_assembly_and_get_function_pointer;
+}
+
+int write_resource_to_file(HMODULE hModuleXll, const std::wstring& resourceName, const std::wstring& resourceType, const std::wstring& filePath)
+{
+	HRSRC hResManagedHost = FindResource(hModuleXll, resourceName.c_str(), resourceType.c_str());
+	if (hResManagedHost == NULL)
+	{
+		ShowHostError(L"Failure to find resource " + resourceName);
+		return EXIT_FAILURE;
+	}
+
+	HGLOBAL hManagedHost = LoadResource(hModuleXll, hResManagedHost);
+	if (hManagedHost == NULL)
+	{
+		ShowHostError(L"Failure to load resource " + resourceName);
+		return EXIT_FAILURE;
+	}
+
+	void* buf = LockResource(hManagedHost);
+	if (buf == NULL)
+	{
+		ShowHostError(L"Failure to lock resource " + resourceName);
+		return EXIT_FAILURE;
+	}
+
+	DWORD resSize = SizeofResource(hModuleXll, hResManagedHost);
+	SafeByteArray safeBytes(buf, resSize);
+	byte* pData;
+	int nSize = safeBytes.AccessData(&pData);
+
+	HRESULT hr = WriteAllBytes(filePath, pData, nSize);
+	if (FAILED(hr))
+	{
+		std::wstringstream stream;
+		stream << L"Saving " << resourceName << L" failed: " << std::hex << std::showbase << hr;
+		ShowHostError(stream.str());
+		return EXIT_FAILURE;
+	}
+
+	return EXIT_SUCCESS;
 }

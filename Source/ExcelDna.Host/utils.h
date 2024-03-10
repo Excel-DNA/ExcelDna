@@ -59,6 +59,7 @@ void RemoveFileSpecFromPath(std::wstring& filePath);
 
 void StripPath(std::wstring& filePath);
 
+std::wstring GetDirectory(const std::wstring& filePath);
 std::wstring GetDirectoryName(const std::wstring& filePath);
 
 void RemoveExtension(std::wstring& filePath);
@@ -66,6 +67,7 @@ void RemoveExtension(std::wstring& filePath);
 void RenameExtension(std::wstring& filePath, std::wstring ext);
 
 HRESULT HResultFromLastError();
+std::wstring GetLastErrorMessage();
 
 class SafeFile
 {
