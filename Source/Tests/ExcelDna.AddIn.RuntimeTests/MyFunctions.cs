@@ -34,6 +34,12 @@ namespace ExcelDna.AddIn.RuntimeTests
             return "Enum VAL: " + e.ToString();
         }
 
+        [ExcelFunction]
+        public static DateTimeKind MyEnumReturn(string s)
+        {
+            return Enum.Parse<DateTimeKind>(s);
+        }
+
         [ExcelMapArrayFunction]
         public static IEnumerable<string> MyMapArray(IEnumerable<DateTimeKind> a)
         {
