@@ -52,5 +52,12 @@ namespace ExcelDna.AddIn.RuntimeTests
             Thread.Sleep(msToSleep);
             return $"Hello async {name}";
         }
+
+        [ExcelAsyncFunction]
+        public static async Task<string> MyAsyncTaskHello(string name, int msDelay)
+        {
+            await Task.Delay(msDelay);
+            return $"Hello async task {name}";
+        }
     }
 }
