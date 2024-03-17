@@ -147,6 +147,10 @@ namespace ExcelDna.Integration
             {
                 isSupported = false;
             }
+            else if (IsExcelAsyncFunction(mi))
+            {
+                isSupported = false;
+            }
             else
             {
                 foreach (ParameterInfo pi in mi.GetParameters())
@@ -157,6 +161,20 @@ namespace ExcelDna.Integration
             }
 
             return isSupported;
+        }
+
+        static bool IsExcelAsyncFunction(MethodInfo mi)
+        {
+            object[] atts = mi.GetCustomAttributes(false);
+            foreach (object att in atts)
+            {
+                Type attType = att.GetType();
+                if (TypeHasAncestorWithFullName(attType, "ExcelDna.Integration.ExcelAsyncFunctionAttribute"))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         // CAUTION: This check needs to match the usage in ExcelDna.Loader.XlMethodInfo.SetAttributeInfo()

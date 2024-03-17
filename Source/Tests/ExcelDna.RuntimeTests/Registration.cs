@@ -96,6 +96,16 @@ namespace ExcelDna.RuntimeTests
             Range b3 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B3:B3"];
             Assert.Equal("Array element VAL: Unspecified", b3.Value.ToString());
         }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
+        public void AsyncTest()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
+            functionRange.Formula = "=MyAsyncHello(\"world\", 0)";
+
+            string expected = "Hello async world";
+            Assert.Equal(expected, functionRange.Value.ToString());
+        }
 #endif
     }
 }

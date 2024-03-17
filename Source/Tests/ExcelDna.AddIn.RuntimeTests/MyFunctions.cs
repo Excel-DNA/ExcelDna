@@ -45,5 +45,12 @@ namespace ExcelDna.AddIn.RuntimeTests
         {
             return a.Select(i => "Array element VAL: " + i.ToString());
         }
+
+        [ExcelAsyncFunction]
+        public static string MyAsyncHello(string name, int msToSleep)
+        {
+            Thread.Sleep(msToSleep);
+            return $"Hello async {name}";
+        }
     }
 }

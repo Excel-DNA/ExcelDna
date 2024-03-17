@@ -18,6 +18,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             var entries = functions
                 .ProcessMapArrayFunctions(conversionConfig)
                 .ProcessParameterConversions(conversionConfig)
+                .ProcessAsyncRegistrations(nativeAsyncIfAvailable: false)
                 .ProcessParameterConversions(postAsyncReturnConfig)
                 .ToList();
 

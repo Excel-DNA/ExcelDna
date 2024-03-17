@@ -105,6 +105,13 @@ namespace ExcelDna.Integration
     {
     }
 
+    // An extension of the ExcelFunction attribute to identify functions that should be registered as async
+    [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
+    [MeansImplicitUse]
+    public class ExcelAsyncFunctionAttribute : ExcelFunctionAttribute
+    {
+    }
+
     /// <summary>
     /// Optional attribute for parameters and return values of an [ExcelMapArrayFunction] function.
     /// An enumerable of records is mapped to an Excel array, where the first row of the array contains
