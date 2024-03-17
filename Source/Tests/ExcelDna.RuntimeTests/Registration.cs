@@ -114,6 +114,15 @@ namespace ExcelDna.RuntimeTests
 
             Assert.Equal("Hello async task world", functionRange.Value.ToString());
         }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
+        public void TaskInstant()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
+            functionRange.Formula = "=MyTaskHello(\"world\")";
+
+            Assert.Equal("Hello task world", functionRange.Value.ToString());
+        }
 #endif
     }
 }
