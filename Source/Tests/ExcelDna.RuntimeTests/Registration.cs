@@ -123,6 +123,51 @@ namespace ExcelDna.RuntimeTests
 
             Assert.Equal("Hello task world", functionRange.Value.ToString());
         }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
+        public void StringArray()
+        {
+            Range a1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A1:A1"];
+            a1.Value = "01";
+
+            Range a2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A2:A2"];
+            a2.Value = "2.30";
+
+            Range a3 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A3:A3"];
+            a3.Value = "World";
+
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
+            functionRange.Formula = "=MyStringArray(A1:A3)";
+
+            Assert.Equal("StringArray VALS: 12.3World", functionRange.Value.ToString());
+        }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
+        public void StringArray2D()
+        {
+            Range a1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A1"];
+            a1.Value = "01";
+
+            Range a2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A2"];
+            a2.Value = "2.30";
+
+            Range a3 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A3"];
+            a3.Value = "Hello";
+
+            Range b1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+            b1.Value = "5";
+
+            Range b2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B2"];
+            b2.Value = "6.7";
+
+            Range b3 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B3"];
+            b3.Value = "World";
+
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
+            functionRange.Formula = "=MyStringArray2D(A1:B3)";
+
+            Assert.Equal("StringArray2D VALS: 15 2.36.7 HelloWorld ", functionRange.Value.ToString());
+        }
 #endif
     }
 }

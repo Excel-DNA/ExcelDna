@@ -74,9 +74,11 @@ namespace ExcelDna.Integration.ExtendedRegistration
                 .AddReturnConversion((Complex value) => new double[2] { value.Real, value.Imaginary })
 
                 // This parameter conversion adds support for string[] parameters (by accepting object[] instead).
-                // It uses the TypeConversion utility class defined in ExcelDna.Registration to get an object->string
+                // It uses the TypeConversion utility class to get an object->string
                 // conversion that is consist with Excel (in this case, Excel is called to do the conversion).
                 .AddParameterConversion((object[] inputs) => inputs.Select(TypeConversion.ConvertToString).ToArray())
+
+                .AddParameterConversion((object[,] inputs) => TypeConversion.ConvertToString2D(inputs))
 
                 // This is a pair of very generic conversions for Enum types
                 .AddReturnConversion((Enum value) => value.ToString(), handleSubTypes: true)

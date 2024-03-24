@@ -64,6 +64,20 @@ namespace ExcelDna.Integration.ExtendedRegistration
             throw new InvalidCastException("Value " + value.ToString() + " could not be converted to String.");
         }
 
+        public static string[,] ConvertToString2D(object[,] values)
+        {
+            string[,] result = new string[values.GetLength(0), values.GetLength(1)];
+            for (int i = 0; i < values.GetLength(0); i++)
+            {
+                for (int j = 0; j < values.GetLength(1); j++)
+                {
+                    result[i, j] = ConvertToString(values[i, j]);
+                }
+            }
+
+            return result;
+        }
+
         public static DateTime ConvertToDateTime(object value)
         {
             try

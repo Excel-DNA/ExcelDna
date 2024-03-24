@@ -65,5 +65,28 @@ namespace ExcelDna.AddIn.RuntimeTests
         {
             return Task.FromResult($"Hello task {name}");
         }
+
+        [ExcelFunction]
+        public static string MyStringArray(string[] s)
+        {
+            return "StringArray VALS: " + string.Concat(s);
+        }
+
+        [ExcelFunction]
+        public static string MyStringArray2D(string[,] s)
+        {
+            string result = "";
+            for (int i = 0; i < s.GetLength(0); i++)
+            {
+                for (int j = 0; j < s.GetLength(1); j++)
+                {
+                    result += s[i, j];
+                }
+
+                result += " ";
+            }
+
+            return $"StringArray2D VALS: {result}";
+        }
     }
 }
