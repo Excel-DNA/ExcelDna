@@ -206,6 +206,22 @@
     </xs:simpleContent>
   </xs:complexType>
 
+  <xs:complexType name="FileType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="Name"
+                      use="required"
+                      type="xs:string" />
+        <xs:attribute name="Path"
+                      use="required"
+                      type="xs:string" />
+        <xs:attribute name="Pack"
+                      use="optional"
+                      type="Boolean" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
   <xs:complexType name="CustomUIType">
     <xs:sequence>
       <xs:any maxOccurs="unbounded"
@@ -239,6 +255,11 @@
                     maxOccurs="unbounded"
                     minOccurs="0"
                     type="ImageType">
+        </xs:element>
+        <xs:element name="File"
+                    maxOccurs="unbounded"
+                    minOccurs="0"
+                    type="FileType">
         </xs:element>
         <xs:element name="CustomUI"
                     maxOccurs="unbounded"
