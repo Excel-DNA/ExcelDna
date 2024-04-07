@@ -88,5 +88,17 @@ namespace ExcelDna.AddIn.RuntimeTests
 
             return $"StringArray2D VALS: {result}";
         }
+
+        [ExcelFunction]
+        public static string MyTestType1(TestType1 tt)
+        {
+            return "The TestType1 value is " + tt.Value;
+        }
+
+        [ExcelFunction]
+        public static string MyVersion2(Version v)
+        {
+            return "The Version value with field count 2 is " + v.ToString(2);
+        }
     }
 }

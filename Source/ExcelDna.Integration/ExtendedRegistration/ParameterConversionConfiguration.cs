@@ -121,6 +121,14 @@ namespace ExcelDna.Integration.ExtendedRegistration
             return this;
         }
 
+        public ParameterConversionConfiguration AddParameterConversions(IEnumerable<Func<Type, ExcelParameter, LambdaExpression>> parameterConversions)
+        {
+            foreach (var i in parameterConversions)
+                AddParameterConversion(i);
+
+            return this;
+        }
+
         // Most general case - called by the overloads below
         public ParameterConversionConfiguration AddReturnConversion(Func<Type, ExcelReturn, LambdaExpression> returnConversion, Type targetTypeOrNull = null, bool handleSubTypes = false)
         {

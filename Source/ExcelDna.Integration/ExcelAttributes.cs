@@ -133,4 +133,13 @@ namespace ExcelDna.Integration
     public class ExcelMapPropertiesToColumnHeadersAttribute : Attribute
     {
     }
+
+    /// <summary>
+    /// For user-defined parameter conversions.
+    /// </summary>
+	[AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
+    [MeansImplicitUse]
+    public class ExcelParameterConversionAttribute : Attribute
+    {
+    }
 }

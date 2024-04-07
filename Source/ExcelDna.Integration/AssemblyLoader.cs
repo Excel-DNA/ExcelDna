@@ -28,6 +28,7 @@ namespace ExcelDna.Integration
         public static void ProcessAssemblies(
                     List<ExportedAssembly> assemblies,
                     List<MethodInfo> methods,
+                    List<ExtendedRegistration.ExcelParameterConversion> excelParameterConversions,
                     List<ExtendedRegistration.ExcelFunction> excelFunctionsExtendedRegistration,
                     List<ExcelAddInInfo> addIns,
                     List<Type> rtdServerTypes,
@@ -72,6 +73,7 @@ namespace ExcelDna.Integration
 
                         if (!explicitRegistration)
                         {
+                            GetExcelParameterConversions(type, excelParameterConversions);
                             GetExcelMethods(type, explicitExports, methods, excelFunctionsExtendedRegistration);
                         }
                         GetExcelAddIns(assembly, type, loadRibbons, addIns);
@@ -87,6 +89,18 @@ namespace ExcelDna.Integration
                 if (methods.Count + addIns.Count + rtdServerTypes.Count + comClassTypes.Count == initialObjectsCount)
                 {
                     Logger.Initialization.Error("No objects loaded from {0}", assembly.Assembly.FullName);
+                }
+            }
+        }
+
+        static void GetExcelParameterConversions(Type t, List<ExtendedRegistration.ExcelParameterConversion> excelParameterConversions)
+        {
+            MethodInfo[] mis = t.GetMethods(BindingFlags.Public | BindingFlags.Static);
+            foreach (MethodInfo mi in mis)
+            {
+                if (IsParameterConversion(mi))
+                {
+                    excelParameterConversions.Add(new ExtendedRegistration.ExcelParameterConversion(mi));
                 }
             }
         }
@@ -365,6 +379,20 @@ namespace ExcelDna.Integration
                     !IsRibbonType(type.BaseType);
 
             return isRibbon;
+        }
+
+        private static bool IsParameterConversion(MethodInfo methodInfo)
+        {
+            object[] atts = methodInfo.GetCustomAttributes(false);
+            foreach (object att in atts)
+            {
+                Type attType = att.GetType();
+                if (TypeHasAncestorWithFullName(attType, "ExcelDna.Integration.ExcelParameterConversionAttribute"))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private static bool TypeHasAncestorWithFullName(Type type, string fullName)

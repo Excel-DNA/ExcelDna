@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -34,6 +35,11 @@ namespace ExcelDna.Integration.ExtendedRegistration
         public static Func<Type, ExcelParameter, LambdaExpression> GetEnumStringConversion()
         {
             return (type, paramReg) => EnumStringConversion(type, paramReg);
+        }
+
+        public static IEnumerable<Func<Type, ExcelParameter, LambdaExpression>> GetUserConversions(IEnumerable<ExcelParameterConversion> parameterConversions)
+        {
+            return parameterConversions.Select(i => i.GetConversion());
         }
 
         internal static LambdaExpression NullableConversion(

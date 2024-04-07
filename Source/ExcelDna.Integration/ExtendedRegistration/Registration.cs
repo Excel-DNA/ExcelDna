@@ -8,11 +8,11 @@ namespace ExcelDna.Integration.ExtendedRegistration
 {
     internal class Registration
     {
-        public static void Register(IEnumerable<ExcelFunction> functions)
+        public static void Register(IEnumerable<ExcelFunction> functions, IEnumerable<ExcelParameterConversion> parameterConversions)
         {
             // Set the Parameter Conversions before they are applied by the ProcessParameterConversions call below.
             // CONSIDER: We might change the registration to be an object...?
-            var conversionConfig = GetParameterConversionConfig();
+            var conversionConfig = GetParameterConversionConfig(parameterConversions);
             var postAsyncReturnConfig = GetPostAsyncReturnConversionConfig();
 
             var entries = functions
@@ -39,7 +39,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
                                                 ((object returnValue) => returnValue.Equals(ExcelError.ExcelErrorNA) ? ExcelError.ExcelErrorGettingData : returnValue)));
         }
 
-        static ParameterConversionConfiguration GetParameterConversionConfig()
+        static ParameterConversionConfiguration GetParameterConversionConfig(IEnumerable<ExcelParameterConversion> parameterConversions)
         {
             // NOTE: The parameter conversion list is processed once per parameter.
             //       Parameter conversions will apply from most inside, to most outside.
@@ -69,6 +69,8 @@ namespace ExcelDna.Integration.ExtendedRegistration
 
                 // Register the Standard Parameter Conversions (with the optional switch on how to treat references to empty cells)
                 .AddParameterConversion(ParameterConversions.GetOptionalConversion(treatEmptyAsMissing: true))
+
+                .AddParameterConversions(ParameterConversions.GetUserConversions(parameterConversions))
 
                 // This is a conversion applied to the return value of the function
                 .AddReturnConversion((Complex value) => new double[2] { value.Real, value.Imaginary })

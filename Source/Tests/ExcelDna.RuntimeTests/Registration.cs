@@ -168,6 +168,18 @@ namespace ExcelDna.RuntimeTests
 
             Assert.Equal("StringArray2D VALS: 15 2.36.7 HelloWorld ", functionRange.Value.ToString());
         }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
+        public void UserDefinedParameterConversions()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
+
+            functionRange.Formula = "=MyVersion2(\"4.3.2.1\")";
+            Assert.Equal("The Version value with field count 2 is 4.3", functionRange.Value.ToString());
+
+            functionRange.Formula = "=MyTestType1(\"world\")";
+            Assert.Equal("The TestType1 value is world", functionRange.Value.ToString());
+        }
 #endif
     }
 }
