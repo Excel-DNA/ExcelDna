@@ -15,11 +15,14 @@ namespace ExcelDna.Integration.ExtendedRegistration
             var conversionConfig = GetParameterConversionConfig(parameterConversions);
             var postAsyncReturnConfig = GetPostAsyncReturnConversionConfig();
 
+            var functionHandlerConfig = GetFunctionExecutionHandlerConfig();
+
             var entries = functions
                 .ProcessMapArrayFunctions(conversionConfig)
                 .ProcessParameterConversions(conversionConfig)
                 .ProcessAsyncRegistrations(nativeAsyncIfAvailable: false)
                 .ProcessParameterConversions(postAsyncReturnConfig)
+                .ProcessFunctionExecutionHandlers(functionHandlerConfig)
                 .ToList();
 
             var lambdas = entries.Select(reg => reg.FunctionLambda).ToList();
@@ -90,6 +93,11 @@ namespace ExcelDna.Integration.ExtendedRegistration
                 .AddNullableConversion(treatEmptyAsMissing: true, treatNAErrorAsMissing: true);
 
             return paramConversionConfig;
+        }
+
+        static FunctionExecutionConfiguration GetFunctionExecutionHandlerConfig()
+        {
+            return new FunctionExecutionConfiguration();
         }
     }
 }
