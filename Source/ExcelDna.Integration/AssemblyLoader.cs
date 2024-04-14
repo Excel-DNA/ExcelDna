@@ -30,6 +30,7 @@ namespace ExcelDna.Integration
                     List<MethodInfo> methods,
                     List<ExtendedRegistration.ExcelParameterConversion> excelParameterConversions,
                     List<ExtendedRegistration.ExcelFunction> excelFunctionsExtendedRegistration,
+                    List<Type> excelFunctionExecutionHandlers,
                     List<ExcelAddInInfo> addIns,
                     List<Type> rtdServerTypes,
                     List<ExcelComClassType> comClassTypes)
@@ -75,6 +76,7 @@ namespace ExcelDna.Integration
                         {
                             GetExcelParameterConversions(type, excelParameterConversions);
                             GetExcelMethods(type, explicitExports, methods, excelFunctionsExtendedRegistration);
+                            GetExcelFunctionExecutionHandlers(type, excelFunctionExecutionHandlers);
                         }
                         GetExcelAddIns(assembly, type, loadRibbons, addIns);
                         GetRtdServerTypes(type, rtdServerTypes, out isRtdServer);
@@ -140,6 +142,13 @@ namespace ExcelDna.Integration
                 if (isSupported)
                     excelMethods.Add(mi);
             }
+        }
+
+        static void GetExcelFunctionExecutionHandlers(Type type, List<Type> excelFunctionExecutionHandlers)
+        {
+            object[] attrs = type.GetCustomAttributes(typeof(ExcelFunctionExecutionHandlerAttribute), false);
+            if (attrs.Length == 1)
+                excelFunctionExecutionHandlers.Add(type);
         }
 
         static bool IsMethodSupported(MethodInfo mi, bool explicitExports)

@@ -180,6 +180,16 @@ namespace ExcelDna.RuntimeTests
             functionRange.Formula = "=MyTestType1(\"world\")";
             Assert.Equal("The TestType1 value is world", functionRange.Value.ToString());
         }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
+        public void FunctionExecutionHandler()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+
+            functionRange.Formula = "=MyVersion2(\"5.4.3.2\")";
+            functionRange.Formula = "=MyFunctionExecutionLog()";
+            Assert.True(functionRange.Value.ToString().Contains("MyVersion2 - OnSuccess - Result: The Version value with field count 2 is 5.4"));
+        }
 #endif
     }
 }

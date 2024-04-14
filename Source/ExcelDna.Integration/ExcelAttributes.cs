@@ -142,4 +142,13 @@ namespace ExcelDna.Integration
     public class ExcelParameterConversionAttribute : Attribute
     {
     }
+
+    /// <summary>
+    /// For user-defined function execution handlers.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
+    [MeansImplicitUse]
+    public class ExcelFunctionExecutionHandlerAttribute : Attribute
+    {
+    }
 }

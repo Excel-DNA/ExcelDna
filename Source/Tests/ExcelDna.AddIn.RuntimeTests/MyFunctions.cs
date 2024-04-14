@@ -100,5 +100,11 @@ namespace ExcelDna.AddIn.RuntimeTests
         {
             return "The Version value with field count 2 is " + v.ToString(2);
         }
+
+        [ExcelFunction]
+        public static string MyFunctionExecutionLog()
+        {
+            return Logger.GetLog();
+        }
     }
 }

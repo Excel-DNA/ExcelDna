@@ -8,14 +8,14 @@ namespace ExcelDna.Integration.ExtendedRegistration
 {
     internal class Registration
     {
-        public static void Register(IEnumerable<ExcelFunction> functions, IEnumerable<ExcelParameterConversion> parameterConversions)
+        public static void Register(IEnumerable<ExcelFunction> functions, IEnumerable<ExcelParameterConversion> parameterConversions, IEnumerable<Type> excelFunctionExecutionHandlers)
         {
             // Set the Parameter Conversions before they are applied by the ProcessParameterConversions call below.
             // CONSIDER: We might change the registration to be an object...?
             var conversionConfig = GetParameterConversionConfig(parameterConversions);
             var postAsyncReturnConfig = GetPostAsyncReturnConversionConfig();
 
-            var functionHandlerConfig = GetFunctionExecutionHandlerConfig();
+            var functionHandlerConfig = GetFunctionExecutionHandlerConfig(excelFunctionExecutionHandlers);
 
             var entries = functions
                 .ProcessMapArrayFunctions(conversionConfig)
@@ -95,9 +95,21 @@ namespace ExcelDna.Integration.ExtendedRegistration
             return paramConversionConfig;
         }
 
-        static FunctionExecutionConfiguration GetFunctionExecutionHandlerConfig()
+        static FunctionExecutionConfiguration GetFunctionExecutionHandlerConfig(IEnumerable<Type> excelFunctionExecutionHandlers)
         {
-            return new FunctionExecutionConfiguration();
+            FunctionExecutionConfiguration result = new FunctionExecutionConfiguration();
+
+            foreach (var i in excelFunctionExecutionHandlers)
+            {
+                result = result.AddFunctionExecutionHandler((ExcelFunction functionRegistration) => FunctionExecutionHandlerSelector(functionRegistration, i));
+            }
+
+            return result;
+        }
+
+        static IFunctionExecutionHandler FunctionExecutionHandlerSelector(ExcelFunction functionRegistration, Type t)
+        {
+            return (IFunctionExecutionHandler)Activator.CreateInstance(t);
         }
     }
 }
