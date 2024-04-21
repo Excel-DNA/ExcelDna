@@ -146,9 +146,9 @@ namespace ExcelDna.Integration
     /// <summary>
     /// For user-defined function execution handlers.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
     [MeansImplicitUse]
-    public class ExcelFunctionExecutionHandlerAttribute : Attribute
+    public class ExcelFunctionExecutionHandlerSelectorAttribute : Attribute
     {
     }
 }

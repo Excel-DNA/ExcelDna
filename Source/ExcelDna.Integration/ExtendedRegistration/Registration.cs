@@ -8,14 +8,14 @@ namespace ExcelDna.Integration.ExtendedRegistration
 {
     internal class Registration
     {
-        public static void RegisterExtended(IEnumerable<ExcelFunction> functions, IEnumerable<ExcelParameterConversion> parameterConversions, IEnumerable<Type> excelFunctionExecutionHandlers)
+        public static void RegisterExtended(IEnumerable<ExcelFunction> functions, IEnumerable<ExcelParameterConversion> parameterConversions, IEnumerable<FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors)
         {
             // Set the Parameter Conversions before they are applied by the ProcessParameterConversions call below.
             // CONSIDER: We might change the registration to be an object...?
             var conversionConfig = GetParameterConversionConfig(parameterConversions);
             var postAsyncReturnConfig = GetPostAsyncReturnConversionConfig();
 
-            var functionHandlerConfig = GetFunctionExecutionHandlerConfig(excelFunctionExecutionHandlers);
+            var functionHandlerConfig = GetFunctionExecutionHandlerConfig(excelFunctionExecutionHandlerSelectors);
 
             Register(functions
                 .ProcessMapArrayFunctions(conversionConfig)
@@ -26,9 +26,9 @@ namespace ExcelDna.Integration.ExtendedRegistration
                 );
         }
 
-        public static void RegisterStandard(IEnumerable<ExcelFunction> functions, IEnumerable<Type> excelFunctionExecutionHandlers)
+        public static void RegisterStandard(IEnumerable<ExcelFunction> functions, IEnumerable<FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors)
         {
-            var functionHandlerConfig = GetFunctionExecutionHandlerConfig(excelFunctionExecutionHandlers);
+            var functionHandlerConfig = GetFunctionExecutionHandlerConfig(excelFunctionExecutionHandlerSelectors);
 
             Register(functions
                 .ProcessFunctionExecutionHandlers(functionHandlerConfig)
@@ -107,21 +107,16 @@ namespace ExcelDna.Integration.ExtendedRegistration
             return paramConversionConfig;
         }
 
-        static FunctionExecutionConfiguration GetFunctionExecutionHandlerConfig(IEnumerable<Type> excelFunctionExecutionHandlers)
+        static FunctionExecutionConfiguration GetFunctionExecutionHandlerConfig(IEnumerable<FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors)
         {
             FunctionExecutionConfiguration result = new FunctionExecutionConfiguration();
 
-            foreach (var i in excelFunctionExecutionHandlers)
+            foreach (var s in excelFunctionExecutionHandlerSelectors)
             {
-                result = result.AddFunctionExecutionHandler((ExcelFunction functionRegistration) => FunctionExecutionHandlerSelector(functionRegistration, i));
+                result = result.AddFunctionExecutionHandler((ExcelFunction functionRegistration) => s(functionRegistration));
             }
 
             return result;
-        }
-
-        static IFunctionExecutionHandler FunctionExecutionHandlerSelector(ExcelFunction functionRegistration, Type t)
-        {
-            return (IFunctionExecutionHandler)Activator.CreateInstance(t);
         }
     }
 }

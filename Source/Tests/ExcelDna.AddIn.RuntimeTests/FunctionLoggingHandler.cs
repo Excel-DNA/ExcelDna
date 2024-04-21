@@ -2,8 +2,7 @@
 
 namespace ExcelDna.AddIn.RuntimeTests
 {
-    [ExcelFunctionExecutionHandler]
-    public class FunctionLoggingHandler : FunctionExecutionHandler
+    internal class FunctionLoggingHandler : FunctionExecutionHandler
     {
         public override void OnEntry(FunctionExecutionArgs args)
         {
@@ -28,6 +27,12 @@ namespace ExcelDna.AddIn.RuntimeTests
         public override void OnExit(FunctionExecutionArgs args)
         {
             Logger.Log($"{args.Tag} - OnExit");
+        }
+
+        [ExcelFunctionExecutionHandlerSelector]
+        public static IFunctionExecutionHandler LoggingHandlerSelector(IExcelFunctionInfo functionInfo)
+        {
+            return new FunctionLoggingHandler();
         }
     }
 }

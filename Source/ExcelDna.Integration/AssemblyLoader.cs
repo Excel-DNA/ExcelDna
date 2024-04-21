@@ -30,7 +30,7 @@ namespace ExcelDna.Integration
                     List<MethodInfo> methods,
                     List<ExtendedRegistration.ExcelParameterConversion> excelParameterConversions,
                     List<ExtendedRegistration.ExcelFunction> excelFunctionsExtendedRegistration,
-                    List<Type> excelFunctionExecutionHandlers,
+                    List<FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors,
                     List<ExcelAddInInfo> addIns,
                     List<Type> rtdServerTypes,
                     List<ExcelComClassType> comClassTypes)
@@ -76,7 +76,7 @@ namespace ExcelDna.Integration
                         {
                             GetExcelParameterConversions(type, excelParameterConversions);
                             GetExcelMethods(type, explicitExports, methods, excelFunctionsExtendedRegistration);
-                            GetExcelFunctionExecutionHandlers(type, excelFunctionExecutionHandlers);
+                            GetExcelFunctionExecutionHandlerSelectors(type, excelFunctionExecutionHandlerSelectors);
                         }
                         GetExcelAddIns(assembly, type, loadRibbons, addIns);
                         GetRtdServerTypes(type, rtdServerTypes, out isRtdServer);
@@ -144,11 +144,14 @@ namespace ExcelDna.Integration
             }
         }
 
-        static void GetExcelFunctionExecutionHandlers(Type type, List<Type> excelFunctionExecutionHandlers)
+        static void GetExcelFunctionExecutionHandlerSelectors(Type type, List<FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors)
         {
-            object[] attrs = type.GetCustomAttributes(typeof(ExcelFunctionExecutionHandlerAttribute), false);
-            if (attrs.Length == 1)
-                excelFunctionExecutionHandlers.Add(type);
+            MethodInfo[] mis = type.GetMethods(BindingFlags.Public | BindingFlags.Static);
+            foreach (MethodInfo mi in mis)
+            {
+                if (IsExcelFunctionExecutionHandlerSelector(mi))
+                    excelFunctionExecutionHandlerSelectors.Add((IExcelFunctionInfo functionInfo) => (IFunctionExecutionHandler)mi.Invoke(null, new object[] { functionInfo }));
+            }
         }
 
         static bool IsMethodSupported(MethodInfo mi, bool explicitExports)
@@ -193,6 +196,20 @@ namespace ExcelDna.Integration
             {
                 Type attType = att.GetType();
                 if (TypeHasAncestorWithFullName(attType, "ExcelDna.Integration.ExcelAsyncFunctionAttribute"))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        static bool IsExcelFunctionExecutionHandlerSelector(MethodInfo mi)
+        {
+            object[] atts = mi.GetCustomAttributes(false);
+            foreach (object att in atts)
+            {
+                Type attType = att.GetType();
+                if (TypeHasAncestorWithFullName(attType, "ExcelDna.Integration.ExcelFunctionExecutionHandlerSelectorAttribute"))
                 {
                     return true;
                 }

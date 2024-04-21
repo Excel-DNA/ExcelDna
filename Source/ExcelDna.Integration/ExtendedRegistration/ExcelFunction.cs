@@ -9,7 +9,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
 {
     // CONSIDER: Improve safety here... make invalid data unrepresentable.
     // CONSIDER: Should ExcelCommands also be handled here...? For the moment not...
-    internal class ExcelFunction
+    internal class ExcelFunction : IExcelFunctionInfo
     {
         // These are used for registration
         public LambdaExpression FunctionLambda { get; set; }

@@ -85,4 +85,6 @@ namespace ExcelDna.Integration
         public virtual void OnException(FunctionExecutionArgs args) { }
         public virtual void OnExit(FunctionExecutionArgs args) { }
     }
+
+    public delegate IFunctionExecutionHandler FunctionExecutionHandlerSelector(IExcelFunctionInfo functionInfo);
 }
