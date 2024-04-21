@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Xml.Serialization;
@@ -312,8 +313,12 @@ namespace ExcelDna.Integration
             RegistrationInfo.Register();
             SynchronizationManager.Install(true);
             // Register my Methods
-            ExcelIntegration.RegisterMethods(_methods);
-            ExtendedRegistration.Registration.Register(_excelFunctionsExtendedRegistration, _excelParameterConversions, _excelFunctionExecutionHandlers);
+            if (_excelFunctionExecutionHandlers.Count == 0)
+                ExcelIntegration.RegisterMethods(_methods);
+            else
+                ExtendedRegistration.Registration.RegisterStandard(_methods.Select(i => new ExtendedRegistration.ExcelFunction(i)), _excelFunctionExecutionHandlers);
+
+            ExtendedRegistration.Registration.RegisterExtended(_excelFunctionsExtendedRegistration, _excelParameterConversions, _excelFunctionExecutionHandlers);
 
             // Invoke AutoOpen in all assemblies
             foreach (AssemblyLoader.ExcelAddInInfo addIn in _addIns)

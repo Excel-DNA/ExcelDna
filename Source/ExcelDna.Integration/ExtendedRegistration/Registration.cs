@@ -8,7 +8,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
 {
     internal class Registration
     {
-        public static void Register(IEnumerable<ExcelFunction> functions, IEnumerable<ExcelParameterConversion> parameterConversions, IEnumerable<Type> excelFunctionExecutionHandlers)
+        public static void RegisterExtended(IEnumerable<ExcelFunction> functions, IEnumerable<ExcelParameterConversion> parameterConversions, IEnumerable<Type> excelFunctionExecutionHandlers)
         {
             // Set the Parameter Conversions before they are applied by the ProcessParameterConversions call below.
             // CONSIDER: We might change the registration to be an object...?
@@ -17,17 +17,29 @@ namespace ExcelDna.Integration.ExtendedRegistration
 
             var functionHandlerConfig = GetFunctionExecutionHandlerConfig(excelFunctionExecutionHandlers);
 
-            var entries = functions
+            Register(functions
                 .ProcessMapArrayFunctions(conversionConfig)
                 .ProcessParameterConversions(conversionConfig)
                 .ProcessAsyncRegistrations(nativeAsyncIfAvailable: false)
                 .ProcessParameterConversions(postAsyncReturnConfig)
                 .ProcessFunctionExecutionHandlers(functionHandlerConfig)
-                .ToList();
+                );
+        }
 
-            var lambdas = entries.Select(reg => reg.FunctionLambda).ToList();
-            var attribs = entries.Select(reg => reg.FunctionAttribute).ToList<object>();
-            var argAttribs = entries.Select(reg => reg.ParameterRegistrations.Select(pr => pr.ArgumentAttribute).ToList<object>()).ToList();
+        public static void RegisterStandard(IEnumerable<ExcelFunction> functions, IEnumerable<Type> excelFunctionExecutionHandlers)
+        {
+            var functionHandlerConfig = GetFunctionExecutionHandlerConfig(excelFunctionExecutionHandlers);
+
+            Register(functions
+                .ProcessFunctionExecutionHandlers(functionHandlerConfig)
+                );
+        }
+
+        static void Register(IEnumerable<ExcelFunction> functions)
+        {
+            var lambdas = functions.Select(reg => reg.FunctionLambda).ToList();
+            var attribs = functions.Select(reg => reg.FunctionAttribute).ToList<object>();
+            var argAttribs = functions.Select(reg => reg.ParameterRegistrations.Select(pr => pr.ArgumentAttribute).ToList<object>()).ToList();
             ExcelIntegration.RegisterLambdaExpressions(lambdas, attribs, argAttribs);
         }
 
