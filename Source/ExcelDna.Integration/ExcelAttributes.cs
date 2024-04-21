@@ -120,7 +120,7 @@ namespace ExcelDna.Integration
     /// E.g.
     ///     struct Output { int Out; }
     ///     struct Input  { int In1; int In2; }
-    ///     IEnumerable<typeparamref name="Output"/> MyFunc(IEnumerable<typeparamref name="Input"/>) { ... }
+    ///     IEnumerable MyFunc(IEnumerable) { ... }
     /// In Excel, use an Array Formula, e.g.
     ///       | A       B       C       
     ///     --+-------------------------

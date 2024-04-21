@@ -134,7 +134,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
 
         /// <summary>
         /// Class which does the work of translating a parameter or return value
-        /// between the shim (e.g. object[,]) and the target (e.g. IEnumerable<typeparamref name="T"/>)
+        /// between the shim (e.g. object[,]) and the target (e.g. IEnumerable)
         /// </summary>
         private class ShimParameter
         {
@@ -431,6 +431,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             /// </summary>
             /// <param name="from">Excel object to convert into a different .NET type</param>
             /// <param name="toType">Type to convert to</param>
+            /// <param name="converter">The converter</param>
             /// <returns>Converted object</returns>
             private static object ConvertFromExcelObject(object from, Type toType, Func<object, object> converter)
             {
