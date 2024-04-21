@@ -200,6 +200,16 @@ namespace ExcelDna.RuntimeTests
             functionRange.Formula = "=MyFunctionExecutionLog()";
             Assert.True(functionRange.Value.ToString().Contains("SayHello - OnSuccess - Result: Hello FunctionExecutionHandlerStandard"));
         }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
+        public void FunctionExecutionHandlerWithAttribute()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+
+            functionRange.Formula = "=SayHelloWithLoggingID(\"FunctionExecutionHandlerWithAttribute\")";
+            functionRange.Formula = "=MyFunctionExecutionLog()";
+            Assert.True(functionRange.Value.ToString().Contains("ID=7 SayHelloWithLoggingID - OnSuccess - Result: Hello FunctionExecutionHandlerWithAttribute"));
+        }
 #endif
     }
 }

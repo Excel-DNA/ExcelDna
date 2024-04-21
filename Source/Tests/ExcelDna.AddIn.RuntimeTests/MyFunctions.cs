@@ -10,6 +10,12 @@ namespace ExcelDna.AddIn.RuntimeTests
             return $"Hello {name}";
         }
 
+        [ExcelFunction, Logging(7)]
+        public static string SayHelloWithLoggingID(string name)
+        {
+            return $"Hello {name}";
+        }
+
         [ExcelFunction]
         public static string MyDouble(double d)
         {
