@@ -88,11 +88,15 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "ExcelDna.PackedResources", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelDna.PackedResourcesTests", "Tests\ExcelDna.PackedResourcesTests\ExcelDna.PackedResourcesTests.csproj", "{28D046D4-B414-4DAF-818F-897A97B921DF}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelDna.AddIn.RuntimeTests", "Tests\ExcelDna.AddIn.RuntimeTests\ExcelDna.AddIn.RuntimeTests.csproj", "{297D72F7-FD48-4751-B2EF-F97DBAD0C901}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B5CC04D3-0507-4431-9F45-7C60BAC3047A} = {B5CC04D3-0507-4431-9F45-7C60BAC3047A}
+	EndProjectSection
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.AddIn.Tasks.IntegrationRuntimeTests", "Tests\ExcelDna.AddIn.Tasks.IntegrationRuntimeTests\ExcelDna.AddIn.Tasks.IntegrationRuntimeTests.csproj", "{238F95C5-87DF-4973-88C2-5A9509C3935F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.AddIn.RuntimeTests", "Tests\ExcelDna.AddIn.RuntimeTests\ExcelDna.AddIn.RuntimeTests.csproj", "{297D72F7-FD48-4751-B2EF-F97DBAD0C901}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.RuntimeTests", "Tests\ExcelDna.RuntimeTests\ExcelDna.RuntimeTests.csproj", "{8D04B68B-1EFE-48DC-A0B5-D7ACC293694B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelDna.RuntimeTests", "Tests\ExcelDna.RuntimeTests\ExcelDna.RuntimeTests.csproj", "{8D04B68B-1EFE-48DC-A0B5-D7ACC293694B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

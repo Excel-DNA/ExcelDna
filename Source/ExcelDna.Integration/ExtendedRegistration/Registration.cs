@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Numerics;
+using ExcelDna.Integration.ObjectHandles;
 
 namespace ExcelDna.Integration.ExtendedRegistration
 {
@@ -20,6 +21,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             Register(functions
                 .ProcessMapArrayFunctions(conversionConfig)
                 .ProcessParameterConversions(conversionConfig)
+                .ProcessObjectHandles()
                 .ProcessAsyncRegistrations(nativeAsyncIfAvailable: false)
                 .ProcessParameterConversions(postAsyncReturnConfig)
                 .ProcessFunctionExecutionHandlers(functionHandlerConfig)
@@ -89,6 +91,8 @@ namespace ExcelDna.Integration.ExtendedRegistration
 
                 // This is a conversion applied to the return value of the function
                 .AddReturnConversion((Complex value) => new double[2] { value.Real, value.Imaginary })
+
+                .AddParameterConversion(ObjectHandles.Util.GetParameterConversion())
 
                 // This parameter conversion adds support for string[] parameters (by accepting object[] instead).
                 // It uses the TypeConversion utility class to get an object->string

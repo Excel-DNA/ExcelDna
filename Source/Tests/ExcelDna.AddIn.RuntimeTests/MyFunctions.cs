@@ -112,5 +112,35 @@ namespace ExcelDna.AddIn.RuntimeTests
         {
             return Logger.GetLog();
         }
+
+        [ExcelFunction]
+        public static ExcelObjectHandle MyCreateObject(int i)
+        {
+            return new ExcelObjectHandle(i, new object[] { i });
+        }
+
+        [ExcelFunction]
+        public static ExcelObjectHandle MyCreateObject2(int i)
+        {
+            return new ExcelObjectHandle(i * 2, new object[] { i });
+        }
+
+        [ExcelFunction]
+        public static int MyUseObject(ExcelObjectHandle h)
+        {
+            return (int)h.Object;
+        }
+
+        [ExcelFunction]
+        public static ExcelObjectHandle MyCreateCalc(double d1, double d2)
+        {
+            return new ExcelObjectHandle(new Calc(d1, d2), new object[] { d1, d2 });
+        }
+
+        [ExcelFunction]
+        public static double MyCalcSum(ExcelObjectHandle h)
+        {
+            return ((Calc)h.Object).Sum();
+        }
     }
 }
