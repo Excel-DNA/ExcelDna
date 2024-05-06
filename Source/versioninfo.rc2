@@ -7,8 +7,8 @@
 // Version
 //
 
-#define VER_FILEVERSION 1,8,0,3
-#define VER_FILEVERSION_STR "1.8.0.3"
+#define VER_FILEVERSION 1,8,0,4
+#define VER_FILEVERSION_STR "1.8.0.4"
 
 VS_VERSION_INFO VERSIONINFO
 FILEVERSION VER_FILEVERSION
@@ -32,7 +32,7 @@ VALUE "CompanyName", "Govert van Drimmelen"
 VALUE "FileDescription", "Excel-DNA Dynamic Link Library"
 VALUE "FileVersion", VER_FILEVERSION_STR
 VALUE "InternalName", "ExcelDna"
-VALUE "LegalCopyright", "Copyright (C) 2005-2022 Govert van Drimmelen"
+VALUE "LegalCopyright", "Copyright (C) 2005-2024 Govert van Drimmelen"
 VALUE "OriginalFilename", "ExcelDna.xll"
 VALUE "ProductName", "Excel-DNA Add-In Framework for Microsoft Excel"
 VALUE "ProductVersion", VER_FILEVERSION_STR

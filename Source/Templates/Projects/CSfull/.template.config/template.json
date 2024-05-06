@@ -1,6 +1,6 @@
 {
     "$schema": "http://json.schemastore.org/template",
-    "author": "Govert van Drimmelen",
+    "author": "Excel-DNA",
     "classifications": [ "Excel", "Add-in" ],
     "groupIdentity": "ExcelDna.FullProject",
     "identity": "ExcelDna.CSFullProject",
