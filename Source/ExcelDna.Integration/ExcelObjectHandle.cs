@@ -4,12 +4,9 @@
     {
         public object Object { get; }
 
-        internal object[] CallerParameters { get; }
-
-        public ExcelObjectHandle(object o, object[] callerParameters)
+        public ExcelObjectHandle(object o)
         {
             Object = o;
-            CallerParameters = callerParameters;
         }
     }
 }

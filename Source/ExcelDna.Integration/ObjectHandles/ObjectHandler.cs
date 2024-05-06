@@ -77,12 +77,12 @@ namespace ExcelDna.Integration.ObjectHandles
         // Tries to get an existing handle for the given object type and parameters.
         // If there is no existing handle, creates a new handle with the target provided by evaluating the delegate 'func'
         // (with the given object type and parameters).
-        public object GetHandleNew(string objectType, ExcelObjectHandle userObject)
+        public object GetHandleNew(string callerFunctionName, object callerParameters, ExcelObjectHandle userObject)
         {
-            return ExcelAsyncUtil.Observe(objectType, userObject.CallerParameters, () =>
+            return ExcelAsyncUtil.Observe(callerFunctionName, callerParameters, () =>
             {
                 //var target = _dataService.ProcessRequest(objectType, parameters);
-                var handleInfo = new HandleInfo(this, objectType, userObject.CallerParameters, userObject, null);
+                var handleInfo = new HandleInfo(this, callerFunctionName, null, userObject, null);
                 _objects.Add(handleInfo.Handle, handleInfo);
                 return handleInfo;
             });

@@ -10,9 +10,9 @@ namespace ExcelDna.Integration.ObjectHandles
         static DataService _dataService = new DataService();
         static ObjectHandler _objectHandler = new ObjectHandler(_dataService);
 
-        public static object ReturnConversionNew(ExcelObjectHandle value, string callerFunctionName)
+        public static object ReturnConversionNew(ExcelObjectHandle value, string callerFunctionName, object callerParameters)
         {
-            return _objectHandler.GetHandleNew(callerFunctionName, value);
+            return _objectHandler.GetHandleNew(callerFunctionName, callerParameters, value);
         }
 
         public static Func<Type, ExcelParameter, LambdaExpression> GetParameterConversion()

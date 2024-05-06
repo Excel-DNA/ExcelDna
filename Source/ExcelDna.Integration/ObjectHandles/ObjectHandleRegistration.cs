@@ -5,6 +5,16 @@ using System.Linq.Expressions;
 
 namespace ExcelDna.Integration.ObjectHandles
 {
+    internal class MyFunctionExecutionHandler : FunctionExecutionHandler
+    {
+        public FunctionExecutionArgs args;
+
+        public override void OnEntry(FunctionExecutionArgs args)
+        {
+            this.args = args;
+        }
+    }
+
     internal static class ObjectHandleRegistration
     {
         public static IEnumerable<ExcelFunction> ProcessObjectHandles(this IEnumerable<ExcelFunction> registrations)
@@ -13,9 +23,11 @@ namespace ExcelDna.Integration.ObjectHandles
             {
                 if (reg.FunctionLambda.ReturnType == typeof(ExcelObjectHandle))
                 {
+                    MyFunctionExecutionHandler myFunctionExecutionHandler = new MyFunctionExecutionHandler();
 
+                    reg.FunctionLambda = FunctionExecutionRegistration.ApplyMethodHandler(reg.FunctionAttribute.Name, reg.FunctionLambda, myFunctionExecutionHandler);
 
-                    var rc = CreateReturnConversion((ExcelObjectHandle value) => ObjectHandles.Util.ReturnConversionNew(value, reg.FunctionAttribute.Name));
+                    var rc = CreateReturnConversion((ExcelObjectHandle value) => ObjectHandles.Util.ReturnConversionNew(value, reg.FunctionAttribute.Name, myFunctionExecutionHandler.args.Arguments));
                     var r = new List<ParameterConversionConfiguration.ReturnConversion> { rc };
 
                     List<LambdaExpression> rcs = ParameterConversionRegistration.GetReturnConversions(r, reg.FunctionLambda.ReturnType, reg.ReturnRegistration);

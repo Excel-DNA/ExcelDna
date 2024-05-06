@@ -27,19 +27,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             }
         }
 
-        static void ApplyMethodHandlers(ExcelFunction reg, IEnumerable<IFunctionExecutionHandler> handlers)
-        {
-            // The order of method handlers is important - we follow PostSharp's convention for MethodExecutionHandlers.
-            // They are passed from high priority (most inside) to low priority (most outside)
-            // Imagine 2 FunctionHandlers, fh1 then fh2
-            // So fh1 (highest priority)  will be 'inside' and fh2 will be outside (lower priority)
-            foreach (var handler in handlers)
-            {
-                reg.FunctionLambda = ApplyMethodHandler(reg.FunctionAttribute.Name, reg.FunctionLambda, handler);
-            }
-        }
-
-        static LambdaExpression ApplyMethodHandler(string functionName, LambdaExpression functionLambda, IFunctionExecutionHandler handler)
+        public static LambdaExpression ApplyMethodHandler(string functionName, LambdaExpression functionLambda, IFunctionExecutionHandler handler)
         {
             // public static int MyMethod(object arg0, int arg1) { ... }
 
@@ -180,6 +168,18 @@ namespace ExcelDna.Integration.ExtendedRegistration
                 functionName,
                 outerParams);
             return lambda;
+        }
+
+        static void ApplyMethodHandlers(ExcelFunction reg, IEnumerable<IFunctionExecutionHandler> handlers)
+        {
+            // The order of method handlers is important - we follow PostSharp's convention for MethodExecutionHandlers.
+            // They are passed from high priority (most inside) to low priority (most outside)
+            // Imagine 2 FunctionHandlers, fh1 then fh2
+            // So fh1 (highest priority)  will be 'inside' and fh2 will be outside (lower priority)
+            foreach (var handler in handlers)
+            {
+                reg.FunctionLambda = ApplyMethodHandler(reg.FunctionAttribute.Name, reg.FunctionLambda, handler);
+            }
         }
     }
 }
