@@ -4,6 +4,7 @@ Version 1.8.0 (????)
 * Add admin rights check before accessing machine hive for COM registration
 * Support thread-safe RTD wrappers and ExcelRtdServers
 * Support LosslessObservable option for ExcelAsyncUtil.Observe
+* Added simple logging configuration under .NET 6 for IntelliSense.
 
 Version 1.7.0 (27 November 2023)
 --------------------------------
