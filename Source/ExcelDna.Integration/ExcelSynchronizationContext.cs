@@ -517,8 +517,8 @@ namespace ExcelDna.Integration
             else
             {
                 // Log and return true (the safer option) ???
-                // Error for now, but maybe Warn is safe too.
-                Logger.Registration.Error("IsInFormulaEditMode - PenHelper failed, result " + result);
+                // Decreased to Warn to prevent LogDisplay pop-up loop
+                Logger.Registration.Warn("IsInFormulaEditMode - PenHelper failed, result " + result);
                 return true;
             }
         }
