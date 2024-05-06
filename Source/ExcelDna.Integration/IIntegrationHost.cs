@@ -8,7 +8,7 @@ namespace ExcelDna.Integration
     interface IIntegrationHost
     {
         XlCall.XlReturn TryExcelImpl(int xlFunction, out object result, params object[] parameters);
-        byte[] GetResourceBytes(string resourceName, int type); // types: 0 - Assembly, 1 - Dna file, 2 - Image
+        byte[] GetResourceBytes(string resourceName, int type); // types: 0 - Assembly, 1 - Dna file, 2 - Image or File, 3 - Source, 4 - PDB
         Assembly LoadFromAssemblyPath(string assemblyPath);
         Assembly LoadFromAssemblyBytes(byte[] assemblyBytes, byte[] pdbBytes);
         void RegisterMethods(List<MethodInfo> methods);

@@ -183,6 +183,11 @@ namespace ExcelDna.Integration
             return _integrationHost.GetResourceBytes(imageName, 2);
         }
 
+        internal static byte[] GetFileBytes(string fileName)
+        {
+            return _integrationHost.GetResourceBytes(fileName, 2);
+        }
+
         internal static byte[] GetSourceBytes(string sourceName)
         {
             return _integrationHost.GetResourceBytes(sourceName, 3);

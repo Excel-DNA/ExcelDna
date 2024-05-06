@@ -402,6 +402,31 @@ namespace ExcelDna.PackedResources
                     }
                 }
             }
+            foreach (DnaFile file in dna.Files)
+            {
+                if (file.Pack)
+                {
+                    string path = dna.ResolvePath(file.Path);
+                    if (path == null)
+                    {
+                        var format = "  ~~> ERROR: File path {0} NOT RESOLVED.";
+                        errorMessage = string.Format(format, file.Path);
+                        buildLogger.Error(typeof(ExcelDnaPack), format, file.Path);
+                        throw new InvalidOperationException(errorMessage);
+                    }
+                    if (filesToPublish == null)
+                    {
+                        string name = Path.GetFileNameWithoutExtension(path).ToUpperInvariant() + "_" + lastPackIndex++ + Path.GetExtension(path).ToUpperInvariant();
+                        byte[] fileBytes = File.ReadAllBytes(path);
+                        ru.AddFile(fileBytes, name, ResourceHelper.TypeName.FILE, null, compress, multithreading);
+                        file.Path = "packed:" + name;
+                    }
+                    else
+                    {
+                        filesToPublish.Add(path);
+                    }
+                }
+            }
             foreach (Project project in dna.Projects)
             {
                 foreach (SourceItem source in project.SourceItems)
