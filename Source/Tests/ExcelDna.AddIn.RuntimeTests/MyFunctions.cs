@@ -114,33 +114,33 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
-        public static ExcelObjectHandle MyCreateObject(int i)
+        public static ExcelObjectHandle<int> MyCreateObject(int i)
         {
-            return new ExcelObjectHandle(i);
+            return new(i);
         }
 
         [ExcelFunction]
-        public static ExcelObjectHandle MyCreateObject2(int i)
+        public static ExcelObjectHandle<int> MyCreateObject2(int i)
         {
-            return new ExcelObjectHandle(i * 2);
+            return new(i * 2);
         }
 
         [ExcelFunction]
-        public static int MyUseObject(ExcelObjectHandle h)
+        public static int MyUseObject(ExcelObjectHandle<int> h)
         {
-            return (int)h.Object;
+            return h.Object;
         }
 
         [ExcelFunction]
-        public static ExcelObjectHandle MyCreateCalc(double d1, double d2)
+        public static ExcelObjectHandle<Calc> MyCreateCalc(double d1, double d2)
         {
-            return new ExcelObjectHandle(new Calc(d1, d2));
+            return new(new Calc(d1, d2));
         }
 
         [ExcelFunction]
-        public static double MyCalcSum(ExcelObjectHandle h)
+        public static double MyCalcSum(ExcelObjectHandle<Calc> h)
         {
-            return ((Calc)h.Object).Sum();
+            return h.Object.Sum();
         }
     }
 }

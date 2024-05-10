@@ -1,10 +1,10 @@
 ﻿namespace ExcelDna.Integration
 {
-    public class ExcelObjectHandle
+    public class ExcelObjectHandle<T>
     {
-        public object Object { get; }
+        public T Object { get; }
 
-        public ExcelObjectHandle(object o)
+        public ExcelObjectHandle(T o)
         {
             Object = o;
         }

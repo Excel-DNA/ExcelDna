@@ -194,7 +194,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
                 // We got one to apply...
                 // Some sanity checks
                 Debug.Assert(lambda.Parameters.Count == 1);
-                Debug.Assert(lambda.Parameters[0].Type == returnType);
+                Debug.Assert(lambda.Parameters[0].Type == returnType || returnType.IsGenericType);
 
                 appliedConversions.Add(lambda);
 

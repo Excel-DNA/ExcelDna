@@ -1,6 +1,6 @@
 ﻿namespace ExcelDna.AddIn.RuntimeTests
 {
-    internal class Calc
+    public class Calc
     {
         private double d1, d2;
 

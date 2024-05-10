@@ -20,12 +20,12 @@ namespace ExcelDna.Integration.ObjectHandles
         public string Handle;
         public DateTime LastUpdate;
 
-        public readonly ExcelObjectHandle UserObjectNew;
+        public readonly object UserObjectNew;
 
         // Set internally when hooked up to Excel
         public IExcelObserver Observer;
 
-        public HandleInfo(ObjectHandler objectHandler, string objectType, object[] parameters, ExcelObjectHandle userObject, IHasRowVersion target)
+        public HandleInfo(ObjectHandler objectHandler, string objectType, object[] parameters, object userObject, IHasRowVersion target)
         {
             // TODO: Complete member initialization
             Handler = objectHandler;
@@ -77,7 +77,7 @@ namespace ExcelDna.Integration.ObjectHandles
         // Tries to get an existing handle for the given object type and parameters.
         // If there is no existing handle, creates a new handle with the target provided by evaluating the delegate 'func'
         // (with the given object type and parameters).
-        public object GetHandleNew(string callerFunctionName, object callerParameters, ExcelObjectHandle userObject)
+        public object GetHandleNew(string callerFunctionName, object callerParameters, object userObject)
         {
             return ExcelAsyncUtil.Observe(callerFunctionName, callerParameters, () =>
             {

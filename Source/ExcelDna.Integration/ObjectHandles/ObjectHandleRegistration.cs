@@ -21,13 +21,13 @@ namespace ExcelDna.Integration.ObjectHandles
         {
             foreach (var reg in registrations)
             {
-                if (reg.FunctionLambda.ReturnType == typeof(ExcelObjectHandle))
+                if (reg.FunctionLambda.ReturnType.IsGenericType && reg.FunctionLambda.ReturnType.GetGenericTypeDefinition() == typeof(ExcelObjectHandle<>))
                 {
                     MyFunctionExecutionHandler myFunctionExecutionHandler = new MyFunctionExecutionHandler();
 
                     reg.FunctionLambda = FunctionExecutionRegistration.ApplyMethodHandler(reg.FunctionAttribute.Name, reg.FunctionLambda, myFunctionExecutionHandler);
 
-                    var rc = CreateReturnConversion((ExcelObjectHandle value) => ObjectHandles.Util.ReturnConversionNew(value, reg.FunctionAttribute.Name, myFunctionExecutionHandler.args.Arguments));
+                    var rc = CreateReturnConversion((object value) => ObjectHandles.Util.ReturnConversionNew(value, reg.FunctionAttribute.Name, myFunctionExecutionHandler.args.Arguments));
                     var r = new List<ParameterConversionConfiguration.ReturnConversion> { rc };
 
                     List<LambdaExpression> rcs = ParameterConversionRegistration.GetReturnConversions(r, reg.FunctionLambda.ReturnType, reg.ReturnRegistration);

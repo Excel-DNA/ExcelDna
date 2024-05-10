@@ -10,7 +10,7 @@ namespace ExcelDna.Integration.ObjectHandles
         static DataService _dataService = new DataService();
         static ObjectHandler _objectHandler = new ObjectHandler(_dataService);
 
-        public static object ReturnConversionNew(ExcelObjectHandle value, string callerFunctionName, object callerParameters)
+        public static object ReturnConversionNew(object value, string callerFunctionName, object callerParameters)
         {
             return _objectHandler.GetHandleNew(callerFunctionName, callerParameters, value);
         }
@@ -23,7 +23,7 @@ namespace ExcelDna.Integration.ObjectHandles
         static LambdaExpression HandleStringConversionNew(Type type, ExcelParameter paramReg)
         {
             // Decide whether to return a conversion function for this parameter
-            if (type != typeof(ExcelObjectHandle))
+            if (!type.IsGenericType || type.GetGenericTypeDefinition() != typeof(ExcelObjectHandle<>))
                 return null;
 
             //return null;
@@ -45,8 +45,7 @@ namespace ExcelDna.Integration.ObjectHandles
             // TODO: We might be able to strongly type the GetObject...
             if (_objectHandler.TryGetObjectNew(handle, out value))
             {
-                ExcelObjectHandle data = (ExcelObjectHandle)value;
-                return data;
+                return value;
             }
             // No object for the handle ...
             return "!!! INVALID HANDLE";
