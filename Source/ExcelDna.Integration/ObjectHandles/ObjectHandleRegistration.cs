@@ -19,6 +19,9 @@ namespace ExcelDna.Integration.ObjectHandles
     {
         public static IEnumerable<ExcelFunction> ProcessObjectHandles(this IEnumerable<ExcelFunction> registrations)
         {
+            var paramConversionConfig = new ParameterConversionConfiguration().AddParameterConversion(Util.GetParameterConversion());
+            registrations = registrations.ProcessParameterConversions(paramConversionConfig);
+
             foreach (var reg in registrations)
             {
                 if (reg.FunctionLambda.ReturnType.IsGenericType && reg.FunctionLambda.ReturnType.GetGenericTypeDefinition() == typeof(ExcelObjectHandle<>))
