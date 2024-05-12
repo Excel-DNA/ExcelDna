@@ -7,8 +7,7 @@ namespace ExcelDna.Integration.ObjectHandles
 {
     internal class Util
     {
-        static DataService _dataService = new DataService();
-        static ObjectHandler _objectHandler = new ObjectHandler(_dataService);
+        static ObjectHandler _objectHandler = new ObjectHandler();
 
         public static object ReturnConversionNew(object value, string callerFunctionName, object callerParameters)
         {
