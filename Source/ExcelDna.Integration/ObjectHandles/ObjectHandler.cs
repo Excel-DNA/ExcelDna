@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace ExcelDna.Integration.ObjectHandles
 {
@@ -72,17 +71,20 @@ namespace ExcelDna.Integration.ObjectHandles
         // Tries to get an existing handle for the given object type and parameters.
         // If there is no existing handle, creates a new handle with the target provided by evaluating the delegate 'func'
         // (with the given object type and parameters).
-        public object GetHandleNew(string callerFunctionName, object callerParameters, object userObject)
+        public object GetHandleNew(string callerFunctionName, object callerParameters, object userObject, out bool newHandle)
         {
-            return ExcelAsyncUtil.Observe(callerFunctionName, callerParameters, () =>
+            bool newHandleCreated = false;
+            object result = ExcelAsyncUtil.Observe(callerFunctionName, callerParameters, () =>
             {
                 //var target = _dataService.ProcessRequest(objectType, parameters);
                 var handleInfo = new HandleInfo(this, callerFunctionName, null, userObject);
                 _objects.Add(handleInfo.Handle, handleInfo);
+                newHandleCreated = true;
                 return handleInfo;
             });
+            newHandle = newHandleCreated;
+            return result;
         }
-
 
         public bool TryGetObjectNew(string handle, out object value)
         {

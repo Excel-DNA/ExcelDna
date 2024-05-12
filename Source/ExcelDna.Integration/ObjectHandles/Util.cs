@@ -11,7 +11,12 @@ namespace ExcelDna.Integration.ObjectHandles
 
         public static object ReturnConversionNew(object value, string callerFunctionName, object callerParameters)
         {
-            return _objectHandler.GetHandleNew(callerFunctionName, callerParameters, value);
+            bool newHandle;
+            object result = _objectHandler.GetHandleNew(callerFunctionName, callerParameters, value, out newHandle);
+            if (!newHandle)
+                (value as IDisposable)?.Dispose();
+
+            return result;
         }
 
         public static Func<Type, ExcelParameter, LambdaExpression> GetParameterConversion()

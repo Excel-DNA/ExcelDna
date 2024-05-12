@@ -1,16 +1,13 @@
-﻿using System;
-
-namespace ExcelDna.Integration
+﻿namespace ExcelDna.AddIn.RuntimeTests
 {
-    public class ExcelObjectHandle<T> : IDisposable
+    public class DisposableObject : IDisposable
     {
+        public static int ObjectsCount { get; private set; } = 0;
         private bool disposedValue;
 
-        public T Object { get; }
-
-        public ExcelObjectHandle(T o)
+        public DisposableObject()
         {
-            Object = o;
+            ++ObjectsCount;
         }
 
         protected virtual void Dispose(bool disposing)
@@ -19,16 +16,11 @@ namespace ExcelDna.Integration
             {
                 if (disposing)
                 {
-                    (Object as IDisposable)?.Dispose();
+                    --ObjectsCount;
                 }
 
                 disposedValue = true;
             }
-        }
-
-        ~ExcelObjectHandle()
-        {
-            Dispose(disposing: false);
         }
 
         public void Dispose()

@@ -142,5 +142,17 @@ namespace ExcelDna.AddIn.RuntimeTests
         {
             return h.Object.Sum();
         }
+
+        [ExcelFunction]
+        public static ExcelObjectHandle<DisposableObject> MyCreateDisposableObject(int x)
+        {
+            return new(new DisposableObject());
+        }
+
+        [ExcelFunction]
+        public static int MyGetDisposableObjectsCount()
+        {
+            return DisposableObject.ObjectsCount;
+        }
     }
 }
