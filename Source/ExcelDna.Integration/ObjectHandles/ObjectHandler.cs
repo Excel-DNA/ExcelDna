@@ -3,33 +3,29 @@ using System.Collections.Generic;
 
 namespace ExcelDna.Integration.ObjectHandles
 {
-    class ObjectHandler
+    internal class ObjectHandler
     {
-        Dictionary<string, HandleInfo> _objects = new Dictionary<string, HandleInfo>();
+        private Dictionary<string, HandleInfo> _objects = new Dictionary<string, HandleInfo>();
 
-        public ObjectHandler()
-        {
-        }
-
-        // Tries to get an existing handle for the given object type and parameters.
+        // Tries to get an existing handle for the given function and parameters.
         // If there is no existing handle, creates a new handle with the target provided by evaluating the delegate 'func'
-        // (with the given object type and parameters).
-        public object GetHandleNew(string callerFunctionName, object callerParameters, object userObject, out bool newHandle)
+        // (with the given function and parameters).
+        public object GetHandle(string callerFunctionName, object callerParameters, object userObject, out bool newHandle)
         {
             bool newHandleCreated = false;
             object result = ExcelAsyncUtil.Observe(callerFunctionName, callerParameters, () =>
             {
-                //var target = _dataService.ProcessRequest(objectType, parameters);
                 var handleInfo = new HandleInfo(this, callerFunctionName, userObject);
                 _objects.Add(handleInfo.Handle, handleInfo);
                 newHandleCreated = true;
                 return handleInfo;
             });
             newHandle = newHandleCreated;
+
             return result;
         }
 
-        public bool TryGetObjectNew(string handle, out object value)
+        public bool TryGetObject(string handle, out object value)
         {
             HandleInfo handleInfo;
             if (_objects.TryGetValue(handle, out handleInfo))
@@ -44,7 +40,7 @@ namespace ExcelDna.Integration.ObjectHandles
         internal void Remove(HandleInfo handleInfo)
         {
             object value;
-            if (TryGetObjectNew(handleInfo.Handle, out value))
+            if (TryGetObject(handleInfo.Handle, out value))
             {
                 _objects.Remove(handleInfo.Handle);
                 var disp = value as IDisposable;

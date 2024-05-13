@@ -1,6 +1,5 @@
 ﻿using ExcelDna.Integration.ExtendedRegistration;
 using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace ExcelDna.Integration.ObjectHandles
@@ -12,7 +11,7 @@ namespace ExcelDna.Integration.ObjectHandles
         public static object ReturnConversionNew(object value, string callerFunctionName, object callerParameters)
         {
             bool newHandle;
-            object result = _objectHandler.GetHandleNew(callerFunctionName, callerParameters, value, out newHandle);
+            object result = _objectHandler.GetHandle(callerFunctionName, callerParameters, value, out newHandle);
             if (!newHandle)
                 (value as IDisposable)?.Dispose();
 
@@ -47,7 +46,7 @@ namespace ExcelDna.Integration.ObjectHandles
         {
             object value;
             // TODO: We might be able to strongly type the GetObject...
-            if (_objectHandler.TryGetObjectNew(handle, out value))
+            if (_objectHandler.TryGetObject(handle, out value))
             {
                 return value;
             }

@@ -12,10 +12,10 @@ namespace ExcelDna.Integration.ObjectHandles
         public readonly string Handle;
         public readonly object UserObject;
 
-        public HandleInfo(ObjectHandler objectHandler, string objectType, object userObject)
+        public HandleInfo(ObjectHandler objectHandler, string tag, object userObject)
         {
             Handler = objectHandler;
-            Handle = string.Format("{0}:{1}", objectType, HandleIndex++);
+            Handle = string.Format("{0}:{1}", tag, HandleIndex++);
             UserObject = userObject;
         }
 
