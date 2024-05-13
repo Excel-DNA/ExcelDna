@@ -3,63 +3,6 @@ using System.Collections.Generic;
 
 namespace ExcelDna.Integration.ObjectHandles
 {
-    class HandleInfo : IExcelObservable, IDisposable
-    {
-        // Global index used in handle names
-        static int HandleIndex;
-
-        // This is the information we need to Refresh the Target
-        // Never changes
-        public readonly string ObjectType;
-        public readonly object[] Parameters;
-        public readonly ObjectHandler Handler;
-
-        // The Target and Handle can change
-        public string Handle;
-        public DateTime LastUpdate;
-
-        public readonly object UserObjectNew;
-
-        // Set internally when hooked up to Excel
-        public IExcelObserver Observer;
-
-        public HandleInfo(ObjectHandler objectHandler, string objectType, object[] parameters, object userObject)
-        {
-            // TODO: Complete member initialization
-            Handler = objectHandler;
-            ObjectType = objectType;
-            Parameters = parameters;
-
-            Handle = string.Format("{0}:{1}", objectType, HandleIndex++);
-            LastUpdate = DateTime.Now;
-
-            UserObjectNew = userObject;
-        }
-
-        // This call is made (once) from Excel to subscribe to the topic.
-        public IDisposable Subscribe(IExcelObserver observer)
-        {
-            // We know this will only be called once, so we take some adventurous shortcuts (like returning 'this')
-            Observer = observer;
-            Observer.OnNext(Handle);
-            return this;
-        }
-
-        // Called from the ObjectHandler
-        internal void Update()
-        {
-            Handle = string.Format("{0}:{1}", ObjectType, HandleIndex++); ;
-            LastUpdate = DateTime.Now;          // Might be used to decide when or how often to refresh
-            if (Observer != null)
-                Observer.OnNext(Handle);        // Triggers the update sending the new handle to Excel
-        }
-
-        public void Dispose()
-        {
-            Handler.Remove(this);               // Called when last instance of this topic is removed from the current session
-        }
-    }
-
     class ObjectHandler
     {
         Dictionary<string, HandleInfo> _objects = new Dictionary<string, HandleInfo>();
@@ -77,7 +20,7 @@ namespace ExcelDna.Integration.ObjectHandles
             object result = ExcelAsyncUtil.Observe(callerFunctionName, callerParameters, () =>
             {
                 //var target = _dataService.ProcessRequest(objectType, parameters);
-                var handleInfo = new HandleInfo(this, callerFunctionName, null, userObject);
+                var handleInfo = new HandleInfo(this, callerFunctionName, userObject);
                 _objects.Add(handleInfo.Handle, handleInfo);
                 newHandleCreated = true;
                 return handleInfo;
@@ -91,7 +34,7 @@ namespace ExcelDna.Integration.ObjectHandles
             HandleInfo handleInfo;
             if (_objects.TryGetValue(handle, out handleInfo))
             {
-                value = handleInfo.UserObjectNew;
+                value = handleInfo.UserObject;
                 return true;
             }
             value = null;
