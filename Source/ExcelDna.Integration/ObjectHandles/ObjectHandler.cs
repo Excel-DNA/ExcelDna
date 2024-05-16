@@ -5,17 +5,17 @@ namespace ExcelDna.Integration.ObjectHandles
 {
     internal class ObjectHandler
     {
-        private Dictionary<string, HandleInfo> _objects = new Dictionary<string, HandleInfo>();
+        private static Dictionary<string, HandleInfo> _objects = new Dictionary<string, HandleInfo>();
 
         // Tries to get an existing handle for the given function and parameters.
         // If there is no existing handle, creates a new handle with the target provided by evaluating the delegate 'func'
         // (with the given function and parameters).
-        public object GetHandle(string callerFunctionName, object callerParameters, object userObject, out bool newHandle)
+        public static object GetHandle(string callerFunctionName, object callerParameters, object userObject, out bool newHandle)
         {
             bool newHandleCreated = false;
             object result = ExcelAsyncUtil.Observe(callerFunctionName, callerParameters, () =>
             {
-                var handleInfo = new HandleInfo(this, callerFunctionName, userObject);
+                var handleInfo = new HandleInfo(callerFunctionName, userObject);
                 _objects.Add(handleInfo.Handle, handleInfo);
                 newHandleCreated = true;
                 return handleInfo;
@@ -25,7 +25,7 @@ namespace ExcelDna.Integration.ObjectHandles
             return result;
         }
 
-        public bool TryGetObject(string handle, out object value)
+        public static bool TryGetObject(string handle, out object value)
         {
             HandleInfo handleInfo;
             if (_objects.TryGetValue(handle, out handleInfo))
@@ -37,7 +37,7 @@ namespace ExcelDna.Integration.ObjectHandles
             return false;
         }
 
-        internal void Remove(HandleInfo handleInfo)
+        public static void Remove(HandleInfo handleInfo)
         {
             object value;
             if (TryGetObject(handleInfo.Handle, out value))

@@ -7,14 +7,11 @@ namespace ExcelDna.Integration.ObjectHandles
         // Global index used in handle names
         private static long HandleIndex;
 
-        private readonly ObjectHandler Handler;
-
         public readonly string Handle;
         public readonly object UserObject;
 
-        public HandleInfo(ObjectHandler objectHandler, string tag, object userObject)
+        public HandleInfo(string tag, object userObject)
         {
-            Handler = objectHandler;
             Handle = string.Format("{0}:{1}", tag, HandleIndex++);
             UserObject = userObject;
         }
@@ -29,7 +26,7 @@ namespace ExcelDna.Integration.ObjectHandles
 
         public void Dispose()
         {
-            Handler.Remove(this);               // Called when last instance of this topic is removed from the current session
+            ObjectHandler.Remove(this);               // Called when last instance of this topic is removed from the current session
         }
     }
 }

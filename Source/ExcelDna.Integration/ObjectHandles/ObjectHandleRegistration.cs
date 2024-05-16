@@ -5,51 +5,93 @@ using System.Linq.Expressions;
 
 namespace ExcelDna.Integration.ObjectHandles
 {
-    internal class MyFunctionExecutionHandler : FunctionExecutionHandler
-    {
-        public FunctionExecutionArgs args;
-
-        public override void OnEntry(FunctionExecutionArgs args)
-        {
-            this.args = args;
-        }
-    }
-
     internal static class ObjectHandleRegistration
     {
         public static IEnumerable<ExcelFunction> ProcessObjectHandles(this IEnumerable<ExcelFunction> registrations)
         {
-            var paramConversionConfig = new ParameterConversionConfiguration().AddParameterConversion(Util.GetParameterConversion());
+            var paramConversionConfig = new ParameterConversionConfiguration().AddParameterConversion(GetParameterConversion());
             registrations = registrations.ProcessParameterConversions(paramConversionConfig);
 
             foreach (var reg in registrations)
             {
-                if (reg.FunctionLambda.ReturnType.IsGenericType && reg.FunctionLambda.ReturnType.GetGenericTypeDefinition() == typeof(ExcelObjectHandle<>))
+                if (IsExcelObjectHandle(reg.FunctionLambda.ReturnType))
                 {
-                    MyFunctionExecutionHandler myFunctionExecutionHandler = new MyFunctionExecutionHandler();
+                    EntryFunctionExecutionHandler entryFunctionExecutionHandler = new EntryFunctionExecutionHandler();
 
-                    reg.FunctionLambda = FunctionExecutionRegistration.ApplyMethodHandler(reg.FunctionAttribute.Name, reg.FunctionLambda, myFunctionExecutionHandler);
+                    reg.FunctionLambda = FunctionExecutionRegistration.ApplyMethodHandler(reg.FunctionAttribute.Name, reg.FunctionLambda, entryFunctionExecutionHandler);
 
-                    var rc = CreateReturnConversion((object value) => ObjectHandles.Util.ReturnConversionNew(value, reg.FunctionAttribute.Name, myFunctionExecutionHandler.args.Arguments));
-                    var r = new List<ParameterConversionConfiguration.ReturnConversion> { rc };
+                    var returnConversion = CreateReturnConversion((object value) => GetReturnConversion(value, reg.FunctionAttribute.Name, entryFunctionExecutionHandler.Args.Arguments));
 
-                    List<LambdaExpression> rcs = ParameterConversionRegistration.GetReturnConversions(r, reg.FunctionLambda.ReturnType, reg.ReturnRegistration);
-
-                    ParameterConversionRegistration.ApplyConversions(reg, null, rcs);
+                    ParameterConversionRegistration.ApplyConversions(reg, null, ParameterConversionRegistration.GetReturnConversions(new List<ParameterConversionConfiguration.ReturnConversion> { returnConversion }, reg.FunctionLambda.ReturnType, reg.ReturnRegistration));
                 }
 
                 yield return reg;
             }
         }
 
-        static ParameterConversionConfiguration.ReturnConversion CreateReturnConversion<TFrom, TTo>(Expression<Func<TFrom, TTo>> convert, bool handleSubTypes = false)
+        static ParameterConversionConfiguration.ReturnConversion CreateReturnConversion<TFrom, TTo>(Expression<Func<TFrom, TTo>> convert)
         {
-            return CreateReturnConversion<TFrom>((unusedReturnType, unusedAttributes) => convert, null, handleSubTypes);
+            return new ParameterConversionConfiguration.ReturnConversion((unusedReturnType, unusedAttributes) => convert, null, false);
         }
 
-        static ParameterConversionConfiguration.ReturnConversion CreateReturnConversion<TFrom>(Func<Type, ExcelReturn, LambdaExpression> returnConversion, Type targetTypeOrNull = null, bool handleSubTypes = false)
+        static object GetReturnConversion(object value, string callerFunctionName, object callerParameters)
         {
-            return new ParameterConversionConfiguration.ReturnConversion(returnConversion, targetTypeOrNull, handleSubTypes);
+            bool newHandle;
+            object result = ObjectHandler.GetHandle(callerFunctionName, callerParameters, value, out newHandle);
+            if (!newHandle)
+                (value as IDisposable)?.Dispose();
+
+            return result;
+        }
+
+        static Func<Type, ExcelParameter, LambdaExpression> GetParameterConversion()
+        {
+            return (type, paramReg) => HandleStringConversion(type, paramReg);
+        }
+
+        static LambdaExpression HandleStringConversion(Type type, ExcelParameter paramReg)
+        {
+            // Decide whether to return a conversion function for this parameter
+            if (!IsExcelObjectHandle(type))
+                return null;
+
+            var input = Expression.Parameter(typeof(object), "input");
+            var objectType = typeof(object);
+            Expression<Func<Type, object, object>> parse = (t, s) => GetObject((string)s);
+            var result =
+                Expression.Lambda(
+                    Expression.Convert(
+                        Expression.Invoke(parse, Expression.Constant(type), input),
+                        type),
+                    input);
+            return result;
+        }
+
+        static object GetObject(string handle)
+        {
+            object value;
+            if (ObjectHandler.TryGetObject(handle, out value))
+            {
+                return value;
+            }
+
+            // No object for the handle ...
+            return "!!! INVALID HANDLE";
+        }
+
+        static bool IsExcelObjectHandle(Type t)
+        {
+            return t.IsGenericType && t.GetGenericTypeDefinition() == typeof(ExcelObjectHandle<>);
+        }
+
+        private class EntryFunctionExecutionHandler : FunctionExecutionHandler
+        {
+            public FunctionExecutionArgs Args { get; private set; }
+
+            public override void OnEntry(FunctionExecutionArgs args)
+            {
+                this.Args = args;
+            }
         }
     }
 }
