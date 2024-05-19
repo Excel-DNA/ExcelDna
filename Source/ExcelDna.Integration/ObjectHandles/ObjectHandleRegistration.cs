@@ -1,7 +1,9 @@
 ﻿using ExcelDna.Integration.ExtendedRegistration;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Threading;
 
 namespace ExcelDna.Integration.ObjectHandles
 {
@@ -20,7 +22,7 @@ namespace ExcelDna.Integration.ObjectHandles
 
                     reg.FunctionLambda = FunctionExecutionRegistration.ApplyMethodHandler(reg.FunctionAttribute.Name, reg.FunctionLambda, entryFunctionExecutionHandler);
 
-                    var returnConversion = CreateReturnConversion((object value) => GetReturnConversion(value, reg.FunctionAttribute.Name, entryFunctionExecutionHandler.Args.Arguments));
+                    var returnConversion = CreateReturnConversion((object value) => GetReturnConversion(value, reg.FunctionAttribute.Name, entryFunctionExecutionHandler));
 
                     ParameterConversionRegistration.ApplyConversions(reg, null, ParameterConversionRegistration.GetReturnConversions(new List<ParameterConversionConfiguration.ReturnConversion> { returnConversion }, reg.FunctionLambda.ReturnType, reg.ReturnRegistration));
                 }
@@ -34,10 +36,10 @@ namespace ExcelDna.Integration.ObjectHandles
             return new ParameterConversionConfiguration.ReturnConversion((unusedReturnType, unusedAttributes) => convert, null, false);
         }
 
-        static object GetReturnConversion(object value, string callerFunctionName, object callerParameters)
+        static object GetReturnConversion(object value, string callerFunctionName, EntryFunctionExecutionHandler entryFunctionExecutionHandler)
         {
             bool newHandle;
-            object result = ObjectHandler.GetHandle(callerFunctionName, callerParameters, value, out newHandle);
+            object result = ObjectHandler.GetHandle(callerFunctionName, entryFunctionExecutionHandler.GetArguments(Thread.CurrentThread.ManagedThreadId), value, out newHandle);
             if (!newHandle)
                 (value as IDisposable)?.Dispose();
 
@@ -86,11 +88,21 @@ namespace ExcelDna.Integration.ObjectHandles
 
         private class EntryFunctionExecutionHandler : FunctionExecutionHandler
         {
-            public FunctionExecutionArgs Args { get; private set; }
+            private ConcurrentDictionary<int, object> arguments = new ConcurrentDictionary<int, object>();
+
+            public object GetArguments(int managedThreadId)
+            {
+                if (arguments.TryGetValue(managedThreadId, out object value))
+                {
+                    return value;
+                }
+
+                return null;
+            }
 
             public override void OnEntry(FunctionExecutionArgs args)
             {
-                this.Args = args;
+                this.arguments.AddOrUpdate(Thread.CurrentThread.ManagedThreadId, args.Arguments, (key, oldValue) => args.Arguments);
             }
         }
     }

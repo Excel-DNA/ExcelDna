@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 
 namespace ExcelDna.Integration.ObjectHandles
 {
@@ -12,7 +13,7 @@ namespace ExcelDna.Integration.ObjectHandles
 
         public HandleInfo(string tag, object userObject)
         {
-            Handle = string.Format("{0}:{1}", tag, HandleIndex++);
+            Handle = string.Format("{0}:{1}", tag, Interlocked.Increment(ref HandleIndex));
             UserObject = userObject;
         }
 

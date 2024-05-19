@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace ExcelDna.Integration.ObjectHandles
 {
     internal class ObjectHandler
     {
-        private static Dictionary<string, HandleInfo> _objects = new Dictionary<string, HandleInfo>();
+        private static ConcurrentDictionary<string, HandleInfo> _objects = new ConcurrentDictionary<string, HandleInfo>();
 
         // Tries to get an existing handle for the given function and parameters.
         // If there is no existing handle, creates a new handle with the target provided by evaluating the delegate 'func'
@@ -16,7 +17,7 @@ namespace ExcelDna.Integration.ObjectHandles
             object result = ExcelAsyncUtil.Observe(callerFunctionName, callerParameters, () =>
             {
                 var handleInfo = new HandleInfo(callerFunctionName, userObject);
-                _objects.Add(handleInfo.Handle, handleInfo);
+                _objects.TryAdd(handleInfo.Handle, handleInfo);
                 newHandleCreated = true;
                 return handleInfo;
             });
@@ -39,11 +40,10 @@ namespace ExcelDna.Integration.ObjectHandles
 
         public static void Remove(HandleInfo handleInfo)
         {
-            object value;
-            if (TryGetObject(handleInfo.Handle, out value))
+            HandleInfo value;
+            if (_objects.TryRemove(handleInfo.Handle, out value))
             {
-                _objects.Remove(handleInfo.Handle);
-                var disp = value as IDisposable;
+                var disp = value.UserObject as IDisposable;
                 if (disp != null)
                 {
                     disp.Dispose();

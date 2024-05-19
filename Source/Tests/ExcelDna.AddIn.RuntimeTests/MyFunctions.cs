@@ -154,5 +154,19 @@ namespace ExcelDna.AddIn.RuntimeTests
         {
             return DisposableObject.ObjectsCount;
         }
+
+        [ExcelFunction(IsThreadSafe = true)]
+        public static ExcelObjectHandle<int> MyCreateObjectTS(int i)
+        {
+            Thread.Sleep(i);
+            return new(i);
+        }
+
+        [ExcelFunction(IsThreadSafe = true)]
+        public static int MyUseObjectTS(ExcelObjectHandle<int> h)
+        {
+            Thread.Sleep(h.Object);
+            return h.Object;
+        }
     }
 }
