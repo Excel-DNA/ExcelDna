@@ -98,15 +98,6 @@ namespace ExcelDna.RuntimeTests
         }
 
         [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
-        public void AsyncInstant()
-        {
-            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
-            functionRange.Formula = "=MyAsyncHello(\"world\", 0)";
-
-            Assert.Equal("Hello async world", functionRange.Value.ToString());
-        }
-
-        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
         public void AsyncTaskInstant()
         {
             Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];

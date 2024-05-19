@@ -5,6 +5,7 @@ namespace ExcelDna.RuntimeTests
 {
 #if DEBUG
     [ExcelTestSettings(OutOfProcess = true)]
+    [Collection("OutOfProcess")]
     public class ObjectHandleOutOfProcess
     {
         [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
