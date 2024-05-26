@@ -168,5 +168,11 @@ namespace ExcelDna.AddIn.RuntimeTests
             Thread.Sleep(h.Object);
             return h.Object;
         }
+
+        [ExcelFunction]
+        public static string MyRange(Microsoft.Office.Interop.Excel.Range r)
+        {
+            return r.Address;
+        }
     }
 }

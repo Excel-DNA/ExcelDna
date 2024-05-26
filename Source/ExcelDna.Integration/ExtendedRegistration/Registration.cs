@@ -19,6 +19,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             var functionHandlerConfig = GetFunctionExecutionHandlerConfig(excelFunctionExecutionHandlerSelectors);
 
             Register(functions
+                .UpdateRegistrationsForRangeParameters()
                 .ProcessMapArrayFunctions(conversionConfig)
                 .ProcessParameterConversions(conversionConfig)
                 .ProcessObjectHandles()
@@ -86,6 +87,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
 
                 // Register the Standard Parameter Conversions (with the optional switch on how to treat references to empty cells)
                 .AddParameterConversion(ParameterConversions.GetOptionalConversion(treatEmptyAsMissing: true))
+                .AddParameterConversion(RangeConversion.GetRangeParameterConversion, null)
 
                 .AddParameterConversions(ParameterConversions.GetUserConversions(parameterConversions))
 
