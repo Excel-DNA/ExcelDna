@@ -318,6 +318,6 @@ namespace ExcelDna.RuntimeTests
                 Assert.Equal("$B$2,$D$5:$E$6", functionRange.Value.ToString());
             }
         }
-#endif
     }
+#endif
 }
