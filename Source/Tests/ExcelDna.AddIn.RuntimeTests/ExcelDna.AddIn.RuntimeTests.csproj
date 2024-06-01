@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ExcelDna.Interop" Version="15.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\ExcelDna.Integration\ExcelDna.Integration.csproj" />
   </ItemGroup>
 
