@@ -174,5 +174,11 @@ namespace ExcelDna.AddIn.RuntimeTests
         {
             return r.Address;
         }
+
+        [ExcelFunction]
+        public static string MyUserCodeConversionReferenceToRange([ExcelArgument(AllowReference = true)] object r)
+        {
+            return ExcelConversionUtil.ReferenceToRange((ExcelReference)r).Address;
+        }
     }
 }
