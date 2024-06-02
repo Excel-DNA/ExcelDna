@@ -14,6 +14,14 @@
     <ProjectReference Include="..\..\ExcelDna.Integration\ExcelDna.Integration.csproj" />
   </ItemGroup>
 
-  <Import Project="$(ProjectDir)..\.exceldna.addin\build\ExcelDna.AddIn.targets" />
+  <ItemGroup>
+    <None Update="ExcelDna.AddIn.RuntimeTests-AddIn64.dna">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy /y $(SolutionDir)ExcelDna.Host\bin\$(ConfigurationName)\x64\ExcelDna.Host.x64.xll $(TargetDir)ExcelDna.AddIn.RuntimeTests-AddIn64.xll*&#xD;&#xA;" />
+  </Target>
 
 </Project>
