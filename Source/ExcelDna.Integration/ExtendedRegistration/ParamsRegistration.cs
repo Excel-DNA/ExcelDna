@@ -53,14 +53,15 @@ namespace ExcelDna.Integration.ExtendedRegistration
                         var restCount = reg.FunctionLambda.Parameters.Count - reg.ParameterRegistrations.Count;
                         for (int i = 0; i < restCount; i++)
                         {
-                            reg.ParameterRegistrations.Add(
-                                new ExcelParameter(
+                            ExcelParameter newParameter = new ExcelParameter(
                                     new ExcelArgumentAttribute
                                     {
                                         Name = string.Empty,
                                         Description = paramsArgAttrib.Description,
                                         AllowReference = paramsArgAttrib.AllowReference
-                                    }));
+                                    });
+                            newParameter.CustomAttributes.AddRange(lastParam.CustomAttributes);
+                            reg.ParameterRegistrations.Add(newParameter);
                         }
 
                         // Check that we still have a valid registration structure
@@ -73,7 +74,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
                     Logging.LogDisplay.WriteLine("Exception while registering method {0} - {1}", reg.FunctionAttribute.Name, ex.ToString());
                     continue;
                 }
-                
+
                 yield return reg;
             }
 
