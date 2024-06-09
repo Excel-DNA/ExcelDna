@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using ExcelDna.ComInterop;
@@ -174,6 +173,10 @@ namespace ExcelDna.Integration
                 isSupported = false;
             }
             else if (IsExcelAsyncFunction(mi))
+            {
+                isSupported = false;
+            }
+            else if (ExtendedRegistration.ParamsRegistration.IsParamsMethod(new ExtendedRegistration.ExcelFunction(mi)))
             {
                 isSupported = false;
             }

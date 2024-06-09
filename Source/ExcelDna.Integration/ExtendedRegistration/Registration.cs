@@ -25,6 +25,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
                 .ProcessObjectHandles()
                 .ProcessAsyncRegistrations(nativeAsyncIfAvailable: false)
                 .ProcessParameterConversions(postAsyncReturnConfig)
+                .ProcessParamsRegistrations()
                 .ProcessFunctionExecutionHandlers(functionHandlerConfig)
                 );
         }

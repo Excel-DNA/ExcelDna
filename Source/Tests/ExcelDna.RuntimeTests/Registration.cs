@@ -318,6 +318,26 @@ namespace ExcelDna.RuntimeTests
                 Assert.Equal("$B$2,$D$5:$E$6", functionRange.Value.ToString());
             }
         }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
+        public void Params()
+        {
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+                functionRange.Formula = "=MyParamsFunc1(1,\"2\",4,5)";
+                Assert.Equal("1,2, : 2", functionRange.Value.ToString());
+            }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B2"];
+                functionRange.Formula = "=MyParamsFunc2(\"a\",,\"c\",\"d\",,\"f\")";
+                Assert.Equal("a,,c, [3: d,ExcelDna.Integration.ExcelMissing,f]", functionRange.Value.ToString());
+            }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B3"];
+                functionRange.Formula = "=MyParamsJoinString(\"//\",\"5\",\"4\",\"3\")";
+                Assert.Equal("5//4//3", functionRange.Value.ToString());
+            }
+        }
     }
 #endif
 }
