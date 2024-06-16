@@ -51,13 +51,14 @@ namespace ExcelDna.AddIn.Tasks
                 if (PackExcelAddIn.NoPublishPath(PublishPath))
                 {
                     DeletePackedAddInFiles(packedFilesToDelete);
-                    if (UnpackIsEnabled)
-                        DeleteUnpackedAddInFiles();
                 }
                 else
                 {
                     DeletePublishedFiles();
                 }
+
+                if (UnpackIsEnabled)
+                    DeleteUnpackedAddInFiles();
 
                 return true;
             }

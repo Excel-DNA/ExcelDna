@@ -465,9 +465,9 @@ namespace ExcelDna.AddIn.Tasks
 
         private void PublishUnpackedAddin(string dnaPath, string xllPath)
         {
-            var destinationFolder = PackExcelAddIn.GetPublishDirectory(OutDirectory, PublishPath);
-            Directory.CreateDirectory(destinationFolder);
-            UnpackXll(xllPath, destinationFolder);
+            var publishFolder = PackExcelAddIn.GetPublishDirectory(OutDirectory, PublishPath);
+            Directory.CreateDirectory(publishFolder);
+            UnpackXll(xllPath, new string[] { OutDirectory, publishFolder });
 
             if (PackExcelAddIn.NoPublishPath(PublishPath))
                 return;
@@ -477,7 +477,7 @@ namespace ExcelDna.AddIn.Tasks
             if (result != 0)
                 throw new ApplicationException($"Pack failed with exit code {result}.");
             foreach (string file in filesToPublish)
-                File.Copy(file, Path.Combine(destinationFolder, Path.GetFileName(file)), true);
+                File.Copy(file, Path.Combine(publishFolder, Path.GetFileName(file)), true);
         }
 
         private void UncompressXll(string xllPath)
@@ -519,7 +519,7 @@ namespace ExcelDna.AddIn.Tasks
             }
         }
 
-        private void UnpackXll(string xllPath, string destinationFolder)
+        private void UnpackXll(string xllPath, IEnumerable<string> destinationFolders)
         {
             string[] assemblies = { "ExcelDna.ManagedHost", "ExcelDna.Integration", "ExcelDna.Loader" };
 
@@ -531,8 +531,8 @@ namespace ExcelDna.AddIn.Tasks
             {
                 foreach (var i in assemblies)
                 {
-                    TryUnpackResource(hModule, i + ".dll", "ASSEMBLY", destinationFolder);
-                    TryUnpackResource(hModule, i + ".pdb", "PDB", destinationFolder);
+                    TryUnpackResource(hModule, i + ".dll", "ASSEMBLY", destinationFolders);
+                    TryUnpackResource(hModule, i + ".pdb", "PDB", destinationFolders);
                 }
             }
             finally
@@ -550,11 +550,14 @@ namespace ExcelDna.AddIn.Tasks
             }
         }
 
-        private void TryUnpackResource(IntPtr hModule, string resourceFileName, string typeName, string destinationFolder)
+        private void TryUnpackResource(IntPtr hModule, string resourceFileName, string typeName, IEnumerable<string> destinationFolders)
         {
             byte[] data = ResourceHelper.ResourceUpdater.LoadResourceBytes(hModule, typeName, Path.GetFileNameWithoutExtension(resourceFileName).ToUpperInvariant());
             if (data != null)
-                File.WriteAllBytes(Path.Combine(destinationFolder, resourceFileName), data);
+            {
+                foreach (string destinationFolder in destinationFolders)
+                    File.WriteAllBytes(Path.Combine(destinationFolder, resourceFileName), data);
+            }
         }
 
         private void TryRemoveResource(string xllPath, string name, string typeName)
