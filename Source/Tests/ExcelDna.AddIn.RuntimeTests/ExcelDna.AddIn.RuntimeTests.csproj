@@ -21,7 +21,7 @@
   </ItemGroup>
   
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy /y $(SolutionDir)ExcelDna.Host\bin\$(ConfigurationName)\x64\ExcelDna.Host.x64.xll $(TargetDir)ExcelDna.AddIn.RuntimeTests-AddIn64.xll*&#xD;&#xA;" />
+    <Exec Command='xcopy /y "$(SolutionDir)ExcelDna.Host\bin\$(ConfigurationName)\x64\ExcelDna.Host.x64.xll" "$(TargetDir)ExcelDna.AddIn.RuntimeTests-AddIn64.xll*"&#xD;&#xA;' />
   </Target>
 
 </Project>
