@@ -5,6 +5,12 @@ namespace ExcelDna.AddIn.RuntimeTests
     public class Conversions
     {
         [ExcelParameterConversion]
+        public static TestType1 Order3ToTestType1Also(string value)
+        {
+            return new TestType1("Also " + value);
+        }
+
+        [ExcelParameterConversion]
         public static TestType1 Order2ToTestType1(string value)
         {
             return new TestType1(value);
