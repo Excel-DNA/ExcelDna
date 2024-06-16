@@ -193,7 +193,8 @@ namespace ExcelDna.AddIn.Tasks
                     // Copy .config file to build output folder for 32-bit (if exist)
                     TryCopyConfigFileToOutput(item.InputConfigFileNameAs32Bit, item.InputConfigFileNameFallbackAs32Bit, item.OutputConfigFileNameAs32Bit);
 
-                    TryCopyDepsJsonToBuildOutput(item.OutputDnaFileNameAs32Bit);
+                    if (!UnpackIsEnabled)
+                        TryCopyDepsJsonToBuildOutput(item.OutputDnaFileNameAs32Bit);
 
                     AddDnaToListOfFilesToPack(item.OutputDnaFileNameAs32Bit, item.OutputXllFileNameAs32Bit, item.OutputConfigFileNameAs32Bit, Packed32BitXllName, "32");
 
@@ -223,7 +224,8 @@ namespace ExcelDna.AddIn.Tasks
                     // Copy .config file to build output folder for 64-bit (if exist)
                     TryCopyConfigFileToOutput(item.InputConfigFileNameAs64Bit, item.InputConfigFileNameFallbackAs64Bit, item.OutputConfigFileNameAs64Bit);
 
-                    TryCopyDepsJsonToBuildOutput(item.OutputDnaFileNameAs64Bit);
+                    if (!UnpackIsEnabled)
+                        TryCopyDepsJsonToBuildOutput(item.OutputDnaFileNameAs64Bit);
 
                     AddDnaToListOfFilesToPack(item.OutputDnaFileNameAs64Bit, item.OutputXllFileNameAs64Bit, item.OutputConfigFileNameAs64Bit, Packed64BitXllName, "64");
 

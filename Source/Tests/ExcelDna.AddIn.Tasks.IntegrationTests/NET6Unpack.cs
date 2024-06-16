@@ -20,6 +20,9 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
             AssertFound(publishDir, "*.dll", new string[] { "ExcelDna.ManagedHost.dll", "ExcelDna.Integration.dll", "ExcelDna.Loader.dll" });
 
             AssertFound(projectOutDir, "*.dll", new string[] { "ExcelDna.ManagedHost.dll", "ExcelDna.Integration.dll", "ExcelDna.Loader.dll" });
+
+            AssertNotFound(Path.Combine(projectOutDir, "NET6Unpack-AddIn.deps.json"));
+            AssertNotFound(Path.Combine(projectOutDir, "NET6Unpack-AddIn64.deps.json"));
         }
 
         [Test]
