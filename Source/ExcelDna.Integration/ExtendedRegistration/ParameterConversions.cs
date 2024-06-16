@@ -39,7 +39,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
 
         public static IEnumerable<Func<Type, ExcelParameter, LambdaExpression>> GetUserConversions(IEnumerable<ExcelParameterConversion> parameterConversions)
         {
-            return parameterConversions.Select(i => i.GetConversion());
+            return parameterConversions.OrderBy(i => i.MethodInfo.Name).Select(i => i.GetConversion());
         }
 
         internal static LambdaExpression NullableConversion(

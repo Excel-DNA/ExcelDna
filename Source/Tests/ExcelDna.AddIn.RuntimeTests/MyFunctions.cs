@@ -102,6 +102,12 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
+        public static string MyTestType2(TestType2 tt)
+        {
+            return "The TestType2 value is " + tt.Value;
+        }
+
+        [ExcelFunction]
         public static string MyVersion2(Version v)
         {
             return "The Version value with field count 2 is " + v.ToString(2);

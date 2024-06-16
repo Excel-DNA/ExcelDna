@@ -7,11 +7,11 @@ namespace ExcelDna.Integration.ExtendedRegistration
 {
     internal class ExcelParameterConversion
     {
-        private MethodInfo methodInfo;
+        public MethodInfo MethodInfo { get; private set; }
 
         public ExcelParameterConversion(MethodInfo methodInfo)
         {
-            this.methodInfo = methodInfo;
+            this.MethodInfo = methodInfo;
         }
 
         public Func<Type, ExcelParameter, LambdaExpression> GetConversion()
@@ -21,13 +21,13 @@ namespace ExcelDna.Integration.ExtendedRegistration
 
         private LambdaExpression CreateConversion(Type type, ExcelParameter paramReg)
         {
-            if (type != methodInfo.ReturnType)
+            if (type != MethodInfo.ReturnType)
                 return null;
 
-            var paramExprs = methodInfo.GetParameters()
+            var paramExprs = MethodInfo.GetParameters()
                              .Select(pi => Expression.Parameter(pi.ParameterType, pi.Name))
                              .ToList();
-            return Expression.Lambda(Expression.Call(methodInfo, paramExprs), methodInfo.Name, paramExprs);
+            return Expression.Lambda(Expression.Call(MethodInfo, paramExprs), MethodInfo.Name, paramExprs);
         }
     }
 }

@@ -170,6 +170,9 @@ namespace ExcelDna.RuntimeTests
 
             functionRange.Formula = "=MyTestType1(\"world\")";
             Assert.Equal("The TestType1 value is world", functionRange.Value.ToString());
+
+            functionRange.Formula = "=MyTestType2(\"world2\")";
+            Assert.Equal("The TestType2 value is From TestType1 world2", functionRange.Value.ToString());
         }
 
         [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
