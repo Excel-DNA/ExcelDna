@@ -5,30 +5,36 @@ using System.IO;
 
 namespace ExcelDna.AddIn.Tasks.IntegrationRuntimeTests
 {
+    public class NET6CustomRuntimeConfigurationTestsFixture
+    {
+        public NET6CustomRuntimeConfigurationTestsFixture()
+        {
+            TestTargetAddIn.Build(NET6CustomRuntimeConfigurationTests.ProjectName, NET6CustomRuntimeConfigurationTests.PackedId);
+            TestTargetAddIn.Build(NET6CustomRuntimeConfigurationTests.ProjectName, NET6CustomRuntimeConfigurationTests.UnpackedId, "/p:ExcelDnaUnpack=true");
+        }
+    }
+
     [ExcelTestSettings(OutOfProcess = true)]
-    public class NET6CustomRuntimeConfigurationTests
+    public class NET6CustomRuntimeConfigurationTests : IClassFixture<NET6CustomRuntimeConfigurationTestsFixture>
     {
         [ExcelFact(Workbook = "")]
         public void NotYetPacked()
         {
-            TestTargetAddIn.Build(projectName);
-            Assert.True(TestTargetAddIn.Register(projectName, "NET6CustomRuntimeConfiguration-AddIn64.xll"), "Registration failed.");
+            Assert.True(TestTargetAddIn.Register(ProjectName, PackedId, "NET6CustomRuntimeConfiguration-AddIn64.xll"), "Registration failed.");
             TestSayHello();
         }
 
         [ExcelFact(Workbook = "")]
         public void Packed()
         {
-            TestTargetAddIn.Build(projectName);
-            Assert.True(TestTargetAddIn.Register(projectName, Path.Combine("publish", "NET6CustomRuntimeConfiguration-AddIn64-packed.xll")), "Registration failed.");
+            Assert.True(TestTargetAddIn.Register(ProjectName, PackedId, Path.Combine("publish", "NET6CustomRuntimeConfiguration-AddIn64-packed.xll")), "Registration failed.");
             TestSayHello();
         }
 
         [ExcelFact(Workbook = "")]
         public void Unpacked()
         {
-            TestTargetAddIn.Build(projectName, "/p:ExcelDnaUnpack=true");
-            Assert.True(TestTargetAddIn.Register(projectName, Path.Combine("publish", "NET6CustomRuntimeConfiguration-AddIn64.xll")), "Registration failed.");
+            Assert.True(TestTargetAddIn.Register(ProjectName, UnpackedId, Path.Combine("publish", "NET6CustomRuntimeConfiguration-AddIn64.xll")), "Registration failed.");
             TestSayHello();
         }
 
@@ -39,6 +45,8 @@ namespace ExcelDna.AddIn.Tasks.IntegrationRuntimeTests
             Assert.Equal("world WebApplication Environment: Production.", functionRange.Value.ToString());
         }
 
-        private const string projectName = "NET6CustomRuntimeConfiguration";
+        internal const string ProjectName = "NET6CustomRuntimeConfiguration";
+        internal const string PackedId = "Packed";
+        internal const string UnpackedId = "Unpacked";
     }
 }
