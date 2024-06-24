@@ -5,16 +5,22 @@ namespace ExcelDna.AddIn.Tasks.IntegrationRuntimeTests
 {
     internal class TestTargetAddIn
     {
-        public static void Build(string projectName, string? parameters = null)
+        public static void Build(string projectName, string id, string? parameters = null)
         {
-            Directory.Delete(Path.Combine(GetProjectDir(projectName), outputPath), true);
+            try
+            {
+                Directory.Delete(Path.Combine(GetProjectDir(projectName), GetOutputPath(id)), true);
+            }
+            catch (DirectoryNotFoundException)
+            {
+            }
 
-            MsBuild.Build(Path.Combine(GetProjectDir(projectName), $"{projectName}.csproj") + $" /t:Restore,Build /p:Configuration=Release {parameters} /v:m " + MsBuild.Param("OutputPath", outputPath));
+            MsBuild.Build(Path.Combine(GetProjectDir(projectName), $"{projectName}.csproj") + $" /t:Restore,Build /p:Configuration=Release {parameters} /v:m " + MsBuild.Param("OutputPath", GetOutputPath(id)));
         }
 
-        public static bool Register(string projectName, string xllName)
+        public static bool Register(string projectName, string id, string xllName)
         {
-            string xllPath = Path.Combine(GetProjectDir(projectName), outputPath, xllName);
+            string xllPath = Path.Combine(GetProjectDir(projectName), GetOutputPath(id), xllName);
 
             return Util.Application.RegisterXLL(xllPath);
         }
@@ -25,6 +31,9 @@ namespace ExcelDna.AddIn.Tasks.IntegrationRuntimeTests
             return Path.Combine(testTargetPath, projectName);
         }
 
-        private const string outputPath = @"bin\Release\";
+        private static string GetOutputPath(string id)
+        {
+            return $@"bin\{id}\Release\";
+        }
     }
 }
