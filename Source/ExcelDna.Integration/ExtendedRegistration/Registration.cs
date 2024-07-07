@@ -22,10 +22,10 @@ namespace ExcelDna.Integration.ExtendedRegistration
                 .UpdateRegistrationsForRangeParameters()
                 .ProcessMapArrayFunctions(conversionConfig)
                 .ProcessParameterConversions(conversionConfig)
-                .ProcessObjectHandles()
                 .ProcessAsyncRegistrations(nativeAsyncIfAvailable: false)
                 .ProcessParameterConversions(postAsyncReturnConfig)
                 .ProcessParamsRegistrations()
+                .ProcessObjectHandles()
                 .ProcessFunctionExecutionHandlers(functionHandlerConfig)
                 );
         }
