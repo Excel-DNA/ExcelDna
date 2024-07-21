@@ -12,14 +12,14 @@ namespace ExcelDna.Integration.ExtendedRegistration
             // and should return an Expression<Func<TTo, TFrom>> 
             // (and may optionally update the information in the ExcelParameterRegistration.
             // May return null to indicate that no conversion should be applied.
-            public Func<Type, ExcelParameter, LambdaExpression> Conversion { get; private set; }
+            public Func<Type, IExcelFunctionParameter, LambdaExpression> Conversion { get; private set; }
 
             // The TypeFilter is used as a quick filter to decide whether the Conversion function should be called for a parameter.
             // TypeFilter may be null to indicate that conversion should be applied for all types.
             // (The Conversion function may anyway return null to indicate that no conversion should be applied.)
             public Type TypeFilter { get; private set; }
 
-            public ParameterConversion(Func<Type, ExcelParameter, LambdaExpression> conversion, Type typeFilter = null)
+            public ParameterConversion(Func<Type, IExcelFunctionParameter, LambdaExpression> conversion, Type typeFilter = null)
             {
                 if (conversion == null)
                     throw new ArgumentNullException("conversion");
@@ -28,7 +28,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
                 TypeFilter = typeFilter;
             }
 
-            internal LambdaExpression Convert(Type paramType, ExcelParameter paramReg)
+            internal LambdaExpression Convert(Type paramType, IExcelFunctionParameter paramReg)
             {
                 if (TypeFilter != null && paramType != TypeFilter)
                     return null;
@@ -43,7 +43,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             // and should return  an Expression<Func<TTo, TFrom>> 
             // (and may optionally update the information in the ExcelParameterRegistration.
             // May return null to indicate that no conversion should be applied.
-            public Func<Type, ExcelReturn, LambdaExpression> Conversion { get; private set; }
+            public Func<Type, IExcelFunctionReturn, LambdaExpression> Conversion { get; private set; }
 
             // TypeFilter is used as a quick filter to decide whether the conversion function should be called for a return value.
             // TypeFilter be null to indicate that conversion should be applied for all types
@@ -55,7 +55,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             /// </summary>
             public bool HandleSubTypes { get; private set; }
 
-            public ReturnConversion(Func<Type, ExcelReturn, LambdaExpression> conversion, Type typeFilter = null, bool handleSubTypes = false)
+            public ReturnConversion(Func<Type, IExcelFunctionReturn, LambdaExpression> conversion, Type typeFilter = null, bool handleSubTypes = false)
             {
                 if (conversion == null)
                     throw new ArgumentNullException("conversion");
@@ -65,7 +65,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
                 HandleSubTypes = handleSubTypes;
             }
 
-            internal LambdaExpression Convert(Type returnType, ExcelReturn returnRegistration)
+            internal LambdaExpression Convert(Type returnType, IExcelFunctionReturn returnRegistration)
             {
                 if (TypeFilter != null && returnType != TypeFilter && (!HandleSubTypes || !returnType.IsSubclassOf(TypeFilter)))
                     return null;
@@ -102,14 +102,14 @@ namespace ExcelDna.Integration.ExtendedRegistration
         /// </summary>
         /// <param name="parameterConversion"></param>
         /// <param name="targetTypeOrNull"></param>
-        public ParameterConversionConfiguration AddParameterConversion(Func<Type, ExcelParameter, LambdaExpression> parameterConversion, Type targetTypeOrNull = null)
+        public ParameterConversionConfiguration AddParameterConversion(Func<Type, IExcelFunctionParameter, LambdaExpression> parameterConversion, Type targetTypeOrNull = null)
         {
             var pc = new ParameterConversion(parameterConversion, targetTypeOrNull);
             ParameterConversions.Add(pc);
             return this;
         }
 
-        public ParameterConversionConfiguration AddParameterConversion<TTo>(Func<Type, ExcelParameter, LambdaExpression> parameterConversion)
+        public ParameterConversionConfiguration AddParameterConversion<TTo>(Func<Type, IExcelFunctionParameter, LambdaExpression> parameterConversion)
         {
             AddParameterConversion(parameterConversion, typeof(TTo));
             return this;
@@ -121,7 +121,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             return this;
         }
 
-        public ParameterConversionConfiguration AddParameterConversions(IEnumerable<Func<Type, ExcelParameter, LambdaExpression>> parameterConversions)
+        public ParameterConversionConfiguration AddParameterConversions(IEnumerable<Func<Type, IExcelFunctionParameter, LambdaExpression>> parameterConversions)
         {
             foreach (var i in parameterConversions)
                 AddParameterConversion(i);
@@ -130,14 +130,14 @@ namespace ExcelDna.Integration.ExtendedRegistration
         }
 
         // Most general case - called by the overloads below
-        public ParameterConversionConfiguration AddReturnConversion(Func<Type, ExcelReturn, LambdaExpression> returnConversion, Type targetTypeOrNull = null, bool handleSubTypes = false)
+        public ParameterConversionConfiguration AddReturnConversion(Func<Type, IExcelFunctionReturn, LambdaExpression> returnConversion, Type targetTypeOrNull = null, bool handleSubTypes = false)
         {
             var rc = new ReturnConversion(returnConversion, targetTypeOrNull, handleSubTypes);
             ReturnConversions.Add(rc);
             return this;
         }
 
-        public ParameterConversionConfiguration AddReturnConversion<TFrom>(Func<Type, ExcelReturn, LambdaExpression> returnConversion, Type targetTypeOrNull = null, bool handleSubTypes = false)
+        public ParameterConversionConfiguration AddReturnConversion<TFrom>(Func<Type, IExcelFunctionReturn, LambdaExpression> returnConversion, Type targetTypeOrNull = null, bool handleSubTypes = false)
         {
             AddReturnConversion(returnConversion, typeof(TFrom), handleSubTypes);
             return this;
@@ -150,7 +150,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
         }
         #endregion
 
-        Func<Type, ExcelParameter, LambdaExpression> GetNullableConversion(bool treatEmptyAsMissing, bool treatNAErrorAsMissing)
+        Func<Type, IExcelFunctionParameter, LambdaExpression> GetNullableConversion(bool treatEmptyAsMissing, bool treatNAErrorAsMissing)
         {
             return (type, paramReg) => ExtendedRegistration.ParameterConversions.NullableConversion(this, type, paramReg, treatEmptyAsMissing, treatNAErrorAsMissing);
         }

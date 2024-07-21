@@ -27,24 +27,24 @@ namespace ExcelDna.Integration.ExtendedRegistration
             return (type, paramReg) => NullableConversion(null, type, paramReg, treatEmptyAsMissing, treatNAErrorAsMissing);
         }
 
-        public static Func<Type, ExcelParameter, LambdaExpression> GetOptionalConversion(bool treatEmptyAsMissing = false, bool treatNAErrorAsMissing = false)
+        public static Func<Type, IExcelFunctionParameter, LambdaExpression> GetOptionalConversion(bool treatEmptyAsMissing = false, bool treatNAErrorAsMissing = false)
         {
             return (type, paramReg) => OptionalConversion(type, paramReg, treatEmptyAsMissing, treatNAErrorAsMissing);
         }
 
-        public static Func<Type, ExcelParameter, LambdaExpression> GetEnumStringConversion()
+        public static Func<Type, IExcelFunctionParameter, LambdaExpression> GetEnumStringConversion()
         {
             return (type, paramReg) => EnumStringConversion(type, paramReg);
         }
 
-        public static IEnumerable<Func<Type, ExcelParameter, LambdaExpression>> GetUserConversions(IEnumerable<ExcelParameterConversion> parameterConversions)
+        public static IEnumerable<Func<Type, IExcelFunctionParameter, LambdaExpression>> GetUserConversions(IEnumerable<ExcelParameterConversion> parameterConversions)
         {
             return parameterConversions.OrderBy(i => i.MethodInfo.Name).Select(i => i.GetConversion());
         }
 
         internal static LambdaExpression NullableConversion(
             ParameterConversionConfiguration config, Type type,
-            ExcelParameter paramReg, bool treatEmptyAsMissing,
+            IExcelFunctionParameter paramReg, bool treatEmptyAsMissing,
             bool treatNAErrorAsMissing)
         {
             // Decide whether to return a conversion function for this parameter
@@ -69,7 +69,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             return result;
         }
 
-        static LambdaExpression OptionalConversion(Type type, ExcelParameter paramReg, bool treatEmptyAsMissing, bool treatNAErrorAsMissing)
+        static LambdaExpression OptionalConversion(Type type, IExcelFunctionParameter paramReg, bool treatEmptyAsMissing, bool treatNAErrorAsMissing)
         {
             // Decide whether to return a conversion function for this parameter
             if (!paramReg.CustomAttributes.OfType<OptionalAttribute>().Any())
@@ -141,7 +141,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             return result;
         }
 
-        static LambdaExpression EnumStringConversion(Type type, ExcelParameter paramReg)
+        static LambdaExpression EnumStringConversion(Type type, IExcelFunctionParameter paramReg)
         {
             // Decide whether to return a conversion function for this parameter
             if (!type.IsEnum)
