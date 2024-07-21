@@ -18,7 +18,10 @@ namespace ExcelDna.Integration.ExtendedRegistration
 
         // These are used only for the Registration processing
         public List<object> CustomAttributes { get; private set; }                 // List may not be null
-        public ExcelReturn ReturnRegistration { get; private set; }                 // List may not be null
+        public ExcelReturn ReturnRegistration { get; private set; }
+
+        public List<IExcelFunctionParameter> Parameters => ParameterRegistrations.Cast<IExcelFunctionParameter>().ToList();
+        public IExcelFunctionReturn Return => ReturnRegistration;
 
         // Checks that the property invariants are met, particularly regarding the attributes lists.
         internal bool IsValid()
