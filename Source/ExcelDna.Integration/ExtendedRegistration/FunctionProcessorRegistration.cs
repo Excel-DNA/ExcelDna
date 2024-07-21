@@ -14,7 +14,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
                 result = p.Invoke(result, config);
             }
 
-            return result.Cast<ExcelFunction>(); // TODO...................................
+            return result.Cast<ExcelFunction>();
         }
     }
 }
