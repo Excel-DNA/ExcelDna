@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Xml.Serialization;
@@ -248,6 +249,12 @@ namespace ExcelDna.Integration
         [XmlIgnore]
         private List<MethodInfo> _methods = new List<MethodInfo>();
         [XmlIgnore]
+        List<ExtendedRegistration.ExcelParameterConversion> _excelParameterConversions = new List<ExtendedRegistration.ExcelParameterConversion>();
+        [XmlIgnore]
+        private List<ExtendedRegistration.ExcelFunction> _excelFunctionsExtendedRegistration = new List<ExtendedRegistration.ExcelFunction>();
+        [XmlIgnore]
+        private List<FunctionExecutionHandlerSelector> _excelFunctionExecutionHandlerSelectors = new List<FunctionExecutionHandlerSelector>();
+        [XmlIgnore]
         private List<ExportedAssembly> _exportedAssemblies;
 
         // The idea is that Initialize compiles, loads and sorts out the assemblies,
@@ -264,7 +271,7 @@ namespace ExcelDna.Integration
 
             // Recursively get assemblies down .dna tree.
             _exportedAssemblies = GetAssemblies(dnaResolveRoot);
-            AssemblyLoader.ProcessAssemblies(_exportedAssemblies, _methods, _addIns, rtdServerTypes, comClassTypes);
+            AssemblyLoader.ProcessAssemblies(_exportedAssemblies, _methods, _excelParameterConversions, _excelFunctionsExtendedRegistration, _excelFunctionExecutionHandlerSelectors, _addIns, rtdServerTypes, comClassTypes);
 
             // Register RTD Server Types (i.e. remember that these types are available as RTD servers, with relevant ProgId etc.)
             RtdRegistration.RegisterRtdServerTypes(rtdServerTypes);
@@ -306,7 +313,12 @@ namespace ExcelDna.Integration
             RegistrationInfo.Register();
             SynchronizationManager.Install(true);
             // Register my Methods
-            ExcelIntegration.RegisterMethods(_methods);
+            if (_excelFunctionExecutionHandlerSelectors.Count == 0)
+                ExcelIntegration.RegisterMethods(_methods);
+            else
+                ExtendedRegistration.Registration.RegisterStandard(_methods.Select(i => new ExtendedRegistration.ExcelFunction(i)), _excelFunctionExecutionHandlerSelectors);
+
+            ExtendedRegistration.Registration.RegisterExtended(_excelFunctionsExtendedRegistration, _excelParameterConversions, _excelFunctionExecutionHandlerSelectors);
 
             // Invoke AutoOpen in all assemblies
             foreach (AssemblyLoader.ExcelAddInInfo addIn in _addIns)

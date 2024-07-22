@@ -189,7 +189,7 @@ namespace ExcelDna.Integration
             IntPtr hWnd = IntPtr.Zero;
 
             StringBuilder buffer = new StringBuilder(255);
-            EnumThreadWindows(_mainNativeThreadId, delegate(IntPtr hWndEnum, IntPtr param)
+            EnumThreadWindows(_mainNativeThreadId, delegate (IntPtr hWndEnum, IntPtr param)
             {
                 if (IsAnExcelWindow(hWndEnum, buffer))
                 {
@@ -215,9 +215,9 @@ namespace ExcelDna.Integration
         #region Get Application COM Object
         // CONSIDER: ThreadStatic not needed anymore - only cached and used on main thread anyway.
         // [ThreadStatic] 
-        static object _application;
+        static Microsoft.Office.Interop.Excel.Application _application;
         static readonly CultureInfo _enUsCulture = new CultureInfo(1033);
-        public static object Application
+        public static Microsoft.Office.Interop.Excel.Application Application
         {
             get
             {
@@ -282,11 +282,11 @@ namespace ExcelDna.Integration
             return true;
         }
 
-        private static object GetApplication(bool allowProtected, out bool isProtected)
+        private static Microsoft.Office.Interop.Excel.Application GetApplication(bool allowProtected, out bool isProtected)
         {
             // Don't cache the one we get from the Window, it keeps Excel alive! 
             // (?? Really ?? - Probably only when we're not on the main thread...)
-            object application = GetApplicationFromWindows(allowProtected, out isProtected);
+            Microsoft.Office.Interop.Excel.Application application = GetApplicationFromWindows(allowProtected, out isProtected);
             if (application != null) return application;
 
             // DOCUMENT: Under some circumstances, the C API and Automation interfaces are not available.
@@ -302,11 +302,11 @@ namespace ExcelDna.Integration
             return GetApplicationFromNewWorkbook(allowProtected, out isProtected);
         }
 
-        private static object GetApplicationFromNewWorkbook(bool allowProtected, out bool isProtected)
+        private static Microsoft.Office.Interop.Excel.Application GetApplicationFromNewWorkbook(bool allowProtected, out bool isProtected)
         {
             // Create new workbook with the right stuff
             // Echo calls removed for Excel 2013 - this caused trouble in the Excel 2013 'browse' scenario.
-            object application;
+            Microsoft.Office.Interop.Excel.Application application;
             bool isExcelPre15 = SafeIsExcelVersionPre15;
             if (isExcelPre15) XlCall.Excel(XlCall.xlcEcho, false);
             try
@@ -377,7 +377,7 @@ namespace ExcelDna.Integration
             return application;
         }
 
-        static object GetApplicationFromWindows(bool allowProtected, out bool isProtected)
+        static Microsoft.Office.Interop.Excel.Application GetApplicationFromWindows(bool allowProtected, out bool isProtected)
         {
             if (SafeIsExcelVersionPre15)
             {
@@ -389,13 +389,13 @@ namespace ExcelDna.Integration
 
         // Enumerate through all top-level windows of the main thread,
         // and for those of class XLMAIN, dig down by calling GetApplicationFromWindow.
-        static object GetApplicationFromWindows15(bool allowProtected, out bool isProtected)
+        static Microsoft.Office.Interop.Excel.Application GetApplicationFromWindows15(bool allowProtected, out bool isProtected)
         {
-            object application = null;
+            Microsoft.Office.Interop.Excel.Application application = null;
             StringBuilder buffer = new StringBuilder(256);
             bool localIsProtected = false;
 
-            EnumThreadWindows(_mainNativeThreadId, delegate(IntPtr hWndEnum, IntPtr param)
+            EnumThreadWindows(_mainNativeThreadId, delegate (IntPtr hWndEnum, IntPtr param)
             {
                 // Check the window class
                 if (IsAnExcelWindow(hWndEnum, buffer))
@@ -413,15 +413,15 @@ namespace ExcelDna.Integration
             return application; // May or may not be null
         }
 
-        private static object GetApplicationFromWindow(IntPtr hWndMain, bool allowProtected, out bool isProtected)
+        private static Microsoft.Office.Interop.Excel.Application GetApplicationFromWindow(IntPtr hWndMain, bool allowProtected, out bool isProtected)
         {
             // This is Andrew Whitechapel's plan for getting the Application object.
             // It does not work when there are no Workbooks open.
-            object app = null;
+            Microsoft.Office.Interop.Excel.Application app = null;
             StringBuilder cname = new StringBuilder(256);
             bool localIsProtected = false;
 
-            EnumChildWindows(hWndMain, delegate(IntPtr hWndEnum, IntPtr param)
+            EnumChildWindows(hWndMain, delegate (IntPtr hWndEnum, IntPtr param)
             {
                 // Check the window class
                 GetClassNameW(hWndEnum, cname, cname.Capacity);
@@ -445,7 +445,7 @@ namespace ExcelDna.Integration
                 {
                     if (ComInterop.DispatchHelper.HasProperty(obj, "Application"))
                     {
-                        app = obj.GetType().InvokeMember("Application", BindingFlags.GetProperty, null, obj, null, _enUsCulture);
+                        app = (Microsoft.Office.Interop.Excel.Application)obj.GetType().InvokeMember("Application", BindingFlags.GetProperty, null, obj, null, _enUsCulture);
                     }
                     else
                     {
@@ -456,7 +456,7 @@ namespace ExcelDna.Integration
                             try
                             {
                                 object workbook = obj.GetType().InvokeMember("Workbook", BindingFlags.GetProperty, null, obj, null, _enUsCulture);
-                                app = workbook.GetType().InvokeMember("Application", BindingFlags.GetProperty, null, workbook, null, _enUsCulture);
+                                app = (Microsoft.Office.Interop.Excel.Application)workbook.GetType().InvokeMember("Application", BindingFlags.GetProperty, null, workbook, null, _enUsCulture);
 
                                 // WARNING: The Application object returning from here can be problematic:
                                 //          * It is a "sandbox" view of the Application that cannot Run macros or change workbooks
@@ -530,7 +530,7 @@ namespace ExcelDna.Integration
             //       for international versions.
             StringBuilder buffer = new StringBuilder(256);
             bool inFunctionWizard = false;
-            EnumThreadWindows(_mainNativeThreadId, delegate(IntPtr hWndEnum, IntPtr param)
+            EnumThreadWindows(_mainNativeThreadId, delegate (IntPtr hWndEnum, IntPtr param)
             {
                 if (IsFunctionWizardWindow(hWndEnum, buffer))
                 {
@@ -542,7 +542,8 @@ namespace ExcelDna.Integration
             return inFunctionWizard;
         }
 
-        struct FuncWizChild {
+        struct FuncWizChild
+        {
             public int ScrollBar;
             public int EDTBX;
         };
@@ -552,7 +553,7 @@ namespace ExcelDna.Integration
             buffer.Length = 0;
             // Check the window class
             if (GetClassNameW(hWnd, buffer, buffer.Capacity) == 0)
-              return false;
+                return false;
             if (!buffer.ToString().StartsWith("bosa_sdm_XL"))
                 return false;
 
@@ -575,7 +576,7 @@ namespace ExcelDna.Integration
             }, IntPtr.Zero);
 
             if (child.ScrollBar == 1 && child.EDTBX == 5)
-              return true;
+                return true;
 
             return false;
         }
@@ -591,8 +592,8 @@ namespace ExcelDna.Integration
         }
         #endregion
 
-            #region Version Helpers
-            // This version is used internally - it seems a bit safer than the API calls.
+        #region Version Helpers
+        // This version is used internally - it seems a bit safer than the API calls.
         private static FileVersionInfo _excelExecutableInfo = null;
         internal static FileVersionInfo ExcelExecutableInfo
         {
@@ -690,7 +691,7 @@ namespace ExcelDna.Integration
         {
             IntPtr hWnd = IntPtr.Zero;
             StringBuilder buffer = new StringBuilder(256);
-            EnumThreadWindows(_mainNativeThreadId, delegate(IntPtr hWndEnum, IntPtr param)
+            EnumThreadWindows(_mainNativeThreadId, delegate (IntPtr hWndEnum, IntPtr param)
             {
                 // Check the loWord
                 if (((uint)hWndEnum & 0x0000FFFF) == (uint)hWndLoWord &&
@@ -774,7 +775,7 @@ namespace ExcelDna.Integration
                 if (!_supportsDynamicArrays.HasValue)
                 {
                     object result;
-                    var returnValue = XlCall.TryExcel(614 , out result, new object[] { 1 }, new object[] { true }); // 614 means FILTER
+                    var returnValue = XlCall.TryExcel(614, out result, new object[] { 1 }, new object[] { true }); // 614 means FILTER
                     // Now examine returnValue, which should be of type XlReturn – it will presumably be XlReturn.XlReturnSuccess for Dynamic Array Excel, otherwise XlReturn.XlReturnFailed or similar for non-DA Excel.
                     _supportsDynamicArrays = (returnValue == XlCall.XlReturn.XlReturnSuccess);
                 }
