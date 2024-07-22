@@ -120,39 +120,27 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
-        public static ExcelObjectHandle<int> MyCreateObject(int i)
+        public static Calc MyCreateCalc(double d1, double d2)
         {
-            return new(i);
+            return new Calc(d1, d2);
         }
 
         [ExcelFunction]
-        public static ExcelObjectHandle<int> MyCreateObject2(int i)
+        public static Calc MyCreateCalc2(double d1, double d2)
         {
-            return new(i * 2);
+            return new Calc(d1 * 2, d2 * 2);
         }
 
         [ExcelFunction]
-        public static int MyUseObject(ExcelObjectHandle<int> h)
+        public static double MyCalcSum(Calc c)
         {
-            return h.Object;
+            return c.Sum();
         }
 
         [ExcelFunction]
-        public static ExcelObjectHandle<Calc> MyCreateCalc(double d1, double d2)
+        public static DisposableObject MyCreateDisposableObject(int x)
         {
-            return new(new Calc(d1, d2));
-        }
-
-        [ExcelFunction]
-        public static double MyCalcSum(ExcelObjectHandle<Calc> h)
-        {
-            return h.Object.Sum();
-        }
-
-        [ExcelFunction]
-        public static ExcelObjectHandle<DisposableObject> MyCreateDisposableObject(int x)
-        {
-            return new(new DisposableObject());
+            return new DisposableObject();
         }
 
         [ExcelFunction]
@@ -162,17 +150,17 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction(IsThreadSafe = true)]
-        public static ExcelObjectHandle<int> MyCreateObjectTS(int i)
+        public static Calc MyCreateCalcTS(double d1, double d2)
         {
-            Thread.Sleep(i);
-            return new(i);
+            Thread.Sleep((int)d1);
+            return new Calc(d1, d2);
         }
 
         [ExcelFunction(IsThreadSafe = true)]
-        public static int MyUseObjectTS(ExcelObjectHandle<int> h)
+        public static double MyCalcSumTS(Calc c)
         {
-            Thread.Sleep(h.Object);
-            return h.Object;
+            Thread.Sleep((int)c.Sum());
+            return c.Sum();
         }
 
         [ExcelFunction]

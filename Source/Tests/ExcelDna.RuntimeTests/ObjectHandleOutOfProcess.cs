@@ -15,11 +15,11 @@ namespace ExcelDna.RuntimeTests
             {
                 {
                     Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range[$"C{i}"];
-                    functionRange.Formula = $"=MyCreateObjectTS({(i - 1) * 20})";
+                    functionRange.Formula = $"=MyCreateCalcTS({(i - 1) * 20}, 0)";
                 }
                 {
                     Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range[$"D{i}"];
-                    functionRange.Formula = $"=MyUseObjectTS(C{i})";
+                    functionRange.Formula = $"=MyCalcSumTS(C{i})";
                 }
             }
 
