@@ -66,6 +66,13 @@ namespace ExcelDna.AddIn.RuntimeTests
             return $"Hello async task {name}";
         }
 
+        [ExcelAsyncFunction]
+        public static async Task<string> MyAsyncGettingData(string name, int msDelay)
+        {
+            await Task.Delay(msDelay);
+            return $"Hello async task {name}";
+        }
+
         [ExcelFunction]
         public static Task<string> MyTaskHello(string name)
         {
