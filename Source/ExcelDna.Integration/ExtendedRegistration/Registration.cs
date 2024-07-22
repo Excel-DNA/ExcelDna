@@ -14,7 +14,6 @@ namespace ExcelDna.Integration.ExtendedRegistration
             // Set the Parameter Conversions before they are applied by the ProcessParameterConversions call below.
             // CONSIDER: We might change the registration to be an object...?
             var conversionConfig = GetParameterConversionConfig(parameterConversions);
-            var postAsyncReturnConfig = GetPostAsyncReturnConversionConfig();
 
             var functionHandlerConfig = GetFunctionExecutionHandlerConfig(excelFunctionExecutionHandlerSelectors);
 
@@ -22,10 +21,9 @@ namespace ExcelDna.Integration.ExtendedRegistration
                 .UpdateRegistrationsForRangeParameters()
                 .ProcessFunctionProcessors(excelFunctionProcessors, conversionConfig)
                 .ProcessParameterConversions(conversionConfig)
-                .ProcessObjectHandles()
                 .ProcessAsyncRegistrations(nativeAsyncIfAvailable: false)
-                .ProcessParameterConversions(postAsyncReturnConfig)
                 .ProcessParamsRegistrations()
+                .ProcessObjectHandles()
                 .ProcessFunctionExecutionHandlers(functionHandlerConfig)
                 );
         }
@@ -45,17 +43,6 @@ namespace ExcelDna.Integration.ExtendedRegistration
             var attribs = functions.Select(reg => reg.FunctionAttribute).ToList<object>();
             var argAttribs = functions.Select(reg => reg.ParameterRegistrations.Select(pr => pr.ArgumentAttribute).ToList<object>()).ToList();
             ExcelIntegration.RegisterLambdaExpressions(lambdas, attribs, argAttribs);
-        }
-
-        static ParameterConversionConfiguration GetPostAsyncReturnConversionConfig()
-        {
-            // This conversion replaces the default #N/A return value of async functions with the #GETTING_DATA value.
-            // This is not supported on old Excel versions, bu looks nicer these days.
-            // Note that this ReturnConversion does not actually check whether the functions is an async function, 
-            // so all registered functions are affected by this processing.
-            return new ParameterConversionConfiguration()
-                .AddReturnConversion((type, customAttributes) => type != typeof(object) ? null : ((Expression<Func<object, object>>)
-                                                ((object returnValue) => returnValue.Equals(ExcelError.ExcelErrorNA) ? ExcelError.ExcelErrorGettingData : returnValue)));
         }
 
         static ParameterConversionConfiguration GetParameterConversionConfig(IEnumerable<ExcelParameterConversion> parameterConversions)

@@ -182,7 +182,7 @@ namespace ExcelDna.Integration
             {
                 isSupported = false;
             }
-            else if (!IsParameterTypeSupported(mi.ReturnType))
+            else if (!IsPrimitiveParameterType(mi.ReturnType))
             {
                 isSupported = false;
             }
@@ -198,7 +198,7 @@ namespace ExcelDna.Integration
             {
                 foreach (ParameterInfo pi in mi.GetParameters())
                 {
-                    if (pi.IsOptional || !IsParameterTypeSupported(pi.ParameterType))
+                    if (pi.IsOptional || !IsPrimitiveParameterType(pi.ParameterType))
                         isSupported = false;
                 }
             }
@@ -232,7 +232,7 @@ namespace ExcelDna.Integration
             return false;
         }
 
-        static readonly List<Type> _supportedParameterTypes = new List<Type>
+        static readonly List<Type> _primitiveParameterTypes = new List<Type>
         {
             typeof(double),
             typeof(string),
@@ -251,9 +251,9 @@ namespace ExcelDna.Integration
             typeof(void)
         };
 
-        static bool IsParameterTypeSupported(Type type)
+        static public bool IsPrimitiveParameterType(Type type)
         {
-            return _supportedParameterTypes.Contains(type) ||
+            return _primitiveParameterTypes.Contains(type) ||
                    (ExcelDnaUtil.ExcelVersion >= 14.0 && type == typeof(ExcelAsyncHandle));    // Only Excel 2010+
         }
 

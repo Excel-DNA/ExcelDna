@@ -107,6 +107,24 @@ namespace ExcelDna.RuntimeTests
         }
 
         [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
+        public void DefaultAsyncReturnValue()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
+            functionRange.Formula = "=MyAsyncTaskHello(\"world\", 1000)";
+
+            Assert.Equal(-2146826246, functionRange.Value); // #N/A
+        }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
+        public void GettingDataAsyncReturnValue()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
+            functionRange.Formula = "=MyAsyncGettingData(\"world\", 1000)";
+
+            Assert.Equal(-2146826245, functionRange.Value); // #GETTING_DATA
+        }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
         public void TaskInstant()
         {
             Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
@@ -211,10 +229,10 @@ namespace ExcelDna.RuntimeTests
             string b1;
             {
                 Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
-                functionRange1.Formula = "=MyCreateObject(45)";
+                functionRange1.Formula = "=MyCreateCalc(45, 0)";
 
                 Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B2"];
-                functionRange2.Formula = "=MyUseObject(B1)";
+                functionRange2.Formula = "=MyCalcSum(B1)";
 
                 b1 = functionRange1.Value.ToString();
                 Assert.Equal("45", functionRange2.Value.ToString());
@@ -222,10 +240,10 @@ namespace ExcelDna.RuntimeTests
 
             {
                 Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
-                functionRange1.Formula = "=MyCreateObject(45)";
+                functionRange1.Formula = "=MyCreateCalc(45, 0)";
 
                 Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C2"];
-                functionRange2.Formula = "=MyUseObject(C1)";
+                functionRange2.Formula = "=MyCalcSum(C1)";
 
                 Assert.Equal(b1, functionRange1.Value.ToString());
                 Assert.Equal("45", functionRange2.Value.ToString());
@@ -233,10 +251,10 @@ namespace ExcelDna.RuntimeTests
 
             {
                 Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D1"];
-                functionRange1.Formula = "=MyCreateObject(54)";
+                functionRange1.Formula = "=MyCreateCalc(54, 0)";
 
                 Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D2"];
-                functionRange2.Formula = "=MyUseObject(D1)";
+                functionRange2.Formula = "=MyCalcSum(D1)";
 
                 Assert.NotEqual(b1, functionRange1.Value.ToString());
                 Assert.Equal("54", functionRange2.Value.ToString());
@@ -244,10 +262,10 @@ namespace ExcelDna.RuntimeTests
 
             {
                 Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E1"];
-                functionRange1.Formula = "=MyCreateObject2(45)";
+                functionRange1.Formula = "=MyCreateCalc2(45, 0)";
 
                 Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E2"];
-                functionRange2.Formula = "=MyUseObject(E1)";
+                functionRange2.Formula = "=MyCalcSum(E1)";
 
                 Assert.NotEqual(b1, functionRange1.Value.ToString());
                 Assert.Equal("90", functionRange2.Value.ToString());

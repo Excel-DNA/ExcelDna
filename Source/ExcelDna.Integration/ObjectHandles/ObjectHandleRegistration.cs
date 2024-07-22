@@ -16,7 +16,7 @@ namespace ExcelDna.Integration.ObjectHandles
 
             foreach (var reg in registrations)
             {
-                if (IsExcelObjectHandle(reg.FunctionLambda.ReturnType))
+                if (!AssemblyLoader.IsPrimitiveParameterType(reg.FunctionLambda.ReturnType))
                 {
                     EntryFunctionExecutionHandler entryFunctionExecutionHandler = new EntryFunctionExecutionHandler();
 
@@ -54,7 +54,7 @@ namespace ExcelDna.Integration.ObjectHandles
         static LambdaExpression HandleStringConversion(Type type, IExcelFunctionParameter paramReg)
         {
             // Decide whether to return a conversion function for this parameter
-            if (!IsExcelObjectHandle(type))
+            if (AssemblyLoader.IsPrimitiveParameterType(type))
                 return null;
 
             var input = Expression.Parameter(typeof(object), "input");
@@ -79,11 +79,6 @@ namespace ExcelDna.Integration.ObjectHandles
 
             // No object for the handle ...
             return "!!! INVALID HANDLE";
-        }
-
-        static bool IsExcelObjectHandle(Type t)
-        {
-            return t.IsGenericType && t.GetGenericTypeDefinition() == typeof(ExcelObjectHandle<>);
         }
 
         private class EntryFunctionExecutionHandler : FunctionExecutionHandler
