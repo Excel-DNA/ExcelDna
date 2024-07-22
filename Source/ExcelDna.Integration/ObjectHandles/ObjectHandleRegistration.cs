@@ -46,12 +46,12 @@ namespace ExcelDna.Integration.ObjectHandles
             return result;
         }
 
-        static Func<Type, ExcelParameter, LambdaExpression> GetParameterConversion()
+        static Func<Type, IExcelFunctionParameter, LambdaExpression> GetParameterConversion()
         {
             return (type, paramReg) => HandleStringConversion(type, paramReg);
         }
 
-        static LambdaExpression HandleStringConversion(Type type, ExcelParameter paramReg)
+        static LambdaExpression HandleStringConversion(Type type, IExcelFunctionParameter paramReg)
         {
             // Decide whether to return a conversion function for this parameter
             if (AssemblyLoader.IsPrimitiveParameterType(type))

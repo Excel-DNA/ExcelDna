@@ -1,16 +1,47 @@
-﻿using System;
+﻿using ExcelDna.Integration;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace ExcelDna.Integration.ExtendedRegistration
+namespace ExcelDna.AddIn.RuntimeTests
 {
+    /// <summary>
+    /// Attribute for functions that will be mapped to an Excel UDF,
+    /// using property reflection to convert Excel arrays to/from .NET enumerables.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
+    public class MapArrayFunctionAttribute : ExcelFunctionAttribute
+    {
+    }
+
+    /// <summary>
+    /// Optional attribute for parameters and return values of an [MapArrayFunction] function.
+    /// An enumerable of records is mapped to an Excel array, where the first row of the array contains
+    /// column headers which correspond to the public properties of the record type.
+    ///
+    /// E.g.
+    ///     struct Output { int Out; }
+    ///     struct Input  { int In1; int In2; }
+    ///     IEnumerable MyFunc(IEnumerable) { ... }
+    /// In Excel, use an Array Formula, e.g.
+    ///       | A       B       C       
+    ///     --+-------------------------
+    ///     1 | In1     In2     {=MyFunc(A1:B3)} -> Out
+    ///     2 | 1.0     2.0     {=MyFunc(A1:B3)} -> 1.5
+    ///     3 | 2.0     3.0     {=MyFunc(A1:B3)} -> 2.5
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue, Inherited = false, AllowMultiple = false)]
+    public class MapPropertiesToColumnHeadersAttribute : Attribute
+    {
+    }
+
     internal static class MapArrayFunctionRegistration
     {
         /// <summary>
-        /// Modifies RegistrationEntries which have [ExcelMapArrayFunction],
+        /// Modifies RegistrationEntries which have [MapArrayFunction],
         /// converting IEnumerable parameters to and from Excel Ranges (i.e. object[,]).
         /// This allows idiomatic .NET functions (which use sequences and lists) to be used as UDFs.
         /// 
@@ -18,15 +49,16 @@ namespace ExcelDna.Integration.ExtendedRegistration
         /// 
         /// 1-dimensional Excel arrays are mapped automatically to/from IEnumerable.
         /// 2-dimensional Excel arrays can be mapped to a single function parameter with
-        /// [ExcelMapPropertiesToColumnHeaders].
+        /// [MapPropertiesToColumnHeaders].
         /// </summary>
-        public static IEnumerable<ExcelFunction> ProcessMapArrayFunctions(
-            this IEnumerable<ExcelFunction> registrations,
-            ParameterConversionConfiguration config = null)
+        [ExcelFunctionProcessor]
+        public static IEnumerable<IExcelFunctionInfo> ProcessMapArrayFunctions(
+            IEnumerable<IExcelFunctionInfo> registrations,
+            IExcelFunctionRegistrationConfiguration config)
         {
             foreach (var reg in registrations)
             {
-                if (!(reg.FunctionAttribute is ExcelMapArrayFunctionAttribute))
+                if (!(reg.FunctionAttribute is MapArrayFunctionAttribute))
                 {
                     // Not considered at all
                     yield return reg;
@@ -35,9 +67,9 @@ namespace ExcelDna.Integration.ExtendedRegistration
 
                 try
                 {
-                    var inputShimParameters = reg.FunctionLambda.Parameters.ZipSameLengths(reg.ParameterRegistrations,
+                    var inputShimParameters = reg.FunctionLambda.Parameters.ZipSameLengths(reg.Parameters,
                                         (p, r) => new ShimParameter(p.Type, r, config)).ToList();
-                    var resultShimParameter = new ShimParameter(reg.FunctionLambda.ReturnType, reg.ReturnRegistration, config);
+                    var resultShimParameter = new ShimParameter(reg.FunctionLambda.ReturnType, reg.Return, config);
 
                     // create the shim function as a lambda, using reflection
                     LambdaExpression shim = MakeObjectArrayShim(
@@ -56,10 +88,10 @@ namespace ExcelDna.Integration.ExtendedRegistration
                     reg.FunctionLambda = shim;
                     if (String.IsNullOrEmpty(reg.FunctionAttribute.Description))
                         reg.FunctionAttribute.Description = functionDescription;
-                    for (int param = 0; param != reg.ParameterRegistrations.Count; ++param)
+                    for (int param = 0; param != reg.Parameters.Count; ++param)
                     {
-                        if (String.IsNullOrEmpty(reg.ParameterRegistrations[param].ArgumentAttribute.Description))
-                            reg.ParameterRegistrations[param].ArgumentAttribute.Description =
+                        if (String.IsNullOrEmpty(reg.Parameters[param].ArgumentAttribute.Description))
+                            reg.Parameters[param].ArgumentAttribute.Description =
                                 parameterDescriptions[param];
                     }
                 }
@@ -150,7 +182,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             private Type EnumeratedType { set; get; }
 
             /// <summary>
-            /// If the target function's parameter or return type is marked with [ExcelMapPropertiesToColumnHeaders]
+            /// If the target function's parameter or return type is marked with [MapPropertiesToColumnHeaders]
             /// and mapping was successful, then this is a list of the properties to map.
             /// Else null.
             /// </summary>
@@ -194,7 +226,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
 
                 EnumeratedType = typeArgs[0];
 
-                if (!customAttributes.OfType<ExcelMapPropertiesToColumnHeadersAttribute>().Any())
+                if (!customAttributes.OfType<MapPropertiesToColumnHeadersAttribute>().Any())
                     return;
 
                 PropertyInfo[] recordProperties =
@@ -208,36 +240,35 @@ namespace ExcelDna.Integration.ExtendedRegistration
 
             private Func<object, object>[] PropertyConverters { set; get; }
 
-            ExcelParameter ParameterRegistration { set; get; }
+            IExcelFunctionParameter ParameterRegistration { set; get; }
 
-            void PreparePropertyConverters<Registration>(ParameterConversionConfiguration config,
-                Registration reg, Func<ParameterConversionConfiguration, Type, Registration, LambdaExpression> getConversion)
+            void PreparePropertyConverters<Registration>(Registration reg, Func<Type, Registration, LambdaExpression> getConversion)
             {
                 Type[] propTypes = (MappedProperties == null)
                     ? new[] { EnumeratedType ?? Type }
                     : Array.ConvertAll(MappedProperties, p => p.PropertyType);
                 LambdaExpression[] lambdas = Array.ConvertAll(propTypes,
-                    pt => (config == null) ? null : getConversion(config, EnumeratedType ?? Type, reg));
+                    pt => getConversion(EnumeratedType ?? Type, reg));
                 lambdas = Array.ConvertAll(lambdas, l => CastParamAndResult(l, typeof(object)));
                 PropertyConverters = Array.ConvertAll(lambdas,
                     l => (l == null) ? null : (Func<object, object>)l.Compile());
             }
 
-            public ShimParameter(Type type, ExcelParameter reg, ParameterConversionConfiguration config)
+            public ShimParameter(Type type, IExcelFunctionParameter reg, IExcelFunctionRegistrationConfiguration config)
                 : this(type, reg.CustomAttributes)
             {
                 // Try to find a converter for EnumeratedType
                 ParameterRegistration = reg;
-                PreparePropertyConverters(config, reg, ParameterConversionRegistration.GetParameterConversion);
+                PreparePropertyConverters(reg, config.GetParameterConversion);
             }
 
-            ExcelReturn ReturnRegistration { set; get; }
+            IExcelFunctionReturn ReturnRegistration { set; get; }
 
-            public ShimParameter(Type type, ExcelReturn reg, ParameterConversionConfiguration config)
+            public ShimParameter(Type type, IExcelFunctionReturn reg, IExcelFunctionRegistrationConfiguration config)
                 : this(type, reg.CustomAttributes)
             {
                 ReturnRegistration = reg;
-                PreparePropertyConverters(config, reg, ParameterConversionRegistration.GetReturnConversion);
+                PreparePropertyConverters(reg, config.GetReturnConversion);
             }
 
             /// <summary>
@@ -564,4 +595,5 @@ namespace ExcelDna.Integration.ExtendedRegistration
 
         #endregion
     }
+
 }

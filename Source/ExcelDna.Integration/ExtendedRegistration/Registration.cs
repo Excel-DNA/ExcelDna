@@ -9,7 +9,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
 {
     internal class Registration
     {
-        public static void RegisterExtended(IEnumerable<ExcelFunction> functions, IEnumerable<ExcelParameterConversion> parameterConversions, IEnumerable<FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors)
+        public static void RegisterExtended(IEnumerable<ExcelFunction> functions, IEnumerable<ExcelParameterConversion> parameterConversions, IEnumerable<ExcelFunctionProcessor> excelFunctionProcessors, IEnumerable<FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors)
         {
             // Set the Parameter Conversions before they are applied by the ProcessParameterConversions call below.
             // CONSIDER: We might change the registration to be an object...?
@@ -19,7 +19,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
 
             Register(functions
                 .UpdateRegistrationsForRangeParameters()
-                .ProcessMapArrayFunctions(conversionConfig)
+                .ProcessFunctionProcessors(excelFunctionProcessors, conversionConfig)
                 .ProcessParameterConversions(conversionConfig)
                 .ProcessAsyncRegistrations(nativeAsyncIfAvailable: false)
                 .ProcessParamsRegistrations()

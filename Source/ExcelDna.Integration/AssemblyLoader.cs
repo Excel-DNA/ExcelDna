@@ -28,6 +28,7 @@ namespace ExcelDna.Integration
                     List<ExportedAssembly> assemblies,
                     List<MethodInfo> methods,
                     List<ExtendedRegistration.ExcelParameterConversion> excelParameterConversions,
+                    List<ExtendedRegistration.ExcelFunctionProcessor> excelFunctionProcessors,
                     List<ExtendedRegistration.ExcelFunction> excelFunctionsExtendedRegistration,
                     List<FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors,
                     List<ExcelAddInInfo> addIns,
@@ -74,6 +75,7 @@ namespace ExcelDna.Integration
                         if (!explicitRegistration)
                         {
                             GetExcelParameterConversions(type, excelParameterConversions);
+                            GetExcelFunctionProcessors(type, excelFunctionProcessors);
                             GetExcelMethods(type, explicitExports, methods, excelFunctionsExtendedRegistration);
                             GetExcelFunctionExecutionHandlerSelectors(type, excelFunctionExecutionHandlerSelectors);
                         }
@@ -102,6 +104,18 @@ namespace ExcelDna.Integration
                 if (IsParameterConversion(mi))
                 {
                     excelParameterConversions.Add(new ExtendedRegistration.ExcelParameterConversion(mi));
+                }
+            }
+        }
+
+        static void GetExcelFunctionProcessors(Type t, List<ExtendedRegistration.ExcelFunctionProcessor> excelFunctionProcessors)
+        {
+            MethodInfo[] mis = t.GetMethods(BindingFlags.Public | BindingFlags.Static);
+            foreach (MethodInfo mi in mis)
+            {
+                if (IsFunctionProcessor(mi))
+                {
+                    excelFunctionProcessors.Add(new ExtendedRegistration.ExcelFunctionProcessor(mi));
                 }
             }
         }
@@ -194,30 +208,12 @@ namespace ExcelDna.Integration
 
         static bool IsExcelAsyncFunction(MethodInfo mi)
         {
-            object[] atts = mi.GetCustomAttributes(false);
-            foreach (object att in atts)
-            {
-                Type attType = att.GetType();
-                if (TypeHasAncestorWithFullName(attType, "ExcelDna.Integration.ExcelAsyncFunctionAttribute"))
-                {
-                    return true;
-                }
-            }
-            return false;
+            return HasCustomAttribute(mi, "ExcelDna.Integration.ExcelAsyncFunctionAttribute");
         }
 
         static bool IsExcelFunctionExecutionHandlerSelector(MethodInfo mi)
         {
-            object[] atts = mi.GetCustomAttributes(false);
-            foreach (object att in atts)
-            {
-                Type attType = att.GetType();
-                if (TypeHasAncestorWithFullName(attType, "ExcelDna.Integration.ExcelFunctionExecutionHandlerSelectorAttribute"))
-                {
-                    return true;
-                }
-            }
-            return false;
+            return HasCustomAttribute(mi, "ExcelDna.Integration.ExcelFunctionExecutionHandlerSelectorAttribute");
         }
 
         // CAUTION: This check needs to match the usage in ExcelDna.Loader.XlMethodInfo.SetAttributeInfo()
@@ -412,11 +408,21 @@ namespace ExcelDna.Integration
 
         private static bool IsParameterConversion(MethodInfo methodInfo)
         {
+            return HasCustomAttribute(methodInfo, "ExcelDna.Integration.ExcelParameterConversionAttribute");
+        }
+
+        private static bool IsFunctionProcessor(MethodInfo methodInfo)
+        {
+            return HasCustomAttribute(methodInfo, "ExcelDna.Integration.ExcelFunctionProcessorAttribute");
+        }
+
+        private static bool HasCustomAttribute(MethodInfo methodInfo, string attributeName)
+        {
             object[] atts = methodInfo.GetCustomAttributes(false);
             foreach (object att in atts)
             {
                 Type attType = att.GetType();
-                if (TypeHasAncestorWithFullName(attType, "ExcelDna.Integration.ExcelParameterConversionAttribute"))
+                if (TypeHasAncestorWithFullName(attType, attributeName))
                 {
                     return true;
                 }

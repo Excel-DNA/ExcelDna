@@ -12,7 +12,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             return registrations.Select(UpdateAttributesForRangeParameters);
         }
 
-        public static Expression<Func<object, Microsoft.Office.Interop.Excel.Range>> GetRangeParameterConversion(Type paramType, ExcelParameter paramRegistration)
+        public static Expression<Func<object, Microsoft.Office.Interop.Excel.Range>> GetRangeParameterConversion(Type paramType, IExcelFunctionParameter paramRegistration)
         {
             if (!IsRange(paramType))
                 return null;

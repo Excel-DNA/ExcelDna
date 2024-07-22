@@ -14,12 +14,12 @@ namespace ExcelDna.Integration.ExtendedRegistration
             this.MethodInfo = methodInfo;
         }
 
-        public Func<Type, ExcelParameter, LambdaExpression> GetConversion()
+        public Func<Type, IExcelFunctionParameter, LambdaExpression> GetConversion()
         {
             return (type, paramReg) => CreateConversion(type, paramReg);
         }
 
-        private LambdaExpression CreateConversion(Type type, ExcelParameter paramReg)
+        private LambdaExpression CreateConversion(Type type, IExcelFunctionParameter paramReg)
         {
             if (type != MethodInfo.ReturnType)
                 return null;

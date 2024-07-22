@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace ExcelDna.Integration.ExtendedRegistration
 {
-    internal class ExcelParameter
+    internal class ExcelParameter : IExcelFunctionParameter
     {
         // Used for the final Excel-DNA registration
         public ExcelArgumentAttribute ArgumentAttribute { get; private set; }
