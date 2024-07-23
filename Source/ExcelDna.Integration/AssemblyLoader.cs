@@ -39,7 +39,14 @@ namespace ExcelDna.Integration
 
             foreach (ExportedAssembly assembly in assemblies)
             {
-                int initialObjectsCount = methods.Count + addIns.Count + rtdServerTypes.Count + comClassTypes.Count;
+                int initialObjectsCount = methods.Count +
+                    excelParameterConversions.Count +
+                    excelFunctionProcessors.Count +
+                    excelFunctionsExtendedRegistration.Count +
+                    excelFunctionExecutionHandlerSelectors.Count +
+                    addIns.Count +
+                    rtdServerTypes.Count +
+                    comClassTypes.Count;
                 Logger.Initialization.Verbose("Processing assembly {0}. ExplicitExports {1}, ExplicitRegistration {2}, ComServer {3}, IsDynamic {4}",
                     assembly.Assembly.FullName, assembly.ExplicitExports, assembly.ExplicitRegistration, assembly.ComServer, assembly.IsDynamic);
                 // Patch contributed by y_i on CodePlex:
@@ -89,7 +96,14 @@ namespace ExcelDna.Integration
                     }
                 }
 
-                if (methods.Count + addIns.Count + rtdServerTypes.Count + comClassTypes.Count == initialObjectsCount)
+                if (methods.Count +
+                    excelParameterConversions.Count +
+                    excelFunctionProcessors.Count +
+                    excelFunctionsExtendedRegistration.Count +
+                    excelFunctionExecutionHandlerSelectors.Count +
+                    addIns.Count +
+                    rtdServerTypes.Count +
+                    comClassTypes.Count == initialObjectsCount)
                 {
                     Logger.Initialization.Error("No objects loaded from {0}", assembly.Assembly.FullName);
                 }
