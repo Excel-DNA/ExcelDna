@@ -39,21 +39,22 @@ namespace ExcelDna.Integration.ExtendedRegistration
                         var paramsArgAttrib = lastParam.ArgumentAttribute;
                         paramsArgAttrib.Name = paramsArgAttrib.Name + "1";
 
-                        // Add the ellipse argument
-                        reg.ParameterRegistrations.Add(
-                            new ExcelParameter(
-                                new ExcelArgumentAttribute
-                                {
-                                    Name = "...",
-                                    Description = paramsArgAttrib.Description,
-                                    AllowReference = paramsArgAttrib.AllowReference
-                                }));
+                        // Add the ellipsis argument
+                        ExcelParameter newParameter = new ExcelParameter(
+                                    new ExcelArgumentAttribute
+                                    {
+                                        Name = "...",
+                                        Description = paramsArgAttrib.Description,
+                                        AllowReference = paramsArgAttrib.AllowReference
+                                    });
+                        newParameter.CustomAttributes.AddRange(lastParam.CustomAttributes);
+                        reg.ParameterRegistrations.Add(newParameter);
 
                         // And the rest with no Name, but copying the description
                         var restCount = reg.FunctionLambda.Parameters.Count - reg.ParameterRegistrations.Count;
                         for (int i = 0; i < restCount; i++)
                         {
-                            ExcelParameter newParameter = new ExcelParameter(
+                            newParameter = new ExcelParameter(
                                     new ExcelArgumentAttribute
                                     {
                                         Name = string.Empty,
