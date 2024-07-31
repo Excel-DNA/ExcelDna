@@ -34,11 +34,21 @@ namespace ExcelDna.RuntimeTests
         public void Disposable()
         {
             {
+                Range functionRangeC1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
+                functionRangeC1.Formula = "=MyGetCreatedDisposableObjectsCount()";
+                int initialCreatedObjectsCount = (int)functionRangeC1.Value;
+
                 Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
                 functionRange1.Formula = "=MyCreateDisposableObject(1)";
 
                 Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B2"];
                 functionRange2.Formula = "=MyGetDisposableObjectsCount()";
+
+                Range functionRangeC2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C2"];
+                functionRangeC2.Formula = "=MyGetCreatedDisposableObjectsCount()";
+                int finalCreatedObjectsCount = (int)functionRangeC2.Value;
+
+                Assert.Equal(1, finalCreatedObjectsCount - initialCreatedObjectsCount);
 
                 Assert.Equal("1", functionRange2.Value.ToString());
             }

@@ -123,7 +123,9 @@ namespace ExcelDna.AddIn.RuntimeTests
         [ExcelFunction]
         public static string MyFunctionExecutionLog()
         {
-            return Logger.GetLog();
+            string result = Logger.GetLog();
+            Logger.ClearLog();
+            return result;
         }
 
         [ExcelFunction]
@@ -154,6 +156,12 @@ namespace ExcelDna.AddIn.RuntimeTests
         public static int MyGetDisposableObjectsCount()
         {
             return DisposableObject.ObjectsCount;
+        }
+
+        [ExcelFunction]
+        public static int MyGetCreatedDisposableObjectsCount()
+        {
+            return DisposableObject.CreatedObjectsCount;
         }
 
         [ExcelFunction(IsThreadSafe = true)]
