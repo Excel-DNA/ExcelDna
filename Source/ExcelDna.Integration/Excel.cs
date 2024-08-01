@@ -11,6 +11,8 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ExcelDna.Integration
 {
@@ -781,6 +783,23 @@ namespace ExcelDna.Integration
                 }
                 return _supportsDynamicArrays.Value;
             }
+        }
+        #endregion
+
+        #region Packed Files
+        /// <summary>Returns the names of all the resources packed in the XLL.</summary>
+        /// <returns>An enumerable that contains the names of all the resources.</returns>
+        public static IEnumerable<string> GetPackedFileNames()
+        {
+            return DnaLibrary.CurrentLibrary.Files.Select(f => f.Name);
+        }
+
+        /// <summary>Loads the specified resource from the XLL.</summary>
+        /// <param name="name">The case-sensitive name of the resource being requested.</param>
+        /// <returns>The resource; or <see langword="null" /> if the resource does not exist in the XLL.</returns>
+        public static byte[] GetPackedFileBytes(string name)
+        {
+            return DnaLibrary.CurrentLibrary.GetFileBytes(name);
         }
         #endregion
     }

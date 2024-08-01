@@ -203,6 +203,14 @@ namespace ExcelDna.Integration
             set { _Images = value; }
         }
 
+        private List<DnaFile> _Files;
+        [XmlElement("File", typeof(DnaFile))]
+        public List<DnaFile> Files
+        {
+            get { return _Files; }
+            set { _Files = value; }
+        }
+
         private string dnaResolveRoot;
 
         // Get projects explicit and implicitly present in the library
@@ -735,6 +743,40 @@ namespace ExcelDna.Integration
                         }
                         Logger.Initialization.Warn("DnaLibrary.GetImage - Image {0} read from {1} was not a bitmap!?", image.Name, image.Path);
                     }
+                }
+            }
+            return null;
+        }
+
+        public byte[] GetFileBytes(string fileId)
+        {
+            // TODO: Consider if this should be a Stream instead of a byte[]
+            // This would allow for larger files to be handled more efficiently.
+
+            // First check if fileId is in the DnaLibrary's File list.
+            // DOCUMENT: Case sensitive match.
+            foreach (DnaFile file in Files)
+            {
+                if (file.Name == fileId && file.Path != null)
+                {
+                    byte[] fileBytes;
+                    if (file.Path.StartsWith("packed:"))
+                    {
+                        string resourceName = file.Path.Substring(7);
+                        fileBytes = ExcelIntegration.GetFileBytes(resourceName);
+                    }
+                    else
+                    {
+                        string filePath = ResolvePath(file.Path);
+                        if (filePath == null)
+                        {
+                            // This is the file but we could not find it !?
+                            Logger.Initialization.Warn("DnaLibrary.GetFile - For file {0} the path resolution failed: {1}", file.Name, file.Path);
+                            return null;
+                        }
+                        fileBytes = File.ReadAllBytes(filePath);
+                    }
+                    return fileBytes;
                 }
             }
             return null;
