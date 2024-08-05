@@ -11,17 +11,17 @@ namespace ExcelDna.Integration.ObjectHandles
         // Tries to get an existing handle for the given function and parameters.
         // If there is no existing handle, creates a new handle with the target provided by evaluating the delegate 'func'
         // (with the given function and parameters).
-        public static object GetHandle(string callerFunctionName, object callerParameters, object userObject, out bool newHandle)
+        public static object GetHandle(string callerFunctionName, object callerParameters, object userObject)
         {
-            bool newHandleCreated = false;
             object result = ExcelAsyncUtil.Observe(callerFunctionName, callerParameters, () =>
             {
+                if (userObject is LazyLambda lazyLambda)
+                    userObject = lazyLambda.Invoke();
+
                 var handleInfo = new HandleInfo(callerFunctionName, userObject);
                 _objects.TryAdd(handleInfo.Handle, handleInfo);
-                newHandleCreated = true;
                 return handleInfo;
             });
-            newHandle = newHandleCreated;
 
             return result;
         }

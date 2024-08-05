@@ -18,6 +18,8 @@ namespace ExcelDna.Integration.ObjectHandles
             {
                 if (!AssemblyLoader.IsPrimitiveParameterType(reg.FunctionLambda.ReturnType))
                 {
+                    reg.FunctionLambda = LazyLambda.Create(reg.FunctionLambda);
+
                     EntryFunctionExecutionHandler entryFunctionExecutionHandler = new EntryFunctionExecutionHandler();
 
                     reg.FunctionLambda = FunctionExecutionRegistration.ApplyMethodHandler(reg.FunctionAttribute.Name, reg.FunctionLambda, entryFunctionExecutionHandler);
@@ -38,10 +40,7 @@ namespace ExcelDna.Integration.ObjectHandles
 
         static object GetReturnConversion(object value, string callerFunctionName, EntryFunctionExecutionHandler entryFunctionExecutionHandler)
         {
-            bool newHandle;
-            object result = ObjectHandler.GetHandle(callerFunctionName, entryFunctionExecutionHandler.GetArguments(Thread.CurrentThread.ManagedThreadId), value, out newHandle);
-            if (!newHandle)
-                (value as IDisposable)?.Dispose();
+            object result = ObjectHandler.GetHandle(callerFunctionName, entryFunctionExecutionHandler.GetArguments(Thread.CurrentThread.ManagedThreadId), value);
 
             return result;
         }
