@@ -166,10 +166,7 @@ internal static class ResourceHelper
             try
             {
                 byte[] assemblyBytes = File.ReadAllBytes(path);
-                // Not just into the Reflection context, because this Load is used to get the name and also to 
-                // check that the assembly can Load from bytes (mixed assemblies can't).
-                Assembly assembly = Assembly.Load(assemblyBytes);
-                AssemblyName assemblyName = assembly.GetName();
+                AssemblyName assemblyName = AssemblyName.GetAssemblyName(path);
                 CultureInfo cultureInfo = assemblyName.CultureInfo;
                 string name = assemblyName.Name.ToUpperInvariant(); // .ToUpperInvariant().Replace(".", "_");
 

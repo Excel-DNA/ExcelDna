@@ -15,7 +15,18 @@
 
         public static string GetLog()
         {
-            return log;
+            lock (logLock)
+            {
+                return log;
+            }
+        }
+
+        public static void ClearLog()
+        {
+            lock (logLock)
+            {
+                log = "";
+            }
         }
     }
 }
