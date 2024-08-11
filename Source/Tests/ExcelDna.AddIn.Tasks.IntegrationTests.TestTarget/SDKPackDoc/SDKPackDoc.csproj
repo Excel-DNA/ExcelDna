@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <UseWindowsForms>True</UseWindowsForms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ExcelDnaDoc" Version="1.8.0" />
+  </ItemGroup>
+
+  <Import Project="$(ProjectDir)..\..\.exceldna.addin\build\ExcelDna.AddIn.targets" />
+
+</Project>
