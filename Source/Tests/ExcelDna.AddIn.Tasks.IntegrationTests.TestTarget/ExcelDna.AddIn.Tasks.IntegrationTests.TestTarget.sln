@@ -124,6 +124,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NET6CustomRuntimeConfigurat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NET6Channels", "NET6Channels\NET6Channels.csproj", "{9C2E092D-08B3-453D-A18B-7B66EF3D212F}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NET6LoadFromBytes", "NET6LoadFromBytes\NET6LoadFromBytes.csproj", "{2AB7042E-E54F-4EFD-A5B7-5D1BAE005D17}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -370,6 +372,10 @@ Global
 		{9C2E092D-08B3-453D-A18B-7B66EF3D212F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9C2E092D-08B3-453D-A18B-7B66EF3D212F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9C2E092D-08B3-453D-A18B-7B66EF3D212F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2AB7042E-E54F-4EFD-A5B7-5D1BAE005D17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2AB7042E-E54F-4EFD-A5B7-5D1BAE005D17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2AB7042E-E54F-4EFD-A5B7-5D1BAE005D17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2AB7042E-E54F-4EFD-A5B7-5D1BAE005D17}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -457,6 +457,9 @@ namespace ExcelDna.AddIn.Tasks
             if (ComServer)
                 result = result.Replace("<ExternalLibrary ", "<ExternalLibrary " + "ComServer=\"true\" ");
 
+            if (!LoadFromBytes)
+                result = result.Replace("LoadFromBytes=\"true\"", "LoadFromBytes=\"false\"");
+
             return result.Replace("%OutputFileName%", dllFileName);
         }
 
@@ -773,6 +776,11 @@ namespace ExcelDna.AddIn.Tasks
         /// Enable/disable COM Server support
         /// </summary>
         public bool ComServer { get; set; }
+
+        /// <summary>
+        /// Enable/disable more dynamic .dll loading
+        /// </summary>
+        public bool LoadFromBytes { get; set; }
 
         /// <summary>
         /// The list of .dna files copied to the output
