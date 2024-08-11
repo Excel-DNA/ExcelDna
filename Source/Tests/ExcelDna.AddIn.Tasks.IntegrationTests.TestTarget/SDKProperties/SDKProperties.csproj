@@ -173,6 +173,10 @@
     <!-- Default value: false -->
     <ExcelAddInComServer></ExcelAddInComServer>
 
+    <!-- Enable/disable more dynamic .dll loading. -->
+    <!-- Default value: true -->
+    <ExcelAddInLoadFromBytes></ExcelAddInLoadFromBytes>
+
     <!-- We don't need the extra 'ref' directory and reference assemblies for the Excel add-in -->
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 
