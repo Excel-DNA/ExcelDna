@@ -4,5 +4,6 @@
 		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 		<ExcelDnaPackNativeLibraryDependencies>true</ExcelDnaPackNativeLibraryDependencies>
 		<ExcelDnaPackManagedDependencies>true</ExcelDnaPackManagedDependencies>
+		<ExcelAddInLoadFromBytes>true</ExcelAddInLoadFromBytes>
 	</PropertyGroup>
 </Project>
