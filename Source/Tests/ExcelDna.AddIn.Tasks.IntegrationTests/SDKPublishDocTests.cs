@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System.IO;
 
 namespace ExcelDna.AddIn.Tasks.IntegrationTests
 {
@@ -18,7 +19,7 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
             for (int i = 0; i < 2; ++i)
                 MsBuild(projectBasePath + "SDKPublishDoc.csproj /t:Restore,Build /p:Configuration=Release /v:m " + MsBuildParam("OutputPath", @"bin\Release\"));
 
-            AssertOutput(publishDir, "*.chm", "SDKPublishDoc-AddIn.chm");
+            AssertNotFound(Path.Combine(publishDir, "SDKPublishDoc-AddIn.chm"));
         }
     }
 }

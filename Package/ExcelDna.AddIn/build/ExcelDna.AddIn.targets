@@ -282,6 +282,7 @@
 		OutputDnaFileName="%(ExcelDnaFilesToPack.OutputDnaFileName)"
 		OutputPackedXllFileName="%(ExcelDnaFilesToPack.OutputPackedXllFileName)"
 		OutputBitness="%(ExcelDnaFilesToPack.OutputBitness)"
+		DocPath="%(ExcelDnaFilesToPack.DocPath)"
 		CompressResources="$(ExcelDnaPackCompressResources)"
 		RunMultithreaded="$(ExcelDnaPackRunMultithreaded)"
 		PackNativeLibraryDependencies="$(ExcelDnaPackNativeLibraryDependencies)"
