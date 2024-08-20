@@ -6,7 +6,7 @@ namespace ExcelDna.Loader
 {
     internal static class DocUtil
     {
-        static string LoaderTempDir = Path.Combine(Path.GetTempPath(), "ExcelDna.Loader", Guid.NewGuid().ToString());
+        static string tempDocDir;
 
         public static string FixHelpTopic(string helpTopic)
         {
@@ -42,7 +42,8 @@ namespace ExcelDna.Loader
         {
             try
             {
-                Directory.Delete(LoaderTempDir, true);
+                if (tempDocDir != null)
+                    Directory.Delete(tempDocDir, true);
             }
             catch
             {
@@ -60,15 +61,18 @@ namespace ExcelDna.Loader
 
         private static string TryFixPacked(string helpTopic)
         {
-            Directory.CreateDirectory(LoaderTempDir);
+            if (tempDocDir == null)
+                tempDocDir = Path.Combine(XlAddIn.TempDirPath, Guid.NewGuid().ToString());
+
+            Directory.CreateDirectory(tempDocDir);
 
             string fileName = GetFileName(helpTopic);
             byte[] data = XlAddIn.GetResourceBytes(fileName, 6);
-            string filePath = Path.Combine(LoaderTempDir, fileName);
+            string filePath = Path.Combine(tempDocDir, fileName);
             File.WriteAllBytes(filePath, data);
 
             if (File.Exists(filePath))
-                return Path.Combine(LoaderTempDir, helpTopic);
+                return Path.Combine(tempDocDir, helpTopic);
 
             return helpTopic;
         }

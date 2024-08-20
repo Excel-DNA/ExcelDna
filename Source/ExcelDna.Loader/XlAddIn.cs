@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -59,6 +60,7 @@ namespace ExcelDna.Loader
 
         // Consider: When does this become an interface. etc
         internal static string PathXll { get; private set; }
+        internal static string TempDirPath { get; private set; }
         internal static Func<string, int, byte[]> GetResourceBytes;  // Passed in from Loader
         internal static Func<string, Assembly> LoadAssemblyFromPath;  // Passed in from Loader
         internal static Func<byte[], byte[], Assembly> LoadAssemblyFromBytes;  // Passed in from Loader
@@ -77,7 +79,7 @@ namespace ExcelDna.Loader
 
         #region Initialization
 
-        public static bool Initialize(IntPtr xlAddInExportInfoAddress, IntPtr hModuleXll, string pathXll,
+        public static bool Initialize(IntPtr xlAddInExportInfoAddress, IntPtr hModuleXll, string pathXll, string tempDirPath,
                                              Func<string, int, byte[]> getResourceBytes,
                                              Func<string, Assembly> loadAssemblyFromPath,
                                              Func<byte[], byte[], Assembly> loadAssemblyFromBytes,
@@ -85,6 +87,7 @@ namespace ExcelDna.Loader
         {
             XlAddIn.hModuleXll = hModuleXll;
             XlAddIn.PathXll = pathXll;
+            XlAddIn.TempDirPath = Path.Combine(tempDirPath ?? Path.GetTempPath(), "ExcelDna.Loader");
             XlAddIn.GetResourceBytes = getResourceBytes;
             XlAddIn.LoadAssemblyFromPath = loadAssemblyFromPath;
             XlAddIn.LoadAssemblyFromBytes = loadAssemblyFromBytes;

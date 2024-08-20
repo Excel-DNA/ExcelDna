@@ -47,7 +47,7 @@ namespace ExcelDna.ManagedHost
             var loaderAssembly = _alc.LoadFromAssemblyName(new AssemblyName("ExcelDna.Loader"));
             var xlAddInType = loaderAssembly.GetType("ExcelDna.Loader.XlAddIn");
             var initOK = (bool)xlAddInType.InvokeMember("Initialize", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null,
-                new object[] { (IntPtr)xlAddInExportInfoAddress, (IntPtr)hModuleXll, pathXll,
+                new object[] { (IntPtr)xlAddInExportInfoAddress, (IntPtr)hModuleXll, pathXll, tempDirPath,
                     (Func<string, int, byte[]>)AssemblyManager.GetResourceBytes,
                     (Func<string, Assembly>)_alc.LoadFromAssemblyPath,
                     (Func<byte[], byte[], Assembly>)_alc.LoadFromAssemblyBytes,
@@ -106,7 +106,7 @@ namespace ExcelDna.ManagedHost
                 Func<byte[], byte[], Assembly> loadFromAssemblyBytes,
                 Action<TraceSource> setIntegrationTraceSource)
         {
-            return XlAddIn.Initialize(xlAddInExportInfoAddress, hModuleXll, pathXll, getResourceBytes, loadFromAssemblyPath, loadFromAssemblyBytes, setIntegrationTraceSource);
+            return XlAddIn.Initialize(xlAddInExportInfoAddress, hModuleXll, pathXll, null, getResourceBytes, loadFromAssemblyPath, loadFromAssemblyBytes, setIntegrationTraceSource);
         }
     }
 #endif
