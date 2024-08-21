@@ -13,5 +13,15 @@ namespace SDKPackDoc
         {
             return string.Concat(a.ToString(), b.ToString());
         }
+
+        [ExcelFunction(Name = "Text.ConcatThemCustom",
+                Description = "concatenates two strings (with custom help file name)",
+                HelpTopic = "MyCustomFileName.chm!1003")]
+        public static object ConcatThemCustom(
+    [ExcelArgument(Description = "the first string")] object a,
+    [ExcelArgument(Description = "the second string")] object b)
+        {
+            return string.Concat(a.ToString(), b.ToString());
+        }
     }
 }

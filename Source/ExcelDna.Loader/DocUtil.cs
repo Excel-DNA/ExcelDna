@@ -67,9 +67,14 @@ namespace ExcelDna.Loader
             Directory.CreateDirectory(tempDocDir);
 
             string fileName = GetFileName(helpTopic);
-            byte[] data = XlAddIn.GetResourceBytes(fileName, 6);
             string filePath = Path.Combine(tempDocDir, fileName);
-            File.WriteAllBytes(filePath, data);
+
+            if (!File.Exists(filePath))
+            {
+                byte[] data = XlAddIn.GetResourceBytes(fileName, 6);
+                if (data != null)
+                    File.WriteAllBytes(filePath, data);
+            }
 
             if (File.Exists(filePath))
                 return Path.Combine(tempDocDir, helpTopic);
