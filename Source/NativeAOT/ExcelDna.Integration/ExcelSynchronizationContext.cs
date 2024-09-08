@@ -10,7 +10,6 @@ using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using System.Windows.Forms;
 using ExcelDna.Integration.Rtd;
 using ExcelDna.Logging;
 
@@ -527,8 +526,10 @@ namespace ExcelDna.Integration
 
     // SynchronizationWindow installs a window on the main Excel message loop, 
     // to allow us to jump onto the main thread for calling RTD update notifications and running macros.
-    sealed class SynchronizationWindow : NativeWindow, IDisposable
+    sealed class SynchronizationWindow : /*NativeWindow,*/ IDisposable
     {
+        public IntPtr Handle;
+
         [DllImport("user32.dll", SetLastError = true)]
         static extern bool PostMessage(HandleRef hwnd, int msg, IntPtr wparam, IntPtr lparam);
 
@@ -551,11 +552,11 @@ namespace ExcelDna.Integration
 
         public SynchronizationWindow()
         {
-            CreateParams cp = new CreateParams();
-            if (Environment.OSVersion.Version.Major >= 5)
-                cp.Parent = HWND_MESSAGE;
+            //CreateParams cp = new CreateParams();
+            //if (Environment.OSVersion.Version.Major >= 5)
+            //    cp.Parent = HWND_MESSAGE;
 
-            CreateHandle(cp);
+            //CreateHandle(cp);
             RtdUpdateSynchronization = new RtdUpdateSynchronization(this);
             RunMacroSynchronization = new RunMacroSynchronization(this);
         }
@@ -677,27 +678,27 @@ namespace ExcelDna.Integration
             }
         }
 
-        protected override void WndProc(ref Message m)
-        {
-            switch (m.Msg)
-            {
-                case WM_UPDATENOTIFY:
-                    RtdUpdateSynchronization.ProcessUpdateNotifications();
-                    break;
-                case WM_SYNCMACRO:
-                case WM_TIMER:
-                    RunMacroSynchronization.ProcessRunSyncMacroMessage();
-                    break;
-                default:
-                    base.WndProc(ref m);
-                    break;
-            }
-        }
+        //protected override void WndProc(ref Message m)
+        //{
+        //    switch (m.Msg)
+        //    {
+        //        case WM_UPDATENOTIFY:
+        //            RtdUpdateSynchronization.ProcessUpdateNotifications();
+        //            break;
+        //        case WM_SYNCMACRO:
+        //        case WM_TIMER:
+        //            RunMacroSynchronization.ProcessRunSyncMacroMessage();
+        //            break;
+        //        default:
+        //            base.WndProc(ref m);
+        //            break;
+        //    }
+        //}
 
         public void Dispose()
         {
             RunMacroSynchronization.Dispose();
-            DestroyHandle();
+            //DestroyHandle();
         }
     }
 }

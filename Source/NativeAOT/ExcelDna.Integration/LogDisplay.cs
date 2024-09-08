@@ -9,12 +9,11 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using System.Windows.Forms;
 using ExcelDna.Integration;
 
 namespace ExcelDna.Logging
 {
-    internal partial class LogDisplayForm : Form
+    internal partial class LogDisplayForm
     {
         [DllImport("user32.dll")]
         static extern IntPtr SetFocus(IntPtr hWnd);
@@ -22,143 +21,18 @@ namespace ExcelDna.Logging
 
         internal static void ShowForm()
         {
-            if (_form == null)
-            {
-                _form = new LogDisplayForm();
-            }
-            
-            if (_form.Visible == false)
-            {
-                _form.Show(null);
-                // SetFocus(ExcelDnaUtil.WindowHandle);
-            }
         }
 
         internal static void HideForm()
         {
-            if (_form != null)
-            {
-                _form.updateTimer.Enabled = false;
-                _form.Close();
-            }
         }
-
-        System.Windows.Forms.Timer updateTimer;
 
         internal LogDisplayForm()
         {
-            InitializeComponent();
-            Text = DnaLibrary.CurrentLibraryName + " - Diagnostic Display";
-            AccessibleDescription = Text;
-            AccessibleName = Text;
-            CenterToParent();
-            logMessages.VirtualListSize = LogDisplay.LogStrings.Count;
-            updateTimer = new System.Windows.Forms.Timer();
-            updateTimer.Interval = 250;
-            updateTimer.Tick += updateTimer_Tick;
-            updateTimer.Enabled = true;
-        }
-
-        void updateTimer_Tick(object sender, EventArgs e)
-        {
-            try
-            {
-                if (!IsDisposed && updateTimer.Enabled && LogDisplay.LogStringsUpdated)
-                {
-                    // CONSIDER: There are some race conditions here 
-                    // - but I'd rather have some log mis-painting than deadlock between the UI thread and a calculation thread.
-                    logMessages.VirtualListSize = LogDisplay.LogStrings.Count;
-                    LogDisplay.LogStringsUpdated = false;
-                    //ClearCache();
-                    logMessages.Invalidate();
-                    logMessages.AutoResizeColumn(0, ColumnHeaderAutoResizeStyle.ColumnContent);
-                    // Debug.Print("LogDisplayForm.updateTimer_Tick - Updated to " + logMessages.VirtualListSize + " messages");
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.Print("Exception in updateTime_Tick: " + ex);
-            }
-        }
-
-        private ListViewItem MakeItem(int messageIndex)
-        {
-            string message;
-            try
-            {
-                message = LogDisplay.LogStrings[messageIndex];
-                if (message.Length > 259)
-                {
-                    // truncating here, rather than when we insert into the list, 
-                    // so that save and export will preserve the full string.
-                    message = message.Substring(0, 253) + " [...]";
-                }
-            }
-            catch
-            {
-                message = " ";
-            }
-
-            return new ListViewItem(message);
         }
 
         public void Clear()
         {
-            logMessages.VirtualListSize = 0;
-            logMessages.AutoResizeColumn(0, ColumnHeaderAutoResizeStyle.ColumnContent);
-        }
-
-        private void LogDisplayForm_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            _form.updateTimer.Enabled = false;
-            _form = null;
-            LogDisplay.IsFormVisible = false;
-            try
-            {
-                SetFocus(ExcelDnaUtil.WindowHandle);
-            }
-            catch { }   // Probably not in Excel !?
-        }
-
-        private void btnSaveErrors_Click(object sender, EventArgs e)
-        {
-            SaveFileDialog sfd = new SaveFileDialog();
-            sfd.DefaultExt = "txt";
-            sfd.Filter = "Text File (*.txt)|*.txt|All Files (*.*)|*.*";
-            sfd.Title = "Save Error List As";
-            DialogResult result = sfd.ShowDialog();
-            if (result == DialogResult.OK)
-            {
-                File.WriteAllText(sfd.FileName, LogDisplay.GetAllText());
-            }
-        }
-
-        private void btnClear_Click(object sender, EventArgs e)
-        {
-            LogDisplay.Clear();
-            Clear();
-        }
-
-        private void LogDisplayForm_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Escape)
-            {
-                Close();
-            }
-        }
-
-        private void btnCopy_Click(object sender, EventArgs e)
-        {
-            string allText = LogDisplay.GetAllText();
-            if (!string.IsNullOrEmpty(allText))
-            {
-                Clipboard.SetText(allText);
-            }
-        }
-
-        private void logMessages_RetrieveVirtualItem(object sender, RetrieveVirtualItemEventArgs e)
-        {
-            e.Item = MakeItem(e.ItemIndex);
         }
     }
 
@@ -212,32 +86,17 @@ namespace ExcelDna.Logging
             IsFormVisible = false;
             if (_syncContext == null)
             {
-                _syncContext = new WindowsFormsSynchronizationContext();
+                //_syncContext = new WindowsFormsSynchronizationContext();
                 //Debug.Print("LogDisplay.CreateInstance - Creating SyncContext on thread: " + Thread.CurrentThread.ManagedThreadId);
             }
         }
 
         public static void Show()
         {
-            lock (SyncRoot)
-            {
-                if (!IsFormVisible)
-                {
-                    _syncContext.Post(delegate(object state)
-                    {
-                        LogDisplayForm.ShowForm();
-                    }, null);
-                    IsFormVisible = true;
-                }
-            }
         }
 
         public static void Hide()
         {
-            _syncContext.Post(delegate(object state)
-            {
-                LogDisplayForm.HideForm();
-            }, null);
         }
 
         [Obsolete("Rather use LogDisplay.Clear() and LogDisplay.WriteLine(...)")]
@@ -319,10 +178,10 @@ namespace ExcelDna.Logging
         }
 
         static DisplayOrder _displayOrder;
-        public static DisplayOrder DisplayOrder 
+        public static DisplayOrder DisplayOrder
         {
             get { return _displayOrder; }
-            set 
+            set
             {
                 if (_displayOrder != value)
                 {

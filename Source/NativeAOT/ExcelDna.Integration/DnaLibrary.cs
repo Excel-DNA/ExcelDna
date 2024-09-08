@@ -698,45 +698,8 @@ namespace ExcelDna.Integration
             return null;
         }
 
-        public Bitmap GetImage(string imageId)
+        public object GetImage(string imageId)
         {
-            // We expect these to be small images.
-
-            // First check if imageId is in the DnaLibrary's Image list.
-            // DOCUMENT: Case sensitive match.
-            foreach (Image image in Images)
-            {
-                if (image.Name == imageId && image.Path != null)
-                {
-                    byte[] imageBytes = null;
-                    System.Drawing.Image imageLoaded;
-                    if (image.Path.StartsWith("packed:"))
-                    {
-                        string resourceName = image.Path.Substring(7);
-                        imageBytes = ExcelIntegration.GetImageBytes(resourceName);
-                    }
-                    else
-                    {
-                        string imagePath = ResolvePath(image.Path);
-                        if (imagePath == null)
-                        {
-                            // This is the image but we could not find it !?
-                            Logger.Initialization.Warn("DnaLibrary.GetImage - For image {0} the path resolution failed: {1}", image.Name, image.Path);
-                            return null;
-                        }
-                        imageBytes = File.ReadAllBytes(imagePath);
-                    }
-                    using (MemoryStream ms = new MemoryStream(imageBytes, false))
-                    {
-                        imageLoaded = System.Drawing.Image.FromStream(ms);
-                        if (imageLoaded is Bitmap)
-                        {
-                            return (Bitmap)imageLoaded;
-                        }
-                        Logger.Initialization.Warn("DnaLibrary.GetImage - Image {0} read from {1} was not a bitmap!?", image.Name, image.Path);
-                    }
-                }
-            }
             return null;
         }
 

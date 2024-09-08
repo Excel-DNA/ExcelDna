@@ -2,8 +2,7 @@
 
   <PropertyGroup>
     
-    <TargetFrameworks>net452;net6.0-windows</TargetFrameworks>
-    <UseWindowsForms>true</UseWindowsForms>
+    <TargetFrameworks>net6.0-windows</TargetFrameworks>
     
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
@@ -22,6 +21,7 @@
 
   <ItemGroup>
     <PackageReference Include="ExcelDna.Interop" Version="15.0.1" />
+    <PackageReference Include="System.CodeDom" Version="6.0.0" />
   </ItemGroup>
 
 </Project>

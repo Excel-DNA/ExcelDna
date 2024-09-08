@@ -8,14 +8,13 @@ using System.Drawing;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Serialization;
 using ExcelDna.Serialization;
 
 namespace ExcelDna.Integration.CustomUI
 {
-    public delegate Bitmap GetImageDelegate(string imageName);
+    public delegate object GetImageDelegate(string imageName);
 
     //public class ExcelCommandBars
     //{
@@ -54,7 +53,7 @@ namespace ExcelDna.Integration.CustomUI
 
         public static void LoadCommandBars(string xmlCustomUI)
         {
-            LoadCommandBars(xmlCustomUI, delegate(string imageName) { return null; });
+            LoadCommandBars(xmlCustomUI, delegate (string imageName) { return null; });
         }
 
         public static void LoadCommandBars(string xmlCustomUI, GetImageDelegate getImage)
@@ -415,7 +414,7 @@ namespace ExcelDna.Integration.CustomUI
                 case "image":
                     if (control is CommandBarButton)
                     {
-                        Bitmap image = getImage(value);
+                        object image = getImage(value);
                         if (image != null)
                         {
                             (control as CommandBarButton).SetButtonImage(image);
@@ -973,18 +972,18 @@ namespace ExcelDna.Integration.CustomUI
         {
         }
 
-        public void SetButtonImage(Bitmap buttonImage)
+        public void SetButtonImage(object buttonImage)
         {
             // TODO: Consider using Picture property for Excel 2002+ (and Mask?)
             //       http://support.microsoft.com/kb/286460?wa=wsignin1.0
             //       Remember that .NET Bitmap already implements IPictureDisp.
 
             // IDataObject oldContent = Clipboard.GetDataObject();
-            Clipboard.SetImage(buttonImage);
+            //Clipboard.SetImage(buttonImage);
             Type t = ComObject.GetType();
             t.InvokeMember("Style", BindingFlags.SetProperty, null, ComObject, new object[] { MsoButtonStyle.msoButtonIconAndCaption });
             t.InvokeMember("PasteFace", BindingFlags.InvokeMethod, null, ComObject, null);
-            Clipboard.Clear();
+            //Clipboard.Clear();
             // Clipboard.SetDataObject(oldContent);
         }
 
