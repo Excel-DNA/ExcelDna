@@ -308,12 +308,26 @@ namespace ExcelDna.Integration
             Logger.Initialization.Verbose("{0} - End Initialize", Name);
         }
 
+        private static string ExcelDnaIntegrationAbout()
+        {
+            return "ExcelDna.Integration v0.01";
+        }
+
+        private void RegisterAbout()
+        {
+            var mi = typeof(DnaLibrary).GetMethod(nameof(ExcelDnaIntegrationAbout), BindingFlags.NonPublic | BindingFlags.Static);
+            _methods.Add(mi);
+        }
+
         // Only called for the Root DnaLibrary.
         internal void AutoOpen()
         {
             // Register special RegistrationInfo function
             RegistrationInfo.Register();
             SynchronizationManager.Install(true);
+
+            RegisterAbout();
+
             // Register my Methods
             if (_excelFunctionExecutionHandlerSelectors.Count == 0)
                 ExcelIntegration.RegisterMethods(_methods);
