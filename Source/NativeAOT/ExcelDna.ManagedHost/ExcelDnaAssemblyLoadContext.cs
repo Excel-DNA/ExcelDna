@@ -11,14 +11,14 @@ namespace ExcelDna.ManagedHost
     public class ExcelDnaAssemblyLoadContext : AssemblyLoadContext
     {
         readonly string _basePath;
-        readonly AssemblyDependencyResolver _resolver;
+        //readonly AssemblyDependencyResolver _resolver;
         private Dictionary<string, string> unmanagedDllsResolutionCache = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         public ExcelDnaAssemblyLoadContext(string basePath, bool isCollectible)
             : base($"ExcelDnaAssemblyLoadContext_{Path.GetFileNameWithoutExtension(basePath)}", isCollectible: isCollectible)
         {
             _basePath = basePath;
-            _resolver = new AssemblyDependencyResolver(basePath);
+            // _resolver = new AssemblyDependencyResolver(basePath);
 
 #if DEBUG
             this.Resolving += ExcelDnaAssemblyLoadContext_Resolving;
@@ -31,11 +31,11 @@ namespace ExcelDna.ManagedHost
             // CONSIDER: Should we consider priorities for packed vs local files?
 
             // First try the regular load path
-            string assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
-            if (assemblyPath != null)
-            {
-                return LoadFromAssemblyPath(assemblyPath);
-            }
+            //string assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
+            //if (assemblyPath != null)
+            //{
+            //    return LoadFromAssemblyPath(assemblyPath);
+            //}
 
             // Finally we try the AssemblyManager
             return AssemblyManager.AssemblyResolve(assemblyName, false);
@@ -47,8 +47,8 @@ namespace ExcelDna.ManagedHost
             if (unmanagedDllsResolutionCache.TryGetValue(unmanagedDllName, out string cachedValue))
                 libraryPath = cachedValue;
 
-            if (libraryPath == null)
-                libraryPath = _resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
+            //if (libraryPath == null)
+            //libraryPath = _resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
 
             if (libraryPath == null)
                 libraryPath = ResolveDllFromBaseDirectory(unmanagedDllName);

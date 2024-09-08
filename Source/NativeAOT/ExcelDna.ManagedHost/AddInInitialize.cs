@@ -44,14 +44,11 @@ namespace ExcelDna.ManagedHost
             string tempDirPath = Marshal.PtrToStringUni((IntPtr)pTempDirPath);
             _alc = new ExcelDnaAssemblyLoadContext(pathXll, disableAssemblyContextUnload == 0);
             AssemblyManager.Initialize((IntPtr)hModuleXll, pathXll, _alc, Path.Combine(tempDirPath, "ExcelDna.ManagedHost"));
-            var loaderAssembly = _alc.LoadFromAssemblyName(new AssemblyName("ExcelDna.Loader"));
-            var xlAddInType = loaderAssembly.GetType("ExcelDna.Loader.XlAddIn");
-            var initOK = (bool)xlAddInType.InvokeMember("Initialize", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null,
-                new object[] { (IntPtr)xlAddInExportInfoAddress, (IntPtr)hModuleXll, pathXll,
+            var initOK = (bool)ExcelDna.Loader.XlAddIn.Initialize((IntPtr)xlAddInExportInfoAddress, (IntPtr)hModuleXll, pathXll,
                     (Func<string, int, byte[]>)AssemblyManager.GetResourceBytes,
                     (Func<string, Assembly>)_alc.LoadFromAssemblyPath,
                     (Func<byte[], byte[], Assembly>)_alc.LoadFromAssemblyBytes,
-                    (Action<TraceSource>)Logger.SetIntegrationTraceSource });
+                    (Action<TraceSource>)Logger.SetIntegrationTraceSource);
 
             return initOK ? (short)1 : (short)0;
         }
