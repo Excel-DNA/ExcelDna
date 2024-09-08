@@ -8,6 +8,7 @@
 // consumption should be as a static library.
 #define NETHOST_USE_AS_STATIC
 #include <nethost.h>
+#include <Windows.h>
 
 #include <coreclr_delegates.h>
 #include <hostfxr.h>
@@ -52,6 +53,32 @@ load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(HMODULE hModu
 void __stdcall preload_runtime(void) {}
 
 TempDir tempDir(L"ExcelDna.Host");
+
+int load_native_and_run(const std::wstring& basePath, XlAddInExportInfo* pExportInfo, HMODULE hModuleXll, LPCWSTR pathXll)
+{
+	std::wstring hostFile = PathCombine(basePath, L"ExcelDna.ManagedHost.dll");
+	HINSTANCE handle = LoadLibrary(hostFile.c_str());
+
+	if (handle == NULL)
+	{
+		ShowHostError(L"Loading ExcelDna.ManagedHost library failed.");
+		return EXIT_FAILURE;
+	}
+
+	typedef short(__stdcall* xladdin_initialize_native_fn)(void* xlAddInExportInfo, void* hModuleXLL, void* pPathXLL, BYTE disableAssemblyContextUnload, void* pTempDirPath);
+
+	xladdin_initialize_native_fn init = (xladdin_initialize_native_fn)GetProcAddress(handle, "Initialize");
+	if (init == NULL)
+	{
+		ShowHostError(L"GetProcAddress Initialize failed.");
+		return EXIT_FAILURE;
+	}
+
+	std::wstring tempDirPath = tempDir.GetPath();
+	short res = init(pExportInfo, hModuleXll, (void*)pathXll, false, (void*)tempDirPath.c_str());
+
+	return res == 0 ? EXIT_FAILURE : EXIT_SUCCESS;
+}
 
 // TODO: Might return the fn*
 int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExportInfo, HMODULE hModuleXll, LPCWSTR pathXll)
