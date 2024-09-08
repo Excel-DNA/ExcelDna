@@ -1,0 +1,7 @@
+The files in this directory are from the LZMA SDK.
+
+LICENSE
+-------
+
+LZMA SDK is written and placed in the public domain by Igor Pavlov.
+

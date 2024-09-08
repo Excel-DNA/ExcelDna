@@ -1,0 +1,2 @@
+The header files in \Include and static library files in \Lib are copied from C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Host.win-x86\5.0.1\runtimes\win-x86\native
+There is some way to get this with a NuGet package, but then it looks like the build process gets convoluted.

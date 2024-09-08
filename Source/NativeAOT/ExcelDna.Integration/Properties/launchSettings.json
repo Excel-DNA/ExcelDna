@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "ExcelDna.Integration": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\Microsoft Office\\root\\Office16\\EXCEL.EXE",
+      "commandLineArgs": "\"C:\\WorkTemp\\Excel-DNA\\ExcelDna\\Source\\ExcelDna\\Debug64\\ExcelDna64.xll\""
+    }
+  }
+}
