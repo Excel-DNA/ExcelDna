@@ -284,7 +284,7 @@ namespace ExcelDna.Loader
                 // Can't use logging, xlcAlert and xlcMessage with length >220 here
                 string message = string.Format("ExcelDna add-in InitializeIntegration failed - {1} - {0}", PathXll, e.Message);
                 object xlCallResult;
-                XlCallImpl.TryExcelImpl(XlCallImpl.xlcMessage, out xlCallResult /*Ignore*/ , true, message.Substring(0, 220));
+                XlCallImpl.TryExcelImpl(XlCallImpl.xlcMessage, out xlCallResult /*Ignore*/ , true, message.Substring(0, Math.Min(message.Length, 220)));
                 result = 0;
             }
             return result;
