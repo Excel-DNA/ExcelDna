@@ -6,6 +6,9 @@
 
 		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
 		<PublishAOT>true</PublishAOT>
+
+    <UseWindowsForms>true</UseWindowsForms>
+    <SelfContained>true</SelfContained>
   </PropertyGroup>
 
   <ItemGroup>
