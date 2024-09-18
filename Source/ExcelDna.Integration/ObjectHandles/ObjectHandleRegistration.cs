@@ -11,8 +11,7 @@ namespace ExcelDna.Integration.ObjectHandles
     {
         public static IEnumerable<ExcelFunction> ProcessObjectHandles(this IEnumerable<ExcelFunction> registrations)
         {
-            var paramConversionConfig = new ParameterConversionConfiguration().AddParameterConversion(GetParameterConversion());
-            registrations = registrations.ProcessParameterConversions(paramConversionConfig);
+            registrations = registrations.ProcessParameterConversions(GetParameterConversionConfiguration());
 
             foreach (var reg in registrations)
             {
@@ -31,6 +30,11 @@ namespace ExcelDna.Integration.ObjectHandles
 
                 yield return reg;
             }
+        }
+
+        public static ParameterConversionConfiguration GetParameterConversionConfiguration()
+        {
+            return new ParameterConversionConfiguration().AddParameterConversion(GetParameterConversion());
         }
 
         static ParameterConversionConfiguration.ReturnConversion CreateReturnConversion<TFrom, TTo>(Expression<Func<TFrom, TTo>> convert)

@@ -50,6 +50,8 @@ namespace ExcelDna.Integration.ExtendedRegistration
                         }
                         else
                         {
+                            ParameterConversionRegistration.ApplyParameterConversions(reg, ObjectHandles.ObjectHandleRegistration.GetParameterConversionConfiguration());
+
                             reg.FunctionLambda = useNativeAsync ? WrapMethodNativeAsyncTask(reg.FunctionLambda)
                                                                 : WrapMethodRunTask(reg.FunctionLambda);
                         }

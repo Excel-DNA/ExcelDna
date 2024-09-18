@@ -147,6 +147,12 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
+        public static Task<double> MyTaskCalcSum(Calc c)
+        {
+            return Task.FromResult(c.Sum());
+        }
+
+        [ExcelFunction]
         public static DisposableObject MyCreateDisposableObject(int x)
         {
             return new DisposableObject();
