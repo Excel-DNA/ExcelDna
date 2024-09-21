@@ -41,6 +41,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
                     }
                     else if (ReturnsTask(reg.FunctionLambda) || reg.FunctionAttribute is ExcelAsyncFunctionAttribute)
                     {
+                        ParameterConversionRegistration.ApplyParameterConversions(reg, ObjectHandles.ObjectHandleRegistration.GetParameterConversionConfiguration());
                         if (HasCancellationToken(reg.FunctionLambda))
                         {
                             reg.FunctionLambda = useNativeAsync ? WrapMethodNativeAsyncTaskWithCancellation(reg.FunctionLambda)
@@ -50,8 +51,6 @@ namespace ExcelDna.Integration.ExtendedRegistration
                         }
                         else
                         {
-                            ParameterConversionRegistration.ApplyParameterConversions(reg, ObjectHandles.ObjectHandleRegistration.GetParameterConversionConfiguration());
-
                             reg.FunctionLambda = useNativeAsync ? WrapMethodNativeAsyncTask(reg.FunctionLambda)
                                                                 : WrapMethodRunTask(reg.FunctionLambda);
                         }

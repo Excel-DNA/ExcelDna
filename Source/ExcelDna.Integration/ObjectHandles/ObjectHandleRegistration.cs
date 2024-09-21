@@ -57,7 +57,7 @@ namespace ExcelDna.Integration.ObjectHandles
         static LambdaExpression HandleStringConversion(Type type, IExcelFunctionParameter paramReg)
         {
             // Decide whether to return a conversion function for this parameter
-            if (AssemblyLoader.IsPrimitiveParameterType(type))
+            if (AssemblyLoader.IsPrimitiveParameterType(type) || type == typeof(CancellationToken))
                 return null;
 
             var input = Expression.Parameter(typeof(object), "input");

@@ -153,6 +153,12 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
+        public static Task<double> MyTaskCalcDoubleSumWithCancellation(Calc c, CancellationToken ct)
+        {
+            return Task.FromResult(c.Sum() * 2);
+        }
+
+        [ExcelFunction]
         public static DisposableObject MyCreateDisposableObject(int x)
         {
             return new DisposableObject();
