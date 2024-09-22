@@ -159,6 +159,18 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
+        public static IObservable<string> MyStringObservable(string s)
+        {
+            return new ObservableString(s);
+        }
+
+        [ExcelFunction]
+        public static IObservable<string> MyCalcSumObservable(Calc c)
+        {
+            return new ObservableString(c.Sum().ToString());
+        }
+
+        [ExcelFunction]
         public static DisposableObject MyCreateDisposableObject(int x)
         {
             return new DisposableObject();

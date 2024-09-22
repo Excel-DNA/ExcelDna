@@ -37,6 +37,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
                 {
                     if (ReturnsObservable(reg.FunctionLambda))
                     {
+                        ParameterConversionRegistration.ApplyParameterConversions(reg, ObjectHandles.ObjectHandleRegistration.GetParameterConversionConfiguration());
                         reg.FunctionLambda = WrapMethodObservable(reg.FunctionLambda);
                     }
                     else if (ReturnsTask(reg.FunctionLambda) || reg.FunctionAttribute is ExcelAsyncFunctionAttribute)
