@@ -53,7 +53,7 @@ namespace ExcelDna.Integration
         {
             Path = path;
         }
-	}
+    }
 
     [Serializable]
     [XmlType(AnonymousType = true)]
@@ -69,6 +69,24 @@ namespace ExcelDna.Integration
         public bool Pack;
 
         public Image()
+        {
+        }
+    }
+
+    [Serializable]
+    [XmlType(AnonymousType = true)]
+    public class DnaFile
+    {
+        [XmlAttribute]
+        public string Name;
+
+        [XmlAttribute]
+        public string Path;
+
+        [XmlAttribute]
+        public bool Pack;
+
+        public DnaFile()
         {
         }
     }
