@@ -141,6 +141,13 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
+        public static async Task<Calc> MyTaskCreateCalc(int millisecondsDelay, double d1, double d2)
+        {
+            await Task.Delay(millisecondsDelay);
+            return new Calc(d1, d2);
+        }
+
+        [ExcelFunction]
         public static double MyCalcSum(Calc c)
         {
             return c.Sum();

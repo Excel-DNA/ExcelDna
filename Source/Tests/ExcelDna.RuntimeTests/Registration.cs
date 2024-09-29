@@ -301,25 +301,39 @@ namespace ExcelDna.RuntimeTests
 
                 Assert.Equal("4.6", functionRange2.Value.ToString());
             }
+        }
 
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
+        public void TaskObjectHandles()
+        {
             {
-                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["G1"];
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
                 functionRange1.Formula = "=MyCreateCalc(8, 9)";
 
-                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["G2"];
-                functionRange2.Formula = "=MyTaskCalcSum(G1)";
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B2"];
+                functionRange2.Formula = "=MyTaskCalcSum(B1)";
 
                 Assert.Equal("17", functionRange2.Value.ToString());
             }
 
             {
-                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["H1"];
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
                 functionRange1.Formula = "=MyCreateCalc(10, 11)";
 
-                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["H2"];
-                functionRange2.Formula = "=MyTaskCalcDoubleSumWithCancellation(H1)";
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C2"];
+                functionRange2.Formula = "=MyTaskCalcDoubleSumWithCancellation(C1)";
 
                 Assert.Equal("42", functionRange2.Value.ToString());
+            }
+
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D1"];
+                functionRange1.Formula = "=MyTaskCreateCalc(0, 12, 13)";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D2"];
+                functionRange2.Formula = "=MyCalcSum(D1)";
+
+                Assert.Equal("25", functionRange2.Value.ToString());
             }
         }
 

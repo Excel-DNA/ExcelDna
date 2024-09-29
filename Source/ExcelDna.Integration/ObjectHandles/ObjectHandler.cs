@@ -26,6 +26,13 @@ namespace ExcelDna.Integration.ObjectHandles
             return result;
         }
 
+        public static string GetHandle(string tag, object userObject)
+        {
+            var handleInfo = new HandleInfo(tag, userObject);
+            _objects.TryAdd(handleInfo.Handle, handleInfo);
+            return handleInfo.Handle;
+        }
+
         public static bool TryGetObject(string handle, out object value)
         {
             HandleInfo handleInfo;

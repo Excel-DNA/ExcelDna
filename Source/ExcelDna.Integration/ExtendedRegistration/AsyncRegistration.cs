@@ -117,8 +117,13 @@ namespace ExcelDna.Integration.ExtendedRegistration
 
             // Either RunTask or RunAsTask, depending on whether the method returns Task<string> or string
             string runMethodName = ReturnsTask(functionLambda) ? "RunTask" : "RunAsTask";
+
             // mi returns some kind of Task<T>. What is T? 
             var newReturnType = ReturnsTask(functionLambda) ? functionLambda.ReturnType.GetGenericArguments()[0] : functionLambda.ReturnType;
+            bool userType = ReturnsTask(functionLambda) && ObjectHandles.TaskObjectHandler.IsUserType(functionLambda.ReturnType.GetGenericArguments()[0]);
+            if (userType)
+                newReturnType = ObjectHandles.TaskObjectHandler.ReturnType();
+
             // Build up the RunTaskWithC... method with the right generic type argument
             var runMethod = typeof(ExcelAsyncUtil)
                                 .GetMember(runMethodName, MemberTypes.Method, BindingFlags.Static | BindingFlags.Public)
@@ -134,7 +139,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             // Also cast params to Object and put into a fresh object[] array for the RunTask call
             var paramsArray = newParams.Select(p => Expression.Convert(p, typeof(object)));
             var paramsArrayExp = Expression.NewArrayInit(typeof(object), paramsArray);
-            var innerLambda = Expression.Lambda(Expression.Invoke(functionLambda, newParams));
+            var innerLambda = Expression.Lambda(Expression.Invoke(userType ? ObjectHandles.TaskObjectHandler.ProcessTaskObject(functionLambda) : functionLambda, newParams));
 
             // This is the call to RunTask, taking the name, param array and the (capturing) lambda (called with no arguments)
             var callTaskRun = Expression.Call(runMethod, nameExp, paramsArrayExp, innerLambda);
