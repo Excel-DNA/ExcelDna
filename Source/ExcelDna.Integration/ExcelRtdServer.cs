@@ -380,7 +380,7 @@ namespace ExcelDna.Integration.Rtd
             }
         }
 
-        // Called by Excel is more that HeartbeatInterval millseconds have elapsed since the last UpdateNotify call
+        // Called by Excel if more than HeartbeatInterval millseconds have elapsed since the last UpdateNotify call
         // HeartbeatInterval cannot be less than 15000, but Heartbeat support can be switched off (-1)
         // So our redundant UpdateNotify call should not happenin often
         // We use the Heartbeat to retry any outstanding UpdateNotify call
