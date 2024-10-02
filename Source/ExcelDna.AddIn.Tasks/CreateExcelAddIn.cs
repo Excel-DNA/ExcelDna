@@ -54,7 +54,8 @@ namespace ExcelDna.AddIn.Tasks
 
                 TryCreateTlb();
 
-                TryPublishDoc();
+                if (UnpackIsEnabled)
+                    TryPublishDoc();
 
                 TryBuildAddInFor32Bit(buildItemsForDnaFiles);
 
@@ -152,9 +153,8 @@ namespace ExcelDna.AddIn.Tasks
 
         private void TryPublishDoc()
         {
-            string docFile = (AddInFileName ?? ProjectName + "-AddIn") + ".chm";
-            string docFilePath = Path.Combine(OutDirectory, docFile);
-            if (!File.Exists(docFilePath))
+            string docFilePath = GetDocPath();
+            if (docFilePath == null)
                 return;
 
             if (PackExcelAddIn.NoPublishPath(PublishPath))
@@ -162,7 +162,14 @@ namespace ExcelDna.AddIn.Tasks
 
             string destinationFolder = PackExcelAddIn.GetPublishDirectory(OutDirectory, PublishPath);
             Directory.CreateDirectory(destinationFolder);
-            File.Copy(docFilePath, Path.Combine(destinationFolder, docFile), true);
+            File.Copy(docFilePath, Path.Combine(destinationFolder, Path.GetFileName(docFilePath)), true);
+        }
+
+        private string GetDocPath()
+        {
+            string docFile = (AddInFileName ?? ProjectName + "-AddIn") + ".chm";
+            string docFilePath = Path.Combine(OutDirectory, docFile);
+            return File.Exists(docFilePath) ? docFilePath : null;
         }
 
         private ITaskItem[] GetConfigFilesInProject()
@@ -359,6 +366,7 @@ namespace ExcelDna.AddIn.Tasks
                 {"OutputPackedXllFileName", outputPackedXllFileName},
                 {"OutputXllConfigFileName", outputXllConfigFileName },
                 {"OutputBitness", outputBitness },
+                {"DocPath", GetDocPath() },
             };
 
             _dnaFilesToPack.Add(new TaskItem(outputDnaFileName, metadata));
@@ -478,7 +486,7 @@ namespace ExcelDna.AddIn.Tasks
                 return;
 
             List<string> filesToPublish = new List<string>();
-            int result = PackedResources.ExcelDnaPack.Pack(dnaPath, null, false, false, false, null, filesToPublish, false, false, null, false, null, _log);
+            int result = PackedResources.ExcelDnaPack.Pack(dnaPath, null, false, false, false, null, filesToPublish, false, false, null, false, null, null, _log);
             if (result != 0)
                 throw new ApplicationException($"Pack failed with exit code {result}.");
             foreach (string file in filesToPublish)
