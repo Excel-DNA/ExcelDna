@@ -120,7 +120,7 @@ HRESULT GetAttributeValue(std::wstring tag, std::wstring attributeName, std::wst
 	return S_OK;
 }
 
-HRESULT ParseDnaHeader(std::wstring header, std::wstring& addInName, std::wstring& runtimeVersion, bool& shadowCopyFiles, std::wstring& createSandboxedAppDomain, bool& cancelAddInIsolation, bool& disableAssemblyContextUnload, std::wstring& customRuntimeConfiguration, std::wstring& rollForward)
+HRESULT ParseDnaHeader(std::wstring header, std::wstring& addInName, std::wstring& runtimeVersion, bool& shadowCopyFiles, std::wstring& createSandboxedAppDomain, bool& cancelAddInIsolation, bool& disableAssemblyContextUnload, std::wstring& customRuntimeConfiguration, std::wstring& rollForward, std::wstring& runtimeFrameworkVersion)
 {
 	HRESULT hr;
 
@@ -261,6 +261,18 @@ HRESULT ParseDnaHeader(std::wstring header, std::wstring& addInName, std::wstrin
 		hr = S_OK;
 	}
 
+	hr = GetAttributeValue(rootTag, L"RuntimeFrameworkVersion", runtimeFrameworkVersion);
+	if (FAILED(hr))
+	{
+		// Parse error
+		return E_FAIL;
+	}
+	if (hr == S_FALSE)
+	{
+		runtimeFrameworkVersion = L"";
+		hr = S_OK;
+	}
+
 	return hr;
 }
 
@@ -275,10 +287,11 @@ HRESULT GetAddInName(std::wstring& addInName)
 	bool disableAssemblyContextUnload;
 	std::wstring customRuntimeConfiguration;
 	std::wstring rollForward;
+	std::wstring runtimeFrameworkVersion;
 	hr = GetDnaHeader(false, header);	// Don't show errors here.
 	if (!FAILED(hr))
 	{
-		hr = ParseDnaHeader(header, addInName, clrVersion, shadowCopyFiles, createSandboxedAppDomainValue, cancelAddInIsolation, disableAssemblyContextUnload, customRuntimeConfiguration, rollForward); // No errors yet.
+		hr = ParseDnaHeader(header, addInName, clrVersion, shadowCopyFiles, createSandboxedAppDomainValue, cancelAddInIsolation, disableAssemblyContextUnload, customRuntimeConfiguration, rollForward, runtimeFrameworkVersion); // No errors yet.
 		if (FAILED(hr))
 		{
 			return E_FAIL;
@@ -305,10 +318,11 @@ HRESULT GetDisableAssemblyContextUnload(bool& disableAssemblyContextUnload)
 	bool cancelAddInIsolation;
 	std::wstring customRuntimeConfiguration;
 	std::wstring rollForward;
+	std::wstring runtimeFrameworkVersion;
 	hr = GetDnaHeader(false, header);	// Don't show errors here.
 	if (!FAILED(hr))
 	{
-		hr = ParseDnaHeader(header, addInName, clrVersion, shadowCopyFiles, createSandboxedAppDomainValue, cancelAddInIsolation, disableAssemblyContextUnload, customRuntimeConfiguration, rollForward); // No errors yet.
+		hr = ParseDnaHeader(header, addInName, clrVersion, shadowCopyFiles, createSandboxedAppDomainValue, cancelAddInIsolation, disableAssemblyContextUnload, customRuntimeConfiguration, rollForward, runtimeFrameworkVersion); // No errors yet.
 		if (FAILED(hr))
 		{
 			return E_FAIL;
@@ -328,10 +342,11 @@ HRESULT GetCustomRuntimeConfiguration(std::wstring& customRuntimeConfiguration)
 	bool cancelAddInIsolation;
 	bool disableAssemblyContextUnload;
 	std::wstring rollForward;
+	std::wstring runtimeFrameworkVersion;
 	hr = GetDnaHeader(false, header);	// Don't show errors here.
 	if (!FAILED(hr))
 	{
-		hr = ParseDnaHeader(header, addInName, clrVersion, shadowCopyFiles, createSandboxedAppDomainValue, cancelAddInIsolation, disableAssemblyContextUnload, customRuntimeConfiguration, rollForward); // No errors yet.
+		hr = ParseDnaHeader(header, addInName, clrVersion, shadowCopyFiles, createSandboxedAppDomainValue, cancelAddInIsolation, disableAssemblyContextUnload, customRuntimeConfiguration, rollForward, runtimeFrameworkVersion); // No errors yet.
 		if (FAILED(hr))
 		{
 			return E_FAIL;
@@ -352,10 +367,11 @@ HRESULT GetMajorRuntimeVersion(int& majorRuntimeVersion)
 	bool disableAssemblyContextUnload;
 	std::wstring customRuntimeConfiguration;
 	std::wstring rollForward;
+	std::wstring runtimeFrameworkVersion;
 	hr = GetDnaHeader(false, header);	// Don't show errors here.
 	if (!FAILED(hr))
 	{
-		hr = ParseDnaHeader(header, addInName, clrVersion, shadowCopyFiles, createSandboxedAppDomainValue, cancelAddInIsolation, disableAssemblyContextUnload, customRuntimeConfiguration, rollForward); // No errors yet.
+		hr = ParseDnaHeader(header, addInName, clrVersion, shadowCopyFiles, createSandboxedAppDomainValue, cancelAddInIsolation, disableAssemblyContextUnload, customRuntimeConfiguration, rollForward, runtimeFrameworkVersion); // No errors yet.
 		if (FAILED(hr) || clrVersion.length() < 2 || clrVersion[0] != L'v')
 		{
 			return E_FAIL;
@@ -384,10 +400,35 @@ HRESULT GetRollForward(std::wstring& rollForward)
 	bool cancelAddInIsolation;
 	bool disableAssemblyContextUnload;
 	std::wstring customRuntimeConfiguration;
+	std::wstring runtimeFrameworkVersion;
 	hr = GetDnaHeader(false, header);	// Don't show errors here.
 	if (!FAILED(hr))
 	{
-		hr = ParseDnaHeader(header, addInName, clrVersion, shadowCopyFiles, createSandboxedAppDomainValue, cancelAddInIsolation, disableAssemblyContextUnload, customRuntimeConfiguration, rollForward); // No errors yet.
+		hr = ParseDnaHeader(header, addInName, clrVersion, shadowCopyFiles, createSandboxedAppDomainValue, cancelAddInIsolation, disableAssemblyContextUnload, customRuntimeConfiguration, rollForward, runtimeFrameworkVersion); // No errors yet.
+		if (FAILED(hr))
+		{
+			return E_FAIL;
+		}
+	}
+	return hr;
+}
+
+HRESULT GetRuntimeFrameworkVersion(std::wstring& runtimeFrameworkVersion)
+{
+	HRESULT hr;
+	std::wstring addInName;
+	std::wstring header;
+	std::wstring clrVersion;
+	bool shadowCopyFiles;
+	std::wstring createSandboxedAppDomainValue;
+	bool cancelAddInIsolation;
+	bool disableAssemblyContextUnload;
+	std::wstring customRuntimeConfiguration;
+	std::wstring rollForward;
+	hr = GetDnaHeader(false, header);	// Don't show errors here.
+	if (!FAILED(hr))
+	{
+		hr = ParseDnaHeader(header, addInName, clrVersion, shadowCopyFiles, createSandboxedAppDomainValue, cancelAddInIsolation, disableAssemblyContextUnload, customRuntimeConfiguration, rollForward, runtimeFrameworkVersion); // No errors yet.
 		if (FAILED(hr))
 		{
 			return E_FAIL;

@@ -406,6 +406,11 @@ namespace ExcelDna.AddIn.Tasks
                 result = result.Replace("<DnaLibrary ", "<DnaLibrary " + $"RollForward=\"{RollForward}\" ");
             }
 
+            if (!string.IsNullOrWhiteSpace(RuntimeFrameworkVersion))
+            {
+                result = result.Replace("<DnaLibrary ", "<DnaLibrary " + $"RuntimeFrameworkVersion=\"{RuntimeFrameworkVersion}\" ");
+            }
+
             // For compatibility with .NET Framework 4 loader, we only set the exact version if its .NET 6+
             if (!TargetFrameworkVersion.StartsWith("v4."))
             {
@@ -652,6 +657,11 @@ namespace ExcelDna.AddIn.Tasks
         /// Controls how the add-in chooses a runtime when multiple runtime versions are available
         /// </summary>
         public string RollForward { get; set; }
+
+        /// <summary>
+        /// Specifies the version of the runtime to use
+        /// </summary>
+        public string RuntimeFrameworkVersion { get; set; }
 
         /// <summary>
         /// Enable/disable building 32-bit .dna files
