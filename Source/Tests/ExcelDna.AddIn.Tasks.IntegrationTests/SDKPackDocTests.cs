@@ -10,7 +10,6 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
         {
             const string projectBasePath = @"SDKPackDoc\";
             const string projectOutDir = projectBasePath + @"bin\Release\";
-            const string publishDir = projectOutDir + @"publish\";
 
             Clean(projectOutDir);
 
@@ -24,7 +23,6 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
         {
             const string projectBasePath = @"SDKPackDoc\";
             const string projectOutDir = projectBasePath + @"bin\ReleaseCustomFileName\";
-            const string publishDir = projectOutDir + @"publish\";
 
             Clean(projectOutDir);
 
