@@ -115,18 +115,19 @@ namespace ExcelDna.Integration.ExtendedRegistration
              *      }
              */
 
+            bool userType = ReturnsTask(functionLambda) && ObjectHandles.TaskObjectHandler.IsUserType(functionLambda.ReturnType.GetGenericArguments()[0]);
+
             // Either RunTask or RunAsTask, depending on whether the method returns Task<string> or string
-            string runMethodName = ReturnsTask(functionLambda) ? "RunTask" : "RunAsTask";
+            string runMethodName = ReturnsTask(functionLambda) ? (userType ? "RunTaskObject" : "RunTask") : "RunAsTask";
 
             // mi returns some kind of Task<T>. What is T? 
             var newReturnType = ReturnsTask(functionLambda) ? functionLambda.ReturnType.GetGenericArguments()[0] : functionLambda.ReturnType;
-            bool userType = ReturnsTask(functionLambda) && ObjectHandles.TaskObjectHandler.IsUserType(functionLambda.ReturnType.GetGenericArguments()[0]);
             if (userType)
                 newReturnType = ObjectHandles.TaskObjectHandler.ReturnType();
 
             // Build up the RunTaskWithC... method with the right generic type argument
             var runMethod = typeof(ExcelAsyncUtil)
-                                .GetMember(runMethodName, MemberTypes.Method, BindingFlags.Static | BindingFlags.Public)
+                                .GetMember(runMethodName, MemberTypes.Method, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
                                 .Cast<MethodInfo>().First()
                                 .MakeGenericMethod(newReturnType);
 

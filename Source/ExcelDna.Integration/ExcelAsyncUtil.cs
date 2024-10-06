@@ -143,6 +143,15 @@ namespace ExcelDna.Integration
             XlCall.Excel(XlCall.xlcRun, macroName);
         }
 
+        internal static object RunTaskObject<TResult>(string callerFunctionName, object callerParameters, Func<Task<TResult>> taskSource)
+        {
+            return Observe(callerFunctionName, callerParameters, delegate
+            {
+                var task = taskSource();
+                return new ExcelTaskObjectObservable<TResult>(task);
+            });
+        }
+
         #region Async calculation events
         // CONSIDER: Do we need to unregister these when unloaded / reloaded?
 

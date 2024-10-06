@@ -1,4 +1,5 @@
-﻿using Microsoft.Office.Interop.Excel;
+﻿using ExcelDna.Testing;
+using Microsoft.Office.Interop.Excel;
 using Range = Microsoft.Office.Interop.Excel.Range;
 
 namespace ExcelDna.RuntimeTests
@@ -71,6 +72,36 @@ namespace ExcelDna.RuntimeTests
                 functionRange2.Formula = "=MyGetDisposableObjectsCount()";
 
                 Assert.Equal("1", functionRange2.Value.ToString());
+            }
+        }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
+        public void TaskObjectStableCreate()
+        {
+            string v1;
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A1"];
+                functionRange.Formula = $"=MyTaskCreateCalc(100, 1, 2)";
+                {
+                    Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A2"];
+                    functionRange2.Formula = $"=MyCalcSum(A1)";
+                    Automation.WaitFor(() => functionRange2.Value?.ToString() == "3", 3000);
+                    Assert.Equal("3", functionRange2.Value.ToString());
+                }
+                v1 = functionRange.Value.ToString();
+            }
+
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+                functionRange.Formula = $"=MyTaskCreateCalc(100, 1, 2)";
+                {
+                    Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B2"];
+                    functionRange2.Formula = $"=MyCalcSum(B1)";
+                    Automation.WaitFor(() => functionRange2.Value?.ToString() == "3", 3000);
+                    Assert.Equal("3", functionRange2.Value.ToString());
+                }
+                string v2 = functionRange.Value.ToString();
+                Assert.Equal(v1, v2);
             }
         }
     }
