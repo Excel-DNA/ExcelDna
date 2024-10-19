@@ -76,7 +76,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
                 return null;
 
             var defaultAttribute = paramReg.CustomAttributes.OfType<DefaultParameterValueAttribute>().FirstOrDefault();
-            var defaultValue = defaultAttribute == null ? TypeConversion.GetDefault(type) : defaultAttribute.Value;
+            var defaultValue = (defaultAttribute == null || (defaultAttribute.Value == null && type.IsValueType)) ? TypeConversion.GetDefault(type) : defaultAttribute.Value;
             // var returnType = type.GetGenericArguments()[0]; // E.g. returnType is double
 
             // Consume the attributes

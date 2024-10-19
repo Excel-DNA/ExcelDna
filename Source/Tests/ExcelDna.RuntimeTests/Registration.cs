@@ -26,6 +26,14 @@ namespace ExcelDna.RuntimeTests
         }
 
         [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
+        public void DateTime()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
+            functionRange.Formula = "=MyDateTime(\"2024/10/20\")";
+            Assert.Equal("10/20/2024 12:00:00 AM", functionRange.Value.ToString());
+        }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
         public void NullableDouble()
         {
             Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
@@ -37,6 +45,17 @@ namespace ExcelDna.RuntimeTests
         }
 
         [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
+        public void NullableDateTime()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
+            functionRange.Formula = "=MyNullableDateTime(\"2024/11/21\")";
+            Assert.Equal("Nullable DateTime: 11/21/2024 12:00:00 AM", functionRange.Value.ToString());
+
+            functionRange.Formula = "=MyNullableDateTime()";
+            Assert.Equal("Nullable DateTime: NULL", functionRange.Value.ToString());
+        }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
         public void OptionalDouble()
         {
             Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
@@ -45,6 +64,17 @@ namespace ExcelDna.RuntimeTests
 
             functionRange.Formula = "=MyOptionalDouble()";
             Assert.Equal("Optional VAL: 1.23", functionRange.Value.ToString());
+        }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
+        public void OptionalDateTime()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
+            functionRange.Formula = "=MyOptionalDateTime(\"2024/11/21\")";
+            Assert.Equal("Optional DateTime: 11/21/2024 12:00:00 AM", functionRange.Value.ToString());
+
+            functionRange.Formula = "=MyOptionalDateTime()";
+            Assert.Equal("Optional DateTime: 1/1/0001 12:00:00 AM", functionRange.Value.ToString());
         }
 
         [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
