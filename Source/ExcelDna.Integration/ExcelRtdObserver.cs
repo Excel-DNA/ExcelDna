@@ -1084,16 +1084,12 @@ namespace ExcelDna.Integration.Rtd
 
         public IDisposable Subscribe(IExcelObserver observer)
         {
-            // Start with a disposable that does nothing
-            // Possibly set to a CancellationDisposable later
-            IDisposable disp = DefaultDisposable.Instance;
+            IDisposable disp = new TaskObjectDisposable(_task);
 
             switch (_task.Status)
             {
                 case TaskStatus.RanToCompletion:
                     observer.OnNext(_task.Result);
-                    //observer.OnCompleted();
-                    disp = new TaskObjectDisposable(_task.Result);
                     break;
                 case TaskStatus.Faulted:
                     observer.OnError(_task.Exception.InnerException);
@@ -1124,7 +1120,6 @@ namespace ExcelDna.Integration.Rtd
                         {
                             case TaskStatus.RanToCompletion:
                                 observer.OnNext(t.Result);
-                                //observer.OnCompleted();
                                 break;
                             case TaskStatus.Faulted:
                                 observer.OnError(t.Exception.InnerException);
@@ -1140,33 +1135,19 @@ namespace ExcelDna.Integration.Rtd
             return disp;
         }
 
-        sealed class DefaultDisposable : IDisposable
-        {
-            public static readonly DefaultDisposable Instance = new DefaultDisposable();
-
-            // Prevent external instantiation
-            DefaultDisposable()
-            {
-            }
-
-            public void Dispose()
-            {
-                // no op
-            }
-        }
-
         sealed class TaskObjectDisposable : IDisposable
         {
-            private string handle;
+            private Task<TResult> task;
 
-            public TaskObjectDisposable(object handle)
+            public TaskObjectDisposable(Task<TResult> task)
             {
-                this.handle = (string)handle;
+                this.task = task;
             }
 
             public void Dispose()
             {
-                ObjectHandles.ObjectHandler.Remove(handle);
+                if (task.Status == TaskStatus.RanToCompletion)
+                    ObjectHandles.ObjectHandler.Remove(task.Result as string);
             }
         }
 
