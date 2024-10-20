@@ -195,6 +195,13 @@ namespace ExcelDna.AddIn.RuntimeTests
             return DisposableObject.CreatedObjectsCount;
         }
 
+        [ExcelFunction]
+        public static async Task<DisposableObject> MyTaskCreateDisposableObject(int millisecondsDelay, int x)
+        {
+            await Task.Delay(millisecondsDelay);
+            return new DisposableObject();
+        }
+
         [ExcelFunction(IsThreadSafe = true)]
         public static Calc MyCreateCalcTS(double d1, double d2)
         {

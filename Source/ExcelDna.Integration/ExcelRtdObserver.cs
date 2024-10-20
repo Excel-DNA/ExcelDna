@@ -1093,6 +1093,7 @@ namespace ExcelDna.Integration.Rtd
                 case TaskStatus.RanToCompletion:
                     observer.OnNext(_task.Result);
                     //observer.OnCompleted();
+                    disp = new TaskObjectDisposable(_task.Result);
                     break;
                 case TaskStatus.Faulted:
                     observer.OnError(_task.Exception.InnerException);
@@ -1151,6 +1152,21 @@ namespace ExcelDna.Integration.Rtd
             public void Dispose()
             {
                 // no op
+            }
+        }
+
+        sealed class TaskObjectDisposable : IDisposable
+        {
+            private string handle;
+
+            public TaskObjectDisposable(object handle)
+            {
+                this.handle = (string)handle;
+            }
+
+            public void Dispose()
+            {
+                ObjectHandles.ObjectHandler.Remove(handle);
             }
         }
 

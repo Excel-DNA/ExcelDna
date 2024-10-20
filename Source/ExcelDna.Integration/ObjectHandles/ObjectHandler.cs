@@ -45,10 +45,10 @@ namespace ExcelDna.Integration.ObjectHandles
             return false;
         }
 
-        public static void Remove(HandleInfo handleInfo)
+        public static void Remove(string handle)
         {
             HandleInfo value;
-            if (_objects.TryRemove(handleInfo.Handle, out value))
+            if (_objects.TryRemove(handle, out value))
             {
                 var disp = value.UserObject as IDisposable;
                 if (disp != null)
