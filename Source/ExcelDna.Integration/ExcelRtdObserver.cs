@@ -1069,17 +1069,10 @@ namespace ExcelDna.Integration.Rtd
     internal class ExcelTaskObjectObservable<TResult> : IExcelObservable
     {
         readonly Task<TResult> _task;
-        readonly CancellationTokenSource _cts;
 
         public ExcelTaskObjectObservable(Task<TResult> task)
         {
             _task = task;
-        }
-
-        public ExcelTaskObjectObservable(Task<TResult> task, CancellationTokenSource cts)
-            : this(task)
-        {
-            _cts = cts;
         }
 
         public IDisposable Subscribe(IExcelObserver observer)
@@ -1098,23 +1091,7 @@ namespace ExcelDna.Integration.Rtd
                     observer.OnError(new TaskCanceledException(_task));
                     break;
                 default:
-                    var task = _task;
-                    // OK - the Task has not completed synchronously
-                    // First set up a continuation that will suppress Cancel after the Task completes
-                    if (_cts != null)
-                    {
-                        var cancelDisp = new CancellationDisposable(_cts);
-                        task = _task.ContinueWith(t =>
-                        {
-                            cancelDisp.SuppressCancel();
-                            return t;
-                        }).Unwrap();
-
-                        // Then this will be the IDisposable we return from Subscribe
-                        disp = cancelDisp;
-                    }
-                    // And handle the Task completion
-                    task.ContinueWith(t =>
+                    _task.ContinueWith(t =>
                     {
                         switch (t.Status)
                         {
@@ -1148,42 +1125,6 @@ namespace ExcelDna.Integration.Rtd
             {
                 if (task.Status == TaskStatus.RanToCompletion)
                     ObjectHandles.ObjectHandler.Remove(task.Result as string);
-            }
-        }
-
-        sealed class CancellationDisposable : IDisposable
-        {
-            bool _suppress;
-            readonly CancellationTokenSource _cts;
-            public CancellationDisposable(CancellationTokenSource cts)
-            {
-                if (cts == null)
-                {
-                    throw new ArgumentNullException("cts");
-                }
-
-                _cts = cts;
-            }
-
-            public CancellationDisposable()
-                : this(new CancellationTokenSource())
-            {
-            }
-
-            public void SuppressCancel()
-            {
-                _suppress = true;
-            }
-
-            public CancellationToken Token
-            {
-                get { return _cts.Token; }
-            }
-
-            public void Dispose()
-            {
-                if (!_suppress) _cts.Cancel();
-                _cts.Dispose();  // Not really needed...
             }
         }
     }
