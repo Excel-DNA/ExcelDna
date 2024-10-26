@@ -147,6 +147,15 @@ namespace ExcelDna.AddIn.RuntimeTests
             return new Calc(d1, d2);
         }
 
+        [ExcelAsyncFunction]
+        public static Calc MyAsyncCreateCalc(int millisecondsDelay, double d1, double d2)
+        {
+            if (millisecondsDelay > 0)
+                Thread.Sleep(millisecondsDelay);
+
+            return new Calc(d1, d2);
+        }
+
         [ExcelFunction]
         public static double MyCalcSum(Calc c)
         {

@@ -152,6 +152,11 @@ namespace ExcelDna.Integration
             });
         }
 
+        internal static object RunAsTaskObject<TResult>(string callerFunctionName, object callerParameters, Func<TResult> function)
+        {
+            return RunTaskObject(callerFunctionName, callerParameters, () => Task.Factory.StartNew(function));
+        }
+
         #region Async calculation events
         // CONSIDER: Do we need to unregister these when unloaded / reloaded?
 

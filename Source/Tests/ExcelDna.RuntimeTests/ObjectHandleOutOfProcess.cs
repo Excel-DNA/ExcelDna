@@ -154,16 +154,48 @@ namespace ExcelDna.RuntimeTests
             }
         }
 
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
+        public void AsyncObjectCreate()
+        {
+            foreach (int delay in new[] { 0, 500 })
+            {
+                Automation.WaitFor(() => GetWorksheet(1) != null, 3000);
+                Worksheet worksheet = GetWorksheet(1)!;
+                {
+                    Range functionRange1 = worksheet.Range["E1"];
+                    functionRange1.Formula = $"=MyAsyncCreateCalc({delay}, 14, 15)";
+                    Automation.WaitFor(() => ValueContains(functionRange1, "Calc"), 3000);
+
+                    Range functionRange2 = worksheet.Range["E2"];
+                    functionRange2.Formula = "=MyCalcSum(E1)";
+
+                    Assert.Equal("29", functionRange2.Value.ToString());
+                }
+            }
+        }
+
         private static bool ValueContains(Range r, string substring)
         {
             try
             {
-                return r.Value.ToString().Contains("DisposableObject");
+                return r.Value.ToString().Contains(substring);
             }
             catch
             {
             }
             return false;
+        }
+
+        private static Worksheet? GetWorksheet(int i)
+        {
+            try
+            {
+                return ExcelDna.Testing.Util.Workbook.Sheets[i] as Worksheet;
+            }
+            catch
+            {
+            }
+            return null;
         }
     }
 #endif

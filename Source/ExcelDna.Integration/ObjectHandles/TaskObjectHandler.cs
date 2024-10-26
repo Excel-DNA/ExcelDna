@@ -20,8 +20,18 @@ namespace ExcelDna.Integration.ObjectHandles
 
         public static LambdaExpression ProcessTaskObject(LambdaExpression functionLambda)
         {
-            var createHandleMethod = typeof(TaskObjectHandler).GetMethod(nameof(CreateHandle), BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(functionLambda.ReturnType.GetGenericArguments()[0]);
+            var createHandleMethod = typeof(TaskObjectHandler).GetMethod(nameof(CreateTaskHandle), BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(functionLambda.ReturnType.GetGenericArguments()[0]);
+            return ProcessMethod(functionLambda, createHandleMethod);
+        }
 
+        public static LambdaExpression ProcessObject(LambdaExpression functionLambda)
+        {
+            var createHandleMethod = typeof(TaskObjectHandler).GetMethod(nameof(CreateHandle), BindingFlags.Static | BindingFlags.NonPublic);
+            return ProcessMethod(functionLambda, createHandleMethod);
+        }
+
+        private static LambdaExpression ProcessMethod(LambdaExpression functionLambda, MethodInfo createHandleMethod)
+        {
             var newParams = functionLambda.Parameters.Select(p => Expression.Parameter(p.Type, p.Name)).ToList();
             var paramsArray = newParams.Select(p => Expression.Convert(p, typeof(object)));
             var paramsArrayExp = Expression.NewArrayInit(typeof(object), paramsArray);
@@ -31,9 +41,14 @@ namespace ExcelDna.Integration.ObjectHandles
             return Expression.Lambda(callCreateHandle, newParams);
         }
 
-        private static async Task<string> CreateHandle<T>(Task<T> data)
+        private static async Task<string> CreateTaskHandle<T>(Task<T> data)
         {
             object o = await data;
+            return CreateHandle(o);
+        }
+
+        private static string CreateHandle(object o)
+        {
             return ObjectHandler.GetHandle(o.GetType().ToString(), o);
         }
     }
