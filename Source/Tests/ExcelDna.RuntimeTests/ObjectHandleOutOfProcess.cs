@@ -117,7 +117,7 @@ namespace ExcelDna.RuntimeTests
 
                     Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
                     functionRange1.Formula = $"=MyTaskCreateDisposableObject({delay}, 1)";
-                    Automation.WaitFor(() => ValueContains(functionRange1, "DisposableObject"), 3000);
+                    Automation.WaitFor(() => functionRange1.Value.ToString().Contains("DisposableObject"), 3000);
 
                     Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B2"];
                     functionRange2.Formula = "=MyGetDisposableObjectsCount()";
@@ -134,7 +134,7 @@ namespace ExcelDna.RuntimeTests
                 {
                     Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
                     functionRange1.Formula = $"=MyTaskCreateDisposableObject({delay}, 5)";
-                    Automation.WaitFor(() => ValueContains(functionRange1, "DisposableObject"), 3000);
+                    Automation.WaitFor(() => functionRange1.Value.ToString().Contains("DisposableObject"), 3000);
 
                     Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C2"];
                     functionRange2.Formula = "=MyGetDisposableObjectsCount()";
@@ -159,43 +159,28 @@ namespace ExcelDna.RuntimeTests
         {
             foreach (int delay in new[] { 0, 500 })
             {
-                Automation.WaitFor(() => GetWorksheet(1) != null, 3000);
-                Worksheet worksheet = GetWorksheet(1)!;
                 {
-                    Range functionRange1 = worksheet.Range["E1"];
+                    Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E1"];
                     functionRange1.Formula = $"=MyAsyncCreateCalc({delay}, 14, 15)";
-                    Automation.WaitFor(() => ValueContains(functionRange1, "Calc"), 3000);
+                    Automation.WaitFor(() => functionRange1.Value.ToString().Contains("Calc"), 3000);
 
-                    Range functionRange2 = worksheet.Range["E2"];
+                    Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E2"];
                     functionRange2.Formula = "=MyCalcSum(E1)";
 
                     Assert.Equal("29", functionRange2.Value.ToString());
                 }
-            }
-        }
 
-        private static bool ValueContains(Range r, string substring)
-        {
-            try
-            {
-                return r.Value.ToString().Contains(substring);
-            }
-            catch
-            {
-            }
-            return false;
-        }
+                {
+                    Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["F1"];
+                    functionRange1.Formula = $"=MyAsyncCreateCalcWithCancellation({delay}, 1, 2)";
+                    Automation.WaitFor(() => functionRange1.Value.ToString().Contains("Calc"), 3000);
 
-        private static Worksheet? GetWorksheet(int i)
-        {
-            try
-            {
-                return ExcelDna.Testing.Util.Workbook.Sheets[i] as Worksheet;
+                    Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["F2"];
+                    functionRange2.Formula = "=MyCalcSum(F1)";
+
+                    Assert.Equal("3", functionRange2.Value.ToString());
+                }
             }
-            catch
-            {
-            }
-            return null;
         }
     }
 #endif

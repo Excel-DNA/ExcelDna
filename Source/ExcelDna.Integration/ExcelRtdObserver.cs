@@ -1075,6 +1075,10 @@ namespace ExcelDna.Integration.Rtd
             _task = task;
         }
 
+        public ExcelTaskObjectObservable(Task<TResult> task, CancellationTokenSource cts) : this(task)
+        {
+        }
+
         public IDisposable Subscribe(IExcelObserver observer)
         {
             IDisposable disp = new TaskObjectDisposable(_task);

@@ -121,7 +121,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             // Either RunTask or RunAsTask, depending on whether the method returns Task<string> or string
             string runMethodName = returnsTask ? "RunTask" : "RunAsTask";
             if (userType)
-                runMethodName += "Object";
+                runMethodName = runMethodName.Replace("Task", "TaskObject");
 
             // mi returns some kind of Task<T>. What is T? 
             var newReturnType = returnsTask ? functionLambda.ReturnType.GetGenericArguments()[0] : functionLambda.ReturnType;
@@ -143,17 +143,16 @@ namespace ExcelDna.Integration.ExtendedRegistration
             // Also cast params to Object and put into a fresh object[] array for the RunTask call
             var paramsArray = newParams.Select(p => Expression.Convert(p, typeof(object)));
             var paramsArrayExp = Expression.NewArrayInit(typeof(object), paramsArray);
-            var innerLambda = Expression.Lambda(Expression.Invoke(userType ?
+            LambdaExpression adaptedFunctionLambda = userType ?
                 (returnsTask ? ObjectHandles.TaskObjectHandler.ProcessTaskObject(functionLambda) : ObjectHandles.TaskObjectHandler.ProcessObject(functionLambda)) :
-                functionLambda,
-                newParams));
+                functionLambda;
+            var innerLambda = Expression.Lambda(Expression.Invoke(adaptedFunctionLambda, newParams));
 
             // This is the call to RunTask, taking the name, param array and the (capturing) lambda (called with no arguments)
             var callTaskRun = Expression.Call(runMethod, nameExp, paramsArrayExp, innerLambda);
 
             // Wrap with all the parameters
-            var lambda = Expression.Lambda(callTaskRun, functionLambda.Name, newParams);
-            return lambda;
+            return Expression.Lambda(callTaskRun, functionLambda.Name, newParams);
         }
 
         static LambdaExpression WrapMethodRunTaskWithCancellation(LambdaExpression functionLambda)
@@ -187,13 +186,22 @@ namespace ExcelDna.Integration.ExtendedRegistration
              *      }
              */
 
+            bool returnsTask = ReturnsTask(functionLambda);
+            bool userType = ObjectHandles.TaskObjectHandler.IsUserType(returnsTask ? functionLambda.ReturnType.GetGenericArguments()[0] : functionLambda.ReturnType);
+
             // Either RunTask or RunAsTask, depending on whether the method returns Task<string> or string
-            string runMethodName = ReturnsTask(functionLambda) ? "RunTaskWithCancellation" : "RunAsTaskWithCancellation";
+            string runMethodName = returnsTask ? "RunTaskWithCancellation" : "RunAsTaskWithCancellation";
+            if (userType)
+                runMethodName = runMethodName.Replace("Task", "TaskObject");
+
             // mi returns some kind of Task<T>. What is T? 
-            var newReturnType = ReturnsTask(functionLambda) ? functionLambda.ReturnType.GetGenericArguments()[0] : functionLambda.ReturnType;
+            var newReturnType = returnsTask ? functionLambda.ReturnType.GetGenericArguments()[0] : functionLambda.ReturnType;
+            if (userType)
+                newReturnType = ObjectHandles.TaskObjectHandler.ReturnType();
+
             // Build up the RunTaskWithC... method with the right generic type argument
             var runMethod = typeof(ExcelAsyncUtil)
-                                .GetMember(runMethodName, MemberTypes.Method, BindingFlags.Static | BindingFlags.Public)
+                                .GetMember(runMethodName, MemberTypes.Method, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
                                 .Cast<MethodInfo>().First()
                                 .MakeGenericMethod(newReturnType);
 
@@ -214,7 +222,10 @@ namespace ExcelDna.Integration.ExtendedRegistration
             // Now add the extra CancellationToken parameter
             var ctParamExp = Expression.Parameter(typeof(CancellationToken));
             var allParams = new List<ParameterExpression>(newParams) { ctParamExp };
-            var innerLambda = Expression.Lambda(Expression.Invoke(functionLambda, allParams), ctParamExp);
+            LambdaExpression adaptedFunctionLambda = userType ?
+                (returnsTask ? ObjectHandles.TaskObjectHandler.ProcessTaskObject(functionLambda) : ObjectHandles.TaskObjectHandler.ProcessObject(functionLambda)) :
+                functionLambda;
+            var innerLambda = Expression.Lambda(Expression.Invoke(adaptedFunctionLambda, allParams), ctParamExp);
 
             // This is the call to RunTask, taking the name, param array and the (capturing) lambda
             var callTaskRun = Expression.Call(runMethod, nameExp, paramsArrayExp, innerLambda);
