@@ -29,7 +29,7 @@ namespace ExcelDna.Loader
             //var xlDelegate = GetNativeDelegate(methodInfo);
             var xlDelegate = GetLazyDelegate(methodInfo);
             methodInfo.DelegateHandle = GCHandle.Alloc(xlDelegate);
-            methodInfo.FunctionPointer = Marshal.GetFunctionPointerForDelegate<XlDirectMarshalTypes.XlFunc0>((XlDirectMarshalTypes.XlFunc0)xlDelegate);
+            methodInfo.FunctionPointer = XlDirectMarshalTypes.GetFunctionPointerForDelegate(xlDelegate, methodInfo);
         }
 
         // NOTE: This is called in parallel, from a ThreadPool thread

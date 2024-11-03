@@ -310,13 +310,18 @@ namespace ExcelDna.Integration
 
         private static string ExcelDnaIntegrationAbout()
         {
-            return "ExcelDna.Integration v0.01";
+            return "ExcelDna.Integration v0.02";
         }
 
-        private void RegisterAbout()
+        private static string ExcelDnaIntegrationHello(string name)
         {
-            var mi = typeof(DnaLibrary).GetMethod(nameof(ExcelDnaIntegrationAbout), BindingFlags.NonPublic | BindingFlags.Static);
-            _methods.Add(mi);
+            return $"Hello {name}!";
+        }
+
+        private void RegisterTestMethods()
+        {
+            _methods.Add(typeof(DnaLibrary).GetMethod(nameof(ExcelDnaIntegrationAbout), BindingFlags.NonPublic | BindingFlags.Static));
+            _methods.Add(typeof(DnaLibrary).GetMethod(nameof(ExcelDnaIntegrationHello), BindingFlags.NonPublic | BindingFlags.Static));
         }
 
         // Only called for the Root DnaLibrary.
@@ -326,7 +331,7 @@ namespace ExcelDna.Integration
             RegistrationInfo.Register();
             SynchronizationManager.Install(true);
 
-            RegisterAbout();
+            RegisterTestMethods();
 
             // Register my Methods
             if (_excelFunctionExecutionHandlerSelectors.Count == 0)

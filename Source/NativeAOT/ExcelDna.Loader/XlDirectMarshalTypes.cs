@@ -3,6 +3,7 @@
 //  Excel-DNA is licensed under the zlib license. See LICENSE.txt for details.
 
 using System;
+using System.Runtime.InteropServices;
 namespace ExcelDna.Loader
 {
     class XlDirectMarshalTypes
@@ -41,6 +42,22 @@ namespace ExcelDna.Loader
             typeof(XlFunc220), typeof(XlFunc221), typeof(XlFunc222), typeof(XlFunc223), typeof(XlFunc224), typeof(XlFunc225), typeof(XlFunc226), typeof(XlFunc227), typeof(XlFunc228), typeof(XlFunc229), typeof(XlFunc230), typeof(XlFunc231), typeof(XlFunc232), typeof(XlFunc233), typeof(XlFunc234), typeof(XlFunc235), typeof(XlFunc236), typeof(XlFunc237), typeof(XlFunc238), typeof(XlFunc239),
             typeof(XlFunc240), typeof(XlFunc241), typeof(XlFunc242), typeof(XlFunc243), typeof(XlFunc244), typeof(XlFunc245), typeof(XlFunc246), typeof(XlFunc247), typeof(XlFunc248), typeof(XlFunc249), typeof(XlFunc250), typeof(XlFunc251), typeof(XlFunc252), typeof(XlFunc253), typeof(XlFunc254), typeof(XlFunc255)
         };
+
+        public static IntPtr GetFunctionPointerForDelegate(Delegate d, XlMethodInfo methodInfo)
+        {
+            if (methodInfo.HasReturnType)
+            {
+                switch (methodInfo.Parameters.Length)
+                {
+                    case 0:
+                        return Marshal.GetFunctionPointerForDelegate<XlFunc0>((XlFunc0)d);
+                    case 1:
+                        return Marshal.GetFunctionPointerForDelegate<XlFunc1>((XlFunc1)d);
+                }
+            }
+
+            throw new NotImplementedException("GetFunctionPointerForDelegate");
+        }
 
         #region XlAct Types
         public delegate void XlAct0();
