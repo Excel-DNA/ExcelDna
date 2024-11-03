@@ -4,11 +4,7 @@
     <TargetFramework>net8.0-windows</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
-		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
-		<PublishAOT>true</PublishAOT>
-
     <UseWindowsForms>true</UseWindowsForms>
-    <SelfContained>true</SelfContained>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,13 +13,4 @@
 
   <Import Project="..\ExcelDna.PackedResources\ExcelDna.PackedResources.projitems" Label="Shared" />
 
-    	<Target Name="SetNoBuild">
-		<PropertyGroup>
-			<NoBuild>true</NoBuild>
-		</PropertyGroup>
-	</Target>
-	<Target Name="PublishAfterBuild" AfterTargets="AfterBuild" DependsOnTargets="SetNoBuild;Publish" />
-
-
-  
 </Project>

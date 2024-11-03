@@ -53,6 +53,8 @@ namespace ExcelDna.Loader
                         return Marshal.GetFunctionPointerForDelegate<XlFunc0>((XlFunc0)d);
                     case 1:
                         return Marshal.GetFunctionPointerForDelegate<XlFunc1>((XlFunc1)d);
+                    case 2:
+                        return Marshal.GetFunctionPointerForDelegate<XlFunc2>((XlFunc2)d);
                 }
             }
 

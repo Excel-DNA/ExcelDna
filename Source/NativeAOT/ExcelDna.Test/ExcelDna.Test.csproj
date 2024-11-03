@@ -12,6 +12,8 @@
 
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
   </PropertyGroup>
 
   <Target Name="SetNoBuild">
@@ -22,6 +24,7 @@
 	<Target Name="PublishAfterBuild" AfterTargets="AfterBuild" DependsOnTargets="SetNoBuild;Publish" />
 	<ItemGroup>
 	  <ProjectReference Include="..\ExcelDna.ManagedHost\ExcelDna.ManagedHost.csproj" />
+	  <ProjectReference Include="..\ExcelDna.SourceGenerator\ExcelDna.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 
 </Project>
