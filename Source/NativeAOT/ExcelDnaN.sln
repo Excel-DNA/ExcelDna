@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.Loader", "ExcelDna
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.Integration", "ExcelDna.Integration\ExcelDna.Integration.csproj", "{E8ABB402-3729-45ED-9ADA-823B3E455B1D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.Test", "ExcelDna.Test\ExcelDna.Test.csproj", "{74C22D3E-B7CF-43CF-A3D1-4DBAF51AEFB7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +73,18 @@ Global
 		{E8ABB402-3729-45ED-9ADA-823B3E455B1D}.Release|x64.Build.0 = Release|Any CPU
 		{E8ABB402-3729-45ED-9ADA-823B3E455B1D}.Release|x86.ActiveCfg = Release|Any CPU
 		{E8ABB402-3729-45ED-9ADA-823B3E455B1D}.Release|x86.Build.0 = Release|Any CPU
+		{74C22D3E-B7CF-43CF-A3D1-4DBAF51AEFB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74C22D3E-B7CF-43CF-A3D1-4DBAF51AEFB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74C22D3E-B7CF-43CF-A3D1-4DBAF51AEFB7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{74C22D3E-B7CF-43CF-A3D1-4DBAF51AEFB7}.Debug|x64.Build.0 = Debug|Any CPU
+		{74C22D3E-B7CF-43CF-A3D1-4DBAF51AEFB7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{74C22D3E-B7CF-43CF-A3D1-4DBAF51AEFB7}.Debug|x86.Build.0 = Debug|Any CPU
+		{74C22D3E-B7CF-43CF-A3D1-4DBAF51AEFB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74C22D3E-B7CF-43CF-A3D1-4DBAF51AEFB7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{74C22D3E-B7CF-43CF-A3D1-4DBAF51AEFB7}.Release|x64.ActiveCfg = Release|Any CPU
+		{74C22D3E-B7CF-43CF-A3D1-4DBAF51AEFB7}.Release|x64.Build.0 = Release|Any CPU
+		{74C22D3E-B7CF-43CF-A3D1-4DBAF51AEFB7}.Release|x86.ActiveCfg = Release|Any CPU
+		{74C22D3E-B7CF-43CF-A3D1-4DBAF51AEFB7}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

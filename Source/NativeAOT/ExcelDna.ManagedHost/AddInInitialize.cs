@@ -1,5 +1,6 @@
 ﻿using ExcelDna.Loader;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -34,7 +35,7 @@ namespace ExcelDna.ManagedHost
 #if NETCOREAPP
         static ExcelDnaAssemblyLoadContext _alc;
 
-        [UnmanagedCallersOnly(EntryPoint = "Initialize", CallConvs = new[] { typeof(CallConvCdecl) })]
+        //[UnmanagedCallersOnly(EntryPoint = "Initialize", CallConvs = new[] { typeof(CallConvCdecl) })]
         public static short Initialize(void* xlAddInExportInfoAddress, void* hModuleXll, void* pPathXLL, byte disableAssemblyContextUnload, void* pTempDirPath)
         {
             UnloadALC();

@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+		<PublishAOT>true</PublishAOT>
+
+    <UseWindowsForms>true</UseWindowsForms>
+    <SelfContained>true</SelfContained>
+
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <Target Name="SetNoBuild">
+		<PropertyGroup>
+			<NoBuild>true</NoBuild>
+		</PropertyGroup>
+	</Target>
+	<Target Name="PublishAfterBuild" AfterTargets="AfterBuild" DependsOnTargets="SetNoBuild;Publish" />
+	<ItemGroup>
+	  <ProjectReference Include="..\ExcelDna.ManagedHost\ExcelDna.ManagedHost.csproj" />
+	</ItemGroup>
+
+</Project>

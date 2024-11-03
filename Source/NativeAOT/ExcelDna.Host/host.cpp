@@ -56,12 +56,12 @@ TempDir tempDir(L"ExcelDna.Host");
 
 int load_native_and_run(const std::wstring& basePath, XlAddInExportInfo* pExportInfo, HMODULE hModuleXll, LPCWSTR pathXll)
 {
-	std::wstring hostFile = PathCombine(basePath, L"ExcelDna.ManagedHost.dll");
+	std::wstring hostFile = PathCombine(basePath, L"ExcelDna.Test.dll");
 	HINSTANCE handle = LoadLibrary(hostFile.c_str());
 
 	if (handle == NULL)
 	{
-		ShowHostError(L"Loading ExcelDna.ManagedHost library failed.");
+		ShowHostError(L"Loading ExcelDna.Test library failed.");
 		return EXIT_FAILURE;
 	}
 
@@ -81,6 +81,7 @@ int load_native_and_run(const std::wstring& basePath, XlAddInExportInfo* pExport
 }
 
 // TODO: Might return the fn*
+/*
 int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExportInfo, HMODULE hModuleXll, LPCWSTR pathXll)
 {
 	//
@@ -172,7 +173,7 @@ int load_runtime_and_run(const std::wstring& basePath, XlAddInExportInfo* pExpor
 
 	return res == 0 ? EXIT_FAILURE : EXIT_SUCCESS;
 }
-
+*/
 
 /********************************************************************************************
  * Function used to load and activate .NET Core

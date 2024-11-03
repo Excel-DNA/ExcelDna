@@ -24,6 +24,8 @@ namespace ExcelDna.Integration
     [XmlRoot(Namespace = "http://schemas.excel-dna.net/addin/2020/07/dnalibrary", IsNullable = false)]
     public class DnaLibrary
     {
+        public static List<MethodInfo> MethodsForRegistration { get; } = new List<MethodInfo>();
+
         private List<ExternalLibrary> _ExternalLibraries;
         [XmlElement("ExternalLibrary", typeof(ExternalLibrary))]
         public List<ExternalLibrary> ExternalLibraries
@@ -332,6 +334,7 @@ namespace ExcelDna.Integration
             SynchronizationManager.Install(true);
 
             RegisterTestMethods();
+            _methods.AddRange(MethodsForRegistration);
 
             // Register my Methods
             if (_excelFunctionExecutionHandlerSelectors.Count == 0)
