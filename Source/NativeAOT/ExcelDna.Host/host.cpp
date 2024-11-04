@@ -56,12 +56,14 @@ TempDir tempDir(L"ExcelDna.Host");
 
 int load_native_and_run(const std::wstring& basePath, XlAddInExportInfo* pExportInfo, HMODULE hModuleXll, LPCWSTR pathXll)
 {
-	std::wstring hostFile = PathCombine(basePath, L"ExcelDna.Test.dll");
+	std::wstring hostFile(GetAddInFullPath());
+	RenameExtension(hostFile, L".dll");
+
 	HINSTANCE handle = LoadLibrary(hostFile.c_str());
 
 	if (handle == NULL)
 	{
-		ShowHostError(L"Loading ExcelDna.Test library failed.");
+		ShowHostError(L"Loading " + hostFile + L" library failed.");
 		return EXIT_FAILURE;
 	}
 
