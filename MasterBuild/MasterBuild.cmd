@@ -4,7 +4,7 @@ set PackageVersion=1.8.0
 set PackageReferenceVersion=1.8.0
 set DllVersion=1.8.0.5
 
-set MSBuildPath="c:\Program Files\Microsoft Visual Studio\2022\Professional\Msbuild\Current\Bin\amd64\MSBuild.exe"
+set MSBuildPath="c:\Program Files\Microsoft Visual Studio\2022\Preview\Msbuild\Current\Bin\amd64\MSBuild.exe"
 
 set rootPath=%~dp0..\..
 
@@ -23,28 +23,9 @@ copy /Y Directory.Build.targets %targetsfile%
 PowerShell "(Get-Content %targetsfile%) -replace '_VERSION_', '%PackageReferenceVersion%' | Set-Content %targetsfile%"
 @if errorlevel 1 goto end
 
-cd %rootPath%\ExcelDna\Build
+set rootPathN=%~dp0..
+cd %rootPathN%\Source\NativeAOT\Build
 call BuildPackages.bat %PackageVersion% %DllVersion% %MSBuildPath%
-@if errorlevel 1 goto end
-
-cd %rootPath%\Registration\Build
-copy /Y %targetsfile% %rootPath%\Registration\Source\Directory.Build.targets
-call BuildPackages.bat %PackageVersion% %MSBuildPath%
-@if errorlevel 1 goto end
-
-cd %rootPath%\IntelliSense\Build
-copy /Y %targetsfile% %rootPath%\IntelliSense\Source\Directory.Build.targets
-call BuildPackages.bat %PackageVersion% %MSBuildPath%
-@if errorlevel 1 goto end
-
-cd %rootPath%\ExcelDnaDoc\Build
-copy /Y %targetsfile% %rootPath%\ExcelDnaDoc\Directory.Build.targets
-call BuildPackages.bat %PackageVersion% %MSBuildPath%
-@if errorlevel 1 goto end
-
-cd %rootPath%\DeveloperTools\ExcelDna.Testing\Build
-copy /Y %targetsfile% %rootPath%\DeveloperTools\ExcelDna.Testing\Directory.Build.targets
-call BuildPackages.bat %PackageVersion% %MSBuildPath%
 @if errorlevel 1 goto end
 
 :end
