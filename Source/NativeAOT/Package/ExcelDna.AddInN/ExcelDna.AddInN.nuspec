@@ -26,7 +26,10 @@
     </metadata>
     <files>
         <file src="lib\net8.0-windows7.0\ExcelDna.Integration.dll" target="lib\net8.0-windows7.0\ExcelDna.Integration.dll" />
-        <file src="readme.txt" target="readme.txt" />
+      <file src="lib\net8.0-windows7.0\ExcelDna.ManagedHost.dll" target="lib\net8.0-windows7.0\ExcelDna.ManagedHost.dll" />
+      <file src="lib\net8.0-windows7.0\ExcelDna.Loader.dll" target="lib\net8.0-windows7.0\ExcelDna.Loader.dll" />
+      <file src="analyzers\dotnet\cs\ExcelDna.SourceGenerator.dll" target="analyzers\dotnet\cs" />
+        <file src="build\ExcelDna.AddInN.props" target="build" />
         <file src="..\images\ExcelDna-nu.png" target="images\" />
     </files>
 </package>
