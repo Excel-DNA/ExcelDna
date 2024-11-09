@@ -30,6 +30,8 @@
       <file src="lib\net8.0-windows7.0\ExcelDna.Loader.dll" target="lib\net8.0-windows7.0\ExcelDna.Loader.dll" />
       <file src="analyzers\dotnet\cs\ExcelDna.SourceGenerator.dll" target="analyzers\dotnet\cs" />
         <file src="build\ExcelDna.AddInN.props" target="build" />
+        <file src="build\ExcelDna.AddInN.targets" target="build" />
+        <file src="tools\ExcelDna.Host.x64.xll" target="tools" />
         <file src="..\images\ExcelDna-nu.png" target="images\" />
     </files>
 </package>
