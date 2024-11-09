@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     
-    <TargetFrameworks>net6.0-windows</TargetFrameworks>
+    <TargetFrameworks>net8.0-windows</TargetFrameworks>
     <UseWindowsForms>true</UseWindowsForms>
     
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
 
-    <TargetFrameworks>net6.0-windows</TargetFrameworks>
+    <TargetFrameworks>net8.0-windows</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <AssemblyTitle>ExcelDna Managed Loader</AssemblyTitle>
