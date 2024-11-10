@@ -159,9 +159,65 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
+        public static async Task<Calc> MyTaskCreateCalc(int millisecondsDelay, double d1, double d2)
+        {
+            await Task.Delay(millisecondsDelay);
+            return new Calc(d1, d2);
+        }
+
+        [ExcelFunction]
+        public static async Task<Calc> MyTaskCreateCalcWithCancellation(int millisecondsDelay, double d1, double d2, CancellationToken ct)
+        {
+            await Task.Delay(millisecondsDelay);
+            return new Calc(d1, d2);
+        }
+
+        [ExcelAsyncFunction]
+        public static Calc MyAsyncCreateCalc(int millisecondsDelay, double d1, double d2)
+        {
+            if (millisecondsDelay > 0)
+                Thread.Sleep(millisecondsDelay);
+
+            return new Calc(d1, d2);
+        }
+
+        [ExcelAsyncFunction]
+        public static Calc MyAsyncCreateCalcWithCancellation(int millisecondsDelay, double d1, double d2, CancellationToken ct)
+        {
+            if (millisecondsDelay > 0)
+                Thread.Sleep(millisecondsDelay);
+
+            return new Calc(d1, d2);
+        }
+
+        [ExcelFunction]
         public static double MyCalcSum(Calc c)
         {
             return c.Sum();
+        }
+
+        [ExcelFunction]
+        public static Task<double> MyTaskCalcSum(Calc c)
+        {
+            return Task.FromResult(c.Sum());
+        }
+
+        [ExcelFunction]
+        public static Task<double> MyTaskCalcDoubleSumWithCancellation(Calc c, CancellationToken ct)
+        {
+            return Task.FromResult(c.Sum() * 2);
+        }
+
+        [ExcelFunction]
+        public static IObservable<string> MyStringObservable(string s)
+        {
+            return new ObservableString(s);
+        }
+
+        [ExcelFunction]
+        public static IObservable<string> MyCalcSumObservable(Calc c)
+        {
+            return new ObservableString(c.Sum().ToString());
         }
 
         [ExcelFunction]
@@ -180,6 +236,13 @@ namespace ExcelDna.AddIn.RuntimeTests
         public static int MyGetCreatedDisposableObjectsCount()
         {
             return DisposableObject.CreatedObjectsCount;
+        }
+
+        [ExcelFunction]
+        public static async Task<DisposableObject> MyTaskCreateDisposableObject(int millisecondsDelay, int x)
+        {
+            await Task.Delay(millisecondsDelay);
+            return new DisposableObject();
         }
 
         [ExcelFunction(IsThreadSafe = true)]

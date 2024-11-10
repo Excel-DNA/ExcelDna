@@ -143,6 +143,35 @@ namespace ExcelDna.Integration
             XlCall.Excel(XlCall.xlcRun, macroName);
         }
 
+        internal static object RunTaskObject<TResult>(string callerFunctionName, object callerParameters, Func<Task<TResult>> taskSource)
+        {
+            return Observe(callerFunctionName, callerParameters, delegate
+            {
+                var task = taskSource();
+                return new ExcelTaskObjectObservable<TResult>(task);
+            });
+        }
+
+        internal static object RunTaskObjectWithCancellation<TResult>(string callerFunctionName, object callerParameters, Func<CancellationToken, Task<TResult>> taskSource)
+        {
+            return Observe(callerFunctionName, callerParameters, delegate
+            {
+                var cts = new CancellationTokenSource();
+                var task = taskSource(cts.Token);
+                return new ExcelTaskObjectObservable<TResult>(task, cts);
+            });
+        }
+
+        internal static object RunAsTaskObject<TResult>(string callerFunctionName, object callerParameters, Func<TResult> function)
+        {
+            return RunTaskObject(callerFunctionName, callerParameters, () => Task.Factory.StartNew(function));
+        }
+
+        internal static object RunAsTaskObjectWithCancellation<TResult>(string callerFunctionName, object callerParameters, Func<CancellationToken, TResult> function)
+        {
+            return RunTaskObjectWithCancellation(callerFunctionName, callerParameters, cancellationToken => Task.Factory.StartNew(() => function(cancellationToken), cancellationToken));
+        }
+
         #region Async calculation events
         // CONSIDER: Do we need to unregister these when unloaded / reloaded?
 

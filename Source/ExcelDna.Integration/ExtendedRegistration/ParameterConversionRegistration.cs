@@ -14,27 +14,31 @@ namespace ExcelDna.Integration.ExtendedRegistration
         {
             foreach (var reg in registrations)
             {
-                // Keep a list of conversions for each parameter
-                // TODO: Prevent having a cycle, but allow arbitrary ordering...?
-
-                var paramsConversions = new List<List<LambdaExpression>>();
-                for (int i = 0; i < reg.FunctionLambda.Parameters.Count; i++)
-                {
-                    var initialParamType = reg.FunctionLambda.Parameters[i].Type;
-                    var paramReg = reg.ParameterRegistrations[i];
-
-                    var paramConversions = GetParameterConversions(conversionConfig, initialParamType, paramReg);
-                    paramsConversions.Add(paramConversions);
-                } // for each parameter !
-
-                // Process return conversions
-                var returnConversions = GetReturnConversions(conversionConfig, reg.FunctionLambda.ReturnType, reg.ReturnRegistration);
-
-                // Now we apply all the conversions
-                ApplyConversions(reg, paramsConversions, returnConversions);
-
+                ApplyParameterConversions(reg, conversionConfig);
                 yield return reg;
             }
+        }
+
+        public static void ApplyParameterConversions(ExcelFunction reg, ParameterConversionConfiguration conversionConfig)
+        {
+            // Keep a list of conversions for each parameter
+            // TODO: Prevent having a cycle, but allow arbitrary ordering...?
+
+            var paramsConversions = new List<List<LambdaExpression>>();
+            for (int i = 0; i < reg.FunctionLambda.Parameters.Count; i++)
+            {
+                var initialParamType = reg.FunctionLambda.Parameters[i].Type;
+                var paramReg = reg.ParameterRegistrations[i];
+
+                var paramConversions = GetParameterConversions(conversionConfig, initialParamType, paramReg);
+                paramsConversions.Add(paramConversions);
+            } // for each parameter !
+
+            // Process return conversions
+            var returnConversions = GetReturnConversions(conversionConfig, reg.FunctionLambda.ReturnType, reg.ReturnRegistration);
+
+            // Now we apply all the conversions
+            ApplyConversions(reg, paramsConversions, returnConversions);
         }
 
         // returnsConversion and the entries in paramsConversions may be null.

@@ -254,6 +254,27 @@ namespace ExcelDna.RuntimeTests
         }
 
         [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
+        public void Observable()
+        {
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+
+                functionRange.Formula = "=MyStringObservable(\"s1\")";
+                Assert.Equal("s1", functionRange.Value.ToString());
+            }
+
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
+                functionRange1.Formula = "=MyCreateCalc(12, 13)";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C2"];
+                functionRange2.Formula = "=MyCalcSumObservable(C1)";
+
+                Assert.Equal("25", functionRange2.Value.ToString());
+            }
+        }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
         public void ObjectHandles()
         {
             string b1;
@@ -313,6 +334,50 @@ namespace ExcelDna.RuntimeTests
         }
 
         [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
+        public void TaskObjectHandles()
+        {
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+                functionRange1.Formula = "=MyCreateCalc(8, 9)";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B2"];
+                functionRange2.Formula = "=MyTaskCalcSum(B1)";
+
+                Assert.Equal("17", functionRange2.Value.ToString());
+            }
+
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
+                functionRange1.Formula = "=MyCreateCalc(10, 11)";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C2"];
+                functionRange2.Formula = "=MyTaskCalcDoubleSumWithCancellation(C1)";
+
+                Assert.Equal("42", functionRange2.Value.ToString());
+            }
+
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D1"];
+                functionRange1.Formula = "=MyTaskCreateCalc(0, 12, 13)";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D2"];
+                functionRange2.Formula = "=MyCalcSum(D1)";
+
+                Assert.Equal("25", functionRange2.Value.ToString());
+            }
+
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E1"];
+                functionRange1.Formula = "=MyTaskCreateCalcWithCancellation(0, 14, 15)";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E2"];
+                functionRange2.Formula = "=MyCalcSum(E1)";
+
+                Assert.Equal("29", functionRange2.Value.ToString());
+            }
+        }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
         public void ObjectHandlesDisposable()
         {
             string b1;
@@ -357,6 +422,65 @@ namespace ExcelDna.RuntimeTests
 
                 Assert.Equal(b1, functionRange1.Value.ToString());
                 Assert.Equal("2", functionRange2.Value.ToString());
+            }
+        }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
+        public void TaskObjectHandlesDisposable()
+        {
+            string b1;
+            {
+                Range functionRangeC1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
+                functionRangeC1.Formula = "=MyGetCreatedDisposableObjectsCount()";
+                int initialCreatedObjectsCount = (int)functionRangeC1.Value;
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B2"];
+                functionRange2.Formula = "=MyGetDisposableObjectsCount()";
+                int initialDisposableObjectsCount = (int)functionRange2.Value;
+
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+                functionRange1.Formula = "=MyTaskCreateDisposableObject(0, 1)";
+                functionRange2.Formula = "=MyGetDisposableObjectsCount()";
+                int finalDisposableObjectsCount = (int)functionRange2.Value;
+
+                Range functionRangeC2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C2"];
+                functionRangeC2.Formula = "=MyGetCreatedDisposableObjectsCount()";
+                int finalCreatedObjectsCount = (int)functionRangeC2.Value;
+
+                Assert.Equal(1, finalCreatedObjectsCount - initialCreatedObjectsCount);
+
+                b1 = functionRange1.Value.ToString();
+                Assert.Equal(1, finalDisposableObjectsCount - initialDisposableObjectsCount);
+            }
+
+            {
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C2"];
+                functionRange2.Formula = "=MyGetDisposableObjectsCount()";
+                int initialDisposableObjectsCount = (int)functionRange2.Value;
+
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
+                functionRange1.Formula = "=MyTaskCreateDisposableObject(0, 5)";
+
+                functionRange2.Formula = "=MyGetDisposableObjectsCount()";
+                int finalDisposableObjectsCount = (int)functionRange2.Value;
+
+                Assert.NotEqual(b1, functionRange1.Value.ToString());
+                Assert.Equal(1, finalDisposableObjectsCount - initialDisposableObjectsCount);
+            }
+
+            {
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D2"];
+                functionRange2.Formula = "=MyGetDisposableObjectsCount()";
+                int initialDisposableObjectsCount = (int)functionRange2.Value;
+
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D1"];
+                functionRange1.Formula = "=MyTaskCreateDisposableObject(0, 1)";
+
+                functionRange2.Formula = "=MyGetDisposableObjectsCount()";
+                int finalDisposableObjectsCount = (int)functionRange2.Value;
+
+                Assert.Equal(b1, functionRange1.Value.ToString());
+                Assert.Equal(0, finalDisposableObjectsCount - initialDisposableObjectsCount);
             }
         }
 

@@ -1066,6 +1066,73 @@ namespace ExcelDna.Integration.Rtd
         }
     }
 
+    internal class ExcelTaskObjectObservable<TResult> : IExcelObservable
+    {
+        readonly Task<TResult> _task;
+
+        public ExcelTaskObjectObservable(Task<TResult> task)
+        {
+            _task = task;
+        }
+
+        public ExcelTaskObjectObservable(Task<TResult> task, CancellationTokenSource cts) : this(task)
+        {
+        }
+
+        public IDisposable Subscribe(IExcelObserver observer)
+        {
+            IDisposable disp = new TaskObjectDisposable(_task);
+
+            switch (_task.Status)
+            {
+                case TaskStatus.RanToCompletion:
+                    observer.OnNext(_task.Result);
+                    break;
+                case TaskStatus.Faulted:
+                    observer.OnError(_task.Exception.InnerException);
+                    break;
+                case TaskStatus.Canceled:
+                    observer.OnError(new TaskCanceledException(_task));
+                    break;
+                default:
+                    _task.ContinueWith(t =>
+                    {
+                        switch (t.Status)
+                        {
+                            case TaskStatus.RanToCompletion:
+                                observer.OnNext(t.Result);
+                                break;
+                            case TaskStatus.Faulted:
+                                observer.OnError(t.Exception.InnerException);
+                                break;
+                            case TaskStatus.Canceled:
+                                observer.OnError(new TaskCanceledException(t));
+                                break;
+                        }
+                    });
+                    break;
+            }
+
+            return disp;
+        }
+
+        sealed class TaskObjectDisposable : IDisposable
+        {
+            private Task<TResult> task;
+
+            public TaskObjectDisposable(Task<TResult> task)
+            {
+                this.task = task;
+            }
+
+            public void Dispose()
+            {
+                if (task.Status == TaskStatus.RanToCompletion)
+                    ObjectHandles.ObjectHandler.Remove(task.Result as string);
+            }
+        }
+    }
+
     // An IExcelObservable that wraps an IObservable
     internal class ExcelObservable<T> : IExcelObservable
     {
