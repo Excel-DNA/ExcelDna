@@ -166,6 +166,14 @@ namespace ExcelDna.Integration
             set { _RollForward = value; }
         }
 
+        private string _RuntimeFrameworkVersion;
+        [XmlAttribute]
+        public string RuntimeFrameworkVersion
+        {
+            get { return _RuntimeFrameworkVersion; }
+            set { _RuntimeFrameworkVersion = value; }
+        }
+
         // No ExplicitExports flag on the DnaLibrary (for now), because it might cause confusion when mixed with ExternalLibraries.
         // Projects can be marked as ExplicitExports by adding an explicit <Project> tag.
         //private bool _ExplicitExports = false;

@@ -23,15 +23,33 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
+        public static string MyDateTime(DateTime d)
+        {
+            return d.ToString();
+        }
+
+        [ExcelFunction]
         public static string MyNullableDouble(double? d)
         {
             return "Nullable VAL: " + (d.HasValue ? d : "NULL");
         }
 
         [ExcelFunction]
+        public static string MyNullableDateTime(DateTime? dt)
+        {
+            return "Nullable DateTime: " + (dt.HasValue ? dt : "NULL");
+        }
+
+        [ExcelFunction]
         public static string MyOptionalDouble(double d = 1.23)
         {
             return "Optional VAL: " + d.ToString();
+        }
+
+        [ExcelFunction]
+        public static string MyOptionalDateTime(DateTime dt = default)
+        {
+            return "Optional DateTime: " + dt.ToString();
         }
 
         [ExcelFunction]

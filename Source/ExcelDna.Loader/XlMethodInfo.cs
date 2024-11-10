@@ -94,7 +94,7 @@ namespace ExcelDna.Loader
             // We shortcut the rest of the registration
             if (ExplicitRegistration) return;
 
-            FixHelpTopic();
+            HelpTopic = DocUtil.FixHelpTopic(HelpTopic);
 
             // Return type conversion
             // Careful here - native async functions also return void
@@ -146,12 +146,12 @@ namespace ExcelDna.Loader
         }
 
         // Native async functions have a final parameter that is an ExcelAsyncHandle.
-        public bool IsExcelAsyncFunction 
-        { 
-            get 
-            { 
-                return Parameters.Length > 0 && Parameters[Parameters.Length - 1].IsExcelAsyncHandle; 
-            } 
+        public bool IsExcelAsyncFunction
+        {
+            get
+            {
+                return Parameters.Length > 0 && Parameters[Parameters.Length - 1].IsExcelAsyncHandle;
+            }
         }
 
         // Basic setup - get description, category etc.
@@ -205,7 +205,7 @@ namespace ExcelDna.Loader
                     MenuName = cmd.MenuName;
                 if (cmd.MenuText != null)
                     MenuText = cmd.MenuText;
-//                    IsHidden = isHidden;  // Only for functions.
+                //                    IsHidden = isHidden;  // Only for functions.
                 IsExceptionSafe = cmd.IsExceptionSafe;
                 ExplicitRegistration = cmd.ExplicitRegistration;
                 SuppressOverwriteError = cmd.SuppressOverwriteError;
@@ -213,31 +213,7 @@ namespace ExcelDna.Loader
                 // Override IsCommand, even though this 'macro' might have a return value.
                 // Allow for more flexibility in what kind of macros are supported, particularly for calling
                 // via Application.Run.
-                IsCommand = true;   
-            }
-        }
-
-        void FixHelpTopic()
-        {
-            // Make HelpTopic without full path relative to xllPath
-            if (string.IsNullOrEmpty(HelpTopic))
-            {
-                return;
-            }
-           // DOCUMENT: If HelpTopic is not rooted - it is expanded relative to .xll path.
-            // If http url does not end with !0 it is appended.
-            // I don't think https is supported, but it should not be considered an 'unrooted' path anyway.
-            // I could not get file:/// working (only checked with Excel 2013)
-            if (HelpTopic.StartsWith("http://") || HelpTopic.StartsWith("https://") || HelpTopic.StartsWith("file://"))
-            {
-                if (!HelpTopic.EndsWith("!0"))
-                {
-                    HelpTopic = HelpTopic + "!0";
-                }
-            }
-            else if (!Path.IsPathRooted(HelpTopic))
-            {
-                HelpTopic = Path.Combine(Path.GetDirectoryName(XlAddIn.PathXll), HelpTopic);
+                IsCommand = true;
             }
         }
 
@@ -334,7 +310,7 @@ namespace ExcelDna.Loader
     }
 
     internal static class TypeHelper
-    {   
+    {
         internal static bool TypeHasAncestorWithFullName(Type type, string fullName)
         {
             if (type == null) return false;
@@ -343,12 +319,12 @@ namespace ExcelDna.Loader
         }
     }
 
-	// TODO: improve information about the problem
-	internal class DnaMarshalException : Exception
-	{
-		public DnaMarshalException(string message) :
-			base(message)
-		{
-		}
-	}
+    // TODO: improve information about the problem
+    internal class DnaMarshalException : Exception
+    {
+        public DnaMarshalException(string message) :
+            base(message)
+        {
+        }
+    }
 }

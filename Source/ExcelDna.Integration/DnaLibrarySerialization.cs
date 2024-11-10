@@ -45,6 +45,7 @@ namespace ExcelDna.Serialization
             WriteAttribute(@"DisableAssemblyContextUnload", @"", System.Xml.XmlConvert.ToString((global::System.Boolean)((global::System.Boolean)o.@DisableAssemblyContextUnload)));
             WriteAttribute(@"CustomRuntimeConfiguration", @"", ((global::System.String)o.@CustomRuntimeConfiguration));
             WriteAttribute(@"RollForward", @"", ((global::System.String)o.@RollForward));
+            WriteAttribute(@"RuntimeFrameworkVersion", @"", ((global::System.String)o.@RuntimeFrameworkVersion));
             {
                 global::System.Collections.Generic.List<global::ExcelDna.Integration.ExternalLibrary> a = (global::System.Collections.Generic.List<global::ExcelDna.Integration.ExternalLibrary>)o.@ExternalLibraries;
                 if (a != null) {
@@ -296,7 +297,7 @@ namespace ExcelDna.Serialization
             global::System.Collections.Generic.List<global::System.Xml.XmlNode> a_12 = (global::System.Collections.Generic.List<global::System.Xml.XmlNode>)o.@CustomUIs;
             if ((object)(o.@Images) == null) o.@Images = new global::System.Collections.Generic.List<global::ExcelDna.Integration.Image>();
             global::System.Collections.Generic.List<global::ExcelDna.Integration.Image> a_13 = (global::System.Collections.Generic.List<global::ExcelDna.Integration.Image>)o.@Images;
-            bool[] paramsRead = new bool[17];
+            bool[] paramsRead = new bool[18];
             while (Reader.MoveToNextAttribute()) {
                 if (!paramsRead[2] && ((object) Reader.LocalName == (object)id4_Name && (object) Reader.NamespaceURI == (object)id3_Item)) {
                     o.@Name = Reader.Value;
@@ -342,8 +343,12 @@ namespace ExcelDna.Serialization
                     o.@RollForward = Reader.Value;
                     paramsRead[16] = true;
                 }
+                else if (!paramsRead[17] && ((object) Reader.LocalName == (object)id115_RuntimeFrameworkVersion && (object) Reader.NamespaceURI == (object)id3_Item)) {
+                    o.@RuntimeFrameworkVersion = Reader.Value;
+                    paramsRead[17] = true;
+                }
                 else if (!IsXmlnsAttribute(Reader.Name)) {
-                    UnknownNode((object)o, @":Name, :RuntimeVersion, :ShadowCopyFiles, :CreateSandboxedAppDomain, :Language, :CompilerVersion, :DefaultReferences, :DefaultImports, :DisableAssemblyContextUnload, :CustomRuntimeConfiguration, :RollForward");
+                    UnknownNode((object)o, @":Name, :RuntimeVersion, :ShadowCopyFiles, :CreateSandboxedAppDomain, :Language, :CompilerVersion, :DefaultReferences, :DefaultImports, :DisableAssemblyContextUnload, :CustomRuntimeConfiguration, :RollForward, :RuntimeFrameworkVersion");
                 }
             }
             Reader.MoveToElement();
@@ -785,6 +790,7 @@ namespace ExcelDna.Serialization
         string id112_DisableAssemblyContextUnload;
         string id113_RollForward;
         string id114_CustomRuntimeConfiguration;
+        string id115_RuntimeFrameworkVersion;
 
         protected override void InitIDs() {
             id22_ExplicitRegistration = Reader.NameTable.Add(@"ExplicitRegistration");
@@ -817,6 +823,7 @@ namespace ExcelDna.Serialization
             id112_DisableAssemblyContextUnload = Reader.NameTable.Add(@"DisableAssemblyContextUnload");
             id113_RollForward = Reader.NameTable.Add(@"RollForward");
             id114_CustomRuntimeConfiguration = Reader.NameTable.Add(@"CustomRuntimeConfiguration");
+            id115_RuntimeFrameworkVersion= Reader.NameTable.Add(@"RuntimeFrameworkVersion");
         }
     }
 

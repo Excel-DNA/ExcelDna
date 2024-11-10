@@ -10,3 +10,4 @@ HRESULT GetDisableAssemblyContextUnload(bool& disableAssemblyContextUnload);
 HRESULT GetCustomRuntimeConfiguration(std::wstring& customRuntimeConfiguration);
 HRESULT GetMajorRuntimeVersion(int& majorRuntimeVersion);
 HRESULT GetRollForward(std::wstring& rollForward);
+HRESULT GetRuntimeFrameworkVersion(std::wstring& runtimeFrameworkVersion);

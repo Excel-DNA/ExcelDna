@@ -185,6 +185,9 @@
 
     <!-- Controls how the add-in chooses a runtime when multiple runtime versions are available. -->
     <RollForward></RollForward>
+
+    <!-- Specifies the version of the runtime to use. -->
+    <RuntimeFrameworkVersion></RuntimeFrameworkVersion>
     
   </PropertyGroup>
   
