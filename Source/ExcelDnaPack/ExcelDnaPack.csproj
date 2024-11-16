@@ -3,7 +3,7 @@
   <PropertyGroup>
     
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net452;net6.0-windows</TargetFrameworks>
+    <TargetFrameworks>net462;net6.0-windows</TargetFrameworks>
     <RuntimeIdentifiers>win7-x86;win7-x64</RuntimeIdentifiers>
     
     <AssemblyTitle>ExcelDnaPack</AssemblyTitle>

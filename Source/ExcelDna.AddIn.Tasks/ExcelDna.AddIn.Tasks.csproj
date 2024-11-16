@@ -10,7 +10,7 @@
     <AssemblyTitle>Excel-DNA MSBuild Tasks</AssemblyTitle>
     <Description>MSBuild Tasks for Excel DNA</Description>
     <Product>Excel-DNA Add-In Framework for Microsoft Excel</Product>
-    <Copyright>Copyright © 2005-2021 Govert van Drimmelen</Copyright>
+    <Copyright>Copyright © 2005-2024 Govert van Drimmelen</Copyright>
     
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\assets\exceldna.snk</AssemblyOriginatorKeyFile>

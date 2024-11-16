@@ -1,5 +1,10 @@
-Version 1.8.0 (????)
---------------------
+Version 1.9.0 (???)
+-------------------
+* Target .NET Framework 4.6.2 or later only (in addition to .NET 6+)
+* Extended registration
+
+Version 1.8.0
+-------------
 * Add support for .NET 7/8 and RollForward property.
 * Add admin rights check before accessing machine hive for COM registration
 * Support thread-safe RTD wrappers and ExcelRtdServers

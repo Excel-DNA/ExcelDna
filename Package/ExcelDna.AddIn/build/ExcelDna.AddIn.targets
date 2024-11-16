@@ -9,8 +9,8 @@
 		<ExcelDnaDscomIntegrationPath>$(ExcelDnaToolsPath)net6.0-windows7.0</ExcelDnaDscomIntegrationPath>
 </PropertyGroup>
 	<PropertyGroup Condition="'$(MSBuildRuntimeType)' != 'Core'">
-		<ExcelDnaTasksPath>$(ExcelDnaToolsPath)net452\</ExcelDnaTasksPath>
-		<ExcelDnaDscomIntegrationPath>$(ExcelDnaToolsPath)net452</ExcelDnaDscomIntegrationPath>
+		<ExcelDnaTasksPath>$(ExcelDnaToolsPath)net462\</ExcelDnaTasksPath>
+		<ExcelDnaDscomIntegrationPath>$(ExcelDnaToolsPath)net462</ExcelDnaDscomIntegrationPath>
 	</PropertyGroup>
 	
 	<UsingTask TaskName="ExcelDna.AddIn.Tasks.SetDebuggerOptions" AssemblyFile="$(ExcelDnaTasksPath)ExcelDna.AddIn.Tasks.dll" />
@@ -207,7 +207,7 @@
 		<ExcelDnaTlbDscom>true</ExcelDnaTlbDscom>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(TargetFrameworkVersion.Length())' >= '2' AND '$(TargetFrameworkVersion.Substring(0,2))' == 'v4'">
-		<ExcelDnaRuntimeToolsPath>$(ExcelDnaToolsPath)\net452\</ExcelDnaRuntimeToolsPath>
+		<ExcelDnaRuntimeToolsPath>$(ExcelDnaToolsPath)\net462\</ExcelDnaRuntimeToolsPath>
 	</PropertyGroup>
 
 	<Message Text="---" Importance="High" />
