@@ -191,19 +191,19 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
-        public static double MyCalcSum(Calc c)
+        public static double MyCalcSum([ExcelHandle] Calc c)
         {
             return c.Sum();
         }
 
         [ExcelFunction]
-        public static Task<double> MyTaskCalcSum(Calc c)
+        public static Task<double> MyTaskCalcSum([ExcelHandle] Calc c)
         {
             return Task.FromResult(c.Sum());
         }
 
         [ExcelFunction]
-        public static Task<double> MyTaskCalcDoubleSumWithCancellation(Calc c, CancellationToken ct)
+        public static Task<double> MyTaskCalcDoubleSumWithCancellation([ExcelHandle] Calc c, CancellationToken ct)
         {
             return Task.FromResult(c.Sum() * 2);
         }
@@ -215,7 +215,7 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
-        public static IObservable<string> MyCalcSumObservable(Calc c)
+        public static IObservable<string> MyCalcSumObservable([ExcelHandle] Calc c)
         {
             return new ObservableString(c.Sum().ToString());
         }
@@ -253,7 +253,7 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction(IsThreadSafe = true)]
-        public static double MyCalcSumTS(Calc c)
+        public static double MyCalcSumTS([ExcelHandle] Calc c)
         {
             Thread.Sleep((int)c.Sum());
             return c.Sum();

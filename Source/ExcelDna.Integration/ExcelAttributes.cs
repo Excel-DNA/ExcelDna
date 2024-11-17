@@ -66,6 +66,15 @@ namespace ExcelDna.Integration
     }
 
     /// <summary>
+    /// For the arguments of object handles.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Parameter, Inherited = false, AllowMultiple = false)]
+    [MeansImplicitUse]
+    public class ExcelHandleAttribute : Attribute
+    {
+    }
+
+    /// <summary>
     /// For macro commands.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]

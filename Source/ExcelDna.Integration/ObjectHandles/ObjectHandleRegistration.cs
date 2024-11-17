@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 
@@ -56,8 +57,10 @@ namespace ExcelDna.Integration.ObjectHandles
 
         static LambdaExpression HandleStringConversion(Type type, IExcelFunctionParameter paramReg)
         {
+            //if (AssemblyLoader.IsPrimitiveParameterType(type) || type == typeof(CancellationToken))
+
             // Decide whether to return a conversion function for this parameter
-            if (AssemblyLoader.IsPrimitiveParameterType(type) || type == typeof(CancellationToken))
+            if (!paramReg.CustomAttributes.OfType<ExcelHandleAttribute>().Any())
                 return null;
 
             var input = Expression.Parameter(typeof(object), "input");
