@@ -4,7 +4,7 @@
     
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net462;net6.0-windows</TargetFrameworks>
-    <RuntimeIdentifiers>win7-x86;win7-x64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>win-x86;win-x64</RuntimeIdentifiers>
     
     <AssemblyTitle>ExcelDnaPack</AssemblyTitle>
     <Description>Excel-DNA Packing Tool</Description>
