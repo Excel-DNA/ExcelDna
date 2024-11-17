@@ -15,14 +15,14 @@
         <summary>Reference library package for Excel-DNA.</summary>
         <tags>excel exceldna udf excel-dna</tags>
         <dependencies>
-          <group targetFramework=".NETFramework4.5.2" />
+          <group targetFramework=".NETFramework4.6.2" />
           <group targetFramework="net6.0-windows7.0" />
         </dependencies>
     </metadata>
     <files>
-        <file src="..\..\Distribution\net452\ExcelDna.Integration.dll" target="lib\net452\ExcelDna.Integration.dll" />
-        <file src="..\..\Distribution\net452\ExcelDna.Integration.xml" target="lib\net452\ExcelDna.Integration.xml" />
-        <file src="..\..\Distribution\net452\ExcelDna.Integration.pdb" target="lib\net452\ExcelDna.Integration.pdb" />
+        <file src="..\..\Distribution\net462\ExcelDna.Integration.dll" target="lib\net462\ExcelDna.Integration.dll" />
+        <file src="..\..\Distribution\net462\ExcelDna.Integration.xml" target="lib\net462\ExcelDna.Integration.xml" />
+        <file src="..\..\Distribution\net462\ExcelDna.Integration.pdb" target="lib\net462\ExcelDna.Integration.pdb" />
         <file src="..\..\Distribution\net6.0-windows\ExcelDna.Integration.dll" target="lib\net6.0-windows7.0\ExcelDna.Integration.dll" />
         <file src="..\..\Distribution\net6.0-windows\ExcelDna.Integration.xml" target="lib\net6.0-windows7.0\ExcelDna.Integration.xml" />
         <file src="..\..\Distribution\net6.0-windows\ExcelDna.Integration.pdb" target="lib\net6.0-windows7.0\ExcelDna.Integration.pdb" />

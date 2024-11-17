@@ -4,7 +4,7 @@
 
   <!--
        The RuntimeVersion attribute above allows the following settings:
-       * RuntimeVersion="v4.0" - for .NET Framework 4.5 or higher
+       * RuntimeVersion="v4.0" - for .NET Framework 4.6.2 or higher
        * v6.0, v7.0, v8.0 etc. for .NET
 
        You can have IntelliSense (autocomplete) and validation for this file.

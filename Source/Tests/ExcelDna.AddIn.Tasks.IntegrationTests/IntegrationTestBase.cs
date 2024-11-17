@@ -204,7 +204,7 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
                 Assert.Fail("File {0} does not exist", xllFileName);
             }
 
-            Assert.IsTrue(FilesHaveEqualHash(xllFileName, @"..\.exceldna.addin\tools\net452\ExcelDna.xll"), "{0} is not a 32-bit .xll file",
+            Assert.IsTrue(FilesHaveEqualHash(xllFileName, @"..\.exceldna.addin\tools\net462\ExcelDna.xll"), "{0} is not a 32-bit .xll file",
                 xllFileName);
         }
 
@@ -215,7 +215,7 @@ namespace ExcelDna.AddIn.Tasks.IntegrationTests
                 Assert.Fail("File {0} does not exist", xllFileName);
             }
 
-            Assert.IsTrue(FilesHaveEqualHash(xllFileName, @"..\.exceldna.addin\tools\net452\ExcelDna64.xll"), "{0} is not a 64-bit .xll file",
+            Assert.IsTrue(FilesHaveEqualHash(xllFileName, @"..\.exceldna.addin\tools\net462\ExcelDna64.xll"), "{0} is not a 64-bit .xll file",
                 xllFileName);
         }
 

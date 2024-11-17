@@ -55,7 +55,7 @@
 	<Copy 
 		Condition="Exists('$(ProjectDir)..\ExcelDna\x64\$(Configuration)\ExcelDna64.xll')"
 		SourceFiles="$(ProjectDir)..\ExcelDna\x64\$(Configuration)\ExcelDna64.xll"
-		DestinationFiles="$(ExcelDnaTestPackageDir)tools\net452\ExcelDna64.xll"
+		DestinationFiles="$(ExcelDnaTestPackageDir)tools\net462\ExcelDna64.xll"
 		ContinueOnError="false"
 		OverwriteReadOnlyFiles="true"
 		SkipUnchangedFiles="true" />
@@ -63,7 +63,7 @@
 	<Copy 
 		Condition="Exists('$(ProjectDir)..\ExcelDna\$(Configuration)\ExcelDna.xll')"
 		SourceFiles="$(ProjectDir)..\ExcelDna\$(Configuration)\ExcelDna.xll"
-		DestinationFiles="$(ExcelDnaTestPackageDir)tools\net452\ExcelDna.xll"
+		DestinationFiles="$(ExcelDnaTestPackageDir)tools\net462\ExcelDna.xll"
 		ContinueOnError="false"
 		OverwriteReadOnlyFiles="true"
 		SkipUnchangedFiles="true" />
@@ -76,7 +76,7 @@
 	<ItemGroup>
 		<ExcelDnaTestFilesFWToMove Include="$(ExcelDnaTestPackageDir)tools\net462\*.*" />
 	</ItemGroup>
-	<Move SourceFiles="@(ExcelDnaTestFilesFWToMove)" DestinationFolder="$(ExcelDnaTestPackageDir)tools\net452" />		
+	<Move SourceFiles="@(ExcelDnaTestFilesFWToMove)" DestinationFolder="$(ExcelDnaTestPackageDir)tools\net462" />		
 
 	</Target>
 </Project>

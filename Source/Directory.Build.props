@@ -5,7 +5,7 @@
 	<PropertyGroup>
 
 		<Product>Excel-DNA Add-In Framework for Microsoft Excel</Product>
-		<Copyright>Copyright © 2005-2022 Govert van Drimmelen</Copyright>
+		<Copyright>Copyright © 2005-2024 Govert van Drimmelen</Copyright>
 
 		<EnableUnitySupport>true</EnableUnitySupport>
 	</PropertyGroup>
