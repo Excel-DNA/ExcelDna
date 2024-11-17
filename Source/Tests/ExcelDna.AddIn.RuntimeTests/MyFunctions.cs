@@ -147,12 +147,14 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
+        [return: ExcelHandle]
         public static Calc MyCreateCalc(double d1, double d2)
         {
             return new Calc(d1, d2);
         }
 
         [ExcelFunction]
+        [return: ExcelHandle]
         public static Calc MyCreateCalc2(double d1, double d2)
         {
             return new Calc(d1 * 2, d2 * 2);
@@ -221,6 +223,7 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
+        [return: ExcelHandle]
         public static DisposableObject MyCreateDisposableObject(int x)
         {
             return new DisposableObject();
@@ -246,6 +249,7 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction(IsThreadSafe = true)]
+        [return: ExcelHandle]
         public static Calc MyCreateCalcTS(double d1, double d2)
         {
             Thread.Sleep((int)d1);

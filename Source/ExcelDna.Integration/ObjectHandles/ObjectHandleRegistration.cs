@@ -16,7 +16,7 @@ namespace ExcelDna.Integration.ObjectHandles
 
             foreach (var reg in registrations)
             {
-                if (!AssemblyLoader.IsPrimitiveParameterType(reg.FunctionLambda.ReturnType))
+                if (HasExcelHandle(reg.Return.CustomAttributes))
                 {
                     reg.FunctionLambda = LazyLambda.Create(reg.FunctionLambda);
 
@@ -57,10 +57,8 @@ namespace ExcelDna.Integration.ObjectHandles
 
         static LambdaExpression HandleStringConversion(Type type, IExcelFunctionParameter paramReg)
         {
-            //if (AssemblyLoader.IsPrimitiveParameterType(type) || type == typeof(CancellationToken))
-
             // Decide whether to return a conversion function for this parameter
-            if (!paramReg.CustomAttributes.OfType<ExcelHandleAttribute>().Any())
+            if (!HasExcelHandle(paramReg.CustomAttributes))
                 return null;
 
             var input = Expression.Parameter(typeof(object), "input");
@@ -88,6 +86,11 @@ namespace ExcelDna.Integration.ObjectHandles
 
             // No object for the handle ...
             return "!!! INVALID HANDLE";
+        }
+
+        static bool HasExcelHandle(List<object> customAttributes)
+        {
+            return customAttributes.OfType<ExcelHandleAttribute>().Any();
         }
 
         private class EntryFunctionExecutionHandler : FunctionExecutionHandler
