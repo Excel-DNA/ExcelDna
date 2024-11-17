@@ -72,6 +72,9 @@ namespace ExcelDna.Integration.ObjectHandles
                         Expression.Invoke(parse, Expression.Constant(type), input),
                         type),
                     input);
+
+            paramReg.CustomAttributes.RemoveAll(att => att is ExcelHandleAttribute);
+
             return result;
         }
 
