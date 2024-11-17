@@ -189,13 +189,13 @@ namespace ExcelDna.Integration.Rtd
 
         // These three methods are added to allow derived classes to track UpdateNotify and RefreshData calls
         // Can be overridden to track posted notifications
-        protected void OnUpdateNotifyPostedInsideLock(IReadOnlyCollection<Topic> dirtyTopics) { }
+        protected virtual void OnUpdateNotifyPostedInsideLock(IReadOnlyCollection<Topic> dirtyTopics) { }
 
         // Can be overridden to track notifications called in Excel
-        protected void OnUpdateNotifyInvokedInsideLock(IReadOnlyCollection<Topic> dirtyTopics) { }
+        protected virtual void OnUpdateNotifyInvokedInsideLock(IReadOnlyCollection<Topic> dirtyTopics) { }
 
         // Can be overridden to track Refresh calls from Excel
-        protected void OnRefreshDataProcessedInsideLock(IReadOnlyCollection<Topic> dirtyTopics) { }
+        protected virtual void OnRefreshDataProcessedInsideLock(IReadOnlyCollection<Topic> dirtyTopics) { }
 
         // Called from any thread, inside the update lock
         // Add the topic to the dirty set and calls UpdateNotify()
