@@ -341,6 +341,11 @@ namespace ExcelDna.RuntimeTests
                 functionRange2.Formula = "=MyPrintIntObject(G1)";
 
                 Assert.Equal("IntObject value=9", functionRange2.Value.ToString());
+
+                Range functionRange3 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["G3"];
+                functionRange3.Formula = "=MyPrintMixedIntObject(4.5, G1)";
+
+                Assert.Equal("double value=4.5, IntObject value=9", functionRange3.Value.ToString());
             }
         }
 

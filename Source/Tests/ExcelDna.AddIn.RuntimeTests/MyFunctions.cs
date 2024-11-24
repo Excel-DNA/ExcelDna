@@ -224,6 +224,12 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
+        public static string MyPrintMixedIntObject(double d, [ExcelHandle] int i)
+        {
+            return $"double value={d}, IntObject value={i}";
+        }
+
+        [ExcelFunction]
         public static IObservable<string> MyStringObservable(string s)
         {
             return new ObservableString(s);
