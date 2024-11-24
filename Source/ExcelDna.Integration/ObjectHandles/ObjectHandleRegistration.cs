@@ -38,6 +38,14 @@ namespace ExcelDna.Integration.ObjectHandles
             return new ParameterConversionConfiguration().AddParameterConversion(GetParameterConversion());
         }
 
+        public static bool IsMethodSupported(ExcelFunction reg)
+        {
+            if (HasExcelHandle(reg.Return.CustomAttributes))
+                return true;
+
+            return reg.Parameters.Any(paramReg => HasExcelHandle(paramReg.CustomAttributes));
+        }
+
         static ParameterConversionConfiguration.ReturnConversion CreateReturnConversion<TFrom, TTo>(Expression<Func<TFrom, TTo>> convert)
         {
             return new ParameterConversionConfiguration.ReturnConversion((unusedReturnType, unusedAttributes) => convert, null, false);

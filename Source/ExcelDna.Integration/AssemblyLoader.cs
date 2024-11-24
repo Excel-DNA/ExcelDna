@@ -196,6 +196,10 @@ namespace ExcelDna.Integration
             {
                 isSupported = false;
             }
+            else if (ObjectHandles.ObjectHandleRegistration.IsMethodSupported(new ExtendedRegistration.ExcelFunction(mi)))
+            {
+                isSupported = false;
+            }
             else if (!IsPrimitiveParameterType(mi.ReturnType))
             {
                 isSupported = false;

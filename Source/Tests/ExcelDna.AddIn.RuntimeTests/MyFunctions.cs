@@ -161,6 +161,13 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
+        [return: ExcelHandle]
+        public static int MyCreateSquareIntObject(int i)
+        {
+            return i * i;
+        }
+
+        [ExcelFunction]
         public static async Task<Calc> MyTaskCreateCalc(int millisecondsDelay, double d1, double d2)
         {
             await Task.Delay(millisecondsDelay);
@@ -208,6 +215,12 @@ namespace ExcelDna.AddIn.RuntimeTests
         public static Task<double> MyTaskCalcDoubleSumWithCancellation([ExcelHandle] Calc c, CancellationToken ct)
         {
             return Task.FromResult(c.Sum() * 2);
+        }
+
+        [ExcelFunction]
+        public static string MyPrintIntObject([ExcelHandle] int i)
+        {
+            return $"IntObject value={i}";
         }
 
         [ExcelFunction]
