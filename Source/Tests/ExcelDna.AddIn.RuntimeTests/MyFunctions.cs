@@ -161,6 +161,12 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
+        public static CalcExcelHandle MyCreateCalcExcelHandle(double d1, double d2)
+        {
+            return new CalcExcelHandle(d1, d2);
+        }
+
+        [ExcelFunction]
         [return: ExcelHandle]
         public static int MyCreateSquareIntObject(int i)
         {
@@ -203,6 +209,12 @@ namespace ExcelDna.AddIn.RuntimeTests
         public static double MyCalcSum([ExcelHandle] Calc c)
         {
             return c.Sum();
+        }
+
+        [ExcelFunction]
+        public static double MyCalcExcelHandleMul(CalcExcelHandle c)
+        {
+            return c.Mul();
         }
 
         [ExcelFunction]

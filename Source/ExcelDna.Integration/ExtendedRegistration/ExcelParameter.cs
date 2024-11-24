@@ -47,6 +47,8 @@ namespace ExcelDna.Integration.ExtendedRegistration
                 }
             }
 
+            CustomAttributes.AddRange(parameterInfo.ParameterType.GetCustomAttributes(true));
+
             // Check that the ExcelArgumentAttribute has been set
             if (ArgumentAttribute == null)
             {
