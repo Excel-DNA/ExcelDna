@@ -46,6 +46,21 @@ namespace ExcelDna.Integration.ObjectHandles
             return reg.Parameters.Any(paramReg => HasExcelHandle(paramReg.CustomAttributes));
         }
 
+        public static int ProcessAssemblyAttributes(IEnumerable<object> attributes)
+        {
+            List<object> excelHandleAttribute = new List<object>();
+            excelHandleAttribute.Add(new ExcelHandleAttribute());
+
+            int result = 0;
+            foreach (Type t in attributes.OfType<ExcelHandleExternalAttribute>().Select(i => i.Type))
+            {
+                ExcelTypeDescriptor.AddCustomAttributes(t, excelHandleAttribute);
+                ++result;
+            }
+
+            return result;
+        }
+
         static ParameterConversionConfiguration.ReturnConversion CreateReturnConversion<TFrom, TTo>(Expression<Func<TFrom, TTo>> convert)
         {
             return new ParameterConversionConfiguration.ReturnConversion((unusedReturnType, unusedAttributes) => convert, null, false);

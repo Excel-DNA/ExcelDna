@@ -133,7 +133,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             ParameterRegistrations = methodInfo.GetParameters().Select(pi => new ExcelParameter(pi)).ToList();
             ReturnRegistration = new ExcelReturn();
             ReturnRegistration.CustomAttributes.AddRange(methodInfo.ReturnParameter.GetCustomAttributes(true));
-            ReturnRegistration.CustomAttributes.AddRange(methodInfo.ReturnType.GetCustomAttributes(true));
+            ReturnRegistration.CustomAttributes.AddRange(ExcelTypeDescriptor.GetCustomAttributes(methodInfo.ReturnType));
 
             // Check that we haven't made a mistake
             Debug.Assert(IsValid());

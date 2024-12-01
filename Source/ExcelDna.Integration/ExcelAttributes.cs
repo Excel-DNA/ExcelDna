@@ -75,6 +75,21 @@ namespace ExcelDna.Integration
     }
 
     /// <summary>
+    /// To indicate that a type will be marshalled as object handles.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
+    [MeansImplicitUse]
+    public class ExcelHandleExternalAttribute : Attribute
+    {
+        public ExcelHandleExternalAttribute(Type type)
+        {
+            Type = type;
+        }
+
+        public Type Type { get; }
+    }
+
+    /// <summary>
     /// For macro commands.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]

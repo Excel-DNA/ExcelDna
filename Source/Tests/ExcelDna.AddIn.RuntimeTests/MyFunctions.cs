@@ -1,5 +1,7 @@
 ﻿using ExcelDna.Integration;
 
+[assembly: ExcelHandleExternal(typeof(System.Reflection.Assembly))]
+
 namespace ExcelDna.AddIn.RuntimeTests
 {
     public class MyFunctions
@@ -173,6 +175,18 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
+        public static CalcExcelHandleExternal MyCreateCalcExcelHandleExternal(double d1, double d2)
+        {
+            return new CalcExcelHandleExternal(d1, d2);
+        }
+
+        [ExcelFunction]
+        public static System.Reflection.Assembly MyGetExecutingAssembly()
+        {
+            return System.Reflection.Assembly.GetExecutingAssembly();
+        }
+
+        [ExcelFunction]
         [return: ExcelHandle]
         public static int MyCreateSquareIntObject(int i)
         {
@@ -227,6 +241,18 @@ namespace ExcelDna.AddIn.RuntimeTests
         public static double MyCalcStructExcelHandleMul(CalcStructExcelHandle c)
         {
             return c.Mul();
+        }
+
+        [ExcelFunction]
+        public static double MyCalcExcelHandleExternalMul(CalcExcelHandleExternal c)
+        {
+            return c.Mul();
+        }
+
+        [ExcelFunction]
+        public static string? MyGetAssemblyName(System.Reflection.Assembly assembly)
+        {
+            return assembly.GetName().Name;
         }
 
         [ExcelFunction]

@@ -367,6 +367,26 @@ namespace ExcelDna.RuntimeTests
 
                 Assert.Equal("0.75", functionRange2.Value.ToString());
             }
+
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C10"];
+                functionRange1.Formula = "=MyCreateCalcExcelHandleExternal(2.5, 0.2)";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C11"];
+                functionRange2.Formula = "=MyCalcExcelHandleExternalMul(C10)";
+
+                Assert.Equal("0.5", functionRange2.Value.ToString());
+            }
+
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D10"];
+                functionRange1.Formula = "=MyGetExecutingAssembly()";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D11"];
+                functionRange2.Formula = "=MyGetAssemblyName(D10)";
+
+                Assert.Equal("ExcelDna.AddIn.RuntimeTests", functionRange2.Value.ToString());
+            }
         }
 
         [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]

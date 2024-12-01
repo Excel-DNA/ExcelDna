@@ -49,6 +49,9 @@ namespace ExcelDna.Integration
                     comClassTypes.Count;
                 Logger.Initialization.Verbose("Processing assembly {0}. ExplicitExports {1}, ExplicitRegistration {2}, ComServer {3}, IsDynamic {4}",
                     assembly.Assembly.FullName, assembly.ExplicitExports, assembly.ExplicitRegistration, assembly.ComServer, assembly.IsDynamic);
+
+                int assemblyAttributes = ObjectHandles.ObjectHandleRegistration.ProcessAssemblyAttributes(assembly.Assembly.GetCustomAttributes());
+
                 // Patch contributed by y_i on CodePlex:
                 // http://stackoverflow.com/questions/11915389/assembly-gettypes-throwing-an-exception
                 Type[] types;
@@ -103,7 +106,9 @@ namespace ExcelDna.Integration
                     excelFunctionExecutionHandlerSelectors.Count +
                     addIns.Count +
                     rtdServerTypes.Count +
-                    comClassTypes.Count == initialObjectsCount)
+                    comClassTypes.Count +
+                    assemblyAttributes
+                    == initialObjectsCount)
                 {
                     Logger.Initialization.Error("No objects loaded from {0}", assembly.Assembly.FullName);
                 }
