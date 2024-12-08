@@ -297,6 +297,13 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
+        [return: ExcelHandle]
+        public static IObservable<Calc> MyCalcObservable(double d1, double d2)
+        {
+            return new ObservableCalc(d1, d2);
+        }
+
+        [ExcelFunction]
         public static IObservable<string> MyCalcSumObservable([ExcelHandle] Calc c)
         {
             return new ObservableString(c.Sum().ToString());

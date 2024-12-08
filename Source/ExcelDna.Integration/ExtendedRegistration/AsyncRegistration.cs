@@ -38,7 +38,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
                     if (ReturnsObservable(reg.FunctionLambda))
                     {
                         ParameterConversionRegistration.ApplyParameterConversions(reg, ObjectHandles.ObjectHandleRegistration.GetParameterConversionConfiguration());
-                        reg.FunctionLambda = WrapMethodObservable(reg.FunctionLambda);
+                        reg.FunctionLambda = WrapMethodObservable(reg.FunctionLambda, reg.Return.CustomAttributes);
                     }
                     else if (ReturnsTask(reg.FunctionLambda) || reg.FunctionAttribute is ExcelAsyncFunctionAttribute)
                     {
@@ -357,7 +357,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             return Expression.Lambda(callTaskRun, functionLambda.Name, allParams);
         }
 
-        static LambdaExpression WrapMethodObservable(LambdaExpression functionLambda)
+        static LambdaExpression WrapMethodObservable(LambdaExpression functionLambda, List<object> returnCustomAttributes)
         {
             /* Either, from a lambda expression that looks like this:
              * 
@@ -375,10 +375,19 @@ namespace ExcelDna.Integration.ExtendedRegistration
              */
 
             // mi returns some kind of IObservable<T>. What is T? 
-            var returnType = functionLambda.ReturnType.GetGenericArguments()[0];
+            Type returnType = functionLambda.ReturnType.GetGenericArguments()[0];
+            bool userType = ObjectHandles.TaskObjectHandler.IsUserType(returnType);
+            if (userType)
+            {
+                if (!ObjectHandles.ObjectHandleRegistration.HasExcelHandle(returnCustomAttributes))
+                    throw new Exception($"Unsupported observable return type {returnType}.");
+
+                ObjectHandles.ObjectHandleRegistration.ClearExcelHandle(returnCustomAttributes);
+            }
+
             // Build up the Observe method with the right generic type argument
             var obsMethod = typeof(ExcelAsyncUtil)
-                                .GetMember("Observe", MemberTypes.Method, BindingFlags.Static | BindingFlags.Public)
+                                .GetMember(userType ? "ObserveObject" : "Observe", MemberTypes.Method, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
                                 .Cast<MethodInfo>().First(i => i.IsGenericMethodDefinition)
                                 .MakeGenericMethod(returnType);
 
