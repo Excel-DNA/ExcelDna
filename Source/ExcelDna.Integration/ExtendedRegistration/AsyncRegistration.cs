@@ -46,7 +46,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
                         if (HasCancellationToken(reg.FunctionLambda))
                         {
                             reg.FunctionLambda = useNativeAsync ? WrapMethodNativeAsyncTaskWithCancellation(reg.FunctionLambda)
-                                                                : WrapMethodRunTaskWithCancellation(reg.FunctionLambda);
+                                                                : WrapMethodRunTaskWithCancellation(reg.FunctionLambda, reg.Return.CustomAttributes);
                             // Also need to strip out the info for the last argument which is the CancellationToken
                             reg.ParameterRegistrations.RemoveAt(reg.ParameterRegistrations.Count - 1);
                         }
@@ -163,7 +163,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             return Expression.Lambda(callTaskRun, functionLambda.Name, newParams);
         }
 
-        static LambdaExpression WrapMethodRunTaskWithCancellation(LambdaExpression functionLambda)
+        static LambdaExpression WrapMethodRunTaskWithCancellation(LambdaExpression functionLambda, List<object> returnCustomAttributes)
         {
             /* Either, from a lambda expression that looks like this:
              * 
@@ -195,7 +195,15 @@ namespace ExcelDna.Integration.ExtendedRegistration
              */
 
             bool returnsTask = ReturnsTask(functionLambda);
-            bool userType = ObjectHandles.TaskObjectHandler.IsUserType(returnsTask ? functionLambda.ReturnType.GetGenericArguments()[0] : functionLambda.ReturnType);
+            Type returnType = returnsTask ? functionLambda.ReturnType.GetGenericArguments()[0] : functionLambda.ReturnType;
+            bool userType = ObjectHandles.TaskObjectHandler.IsUserType(returnType);
+            if (userType)
+            {
+                if (!ObjectHandles.ObjectHandleRegistration.HasExcelHandle(returnCustomAttributes))
+                    throw new Exception($"Unsupported task return type {returnType}.");
+
+                ObjectHandles.ObjectHandleRegistration.ClearExcelHandle(returnCustomAttributes);
+            }
 
             // Either RunTask or RunAsTask, depending on whether the method returns Task<string> or string
             string runMethodName = returnsTask ? "RunTaskWithCancellation" : "RunAsTaskWithCancellation";

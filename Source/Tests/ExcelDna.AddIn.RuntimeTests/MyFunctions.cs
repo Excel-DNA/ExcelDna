@@ -202,6 +202,7 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
+        [return: ExcelHandle]
         public static async Task<Calc> MyTaskCreateCalcWithCancellation(int millisecondsDelay, double d1, double d2, CancellationToken ct)
         {
             await Task.Delay(millisecondsDelay);
@@ -219,6 +220,7 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelAsyncFunction]
+        [return: ExcelHandle]
         public static Calc MyAsyncCreateCalcWithCancellation(int millisecondsDelay, double d1, double d2, CancellationToken ct)
         {
             if (millisecondsDelay > 0)
