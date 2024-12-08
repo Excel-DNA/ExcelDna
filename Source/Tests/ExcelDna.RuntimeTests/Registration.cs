@@ -282,6 +282,16 @@ namespace ExcelDna.RuntimeTests
 
                 Assert.Equal("29", functionRange2.Value.ToString());
             }
+
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E1"];
+                functionRange1.Formula = "=MyCalcExcelHandleObservable(0.5, 8)";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E2"];
+                functionRange2.Formula = "=MyCalcExcelHandleMul(E1)";
+
+                Assert.Equal("4", functionRange2.Value.ToString());
+            }
         }
 
         [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]

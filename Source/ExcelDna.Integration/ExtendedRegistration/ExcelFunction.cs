@@ -136,7 +136,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             ReturnRegistration.CustomAttributes.AddRange(methodInfo.ReturnParameter.GetCustomAttributes(true));
 
             Type returnType = methodInfo.ReturnType;
-            if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>))
+            if (returnType.IsGenericType && (returnType.GetGenericTypeDefinition() == typeof(Task<>) || returnType.GetGenericTypeDefinition() == typeof(IObservable<>)))
                 returnType = returnType.GetGenericArguments()[0];
             ReturnRegistration.CustomAttributes.AddRange(ExcelTypeDescriptor.GetCustomAttributes(returnType));
 
