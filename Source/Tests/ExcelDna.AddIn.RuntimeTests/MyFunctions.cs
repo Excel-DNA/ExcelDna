@@ -194,6 +194,7 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
+        [return: ExcelHandle]
         public static async Task<Calc> MyTaskCreateCalc(int millisecondsDelay, double d1, double d2)
         {
             await Task.Delay(millisecondsDelay);
@@ -208,6 +209,7 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelAsyncFunction]
+        [return: ExcelHandle]
         public static Calc MyAsyncCreateCalc(int millisecondsDelay, double d1, double d2)
         {
             if (millisecondsDelay > 0)
@@ -311,6 +313,7 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
+        [return: ExcelHandle]
         public static async Task<DisposableObject> MyTaskCreateDisposableObject(int millisecondsDelay, int x)
         {
             await Task.Delay(millisecondsDelay);

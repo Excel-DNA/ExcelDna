@@ -53,7 +53,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
                         else
                         {
                             reg.FunctionLambda = useNativeAsync ? WrapMethodNativeAsyncTask(reg.FunctionLambda)
-                                                                : WrapMethodRunTask(reg.FunctionLambda);
+                                                                : WrapMethodRunTask(reg.FunctionLambda, reg.Return.CustomAttributes);
                         }
                     }
                     // else do nothing to this registration
@@ -84,7 +84,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             return pis.Any() && pis.Last().Type == typeof(CancellationToken);
         }
 
-        static LambdaExpression WrapMethodRunTask(LambdaExpression functionLambda)
+        static LambdaExpression WrapMethodRunTask(LambdaExpression functionLambda, List<object> returnCustomAttributes)
         {
             /* Either, from a lambda expression wrapping a method that looks like this:
              * 
@@ -116,7 +116,15 @@ namespace ExcelDna.Integration.ExtendedRegistration
              */
 
             bool returnsTask = ReturnsTask(functionLambda);
-            bool userType = ObjectHandles.TaskObjectHandler.IsUserType(returnsTask ? functionLambda.ReturnType.GetGenericArguments()[0] : functionLambda.ReturnType);
+            Type returnType = returnsTask ? functionLambda.ReturnType.GetGenericArguments()[0] : functionLambda.ReturnType;
+            bool userType = ObjectHandles.TaskObjectHandler.IsUserType(returnType);
+            if (userType)
+            {
+                if (!ObjectHandles.ObjectHandleRegistration.HasExcelHandle(returnCustomAttributes))
+                    throw new Exception($"Unsupported task return type {returnType}.");
+
+                ObjectHandles.ObjectHandleRegistration.ClearExcelHandle(returnCustomAttributes);
+            }
 
             // Either RunTask or RunAsTask, depending on whether the method returns Task<string> or string
             string runMethodName = returnsTask ? "RunTask" : "RunAsTask";

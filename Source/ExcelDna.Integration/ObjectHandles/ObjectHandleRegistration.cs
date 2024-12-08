@@ -46,6 +46,16 @@ namespace ExcelDna.Integration.ObjectHandles
             return reg.Parameters.Any(paramReg => HasExcelHandle(paramReg.CustomAttributes));
         }
 
+        public static bool HasExcelHandle(List<object> customAttributes)
+        {
+            return customAttributes.OfType<ExcelHandleAttribute>().Any();
+        }
+
+        public static void ClearExcelHandle(List<object> customAttributes)
+        {
+            customAttributes.RemoveAll(att => att is ExcelHandleAttribute);
+        }
+
         public static int ProcessAssemblyAttributes(IEnumerable<object> attributes)
         {
             List<object> excelHandleAttribute = new List<object>();
@@ -94,7 +104,7 @@ namespace ExcelDna.Integration.ObjectHandles
                         type),
                     input);
 
-            paramReg.CustomAttributes.RemoveAll(att => att is ExcelHandleAttribute);
+            ClearExcelHandle(paramReg.CustomAttributes);
 
             return result;
         }
@@ -109,11 +119,6 @@ namespace ExcelDna.Integration.ObjectHandles
 
             // No object for the handle ...
             return "!!! INVALID HANDLE";
-        }
-
-        static bool HasExcelHandle(List<object> customAttributes)
-        {
-            return customAttributes.OfType<ExcelHandleAttribute>().Any();
         }
 
         private class EntryFunctionExecutionHandler : FunctionExecutionHandler
