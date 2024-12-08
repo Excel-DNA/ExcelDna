@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace ExcelDna.Integration.ExtendedRegistration
 {
@@ -133,7 +134,11 @@ namespace ExcelDna.Integration.ExtendedRegistration
             ParameterRegistrations = methodInfo.GetParameters().Select(pi => new ExcelParameter(pi)).ToList();
             ReturnRegistration = new ExcelReturn();
             ReturnRegistration.CustomAttributes.AddRange(methodInfo.ReturnParameter.GetCustomAttributes(true));
-            ReturnRegistration.CustomAttributes.AddRange(ExcelTypeDescriptor.GetCustomAttributes(methodInfo.ReturnType));
+
+            Type returnType = methodInfo.ReturnType;
+            if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>))
+                returnType = returnType.GetGenericArguments()[0];
+            ReturnRegistration.CustomAttributes.AddRange(ExcelTypeDescriptor.GetCustomAttributes(returnType));
 
             // Check that we haven't made a mistake
             Debug.Assert(IsValid());

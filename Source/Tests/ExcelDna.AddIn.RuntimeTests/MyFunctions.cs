@@ -202,6 +202,13 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
+        public static async Task<CalcExcelHandle> MyTaskCreateCalcExcelHandle(int millisecondsDelay, double d1, double d2)
+        {
+            await Task.Delay(millisecondsDelay);
+            return new CalcExcelHandle(d1, d2);
+        }
+
+        [ExcelFunction]
         [return: ExcelHandle]
         public static async Task<Calc> MyTaskCreateCalcWithCancellation(int millisecondsDelay, double d1, double d2, CancellationToken ct)
         {
