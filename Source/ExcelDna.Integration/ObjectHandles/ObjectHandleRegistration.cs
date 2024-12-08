@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 
@@ -15,7 +16,7 @@ namespace ExcelDna.Integration.ObjectHandles
 
             foreach (var reg in registrations)
             {
-                if (!AssemblyLoader.IsPrimitiveParameterType(reg.FunctionLambda.ReturnType))
+                if (HasExcelHandle(reg.Return.CustomAttributes))
                 {
                     reg.FunctionLambda = LazyLambda.Create(reg.FunctionLambda);
 
@@ -35,6 +36,39 @@ namespace ExcelDna.Integration.ObjectHandles
         public static ParameterConversionConfiguration GetParameterConversionConfiguration()
         {
             return new ParameterConversionConfiguration().AddParameterConversion(GetParameterConversion());
+        }
+
+        public static bool IsMethodSupported(ExcelFunction reg)
+        {
+            if (HasExcelHandle(reg.Return.CustomAttributes))
+                return true;
+
+            return reg.Parameters.Any(paramReg => HasExcelHandle(paramReg.CustomAttributes));
+        }
+
+        public static bool HasExcelHandle(List<object> customAttributes)
+        {
+            return customAttributes.OfType<ExcelHandleAttribute>().Any();
+        }
+
+        public static void ClearExcelHandle(List<object> customAttributes)
+        {
+            customAttributes.RemoveAll(att => att is ExcelHandleAttribute);
+        }
+
+        public static int ProcessAssemblyAttributes(IEnumerable<object> attributes)
+        {
+            List<object> excelHandleAttribute = new List<object>();
+            excelHandleAttribute.Add(new ExcelHandleAttribute());
+
+            int result = 0;
+            foreach (Type t in attributes.OfType<ExcelHandleExternalAttribute>().Select(i => i.Type))
+            {
+                ExcelTypeDescriptor.AddCustomAttributes(t, excelHandleAttribute);
+                ++result;
+            }
+
+            return result;
         }
 
         static ParameterConversionConfiguration.ReturnConversion CreateReturnConversion<TFrom, TTo>(Expression<Func<TFrom, TTo>> convert)
@@ -57,7 +91,7 @@ namespace ExcelDna.Integration.ObjectHandles
         static LambdaExpression HandleStringConversion(Type type, IExcelFunctionParameter paramReg)
         {
             // Decide whether to return a conversion function for this parameter
-            if (AssemblyLoader.IsPrimitiveParameterType(type) || type == typeof(CancellationToken))
+            if (!HasExcelHandle(paramReg.CustomAttributes))
                 return null;
 
             var input = Expression.Parameter(typeof(object), "input");
@@ -69,6 +103,9 @@ namespace ExcelDna.Integration.ObjectHandles
                         Expression.Invoke(parse, Expression.Constant(type), input),
                         type),
                     input);
+
+            ClearExcelHandle(paramReg.CustomAttributes);
+
             return result;
         }
 

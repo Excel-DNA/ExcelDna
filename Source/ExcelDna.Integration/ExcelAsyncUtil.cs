@@ -143,6 +143,11 @@ namespace ExcelDna.Integration
             XlCall.Excel(XlCall.xlcRun, macroName);
         }
 
+        internal static object ObserveObject<T>(string callerFunctionName, object callerParameters, Func<IObservable<T>> observableSource)
+        {
+            return Observe(callerFunctionName, callerParameters, () => new ExcelObjectObservable<T>(observableSource()));
+        }
+
         internal static object RunTaskObject<TResult>(string callerFunctionName, object callerParameters, Func<Task<TResult>> taskSource)
         {
             return Observe(callerFunctionName, callerParameters, delegate

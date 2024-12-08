@@ -1,5 +1,7 @@
 ﻿using ExcelDna.Integration;
 
+[assembly: ExcelHandleExternal(typeof(System.Reflection.Assembly))]
+
 namespace ExcelDna.AddIn.RuntimeTests
 {
     public class MyFunctions
@@ -147,18 +149,52 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
+        [return: ExcelHandle]
         public static Calc MyCreateCalc(double d1, double d2)
         {
             return new Calc(d1, d2);
         }
 
         [ExcelFunction]
+        [return: ExcelHandle]
         public static Calc MyCreateCalc2(double d1, double d2)
         {
             return new Calc(d1 * 2, d2 * 2);
         }
 
         [ExcelFunction]
+        public static CalcExcelHandle MyCreateCalcExcelHandle(double d1, double d2)
+        {
+            return new CalcExcelHandle(d1, d2);
+        }
+
+        [ExcelFunction]
+        public static CalcStructExcelHandle MyCreateCalcStructExcelHandle(double d1, double d2)
+        {
+            return new CalcStructExcelHandle(d1, d2);
+        }
+
+        [ExcelFunction]
+        public static CalcExcelHandleExternal MyCreateCalcExcelHandleExternal(double d1, double d2)
+        {
+            return new CalcExcelHandleExternal(d1, d2);
+        }
+
+        [ExcelFunction]
+        public static System.Reflection.Assembly MyGetExecutingAssembly()
+        {
+            return System.Reflection.Assembly.GetExecutingAssembly();
+        }
+
+        [ExcelFunction]
+        [return: ExcelHandle]
+        public static int MyCreateSquareIntObject(int i)
+        {
+            return i * i;
+        }
+
+        [ExcelFunction]
+        [return: ExcelHandle]
         public static async Task<Calc> MyTaskCreateCalc(int millisecondsDelay, double d1, double d2)
         {
             await Task.Delay(millisecondsDelay);
@@ -166,6 +202,14 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
+        public static async Task<CalcExcelHandle> MyTaskCreateCalcExcelHandle(int millisecondsDelay, double d1, double d2)
+        {
+            await Task.Delay(millisecondsDelay);
+            return new CalcExcelHandle(d1, d2);
+        }
+
+        [ExcelFunction]
+        [return: ExcelHandle]
         public static async Task<Calc> MyTaskCreateCalcWithCancellation(int millisecondsDelay, double d1, double d2, CancellationToken ct)
         {
             await Task.Delay(millisecondsDelay);
@@ -173,6 +217,7 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelAsyncFunction]
+        [return: ExcelHandle]
         public static Calc MyAsyncCreateCalc(int millisecondsDelay, double d1, double d2)
         {
             if (millisecondsDelay > 0)
@@ -182,6 +227,7 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelAsyncFunction]
+        [return: ExcelHandle]
         public static Calc MyAsyncCreateCalcWithCancellation(int millisecondsDelay, double d1, double d2, CancellationToken ct)
         {
             if (millisecondsDelay > 0)
@@ -191,21 +237,57 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
-        public static double MyCalcSum(Calc c)
+        public static double MyCalcSum([ExcelHandle] Calc c)
         {
             return c.Sum();
         }
 
         [ExcelFunction]
-        public static Task<double> MyTaskCalcSum(Calc c)
+        public static double MyCalcExcelHandleMul(CalcExcelHandle c)
+        {
+            return c.Mul();
+        }
+
+        [ExcelFunction]
+        public static double MyCalcStructExcelHandleMul(CalcStructExcelHandle c)
+        {
+            return c.Mul();
+        }
+
+        [ExcelFunction]
+        public static double MyCalcExcelHandleExternalMul(CalcExcelHandleExternal c)
+        {
+            return c.Mul();
+        }
+
+        [ExcelFunction]
+        public static string? MyGetAssemblyName(System.Reflection.Assembly assembly)
+        {
+            return assembly.GetName().Name;
+        }
+
+        [ExcelFunction]
+        public static Task<double> MyTaskCalcSum([ExcelHandle] Calc c)
         {
             return Task.FromResult(c.Sum());
         }
 
         [ExcelFunction]
-        public static Task<double> MyTaskCalcDoubleSumWithCancellation(Calc c, CancellationToken ct)
+        public static Task<double> MyTaskCalcDoubleSumWithCancellation([ExcelHandle] Calc c, CancellationToken ct)
         {
             return Task.FromResult(c.Sum() * 2);
+        }
+
+        [ExcelFunction]
+        public static string MyPrintIntObject([ExcelHandle] int i)
+        {
+            return $"IntObject value={i}";
+        }
+
+        [ExcelFunction]
+        public static string MyPrintMixedIntObject(double d, [ExcelHandle] int i)
+        {
+            return $"double value={d}, IntObject value={i}";
         }
 
         [ExcelFunction]
@@ -215,12 +297,26 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
-        public static IObservable<string> MyCalcSumObservable(Calc c)
+        [return: ExcelHandle]
+        public static IObservable<Calc> MyCalcObservable(double d1, double d2)
+        {
+            return new ObservableCalc(d1, d2);
+        }
+
+        [ExcelFunction]
+        public static IObservable<CalcExcelHandle> MyCalcExcelHandleObservable(double d1, double d2)
+        {
+            return new ObservableCalcExcelHandle(d1, d2);
+        }
+
+        [ExcelFunction]
+        public static IObservable<string> MyCalcSumObservable([ExcelHandle] Calc c)
         {
             return new ObservableString(c.Sum().ToString());
         }
 
         [ExcelFunction]
+        [return: ExcelHandle]
         public static DisposableObject MyCreateDisposableObject(int x)
         {
             return new DisposableObject();
@@ -239,6 +335,7 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
+        [return: ExcelHandle]
         public static async Task<DisposableObject> MyTaskCreateDisposableObject(int millisecondsDelay, int x)
         {
             await Task.Delay(millisecondsDelay);
@@ -246,6 +343,7 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction(IsThreadSafe = true)]
+        [return: ExcelHandle]
         public static Calc MyCreateCalcTS(double d1, double d2)
         {
             Thread.Sleep((int)d1);
@@ -253,7 +351,7 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction(IsThreadSafe = true)]
-        public static double MyCalcSumTS(Calc c)
+        public static double MyCalcSumTS([ExcelHandle] Calc c)
         {
             Thread.Sleep((int)c.Sum());
             return c.Sum();
