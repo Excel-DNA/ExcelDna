@@ -272,6 +272,26 @@ namespace ExcelDna.RuntimeTests
 
                 Assert.Equal("25", functionRange2.Value.ToString());
             }
+
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D1"];
+                functionRange1.Formula = "=MyCalcObservable(14, 15)";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D2"];
+                functionRange2.Formula = "=MyCalcSum(D1)";
+
+                Assert.Equal("29", functionRange2.Value.ToString());
+            }
+
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E1"];
+                functionRange1.Formula = "=MyCalcExcelHandleObservable(0.5, 8)";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E2"];
+                functionRange2.Formula = "=MyCalcExcelHandleMul(E1)";
+
+                Assert.Equal("4", functionRange2.Value.ToString());
+            }
         }
 
         [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
@@ -331,6 +351,62 @@ namespace ExcelDna.RuntimeTests
 
                 Assert.Equal("4.6", functionRange2.Value.ToString());
             }
+
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["G1"];
+                functionRange1.Formula = "=MyCreateSquareIntObject(3)";
+                Assert.True(functionRange1.Value.ToString().StartsWith("MyCreateSquareIntObject"));
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["G2"];
+                functionRange2.Formula = "=MyPrintIntObject(G1)";
+
+                Assert.Equal("IntObject value=9", functionRange2.Value.ToString());
+
+                Range functionRange3 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["G3"];
+                functionRange3.Formula = "=MyPrintMixedIntObject(4.5, G1)";
+
+                Assert.Equal("double value=4.5, IntObject value=9", functionRange3.Value.ToString());
+            }
+
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["H1"];
+                functionRange1.Formula = "=MyCreateCalcExcelHandle(1.2, 3.5)";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["H2"];
+                functionRange2.Formula = "=MyCalcExcelHandleMul(H1)";
+
+                Assert.Equal("4.2", functionRange2.Value.ToString());
+            }
+
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B10"];
+                functionRange1.Formula = "=MyCreateCalcStructExcelHandle(1.5, 0.5)";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B11"];
+                functionRange2.Formula = "=MyCalcStructExcelHandleMul(B10)";
+
+                Assert.Equal("0.75", functionRange2.Value.ToString());
+            }
+
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C10"];
+                functionRange1.Formula = "=MyCreateCalcExcelHandleExternal(2.5, 0.2)";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C11"];
+                functionRange2.Formula = "=MyCalcExcelHandleExternalMul(C10)";
+
+                Assert.Equal("0.5", functionRange2.Value.ToString());
+            }
+
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D10"];
+                functionRange1.Formula = "=MyGetExecutingAssembly()";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D11"];
+                functionRange2.Formula = "=MyGetAssemblyName(D10)";
+
+                Assert.Equal("ExcelDna.AddIn.RuntimeTests", functionRange2.Value.ToString());
+            }
         }
 
         [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
@@ -374,6 +450,16 @@ namespace ExcelDna.RuntimeTests
                 functionRange2.Formula = "=MyCalcSum(E1)";
 
                 Assert.Equal("29", functionRange2.Value.ToString());
+            }
+
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["F1"];
+                functionRange1.Formula = "=MyTaskCreateCalcExcelHandle(0, 0.1, 30)";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["F2"];
+                functionRange2.Formula = "=MyCalcExcelHandleMul(F1)";
+
+                Assert.Equal("3", functionRange2.Value.ToString());
             }
         }
 

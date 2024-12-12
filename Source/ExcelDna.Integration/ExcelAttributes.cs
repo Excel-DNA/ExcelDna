@@ -66,6 +66,30 @@ namespace ExcelDna.Integration
     }
 
     /// <summary>
+    /// For the arguments of object handles.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue | AttributeTargets.Class | AttributeTargets.Struct, Inherited = false, AllowMultiple = false)]
+    [MeansImplicitUse]
+    public class ExcelHandleAttribute : Attribute
+    {
+    }
+
+    /// <summary>
+    /// To indicate that a type will be marshalled as object handles.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
+    [MeansImplicitUse]
+    public class ExcelHandleExternalAttribute : Attribute
+    {
+        public ExcelHandleExternalAttribute(Type type)
+        {
+            Type = type;
+        }
+
+        public Type Type { get; }
+    }
+
+    /// <summary>
     /// For macro commands.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
