@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.Test", "ExcelDna.T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.SourceGenerator", "ExcelDna.SourceGenerator\ExcelDna.SourceGenerator.csproj", "{DD4BF77C-C25B-464E-A2B2-0D2F730455B8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.AddIn.Tasks", "ExcelDna.AddIn.Tasks\ExcelDna.AddIn.Tasks.csproj", "{FD6D05BE-FE91-8B85-49EC-78601BF8BFFC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -99,6 +101,18 @@ Global
 		{DD4BF77C-C25B-464E-A2B2-0D2F730455B8}.Release|x64.Build.0 = Release|Any CPU
 		{DD4BF77C-C25B-464E-A2B2-0D2F730455B8}.Release|x86.ActiveCfg = Release|Any CPU
 		{DD4BF77C-C25B-464E-A2B2-0D2F730455B8}.Release|x86.Build.0 = Release|Any CPU
+		{FD6D05BE-FE91-8B85-49EC-78601BF8BFFC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD6D05BE-FE91-8B85-49EC-78601BF8BFFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD6D05BE-FE91-8B85-49EC-78601BF8BFFC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FD6D05BE-FE91-8B85-49EC-78601BF8BFFC}.Debug|x64.Build.0 = Debug|Any CPU
+		{FD6D05BE-FE91-8B85-49EC-78601BF8BFFC}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FD6D05BE-FE91-8B85-49EC-78601BF8BFFC}.Debug|x86.Build.0 = Debug|Any CPU
+		{FD6D05BE-FE91-8B85-49EC-78601BF8BFFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD6D05BE-FE91-8B85-49EC-78601BF8BFFC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD6D05BE-FE91-8B85-49EC-78601BF8BFFC}.Release|x64.ActiveCfg = Release|Any CPU
+		{FD6D05BE-FE91-8B85-49EC-78601BF8BFFC}.Release|x64.Build.0 = Release|Any CPU
+		{FD6D05BE-FE91-8B85-49EC-78601BF8BFFC}.Release|x86.ActiveCfg = Release|Any CPU
+		{FD6D05BE-FE91-8B85-49EC-78601BF8BFFC}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -109,5 +123,6 @@ Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		ExcelDna.PackedResources\ExcelDna.PackedResources.projitems*{7ebb8fa9-a153-422e-b454-144c3fb03450}*SharedItemsImports = 13
 		ExcelDna.PackedResources\ExcelDna.PackedResources.projitems*{a8cf65cb-ec21-4619-b2f5-9b27d9520795}*SharedItemsImports = 5
+		ExcelDna.PackedResources\ExcelDna.PackedResources.projitems*{fd6d05be-fe91-8b85-49ec-78601bf8bffc}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

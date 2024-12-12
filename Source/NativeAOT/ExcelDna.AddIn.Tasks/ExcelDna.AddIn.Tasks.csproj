@@ -1,0 +1,73 @@
+﻿<Project>
+
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+
+  <PropertyGroup>
+    
+    <OutputType>Library</OutputType>
+    <TargetFrameworks>net8.0-windows;net462</TargetFrameworks>
+
+    <AssemblyTitle>Excel-DNA MSBuild Tasks</AssemblyTitle>
+    <Description>MSBuild Tasks for Excel DNA</Description>
+    <Product>Excel-DNA Add-In Framework for Microsoft Excel</Product>
+    <Copyright>Copyright © 2005-2021 Govert van Drimmelen</Copyright>
+    
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\assets\exceldna.snk</AssemblyOriginatorKeyFile>
+
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net462' ">
+    <DefineConstants>$(DefineConstants);PACKEXTENDEDDEPS</DefineConstants>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net8.0-windows' ">
+    <DefineConstants>$(DefineConstants);ASMRESOLVER;PACKEXTENDEDDEPS</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ExcelDna.Integration\ExcelDna.Integration.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net462' ">
+    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="6.0.0" />
+    <PackageReference Include="System.Reflection.Metadata" Version="6.0.0" />
+    <PackageReference Include="envdte" Version="16.9.31023.347" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <Reference Include="Microsoft.Build.Framework" />
+    <Reference Include="Microsoft.Build.Utilities.v4.0" />
+    <Reference Include="System.Management" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net8.0-windows' ">
+    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="6.0.0" />
+    <PackageReference Include="System.Reflection.Metadata" Version="6.0.0" />
+    <PackageReference Include="envdte" Version="16.9.31023.347" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="15.9.20" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="15.9.20" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="AsmResolver.PE" Version="4.11.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\Package\ExcelDna.AddIn\content\ExcelDna.Build.props">
+      <Link>ExcelDna.Build.props</Link>
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="..\..\Package\ExcelDna.AddIn\build\ExcelDna.AddIn.targets">
+      <Link>ExcelDna.AddIn.targets</Link>
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="..\..\Package\ExcelDna.AddIn\build\ExcelDna.AddIn.props">
+      <Link>ExcelDna.AddIn.props</Link>
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+
+  <Import Project="..\ExcelDna.PackedResources\ExcelDna.PackedResources.projitems" Label="Shared" />
+
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+  
+<!--  <Import Project="$(ProjectDir)Properties\ExcelDna.AddIn.Tasks.targets" />-->
+
+</Project>
