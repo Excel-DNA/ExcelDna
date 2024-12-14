@@ -10,6 +10,18 @@ namespace ExcelDna.PackedResources
 {
     internal class ExcelDnaPack
     {
+        public static int PackN(string xllOutput, bool multithreading, bool useManagedResourceResolver, IBuildLogger buildLogger)
+        {
+            string mainNativeAssembly = Path.ChangeExtension(xllOutput, "dll");
+
+            ResourceHelper.ResourceUpdater ru = new ResourceHelper.ResourceUpdater(xllOutput, useManagedResourceResolver, buildLogger);
+            ru.AddFile(File.ReadAllBytes(mainNativeAssembly), "__MAIN__", ResourceHelper.TypeName.NATIVE_ASSEMBLY, null, false, multithreading);  // Name here must exactly match name in ExcelDnaLoad.cpp.
+            ru.EndUpdate();
+
+            // All OK - set process exit code to 'Success'
+            return 0;
+        }
+
         public static int Pack(string dnaPath, string xllOutputPathParam, bool compress, bool multithreading, bool overwrite, string usageInfo, List<string> filesToPublish, bool packNativeLibraryDependencies, bool packManagedDependencies, string excludeDependencies, bool useManagedResourceResolver, string outputBitness, IBuildLogger buildLogger)
         {
             string HostXLL = outputBitness == "64" ? "ExcelDna64.xll" : "ExcelDna.xll";

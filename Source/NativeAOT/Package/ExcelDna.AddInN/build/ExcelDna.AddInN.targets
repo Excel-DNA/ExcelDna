@@ -1,12 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <PropertyGroup>
+    <ExcelDnaToolsPath Condition="$(ExcelDnaToolsPath) == '' Or $(ExcelDnaToolsPath) == '*Undefined*'">$(MSBuildThisFileDirectory)..\tools\</ExcelDnaToolsPath>
+  </PropertyGroup>
+
+	<PropertyGroup Condition="'$(MSBuildRuntimeType)' == 'Core'">
+		<ExcelDnaTasksPath>$(ExcelDnaToolsPath)net8.0-windows7.0\</ExcelDnaTasksPath>
+		<ExcelDnaDscomIntegrationPath>$(ExcelDnaToolsPath)net8.0-windows7.0</ExcelDnaDscomIntegrationPath>
+</PropertyGroup>
+	<PropertyGroup Condition="'$(MSBuildRuntimeType)' != 'Core'">
+		<ExcelDnaTasksPath>$(ExcelDnaToolsPath)net452\</ExcelDnaTasksPath>
+		<ExcelDnaDscomIntegrationPath>$(ExcelDnaToolsPath)net452</ExcelDnaDscomIntegrationPath>
+	</PropertyGroup>
+	
+	<UsingTask TaskName="ExcelDna.AddIn.Tasks.PackExcelAddInN" AssemblyFile="$(ExcelDnaTasksPath)ExcelDna.AddIn.Tasks.dll" />
+
+  <!--
+    Default values for configuration properties - in case they were not set in via .props file or command-line
+  -->
+  <PropertyGroup>
+    <ExcelDnaPackRunMultithreaded Condition="'$(ExcelDnaPackRunMultithreaded)' == ''">true</ExcelDnaPackRunMultithreaded>
+  </PropertyGroup>
+
 	<Target Name="ExcelDnaAddInNPublish" AfterTargets="Publish">
 		    <Copy SourceFiles="$(MSBuildThisFileDirectory)..\tools\ExcelDna.Host.x64.xll"
           DestinationFiles="$(PublishDir)$(TargetName).xll"
           ContinueOnError="false"
           OverwriteReadOnlyFiles="true"
           SkipUnchangedFiles="true" />
+
+	<PackExcelAddInN
+		OutputPackedXllFileName="$(PublishDir)$(TargetName).xll"
+		RunMultithreaded="$(ExcelDnaPackRunMultithreaded)"
+		PackManagedOnWindows="$(ExcelDnaPackManagedResourcePackingOnWindows)"
+>
+	</PackExcelAddInN>
 </Target>
 
 </Project>

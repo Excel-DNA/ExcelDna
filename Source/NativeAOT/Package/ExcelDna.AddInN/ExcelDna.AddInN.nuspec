@@ -23,8 +23,23 @@
           The Excel-DNA Runtime is free for all use, and distributed under a permissive open-source license that also allows commercial use.</description>
         <summary>Excel-DNA is an independent project to integrate .NET into Excel.</summary>
         <tags>excel exceldna udf excel-dna</tags>
+      <dependencies>
+        <group targetFramework="net8.0-windows7.0" />
+      </dependencies>
     </metadata>
     <files>
+      <file src="tools\net452\ExcelDna.Integration.dll" target="tools\net452\ExcelDna.Integration.dll" />
+      <file src="tools\net452\ExcelDna.AddIn.Tasks.dll" target="tools\net452\ExcelDna.AddIn.Tasks.dll" />
+      <file src="tools\net452\EnvDTE.dll" target="tools\net452\EnvDTE.dll" />
+      <file src="tools\net452\Newtonsoft.Json.dll" target="tools\net452\Newtonsoft.Json.dll" />
+      <file src="tools\net452\Microsoft.Extensions.DependencyModel.dll" target="tools\net452\Microsoft.Extensions.DependencyModel.dll" />
+      
+      <file src="tools\net8.0-windows7.0\ExcelDna.Integration.dll" target="tools\net8.0-windows7.0\ExcelDna.Integration.dll" />
+      <file src="tools\net8.0-windows7.0\ExcelDna.AddIn.Tasks.dll" target="tools\net8.0-windows7.0\ExcelDna.AddIn.Tasks.dll" />
+      <file src="tools\net8.0-windows7.0\AsmResolver.dll" target="tools\net8.0-windows7.0\AsmResolver.dll" />
+      <file src="tools\net8.0-windows7.0\AsmResolver.PE.dll" target="tools\net8.0-windows7.0\AsmResolver.PE.dll" />
+      <file src="tools\net8.0-windows7.0\AsmResolver.PE.File.dll" target="tools\net8.0-windows7.0\AsmResolver.PE.File.dll" />
+      
         <file src="lib\net8.0-windows7.0\ExcelDna.Integration.dll" target="lib\net8.0-windows7.0\ExcelDna.Integration.dll" />
       <file src="lib\net8.0-windows7.0\ExcelDna.ManagedHost.dll" target="lib\net8.0-windows7.0\ExcelDna.ManagedHost.dll" />
       <file src="lib\net8.0-windows7.0\ExcelDna.Loader.dll" target="lib\net8.0-windows7.0\ExcelDna.Loader.dll" />
