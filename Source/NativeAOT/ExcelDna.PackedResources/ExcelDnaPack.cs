@@ -15,7 +15,7 @@ namespace ExcelDna.PackedResources
             string mainNativeAssembly = Path.ChangeExtension(xllOutput, "dll");
 
             ResourceHelper.ResourceUpdater ru = new ResourceHelper.ResourceUpdater(xllOutput, useManagedResourceResolver, buildLogger);
-            ru.AddFile(File.ReadAllBytes(mainNativeAssembly), "__MAIN__", ResourceHelper.TypeName.NATIVE_ASSEMBLY, null, false, multithreading);  // Name here must exactly match name in ExcelDnaLoad.cpp.
+            ru.AddFile(File.ReadAllBytes(mainNativeAssembly), "__MAIN__", ResourceHelper.TypeName.NATIVE_ASSEMBLY, null, false, multithreading);  // Name here must exactly match name in host.cpp.
             ru.EndUpdate();
 
             // All OK - set process exit code to 'Success'

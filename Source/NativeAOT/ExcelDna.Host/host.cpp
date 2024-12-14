@@ -59,6 +59,20 @@ int load_native_and_run(const std::wstring& basePath, XlAddInExportInfo* pExport
 	std::wstring hostFile(GetAddInFullPath());
 	RenameExtension(hostFile, L".dll");
 
+	if (!std::filesystem::exists(hostFile))
+	{
+		std::wstring hostFileName = hostFile;
+		StripPath(hostFileName);
+
+		hostFile = PathCombine(tempDir.GetPath(), hostFileName);
+		if (!std::filesystem::exists(hostFile))
+		{
+			int r = write_resource_to_file(hModuleXll, L"__MAIN__", L"NATIVE_ASSEMBLY", hostFile);
+			if (r != EXIT_SUCCESS)
+				return r;
+		}
+	}
+
 	HINSTANCE handle = LoadLibrary(hostFile.c_str());
 
 	if (handle == NULL)
