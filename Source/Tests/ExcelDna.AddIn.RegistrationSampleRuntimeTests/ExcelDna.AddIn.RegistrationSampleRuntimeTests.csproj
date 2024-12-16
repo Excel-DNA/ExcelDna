@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ExcelDna.Interop" Version="15.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\ExcelDna.Integration\ExcelDna.Integration.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="ExcelDna.AddIn.RegistrationSampleRuntimeTests-AddIn64.dna">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command='xcopy /y "$(SolutionDir)ExcelDna.Host\bin\$(ConfigurationName)\x64\ExcelDna.Host.x64.xll" "$(TargetDir)ExcelDna.AddIn.RegistrationSampleRuntimeTests-AddIn64.xll*"&#xD;&#xA;' />
+  </Target>
+
+</Project>

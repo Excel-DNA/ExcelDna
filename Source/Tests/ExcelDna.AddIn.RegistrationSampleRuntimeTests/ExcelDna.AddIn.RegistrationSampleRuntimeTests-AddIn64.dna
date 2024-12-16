@@ -1,0 +1,3 @@
+﻿<DnaLibrary Name="ExcelDna.AddIn.RegistrationSampleRuntimeTests add-in" >
+  <ExternalLibrary Path="ExcelDna.AddIn.RegistrationSampleRuntimeTests.dll" Pack="true" />
+</DnaLibrary>
