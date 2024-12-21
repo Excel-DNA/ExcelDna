@@ -25,7 +25,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
         /// <param name="nativeAsyncIfAvailable">Under Excel 2010 and later, indicates whether the native async feature should be used.
         /// Does not apply to functions returning IObservable.</param>
         /// <returns>The list of RegistrationEntries, with the affected functions wrapped to allow registration in Excel.</returns>
-        public static IEnumerable<ExcelFunction> ProcessAsyncRegistrations(this IEnumerable<ExcelFunction> registrations, bool nativeAsyncIfAvailable = false)
+        public static IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> ProcessAsyncRegistrations(this IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> registrations, bool nativeAsyncIfAvailable = false)
         {
             // Decide whether Tasks should be using native async
             bool useNativeAsync = nativeAsyncIfAvailable && ExcelDnaUtil.ExcelVersion >= 14.0;

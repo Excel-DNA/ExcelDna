@@ -22,7 +22,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
         /// <param name="treatEmptyAsMissing"></param>
         /// <param name="treatNAErrorAsMissing"></param>
         /// <returns></returns>
-        public static Func<Type, ExcelParameter, LambdaExpression> GetNullableConversion(bool treatEmptyAsMissing = false, bool treatNAErrorAsMissing = false)
+        public static Func<Type, ExcelDna.Registration.ExcelParameterRegistration, LambdaExpression> GetNullableConversion(bool treatEmptyAsMissing = false, bool treatNAErrorAsMissing = false)
         {
             return (type, paramReg) => NullableConversion(null, type, paramReg, treatEmptyAsMissing, treatNAErrorAsMissing);
         }

@@ -10,7 +10,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
     // CONSIDER: Can one use an ExpressionVisitor to do these things....?
     internal static class ParameterConversionRegistration
     {
-        public static IEnumerable<ExcelFunction> ProcessParameterConversions(this IEnumerable<ExcelFunction> registrations, ParameterConversionConfiguration conversionConfig)
+        public static IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> ProcessParameterConversions(this IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> registrations, ParameterConversionConfiguration conversionConfig)
         {
             foreach (var reg in registrations)
             {
@@ -19,7 +19,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             }
         }
 
-        public static void ApplyParameterConversions(ExcelFunction reg, ParameterConversionConfiguration conversionConfig)
+        public static void ApplyParameterConversions(ExcelDna.Registration.ExcelFunctionRegistration reg, ParameterConversionConfiguration conversionConfig)
         {
             // Keep a list of conversions for each parameter
             // TODO: Prevent having a cycle, but allow arbitrary ordering...?
@@ -42,7 +42,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
         }
 
         // returnsConversion and the entries in paramsConversions may be null.
-        public static void ApplyConversions(ExcelFunction reg, List<List<LambdaExpression>> paramsConversions, List<LambdaExpression> returnConversions)
+        public static void ApplyConversions(ExcelDna.Registration.ExcelFunctionRegistration reg, List<List<LambdaExpression>> paramsConversions, List<LambdaExpression> returnConversions)
         {
             // CAREFUL: The parameter transformations are applied in reverse order to how they're identified.
             // We do the following transformation

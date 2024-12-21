@@ -29,7 +29,7 @@ namespace ExcelDna.Integration
                     List<MethodInfo> methods,
                     List<ExtendedRegistration.ExcelParameterConversion> excelParameterConversions,
                     List<ExtendedRegistration.ExcelFunctionProcessor> excelFunctionProcessors,
-                    List<ExtendedRegistration.ExcelFunction> excelFunctionsExtendedRegistration,
+                    List<Registration.ExcelFunctionRegistration> excelFunctionsExtendedRegistration,
                     List<FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors,
                     List<ExcelAddInInfo> addIns,
                     List<Type> rtdServerTypes,
@@ -139,7 +139,7 @@ namespace ExcelDna.Integration
             }
         }
 
-        static void GetExcelMethods(Type t, bool explicitExports, List<MethodInfo> excelMethods, List<ExtendedRegistration.ExcelFunction> excelFunctionsExtendedRegistration)
+        static void GetExcelMethods(Type t, bool explicitExports, List<MethodInfo> excelMethods, List<Registration.ExcelFunctionRegistration> excelFunctionsExtendedRegistration)
         {
             // DOCUMENT: Exclude if not a class, not public, /*abstract,*/ an array,  
             // open generic type or in "My" namespace.
@@ -163,7 +163,7 @@ namespace ExcelDna.Integration
 
                 if (!isSupported && IsMethodMarkedForExport(mi))
                 {
-                    excelFunctionsExtendedRegistration.Add(new ExtendedRegistration.ExcelFunction(mi));
+                    excelFunctionsExtendedRegistration.Add(new Registration.ExcelFunctionRegistration(mi));
                 }
                 else if (!isSupported)
                 {
@@ -201,7 +201,7 @@ namespace ExcelDna.Integration
             {
                 isSupported = false;
             }
-            else if (ObjectHandles.ObjectHandleRegistration.IsMethodSupported(new ExtendedRegistration.ExcelFunction(mi)))
+            else if (ObjectHandles.ObjectHandleRegistration.IsMethodSupported(new ExcelDna.Registration.ExcelFunctionRegistration(mi)))
             {
                 isSupported = false;
             }
@@ -213,7 +213,7 @@ namespace ExcelDna.Integration
             {
                 isSupported = false;
             }
-            else if (ExtendedRegistration.ParamsRegistration.IsParamsMethod(new ExtendedRegistration.ExcelFunction(mi)))
+            else if (ExtendedRegistration.ParamsRegistration.IsParamsMethod(new ExcelDna.Registration.ExcelFunctionRegistration(mi)))
             {
                 isSupported = false;
             }

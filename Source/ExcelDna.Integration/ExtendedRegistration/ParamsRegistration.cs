@@ -8,7 +8,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
 {
     internal static class ParamsRegistration
     {
-        public static bool IsParamsMethod(ExcelFunction reg)
+        public static bool IsParamsMethod(ExcelDna.Registration.ExcelFunctionRegistration reg)
         {
             var lastParam = reg.ParameterRegistrations.LastOrDefault();
             return lastParam != null && lastParam.CustomAttributes.Any(att => att is ParamArrayAttribute)
@@ -20,7 +20,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
         /// </summary>
         /// <param name="registrations"></param>
         /// <returns></returns>
-        public static IEnumerable<ExcelFunction> ProcessParamsRegistrations(this IEnumerable<ExcelFunction> registrations)
+        public static IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> ProcessParamsRegistrations(this IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> registrations)
         {
             foreach (var reg in registrations)
             {
@@ -40,7 +40,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
                         paramsArgAttrib.Name = paramsArgAttrib.Name + "1";
 
                         // Add the ellipsis argument
-                        ExcelParameter newParameter = new ExcelParameter(
+                        ExcelDna.Registration.ExcelParameterRegistration newParameter = new ExcelDna.Registration.ExcelParameterRegistration(
                                     new ExcelArgumentAttribute
                                     {
                                         Name = "...",
@@ -54,7 +54,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
                         var restCount = reg.FunctionLambda.Parameters.Count - reg.ParameterRegistrations.Count;
                         for (int i = 0; i < restCount; i++)
                         {
-                            newParameter = new ExcelParameter(
+                            newParameter = new ExcelDna.Registration.ExcelParameterRegistration(
                                     new ExcelArgumentAttribute
                                     {
                                         Name = string.Empty,

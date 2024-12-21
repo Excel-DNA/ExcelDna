@@ -8,7 +8,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
 {
     internal static class FunctionExecutionRegistration
     {
-        public static IEnumerable<ExcelFunction> ProcessFunctionExecutionHandlers(this IEnumerable<ExcelFunction> registrations, FunctionExecutionConfiguration functionHandlerConfig)
+        public static IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> ProcessFunctionExecutionHandlers(this IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> registrations, FunctionExecutionConfiguration functionHandlerConfig)
         {
             foreach (var registration in registrations)
             {
@@ -170,7 +170,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             return lambda;
         }
 
-        static void ApplyMethodHandlers(ExcelFunction reg, IEnumerable<IFunctionExecutionHandler> handlers)
+        static void ApplyMethodHandlers(ExcelDna.Registration.ExcelFunctionRegistration reg, IEnumerable<IFunctionExecutionHandler> handlers)
         {
             // The order of method handlers is important - we follow PostSharp's convention for MethodExecutionHandlers.
             // They are passed from high priority (most inside) to low priority (most outside)

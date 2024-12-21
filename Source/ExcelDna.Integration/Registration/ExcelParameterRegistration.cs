@@ -1,13 +1,14 @@
-﻿using System;
+﻿using ExcelDna.Integration;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-namespace ExcelDna.Integration.ExtendedRegistration
+namespace ExcelDna.Registration
 {
-    internal class ExcelParameter : IExcelFunctionParameter
+    public class ExcelParameterRegistration : IExcelFunctionParameter
     {
         // Used for the final Excel-DNA registration
         public ExcelArgumentAttribute ArgumentAttribute { get; private set; }
@@ -15,7 +16,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
         // Used only for the Registration processing
         public List<object> CustomAttributes { get; private set; } // Should not be null, and elements should not be null
 
-        public ExcelParameter(ExcelArgumentAttribute argumentAttribute)
+        public ExcelParameterRegistration(ExcelArgumentAttribute argumentAttribute)
         {
             if (argumentAttribute == null) throw new ArgumentNullException("argumentAttribute");
             ArgumentAttribute = argumentAttribute;
@@ -27,7 +28,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
         /// Also craetes attributes from Optional / Default Value
         /// </summary>
         /// <param name="parameterInfo"></param>
-        public ExcelParameter(ParameterInfo parameterInfo)
+        public ExcelParameterRegistration(ParameterInfo parameterInfo)
         {
             CustomAttributes = new List<object>();
 

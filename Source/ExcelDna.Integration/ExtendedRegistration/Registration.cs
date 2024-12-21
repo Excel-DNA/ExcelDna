@@ -9,7 +9,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
 {
     internal class Registration
     {
-        public static void RegisterExtended(IEnumerable<ExcelFunction> functions, IEnumerable<ExcelParameterConversion> parameterConversions, IEnumerable<ExcelFunctionProcessor> excelFunctionProcessors, IEnumerable<FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors)
+        public static void RegisterExtended(IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> functions, IEnumerable<ExcelParameterConversion> parameterConversions, IEnumerable<ExcelFunctionProcessor> excelFunctionProcessors, IEnumerable<FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors)
         {
             // Set the Parameter Conversions before they are applied by the ProcessParameterConversions call below.
             // CONSIDER: We might change the registration to be an object...?
@@ -28,7 +28,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
                 );
         }
 
-        public static void RegisterStandard(IEnumerable<ExcelFunction> functions, IEnumerable<FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors)
+        public static void RegisterStandard(IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> functions, IEnumerable<FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors)
         {
             var functionHandlerConfig = GetFunctionExecutionHandlerConfig(excelFunctionExecutionHandlerSelectors);
 
@@ -37,7 +37,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
                 );
         }
 
-        static void Register(IEnumerable<ExcelFunction> functions)
+        static void Register(IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> functions)
         {
             var lambdas = functions.Select(reg => reg.FunctionLambda).ToList();
             var attribs = functions.Select(reg => reg.FunctionAttribute).ToList<object>();
@@ -105,7 +105,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
 
             foreach (var s in excelFunctionExecutionHandlerSelectors)
             {
-                result = result.AddFunctionExecutionHandler((ExcelFunction functionRegistration) => s(functionRegistration));
+                result = result.AddFunctionExecutionHandler((ExcelDna.Registration.ExcelFunctionRegistration functionRegistration) => s(functionRegistration));
             }
 
             return result;

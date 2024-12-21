@@ -10,7 +10,7 @@ namespace ExcelDna.Integration.ObjectHandles
 {
     internal static class ObjectHandleRegistration
     {
-        public static IEnumerable<ExcelFunction> ProcessObjectHandles(this IEnumerable<ExcelFunction> registrations)
+        public static IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> ProcessObjectHandles(this IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> registrations)
         {
             registrations = registrations.ProcessParameterConversions(GetParameterConversionConfiguration());
 
@@ -38,7 +38,7 @@ namespace ExcelDna.Integration.ObjectHandles
             return new ParameterConversionConfiguration().AddParameterConversion(GetParameterConversion());
         }
 
-        public static bool IsMethodSupported(ExcelFunction reg)
+        public static bool IsMethodSupported(ExcelDna.Registration.ExcelFunctionRegistration reg)
         {
             if (HasExcelHandle(reg.Return.CustomAttributes))
                 return true;

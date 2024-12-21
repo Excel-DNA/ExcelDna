@@ -5,7 +5,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
 {
     internal static class FunctionProcessorRegistration
     {
-        public static IEnumerable<ExcelFunction> ProcessFunctionProcessors(this IEnumerable<ExcelFunction> registrations, IEnumerable<ExcelFunctionProcessor> excelFunctionProcessors, ParameterConversionConfiguration conversionConfig)
+        public static IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> ProcessFunctionProcessors(this IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> registrations, IEnumerable<ExcelFunctionProcessor> excelFunctionProcessors, ParameterConversionConfiguration conversionConfig)
         {
             IEnumerable<IExcelFunctionInfo> result = registrations;
             ExcelFunctionRegistrationConfiguration config = new ExcelFunctionRegistrationConfiguration(conversionConfig);
@@ -14,7 +14,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
                 result = p.Invoke(result, config);
             }
 
-            return result.Cast<ExcelFunction>();
+            return result.Cast<ExcelDna.Registration.ExcelFunctionRegistration>();
         }
     }
 }
