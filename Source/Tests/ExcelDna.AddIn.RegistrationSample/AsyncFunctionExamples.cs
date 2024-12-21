@@ -1,4 +1,5 @@
 ﻿using ExcelDna.Integration;
+using ExcelDna.Registration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +23,15 @@ namespace ExcelDna.AddIn.RegistrationSampleRuntimeTests
         public static string dnaSayHello2(string name)
         {
             if (name == "Bang!") throw new ArgumentException("Bad name!");
+            return "Hello " + name + "!";
+        }
+
+        // A simple function that can take a long time to complete.
+        // Will be wrapped to RunAsTask, via Task.Factory.StartNew(...)
+        [ExcelAsyncFunction(Name = "dnaDelayedHello")]
+        public static string dnaDelayedHello(string name, int msToSleep)
+        {
+            Thread.Sleep(msToSleep);
             return "Hello " + name + "!";
         }
     }

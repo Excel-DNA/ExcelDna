@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Numerics;
 using ExcelDna.Integration.ObjectHandles;
+using ExcelDna.Registration;
 
 namespace ExcelDna.Integration.ExtendedRegistration
 {

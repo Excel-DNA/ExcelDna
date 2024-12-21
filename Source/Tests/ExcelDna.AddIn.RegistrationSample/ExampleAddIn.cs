@@ -14,7 +14,9 @@ namespace ExcelDna.AddIn.RegistrationSampleRuntimeTests
         {
             ExcelIntegration.RegisterUnhandledExceptionHandler(ex => "!!! ERROR: " + ex.ToString());
 
-            ExcelRegistration.GetExcelFunctions().RegisterFunctions();
+            ExcelRegistration.GetExcelFunctions()
+                .ProcessAsyncRegistrations(nativeAsyncIfAvailable: false)
+                .RegisterFunctions();
         }
 
         public void AutoClose()
