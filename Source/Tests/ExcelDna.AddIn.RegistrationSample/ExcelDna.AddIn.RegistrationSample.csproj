@@ -15,13 +15,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="ExcelDna.AddIn.RegistrationSampleRuntimeTests-AddIn64.dna">
+    <None Update="ExcelDna.AddIn.RegistrationSample-AddIn64.dna">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command='xcopy /y "$(SolutionDir)ExcelDna.Host\bin\$(ConfigurationName)\x64\ExcelDna.Host.x64.xll" "$(TargetDir)ExcelDna.AddIn.RegistrationSampleRuntimeTests-AddIn64.xll*"&#xD;&#xA;' />
+    <Exec Command='xcopy /y "$(SolutionDir)ExcelDna.Host\bin\$(ConfigurationName)\x64\ExcelDna.Host.x64.xll" "$(TargetDir)ExcelDna.AddIn.RegistrationSample-AddIn64.xll*"&#xD;&#xA;' />
   </Target>
 
 </Project>

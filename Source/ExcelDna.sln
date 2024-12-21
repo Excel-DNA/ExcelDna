@@ -100,7 +100,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelDna.AddIn.Tasks.Integr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelDna.RuntimeTests", "Tests\ExcelDna.RuntimeTests\ExcelDna.RuntimeTests.csproj", "{8D04B68B-1EFE-48DC-A0B5-D7ACC293694B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.AddIn.RegistrationSampleRuntimeTests", "Tests\ExcelDna.AddIn.RegistrationSampleRuntimeTests\ExcelDna.AddIn.RegistrationSampleRuntimeTests.csproj", "{55AEB960-2857-323E-3E82-5A8AA5913A18}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.AddIn.RegistrationSample", "Tests\ExcelDna.AddIn.RegistrationSample\ExcelDna.AddIn.RegistrationSample.csproj", "{55AEB960-2857-323E-3E82-5A8AA5913A18}"
 	ProjectSection(ProjectDependencies) = postProject
 		{59AE5BC6-F37E-4CE3-BAE3-796F807A9882} = {59AE5BC6-F37E-4CE3-BAE3-796F807A9882}
 		{A9887347-3E93-4E4E-96DF-227648E57B60} = {A9887347-3E93-4E4E-96DF-227648E57B60}
