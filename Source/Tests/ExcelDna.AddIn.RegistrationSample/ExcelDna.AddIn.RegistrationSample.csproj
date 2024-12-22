@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="ExcelDna.Interop" Version="15.0.1" />
+ 		<PackageReference Include="System.Runtime.Caching" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>

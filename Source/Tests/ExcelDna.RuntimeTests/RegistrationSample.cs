@@ -20,6 +20,18 @@ namespace ExcelDna.RuntimeTests
                 Assert.True(functionRange.Value.ToString().StartsWith("!!! ERROR: System.ArgumentException: Bad name!"));
             }
         }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RegistrationSample\bin\Debug\net6.0-windows\ExcelDna.AddIn.RegistrationSample-AddIn")]
+        public void FunctionExecutionHandler()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+
+            functionRange.Formula = "=MyRegistrationSampleFunctionExecutionLog()";
+            functionRange.Formula = "=dnaSayHello(\"FunctionExecutionHandler\")";
+            functionRange.Formula = "=MyRegistrationSampleFunctionExecutionLog()";
+
+            Assert.True(functionRange.Value.ToString().Contains("FunctionLoggingHandler dnaSayHello - OnEntry - Args: FunctionExecutionHandler"));
+        }
     }
 #endif
 }

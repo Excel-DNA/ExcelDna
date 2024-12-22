@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ExcelDna.AddIn.RegistrationSampleRuntimeTests
+namespace ExcelDna.AddIn.RegistrationSample
 {
     public static class AsyncFunctionExamples
     {
