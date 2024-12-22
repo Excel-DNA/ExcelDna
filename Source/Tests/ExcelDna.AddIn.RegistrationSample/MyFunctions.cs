@@ -36,6 +36,13 @@ namespace ExcelDna.AddIn.RegistrationSample
         }
 
         [ExcelFunction]
+        [SuppressInDialog]
+        public static string dnaSayHelloSuppressInDialog(string name)
+        {
+            return "Hello " + name + "!";
+        }
+
+        [ExcelFunction]
         public static string MyRegistrationSampleFunctionExecutionLog()
         {
             string result = Logger.GetLog();
