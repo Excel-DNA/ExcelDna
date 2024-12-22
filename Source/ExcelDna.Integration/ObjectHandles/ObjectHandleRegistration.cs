@@ -22,7 +22,7 @@ namespace ExcelDna.Integration.ObjectHandles
 
                     EntryFunctionExecutionHandler entryFunctionExecutionHandler = new EntryFunctionExecutionHandler();
 
-                    reg.FunctionLambda = FunctionExecutionRegistration.ApplyMethodHandler(reg.FunctionAttribute.Name, reg.FunctionLambda, entryFunctionExecutionHandler);
+                    reg.FunctionLambda = Registration.FunctionExecutionRegistration.ApplyMethodHandler(reg.FunctionAttribute.Name, reg.FunctionLambda, entryFunctionExecutionHandler);
 
                     var returnConversion = CreateReturnConversion((object value) => GetReturnConversion(value, reg.FunctionAttribute.Name, entryFunctionExecutionHandler));
 

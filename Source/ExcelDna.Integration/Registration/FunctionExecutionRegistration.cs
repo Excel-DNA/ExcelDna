@@ -1,14 +1,15 @@
-﻿using System;
+﻿using ExcelDna.Integration.ExtendedRegistration;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Expr = System.Linq.Expressions.Expression;
 
-namespace ExcelDna.Integration.ExtendedRegistration
+namespace ExcelDna.Registration
 {
-    internal static class FunctionExecutionRegistration
+    public static class FunctionExecutionRegistration
     {
-        public static IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> ProcessFunctionExecutionHandlers(this IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> registrations, ExcelDna.Registration.FunctionExecutionConfiguration functionHandlerConfig)
+        public static IEnumerable<ExcelFunctionRegistration> ProcessFunctionExecutionHandlers(this IEnumerable<ExcelFunctionRegistration> registrations, FunctionExecutionConfiguration functionHandlerConfig)
         {
             foreach (var registration in registrations)
             {
@@ -27,7 +28,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             }
         }
 
-        public static LambdaExpression ApplyMethodHandler(string functionName, LambdaExpression functionLambda, ExcelDna.Registration.IFunctionExecutionHandler handler)
+        public static LambdaExpression ApplyMethodHandler(string functionName, LambdaExpression functionLambda, IFunctionExecutionHandler handler)
         {
             // public static int MyMethod(object arg0, int arg1) { ... }
 
@@ -101,17 +102,17 @@ namespace ExcelDna.Integration.ExtendedRegistration
 
             // Prepare the functionHandlerArgs that will be threaded through the handler, 
             // and a bunch of expressions that access various properties on it.
-            var fhArgs = Expr.Variable(typeof(ExcelDna.Registration.FunctionExecutionArgs), "fhArgs");
+            var fhArgs = Expr.Variable(typeof(FunctionExecutionArgs), "fhArgs");
             var fhArgsReturnValue = SymbolExtensions.GetProperty(fhArgs, (ExcelDna.Registration.FunctionExecutionArgs mea) => mea.ReturnValue);
             var fhArgsException = SymbolExtensions.GetProperty(fhArgs, (ExcelDna.Registration.FunctionExecutionArgs mea) => mea.Exception);
             var fhArgsFlowBehaviour = SymbolExtensions.GetProperty(fhArgs, (ExcelDna.Registration.FunctionExecutionArgs mea) => mea.FlowBehavior);
 
             // Set up expressions to call the various handler methods.
             // TODO: Later we can determine which of these are actually implemented, and only write out the code needed in the particular case.
-            var onEntry = Expr.Call(mh, SymbolExtensions.GetMethodInfo<ExcelDna.Registration.IFunctionExecutionHandler>(meh => meh.OnEntry(null)), fhArgs);
-            var onSuccess = Expr.Call(mh, SymbolExtensions.GetMethodInfo<ExcelDna.Registration.IFunctionExecutionHandler>(meh => meh.OnSuccess(null)), fhArgs);
-            var onException = Expr.Call(mh, SymbolExtensions.GetMethodInfo<ExcelDna.Registration.IFunctionExecutionHandler>(meh => meh.OnException(null)), fhArgs);
-            var onExit = Expr.Call(mh, SymbolExtensions.GetMethodInfo<ExcelDna.Registration.IFunctionExecutionHandler>(meh => meh.OnExit(null)), fhArgs);
+            var onEntry = Expr.Call(mh, SymbolExtensions.GetMethodInfo<IFunctionExecutionHandler>(meh => meh.OnEntry(null)), fhArgs);
+            var onSuccess = Expr.Call(mh, SymbolExtensions.GetMethodInfo<IFunctionExecutionHandler>(meh => meh.OnSuccess(null)), fhArgs);
+            var onException = Expr.Call(mh, SymbolExtensions.GetMethodInfo<IFunctionExecutionHandler>(meh => meh.OnException(null)), fhArgs);
+            var onExit = Expr.Call(mh, SymbolExtensions.GetMethodInfo<IFunctionExecutionHandler>(meh => meh.OnExit(null)), fhArgs);
 
             // Create the new parameters for the wrapper
             var outerParams = functionLambda.Parameters.Select(p => Expr.Parameter(p.Type, p.Name)).ToArray();
@@ -124,7 +125,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
 
             // A bunch of helper expressions:
             // : new FunctionExecutionArgs(new object[] { arg0, arg1 })
-            var fhArgsConstr = typeof(ExcelDna.Registration.FunctionExecutionArgs).GetConstructor(new[] { typeof(string), typeof(object[]) });
+            var fhArgsConstr = typeof(FunctionExecutionArgs).GetConstructor(new[] { typeof(string), typeof(object[]) });
             var newfhArgs = Expr.New(fhArgsConstr, funcName, paramsArray);
             // : result = (int)fhArgs.ReturnValue
             var resultFromReturnValue = Expr.Assign(result, Expr.Convert(fhArgsReturnValue, functionLambda.ReturnType));
@@ -142,7 +143,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
                         Expr.Block(
                             onEntry,
                             Expr.IfThenElse(
-                                Expr.Equal(fhArgsFlowBehaviour, Expr.Constant(ExcelDna.Registration.FlowBehavior.Return)),
+                                Expr.Equal(fhArgsFlowBehaviour, Expr.Constant(FlowBehavior.Return)),
                                 resultFromReturnValue,
                                 Expr.Block(
                                     resultFromInnerCall,
@@ -155,12 +156,12 @@ namespace ExcelDna.Integration.ExtendedRegistration
                                 Expr.Assign(fhArgsException, ex),
                                 onException,
                                 Expr.IfThenElse(
-                                    Expr.Equal(fhArgsFlowBehaviour, Expr.Constant(ExcelDna.Registration.FlowBehavior.Return)),
+                                    Expr.Equal(fhArgsFlowBehaviour, Expr.Constant(FlowBehavior.Return)),
                                     Expr.Block(
                                         Expr.Assign(fhArgsException, Expr.Constant(null, typeof(Exception))),
                                         resultFromReturnValue),
                                     Expr.IfThenElse(
-                                        Expr.Equal(fhArgsFlowBehaviour, Expr.Constant(ExcelDna.Registration.FlowBehavior.ThrowException)),
+                                        Expr.Equal(fhArgsFlowBehaviour, Expr.Constant(FlowBehavior.ThrowException)),
                                         Expr.Throw(fhArgsException),
                                         Expr.Rethrow()))))
                         ),
@@ -170,7 +171,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             return lambda;
         }
 
-        static void ApplyMethodHandlers(ExcelDna.Registration.ExcelFunctionRegistration reg, IEnumerable<ExcelDna.Registration.IFunctionExecutionHandler> handlers)
+        static void ApplyMethodHandlers(ExcelFunctionRegistration reg, IEnumerable<IFunctionExecutionHandler> handlers)
         {
             // The order of method handlers is important - we follow PostSharp's convention for MethodExecutionHandlers.
             // They are passed from high priority (most inside) to low priority (most outside)
