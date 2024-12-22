@@ -261,7 +261,7 @@ namespace ExcelDna.Integration
         [XmlIgnore]
         private List<Registration.ExcelFunctionRegistration> _excelFunctionsExtendedRegistration = new List<Registration.ExcelFunctionRegistration>();
         [XmlIgnore]
-        private List<FunctionExecutionHandlerSelector> _excelFunctionExecutionHandlerSelectors = new List<FunctionExecutionHandlerSelector>();
+        private List<Registration.FunctionExecutionHandlerSelector> _excelFunctionExecutionHandlerSelectors = new List<Registration.FunctionExecutionHandlerSelector>();
         [XmlIgnore]
         private List<ExtendedRegistration.ExcelFunctionProcessor> _excelFunctionProcessors = new List<ExtendedRegistration.ExcelFunctionProcessor>();
         [XmlIgnore]

@@ -30,7 +30,7 @@ namespace ExcelDna.Integration
                     List<ExtendedRegistration.ExcelParameterConversion> excelParameterConversions,
                     List<ExtendedRegistration.ExcelFunctionProcessor> excelFunctionProcessors,
                     List<Registration.ExcelFunctionRegistration> excelFunctionsExtendedRegistration,
-                    List<FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors,
+                    List<Registration.FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors,
                     List<ExcelAddInInfo> addIns,
                     List<Type> rtdServerTypes,
                     List<ExcelComClassType> comClassTypes)
@@ -176,13 +176,13 @@ namespace ExcelDna.Integration
             }
         }
 
-        static void GetExcelFunctionExecutionHandlerSelectors(Type type, List<FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors)
+        static void GetExcelFunctionExecutionHandlerSelectors(Type type, List<Registration.FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors)
         {
             MethodInfo[] mis = type.GetMethods(BindingFlags.Public | BindingFlags.Static);
             foreach (MethodInfo mi in mis)
             {
                 if (IsExcelFunctionExecutionHandlerSelector(mi))
-                    excelFunctionExecutionHandlerSelectors.Add((IExcelFunctionInfo functionInfo) => (IFunctionExecutionHandler)mi.Invoke(null, new object[] { functionInfo }));
+                    excelFunctionExecutionHandlerSelectors.Add((IExcelFunctionInfo functionInfo) => (Registration.IFunctionExecutionHandler)mi.Invoke(null, new object[] { functionInfo }));
             }
         }
 

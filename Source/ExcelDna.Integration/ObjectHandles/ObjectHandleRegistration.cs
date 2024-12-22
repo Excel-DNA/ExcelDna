@@ -121,7 +121,7 @@ namespace ExcelDna.Integration.ObjectHandles
             return "!!! INVALID HANDLE";
         }
 
-        private class EntryFunctionExecutionHandler : FunctionExecutionHandler
+        private class EntryFunctionExecutionHandler : ExcelDna.Registration.FunctionExecutionHandler
         {
             private ConcurrentDictionary<int, object> arguments = new ConcurrentDictionary<int, object>();
 
@@ -135,7 +135,7 @@ namespace ExcelDna.Integration.ObjectHandles
                 return null;
             }
 
-            public override void OnEntry(FunctionExecutionArgs args)
+            public override void OnEntry(ExcelDna.Registration.FunctionExecutionArgs args)
             {
                 this.arguments.AddOrUpdate(Thread.CurrentThread.ManagedThreadId, args.Arguments, (key, oldValue) => args.Arguments);
             }
