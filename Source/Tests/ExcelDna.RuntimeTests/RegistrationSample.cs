@@ -25,12 +25,20 @@ namespace ExcelDna.RuntimeTests
         public void FunctionExecutionHandler()
         {
             Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+            {
+                functionRange.Formula = "=MyRegistrationSampleFunctionExecutionLog()";
+                functionRange.Formula = "=dnaSayHello(\"FunctionExecutionHandler\")";
+                functionRange.Formula = "=MyRegistrationSampleFunctionExecutionLog()";
 
-            functionRange.Formula = "=MyRegistrationSampleFunctionExecutionLog()";
-            functionRange.Formula = "=dnaSayHello(\"FunctionExecutionHandler\")";
-            functionRange.Formula = "=MyRegistrationSampleFunctionExecutionLog()";
+                Assert.True(functionRange.Value.ToString().Contains("FunctionLoggingHandler dnaSayHello - OnEntry - Args: FunctionExecutionHandler"));
+            }
+            {
+                functionRange.Formula = "=MyRegistrationSampleFunctionExecutionLog()";
+                functionRange.Formula = "=dnaSayHelloTiming()";
+                functionRange.Formula = "=MyRegistrationSampleFunctionExecutionLog()";
 
-            Assert.True(functionRange.Value.ToString().Contains("FunctionLoggingHandler dnaSayHello - OnEntry - Args: FunctionExecutionHandler"));
+                Assert.True(functionRange.Value.ToString().Contains("TimingFunctionExecutionHandler dnaSayHelloTiming"));
+            }
         }
     }
 #endif

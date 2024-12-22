@@ -21,9 +21,9 @@ namespace ExcelDna.AddIn.RegistrationSample
             var sw = (Stopwatch)args.Tag;
             sw.Stop();
 
-            Debug.WriteLine("{0} executed in {1} milliseconds", args.FunctionName, sw.ElapsedMilliseconds);
+            Debug.WriteLine("TimingFunctionExecutionHandler {0} executed in {1} milliseconds", args.FunctionName, sw.ElapsedMilliseconds);
+            Logger.Log($"TimingFunctionExecutionHandler {args.FunctionName}");
         }
-
 
         /////////////////////// Registration handler //////////////////////////////////
 
