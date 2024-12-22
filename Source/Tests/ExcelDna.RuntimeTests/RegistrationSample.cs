@@ -39,6 +39,17 @@ namespace ExcelDna.RuntimeTests
 
                 Assert.True(functionRange.Value.ToString().Contains("TimingFunctionExecutionHandler dnaSayHelloTiming"));
             }
+            {
+                functionRange.Formula = "=MyRegistrationSampleFunctionExecutionLog()";
+
+                functionRange.Formula = "=dnaSayHelloCache(\"123\")";
+                functionRange.Formula = "=MyRegistrationSampleFunctionExecutionLog()";
+                Assert.True(functionRange.Value.ToString().Contains("CacheFunctionExecutionHandler dnaSayHelloCache result not in cache"));
+
+                functionRange.Formula = "=dnaSayHelloCache(\"123\")";
+                functionRange.Formula = "=MyRegistrationSampleFunctionExecutionLog()";
+                Assert.True(functionRange.Value.ToString().Contains("CacheFunctionExecutionHandler dnaSayHelloCache result in cache"));
+            }
         }
     }
 #endif

@@ -29,6 +29,13 @@ namespace ExcelDna.AddIn.RegistrationSample
         }
 
         [ExcelFunction]
+        [Cache(99)]
+        public static string dnaSayHelloCache(string name)
+        {
+            return "Hello " + name + "!";
+        }
+
+        [ExcelFunction]
         public static string MyRegistrationSampleFunctionExecutionLog()
         {
             string result = Logger.GetLog();

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Caching;
 using System.Text;
@@ -33,13 +34,22 @@ namespace ExcelDna.AddIn.RegistrationSample
             string key = GenerateKey(args);
             args.Tag = key;
 
+            string logMsg;
             object result = _cache[key];
             if (result != null)
             {
                 // Set the return value and FlowBehavior, to short-cut the function call
                 args.ReturnValue = result;
                 args.FlowBehavior = FlowBehavior.Return;
+                logMsg = $"CacheFunctionExecutionHandler {args.FunctionName} result in cache {key}.";
             }
+            else
+            {
+                logMsg = $"CacheFunctionExecutionHandler {args.FunctionName} result not in cache {key}.";
+            }
+
+            Debug.Print(logMsg);
+            Logger.Log(logMsg);
         }
 
         public override void OnSuccess(FunctionExecutionArgs args)
