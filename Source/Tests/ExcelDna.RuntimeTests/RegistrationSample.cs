@@ -51,6 +51,16 @@ namespace ExcelDna.RuntimeTests
                 Assert.True(functionRange.Value.ToString().Contains("CacheFunctionExecutionHandler dnaSayHelloCache result in cache"));
             }
         }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RegistrationSample\bin\Debug\net6.0-windows\ExcelDna.AddIn.RegistrationSample-AddIn")]
+        public void InstanceMemberRegistration()
+        {
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+                functionRange.Formula = "=GetContent(\"world\")";
+                Assert.Equal("Content is world", functionRange.Value.ToString());
+            }
+        }
     }
 #endif
 }

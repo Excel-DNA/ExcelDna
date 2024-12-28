@@ -21,6 +21,9 @@ namespace ExcelDna.AddIn.RegistrationSample
                 .ProcessFunctionExecutionHandlers(functionHandlerConfig)
                 .RegisterFunctions()
                 ;
+
+            // First example if Instance -> Static conversion
+            InstanceMemberRegistration.TestInstanceRegistration();
         }
 
         public void AutoClose()
