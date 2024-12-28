@@ -1,17 +1,19 @@
-﻿using System;
+﻿using ExcelDna.Integration;
+using ExcelDna.Integration.ExtendedRegistration;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-namespace ExcelDna.Integration.ExtendedRegistration
+namespace ExcelDna.Registration
 {
     /// <summary>
     /// Defines some standard Parameter Conversions.
     /// Register by calling ParameterConversionConfiguration.AddParameterConversion(ParameterConversions.NullableConversion);
     /// </summary>
-    internal static class ParameterConversions
+    public static class ParameterConversions
     {
         // These can be used directly in .AddParameterConversion
 
@@ -37,7 +39,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             return (type, paramReg) => EnumStringConversion(type, paramReg);
         }
 
-        public static IEnumerable<Func<Type, IExcelFunctionParameter, LambdaExpression>> GetUserConversions(IEnumerable<ExcelParameterConversion> parameterConversions)
+        internal static IEnumerable<Func<Type, IExcelFunctionParameter, LambdaExpression>> GetUserConversions(IEnumerable<Integration.ExtendedRegistration.ExcelParameterConversion> parameterConversions)
         {
             return parameterConversions.OrderBy(i => i.MethodInfo.Name).Select(i => i.GetConversion());
         }

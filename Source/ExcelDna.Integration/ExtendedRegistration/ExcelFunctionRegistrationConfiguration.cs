@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ExcelDna.Registration;
+using System;
 using System.Linq.Expressions;
 
 namespace ExcelDna.Integration.ExtendedRegistration

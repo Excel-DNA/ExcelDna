@@ -1,14 +1,15 @@
-﻿using System;
+﻿using ExcelDna.Integration;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using Expr = System.Linq.Expressions.Expression;
 
-namespace ExcelDna.Integration.ExtendedRegistration
+namespace ExcelDna.Registration
 {
     // CONSIDER: Can one use an ExpressionVisitor to do these things....?
-    internal static class ParameterConversionRegistration
+    public static class ParameterConversionRegistration
     {
         public static IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> ProcessParameterConversions(this IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> registrations, ParameterConversionConfiguration conversionConfig)
         {

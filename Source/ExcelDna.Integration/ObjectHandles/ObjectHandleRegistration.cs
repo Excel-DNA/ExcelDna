@@ -1,4 +1,5 @@
 ﻿using ExcelDna.Integration.ExtendedRegistration;
+using ExcelDna.Registration;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

@@ -1,10 +1,11 @@
-﻿using System;
+﻿using ExcelDna.Integration;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
-namespace ExcelDna.Integration.ExtendedRegistration
+namespace ExcelDna.Registration
 {
-    internal class ParameterConversionConfiguration
+    public class ParameterConversionConfiguration
     {
         internal class ParameterConversion
         {
@@ -152,7 +153,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
 
         Func<Type, IExcelFunctionParameter, LambdaExpression> GetNullableConversion(bool treatEmptyAsMissing, bool treatNAErrorAsMissing)
         {
-            return (type, paramReg) => ExtendedRegistration.ParameterConversions.NullableConversion(this, type, paramReg, treatEmptyAsMissing, treatNAErrorAsMissing);
+            return (type, paramReg) => ExcelDna.Registration.ParameterConversions.NullableConversion(this, type, paramReg, treatEmptyAsMissing, treatNAErrorAsMissing);
         }
 
         /// <summary>

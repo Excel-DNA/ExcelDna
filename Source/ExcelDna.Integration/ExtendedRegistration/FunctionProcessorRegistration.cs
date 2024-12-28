@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using ExcelDna.Registration;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace ExcelDna.Integration.ExtendedRegistration
