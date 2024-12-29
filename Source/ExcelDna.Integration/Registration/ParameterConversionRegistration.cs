@@ -135,7 +135,7 @@ namespace ExcelDna.Registration
             return result;
         }
 
-        internal static LambdaExpression GetParameterConversion(ParameterConversionConfiguration conversionConfig,
+        public static LambdaExpression GetParameterConversion(ParameterConversionConfiguration conversionConfig,
             Type initialParamType, IExcelFunctionParameter paramRegistration)
         {
             return ComposeLambdas(GetParameterConversions(conversionConfig, initialParamType, paramRegistration));
@@ -172,7 +172,7 @@ namespace ExcelDna.Registration
             return appliedConversions;
         }
 
-        internal static LambdaExpression GetReturnConversion(ParameterConversionConfiguration conversionConfig,
+        public static LambdaExpression GetReturnConversion(ParameterConversionConfiguration conversionConfig,
             Type initialReturnType, IExcelFunctionReturn returnRegistration)
         {
             return ComposeLambdas(GetReturnConversions(conversionConfig, initialReturnType, returnRegistration));

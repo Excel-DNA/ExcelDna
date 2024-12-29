@@ -280,22 +280,22 @@ namespace ExcelDna.AddIn.RegistrationSample
             return c ?? new Complex(111, 222);
         }
 
-        //[ExcelMapArrayFunction]
-        //public static IEnumerable<TestEnum1> dnaEnumsEnumerated(IEnumerable<TestEnum2> v)
-        //{
-        //    foreach (var i in v)
-        //    {
-        //        switch (i)
-        //        {
-        //            case TestEnum2.Imaginary:
-        //                yield return TestEnum1.Negative;
-        //                break;
-        //            case TestEnum2.Real:
-        //                yield return TestEnum1.Positive;
-        //                break;
-        //        }
-        //    }
-        //}
+        [MapArrayFunction]
+        public static IEnumerable<TestEnum1> dnaEnumsEnumerated(IEnumerable<TestEnum2> v)
+        {
+            foreach (var i in v)
+            {
+                switch (i)
+                {
+                    case TestEnum2.Imaginary:
+                        yield return TestEnum1.Negative;
+                        break;
+                    case TestEnum2.Real:
+                        yield return TestEnum1.Positive;
+                        break;
+                }
+            }
+        }
     }
 
     // Here I test some custom conversions, including a two-hop conversion

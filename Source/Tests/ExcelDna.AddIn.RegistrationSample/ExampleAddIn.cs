@@ -22,6 +22,7 @@ namespace ExcelDna.AddIn.RegistrationSample
             var functionHandlerConfig = GetFunctionExecutionHandlerConfig();
 
             ExcelRegistration.GetExcelFunctions()
+                .ProcessMapArrayFunctions(conversionConfig)
                 .ProcessParameterConversions(conversionConfig)
                 .ProcessAsyncRegistrations(nativeAsyncIfAvailable: false)
                 .ProcessFunctionExecutionHandlers(functionHandlerConfig)

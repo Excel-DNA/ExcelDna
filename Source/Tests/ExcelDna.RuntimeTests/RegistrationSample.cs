@@ -310,6 +310,82 @@ namespace ExcelDna.RuntimeTests
                 Assert.Equal("VAL: True", functionRange2.Value.ToString());
             }
         }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RegistrationSample\bin\Debug\net6.0-windows\ExcelDna.AddIn.RegistrationSample-AddIn")]
+        public void ParameterConversionEnum()
+        {
+            {
+                Range functionRangeB1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+                functionRangeB1.Formula = "=NA()";
+
+                Range functionRangeC1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
+                functionRangeC1.Formula = "=NA()";
+
+                Range functionRangeB2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B2"];
+                functionRangeB2.Formula = "negative";
+
+                Range functionRangeC2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C2"];
+                functionRangeC2.Formula = "imaginary";
+
+                Range functionRange11 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B11:C11"];
+                functionRange11.FormulaArray = "=dnaNullableEnum()";
+
+                Range functionRangeB11 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B11"];
+                Assert.Equal("0", functionRangeB11.Value.ToString());
+
+                Range functionRangeC11 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C11"];
+                Assert.Equal("0", functionRangeC11.Value.ToString());
+
+                Range functionRange12 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B12:C12"];
+                functionRange12.FormulaArray = "=dnaNullableEnum(B5, C5)";
+
+                Range functionRangeB12 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B12"];
+                Assert.Equal("0", functionRangeB12.Value.ToString());
+
+                Range functionRangeC12 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C12"];
+                Assert.Equal("0", functionRangeC12.Value.ToString());
+
+                Range functionRange13 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B13:C13"];
+                functionRange13.FormulaArray = "=dnaNullableEnum(B1, C1)";
+
+                Range functionRangeB13 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B13"];
+                Assert.Equal("0", functionRangeB13.Value.ToString());
+
+                Range functionRangeC13 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C13"];
+                Assert.Equal("0", functionRangeC13.Value.ToString());
+
+                Range functionRange14 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B14:C14"];
+                functionRange14.FormulaArray = "=dnaNullableEnum(B2, C2)";
+
+                Range functionRangeB14 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B14"];
+                Assert.Equal("-1", functionRangeB14.Value.ToString());
+
+                Range functionRangeC14 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C14"];
+                Assert.Equal("1", functionRangeC14.Value.ToString());
+            }
+            {
+                Range functionRangeD1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D1"];
+                functionRangeD1.Value = "imaginary";
+
+                Range functionRangeD2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D2"];
+                functionRangeD2.Value = "real";
+
+                Range functionRangeD3 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D3"];
+                functionRangeD3.Value = "imaginary";
+
+                Range functionRangeE = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E1:E3"];
+                functionRangeE.FormulaArray = "=dnaEnumsEnumerated(D1:D3)";
+
+                Range functionRangeE1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E1"];
+                Assert.Equal("Negative", functionRangeE1.Value.ToString());
+
+                Range functionRangeE2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E2"];
+                Assert.Equal("Positive", functionRangeE2.Value.ToString());
+
+                Range functionRangeE3 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E3"];
+                Assert.Equal("Negative", functionRangeE3.Value.ToString());
+            }
+        }
     }
 #endif
 }
