@@ -191,6 +191,22 @@ namespace ExcelDna.RuntimeTests
                 functionRange3.Formula = "=dnaDirectBoolean(H11)";
                 Assert.Equal("False", functionRange3.Value.ToString());
             }
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["K1"];
+                functionRange1.Value = "abc";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["K2"];
+                functionRange2.Value = "de";
+
+                Range functionRange3 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["K3"];
+                functionRange3.Formula = "=dnaJoinStrings(\";\", K1:K2)";
+                Assert.Equal("abc;de", functionRange3.Value.ToString());
+            }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["M1"];
+                functionRange.Formula = "=GetErrorNA(\"abc\")";
+                Assert.Equal("abc", functionRange.Value.ToString());
+            }
         }
 
         [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RegistrationSample\bin\Debug\net6.0-windows\ExcelDna.AddIn.RegistrationSample-AddIn")]
@@ -483,6 +499,26 @@ namespace ExcelDna.RuntimeTests
 
                 Range functionRangeC16 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C16"];
                 Assert.Equal("2", functionRangeC16.Value.ToString());
+            }
+        }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RegistrationSample\bin\Debug\net6.0-windows\ExcelDna.AddIn.RegistrationSample-AddIn")]
+        public void ParameterConversionType()
+        {
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+                functionRange.Formula = "=dnaTestFunction1(\"abc\")";
+                Assert.Equal("The Test (1) value is abc", functionRange.Value.ToString());
+            }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
+                functionRange.Formula = "=dnaTestFunction2(\"abc\")";
+                Assert.Equal("The Test (2) value is abc", functionRange.Value.ToString());
+            }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D1"];
+                functionRange.Formula = "=dnaTestFunction2Ret1(\"abc\")";
+                Assert.Equal("From Type 1 with The Test (2) value is abc", functionRange.Value.ToString());
             }
         }
     }
