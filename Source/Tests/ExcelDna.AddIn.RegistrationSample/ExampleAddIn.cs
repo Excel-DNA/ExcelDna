@@ -3,6 +3,7 @@ using ExcelDna.Registration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,6 +19,7 @@ namespace ExcelDna.AddIn.RegistrationSample
             // Set the Parameter Conversions before they are applied by the ProcessParameterConversions call below.
             // CONSIDER: We might change the registration to be an object...?
             var conversionConfig = GetParameterConversionConfig();
+            var postAsyncReturnConfig = GetPostAsyncReturnConversionConfig();
 
             var functionHandlerConfig = GetFunctionExecutionHandlerConfig();
 
@@ -25,6 +27,7 @@ namespace ExcelDna.AddIn.RegistrationSample
                 .ProcessMapArrayFunctions(conversionConfig)
                 .ProcessParameterConversions(conversionConfig)
                 .ProcessAsyncRegistrations(nativeAsyncIfAvailable: false)
+                .ProcessParameterConversions(postAsyncReturnConfig)
                 .ProcessParamsRegistrations()
                 .ProcessFunctionExecutionHandlers(functionHandlerConfig)
                 .RegisterFunctions()
@@ -36,6 +39,17 @@ namespace ExcelDna.AddIn.RegistrationSample
 
         public void AutoClose()
         {
+        }
+
+        static ParameterConversionConfiguration GetPostAsyncReturnConversionConfig()
+        {
+            // This conversion replaces the default #N/A return value of async functions with the #GETTING_DATA value.
+            // This is not supported on old Excel versions, bu looks nicer these days.
+            // Note that this ReturnConversion does not actually check whether the functions is an async function, 
+            // so all registered functions are affected by this processing.
+            return new ParameterConversionConfiguration()
+                .AddReturnConversion((type, customAttributes) => type != typeof(object) ? null : ((Expression<Func<object, object>>)
+                                                ((object returnValue) => returnValue.Equals(ExcelError.ExcelErrorNA) ? ExcelError.ExcelErrorGettingData : returnValue)));
         }
 
         static ParameterConversionConfiguration GetParameterConversionConfig()

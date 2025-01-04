@@ -29,6 +29,16 @@ namespace ExcelDna.RuntimeTests
                 Assert.Equal("Hello world!", functionRange.Value.ToString());
             }
         }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RegistrationSample\bin\Debug\net6.0-windows\ExcelDna.AddIn.RegistrationSample-AddIn")]
+        public void GettingData()
+        {
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+                functionRange.Formula = "=dnaDelayedHelloAsync(\"a\", 2000)";
+                Assert.Equal(-2146826245, functionRange.Value);
+            }
+        }
     }
 #endif
 }
