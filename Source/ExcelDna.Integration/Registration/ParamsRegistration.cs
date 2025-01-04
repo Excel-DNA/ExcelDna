@@ -1,13 +1,14 @@
-﻿using ExcelDna.Registration;
+﻿using ExcelDna.Integration;
+using ExcelDna.Registration;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace ExcelDna.Integration.ExtendedRegistration
+namespace ExcelDna.Registration
 {
-    internal static class ParamsRegistration
+    public static class ParamsRegistration
     {
         public static bool IsParamsMethod(ExcelDna.Registration.ExcelFunctionRegistration reg)
         {

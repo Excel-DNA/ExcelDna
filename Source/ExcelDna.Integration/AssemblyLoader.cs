@@ -213,7 +213,7 @@ namespace ExcelDna.Integration
             {
                 isSupported = false;
             }
-            else if (ExtendedRegistration.ParamsRegistration.IsParamsMethod(new ExcelDna.Registration.ExcelFunctionRegistration(mi)))
+            else if (ExcelDna.Registration.ParamsRegistration.IsParamsMethod(new ExcelDna.Registration.ExcelFunctionRegistration(mi)))
             {
                 isSupported = false;
             }
