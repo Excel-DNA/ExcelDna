@@ -25,6 +25,7 @@ namespace ExcelDna.AddIn.RegistrationSample
                 .ProcessMapArrayFunctions(conversionConfig)
                 .ProcessParameterConversions(conversionConfig)
                 .ProcessAsyncRegistrations(nativeAsyncIfAvailable: false)
+                .ProcessParamsRegistrations()
                 .ProcessFunctionExecutionHandlers(functionHandlerConfig)
                 .RegisterFunctions()
                 ;

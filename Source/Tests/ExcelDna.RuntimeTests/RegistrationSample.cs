@@ -521,6 +521,26 @@ namespace ExcelDna.RuntimeTests
                 Assert.Equal("From Type 1 with The Test (2) value is abc", functionRange.Value.ToString());
             }
         }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RegistrationSample\bin\Debug\net6.0-windows\ExcelDna.AddIn.RegistrationSample-AddIn")]
+        public void Params()
+        {
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+                functionRange.Formula = "=dnaParamsFunc2(\"a\",,\"c\",\"d\",,\"f\")";
+                Assert.Equal("a,,c, [3: d,ExcelDna.Integration.ExcelMissing,f]", functionRange.Value.ToString());
+            }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
+                functionRange.Formula = "=dnaParamsFunc(\"a\",\"b\",\"c\",\"d\")";
+                Assert.Equal("a,b, : 2", functionRange.Value.ToString());
+            }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D1"];
+                functionRange.Formula = "=dnaJoinStringParams(\"|\",\"a\",\"b\",\"c\")";
+                Assert.Equal("a|b|c", functionRange.Value.ToString());
+            }
+        }
     }
 #endif
 }
