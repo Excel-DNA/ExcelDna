@@ -17,12 +17,12 @@ namespace ExcelDna.Registration.VisualBasic
         {
             var conversionConfig = new ParameterConversionConfiguration()
                 .AddParameterConversion(ParameterConversions.GetOptionalConversion(treatEmptyAsMissing: false))
-                //.AddParameterConversion(RangeParameterConversion.ParameterConversion, null)
+                .AddParameterConversion(RangeParameterConversion.ParameterConversion, null)
                 ;
 
             GetAllPublicSharedFunctions()
                 .ProcessParamsRegistrations()
-                //.UpdateRegistrationsForRangeParameters()
+                .UpdateRegistrationsForRangeParameters()
                 .ProcessParameterConversions(conversionConfig)
                 .RegisterFunctions();
 
