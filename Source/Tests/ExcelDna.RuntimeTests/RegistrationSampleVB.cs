@@ -20,6 +20,21 @@ namespace ExcelDna.RuntimeTests
                 Assert.Equal("The answer is 7.5", functionRange.Value.ToString());
             }
         }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RegistrationSampleVB\bin\Debug\net6.0-windows\ExcelDna.AddIn.RegistrationSampleVB-AddIn")]
+        public void Params()
+        {
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+                functionRange.Formula = "=dnaAddValues(3,6,12)";
+                Assert.Equal(21, functionRange.Value);
+            }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
+                functionRange.Formula = "=dnaConcatStrings(\"p\",\"-\",\"a\",\"b\")";
+                Assert.Equal("pa-b", functionRange.Value.ToString());
+            }
+        }
     }
 #endif
 }
