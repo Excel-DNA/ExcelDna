@@ -1,4 +1,5 @@
 ﻿Imports ExcelDna.Integration
+Imports ExcelDna.Registration.VisualBasic
 
 Public Class ExampleAddIn
     Implements IExcelAddIn
@@ -6,7 +7,7 @@ Public Class ExampleAddIn
     Public Sub AutoOpen() Implements IExcelAddIn.AutoOpen
         ExcelIntegration.RegisterUnhandledExceptionHandler(Function(ex) "!!! ERROR: " + ex.ToString())
 
-        'PerformDefaultRegistration()
+        PerformDefaultRegistration()
 
         ' Could add Async too...
     End Sub
