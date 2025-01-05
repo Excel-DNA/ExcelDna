@@ -26,7 +26,7 @@ namespace ExcelDna.Registration.VisualBasic
                 .ProcessParameterConversions(conversionConfig)
                 .RegisterFunctions();
 
-            //GetAllPublicSharedSubs().RegisterCommands();
+            GetAllPublicSharedSubs().RegisterCommands();
         }
 
         // Gets the Public Shared methods that don't return Void
@@ -41,14 +41,14 @@ namespace ExcelDna.Registration.VisualBasic
         }
 
         // Gets the Public Shared methods that return Void
-        //private static IEnumerable<ExcelCommandRegistration> GetAllPublicSharedSubs()
-        //{
-        //    return from ass in ExcelIntegration.GetExportedAssemblies()
-        //           from typ in ass.GetTypes()
-        //           where !typ.FullName.Contains(".My.") && typ.IsPublic
-        //           from mi in typ.GetMethods(BindingFlags.Public | BindingFlags.Static)
-        //           where mi.ReturnType == typeof(void) && !mi.IsSpecialName
-        //           select new ExcelCommandRegistration(mi);
-        //}
+        private static IEnumerable<ExcelCommandRegistration> GetAllPublicSharedSubs()
+        {
+            return from ass in ExcelIntegration.GetExportedAssemblies()
+                   from typ in ass.GetTypes()
+                   where !typ.FullName.Contains(".My.") && typ.IsPublic
+                   from mi in typ.GetMethods(BindingFlags.Public | BindingFlags.Static)
+                   where mi.ReturnType == typeof(void) && !mi.IsSpecialName
+                   select new ExcelCommandRegistration(mi);
+        }
     }
 }
