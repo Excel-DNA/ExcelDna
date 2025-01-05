@@ -13,7 +13,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             this.conversionConfig = conversionConfig;
         }
 
-        public LambdaExpression GetParameterConversion(Type initialParamType, IExcelFunctionParameter paramRegistration)
+        public LambdaExpression GetParameterConversion(Type initialParamType, ExcelParameterRegistration paramRegistration)
         {
             return ParameterConversionRegistration.GetParameterConversion(conversionConfig, initialParamType, paramRegistration);
         }

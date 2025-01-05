@@ -13,14 +13,14 @@ namespace ExcelDna.Registration
             // and should return an Expression<Func<TTo, TFrom>> 
             // (and may optionally update the information in the ExcelParameterRegistration.
             // May return null to indicate that no conversion should be applied.
-            public Func<Type, IExcelFunctionParameter, LambdaExpression> Conversion { get; private set; }
+            public Func<Type, ExcelParameterRegistration, LambdaExpression> Conversion { get; private set; }
 
             // The TypeFilter is used as a quick filter to decide whether the Conversion function should be called for a parameter.
             // TypeFilter may be null to indicate that conversion should be applied for all types.
             // (The Conversion function may anyway return null to indicate that no conversion should be applied.)
             public Type TypeFilter { get; private set; }
 
-            public ParameterConversion(Func<Type, IExcelFunctionParameter, LambdaExpression> conversion, Type typeFilter = null)
+            public ParameterConversion(Func<Type, ExcelParameterRegistration, LambdaExpression> conversion, Type typeFilter = null)
             {
                 if (conversion == null)
                     throw new ArgumentNullException("conversion");
@@ -29,7 +29,7 @@ namespace ExcelDna.Registration
                 TypeFilter = typeFilter;
             }
 
-            internal LambdaExpression Convert(Type paramType, IExcelFunctionParameter paramReg)
+            internal LambdaExpression Convert(Type paramType, ExcelParameterRegistration paramReg)
             {
                 if (TypeFilter != null && paramType != TypeFilter)
                     return null;
@@ -103,14 +103,14 @@ namespace ExcelDna.Registration
         /// </summary>
         /// <param name="parameterConversion"></param>
         /// <param name="targetTypeOrNull"></param>
-        public ParameterConversionConfiguration AddParameterConversion(Func<Type, IExcelFunctionParameter, LambdaExpression> parameterConversion, Type targetTypeOrNull = null)
+        public ParameterConversionConfiguration AddParameterConversion(Func<Type, ExcelParameterRegistration, LambdaExpression> parameterConversion, Type targetTypeOrNull = null)
         {
             var pc = new ParameterConversion(parameterConversion, targetTypeOrNull);
             ParameterConversions.Add(pc);
             return this;
         }
 
-        public ParameterConversionConfiguration AddParameterConversion<TTo>(Func<Type, IExcelFunctionParameter, LambdaExpression> parameterConversion)
+        public ParameterConversionConfiguration AddParameterConversion<TTo>(Func<Type, ExcelParameterRegistration, LambdaExpression> parameterConversion)
         {
             AddParameterConversion(parameterConversion, typeof(TTo));
             return this;
@@ -122,7 +122,7 @@ namespace ExcelDna.Registration
             return this;
         }
 
-        public ParameterConversionConfiguration AddParameterConversions(IEnumerable<Func<Type, IExcelFunctionParameter, LambdaExpression>> parameterConversions)
+        public ParameterConversionConfiguration AddParameterConversions(IEnumerable<Func<Type, ExcelParameterRegistration, LambdaExpression>> parameterConversions)
         {
             foreach (var i in parameterConversions)
                 AddParameterConversion(i);
@@ -151,7 +151,7 @@ namespace ExcelDna.Registration
         }
         #endregion
 
-        Func<Type, IExcelFunctionParameter, LambdaExpression> GetNullableConversion(bool treatEmptyAsMissing, bool treatNAErrorAsMissing)
+        Func<Type, ExcelParameterRegistration, LambdaExpression> GetNullableConversion(bool treatEmptyAsMissing, bool treatNAErrorAsMissing)
         {
             return (type, paramReg) => ExcelDna.Registration.ParameterConversions.NullableConversion(this, type, paramReg, treatEmptyAsMissing, treatNAErrorAsMissing);
         }

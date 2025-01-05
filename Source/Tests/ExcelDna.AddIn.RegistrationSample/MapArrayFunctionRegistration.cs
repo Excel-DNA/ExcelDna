@@ -240,7 +240,7 @@ namespace ExcelDna.AddIn.RegistrationSample
 
             private Func<object, object>[] PropertyConverters { set; get; }
 
-            IExcelFunctionParameter ParameterRegistration { set; get; }
+            ExcelParameterRegistration ParameterRegistration { set; get; }
 
             void PreparePropertyConverters<Registration>(ParameterConversionConfiguration config,
                 Registration reg, Func<ParameterConversionConfiguration, Type, Registration, LambdaExpression> getConversion)
@@ -255,7 +255,7 @@ namespace ExcelDna.AddIn.RegistrationSample
                     l => (l == null) ? null : (Func<object, object>)l.Compile());
             }
 
-            public ShimParameter(Type type, IExcelFunctionParameter reg, ParameterConversionConfiguration config)
+            public ShimParameter(Type type, ExcelParameterRegistration reg, ParameterConversionConfiguration config)
                 : this(type, reg.CustomAttributes)
             {
                 // Try to find a converter for EnumeratedType

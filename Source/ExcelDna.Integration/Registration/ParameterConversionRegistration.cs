@@ -136,13 +136,13 @@ namespace ExcelDna.Registration
         }
 
         public static LambdaExpression GetParameterConversion(ParameterConversionConfiguration conversionConfig,
-            Type initialParamType, IExcelFunctionParameter paramRegistration)
+            Type initialParamType, ExcelParameterRegistration paramRegistration)
         {
             return ComposeLambdas(GetParameterConversions(conversionConfig, initialParamType, paramRegistration));
         }
 
         // Should return null if there are no conversions to apply
-        internal static List<LambdaExpression> GetParameterConversions(ParameterConversionConfiguration conversionConfig, Type initialParamType, IExcelFunctionParameter paramRegistration)
+        internal static List<LambdaExpression> GetParameterConversions(ParameterConversionConfiguration conversionConfig, Type initialParamType, ExcelParameterRegistration paramRegistration)
         {
             var appliedConversions = new List<LambdaExpression>();
 

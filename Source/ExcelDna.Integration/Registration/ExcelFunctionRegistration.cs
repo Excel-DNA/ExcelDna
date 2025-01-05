@@ -22,7 +22,7 @@ namespace ExcelDna.Registration
         public List<object> CustomAttributes { get; private set; }                 // List may not be null
         public ExcelReturnRegistration ReturnRegistration { get; private set; }
 
-        public List<IExcelFunctionParameter> Parameters => ParameterRegistrations.Cast<IExcelFunctionParameter>().ToList();
+        public List<ExcelParameterRegistration> Parameters => ParameterRegistrations.Cast<ExcelParameterRegistration>().ToList();
         public IExcelFunctionReturn Return => ReturnRegistration;
 
         // Checks that the property invariants are met, particularly regarding the attributes lists.
