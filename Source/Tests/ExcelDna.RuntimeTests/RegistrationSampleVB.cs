@@ -35,6 +35,26 @@ namespace ExcelDna.RuntimeTests
                 Assert.Equal("pa-b", functionRange.Value.ToString());
             }
         }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RegistrationSampleVB\bin\Debug\net6.0-windows\ExcelDna.AddIn.RegistrationSampleVB-AddIn")]
+        public void Range()
+        {
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+                functionRange.Formula = "=dnaVbRangeTest(B2)";
+                Assert.Equal("$B$2", functionRange.Value.ToString());
+            }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
+                functionRange.Formula = "=dnaVbRangeTest(B2:C4)";
+                Assert.Equal("$B$2:$C$4", functionRange.Value.ToString());
+            }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D1"];
+                functionRange.Formula = "=dnaVbRangeTest((B2,D5:E6))";
+                Assert.Equal("$B$2,$D$5:$E$6", functionRange.Value.ToString());
+            }
+        }
     }
 #endif
 }
