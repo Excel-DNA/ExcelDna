@@ -15,6 +15,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="FsParameterConversions.fs" />
+    <Compile Include="OptionalExamples.fs" />
+    <Compile Include="ExampleAddIn.fs" />
     <None Include="ExcelDna.AddIn.RegistrationSampleFS-AddIn64.dna">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
