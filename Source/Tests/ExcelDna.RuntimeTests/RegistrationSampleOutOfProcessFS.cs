@@ -43,6 +43,45 @@ namespace ExcelDna.RuntimeTests
                 Assert.Equal("Hello bob", functionRange.Value.ToString());
             }
         }
+
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RegistrationSampleFS\bin\Debug\net6.0-windows\ExcelDna.AddIn.RegistrationSampleFS-AddIn")]
+        public void Timer()
+        {
+            {
+                Range functionRangeE = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E3"];
+                functionRangeE.Value = "2000";
+
+                Range functionRangeF = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["F3"];
+                functionRangeF.Value = "3600000";
+
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["G3"];
+                functionRange.Formula = "=dnaFsCreateTimer(E3,F3)";
+                Assert.Equal(-2146826246, functionRange.Value); // #N/A
+
+                Automation.WaitFor(() => functionRange.Value.GetType() == typeof(double), 3000);
+                double v1 = functionRange.Value;
+
+                Automation.WaitFor(() => functionRange.Value != v1, 3000);
+                Assert.True(functionRange.Value != v1);
+            }
+            {
+                Range functionRangeE = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E4"];
+                functionRangeE.Value = "666";
+
+                Range functionRangeF = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["F4"];
+                functionRangeF.Value = "3600000";
+
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["G4"];
+                functionRange.Formula = "=dnaFsCreateTimer(E4,F4)";
+                Assert.Equal(-2146826246, functionRange.Value); // #N/A
+
+                Automation.WaitFor(() => functionRange.Value.GetType() == typeof(double), 3000);
+                double v1 = functionRange.Value;
+
+                Automation.WaitFor(() => functionRange.Value != v1, 3000);
+                Assert.True(functionRange.Value != v1);
+            }
+        }
     }
 #endif
 }
