@@ -16,7 +16,7 @@ type ExampleAddIn () =
 
             ExcelRegistration.GetExcelFunctions ()
             |> fun fns -> ParameterConversionRegistration.ProcessParameterConversions (fns, paramConvertConfig)
-          //  |> FsAsyncRegistration.ProcessFsAsyncRegistrations
+            |> FsAsyncRegistration.ProcessFsAsyncRegistrations
             |> AsyncRegistration.ProcessAsyncRegistrations
             |> ExcelRegistration.RegisterFunctions
         

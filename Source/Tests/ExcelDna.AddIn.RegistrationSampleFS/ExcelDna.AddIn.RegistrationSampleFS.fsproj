@@ -15,6 +15,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="FsAsyncUtil.fs" />
+    <Compile Include="FsAsyncRegistration.fs" />
+    <Compile Include="AsyncFunctionExamples.fs" />
     <Compile Include="FsParameterConversions.fs" />
     <Compile Include="OptionalExamples.fs" />
     <Compile Include="ExampleAddIn.fs" />
