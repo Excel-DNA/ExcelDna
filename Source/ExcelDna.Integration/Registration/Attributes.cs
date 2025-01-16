@@ -18,4 +18,17 @@ namespace ExcelDna.Registration
             ExplicitRegistration = true;
         }
     }
+
+    // Internal marker attribute when we process a params function.
+    // Need to keep track of the params even after we wrap the function in a lambda expression.
+    class ExcelParamsArgumentAttribute : ExcelArgumentAttribute
+    {
+        public ExcelParamsArgumentAttribute(ExcelArgumentAttribute original)
+        {
+            // Just copy all the fields
+            AllowReference = original.AllowReference;
+            Description = original.Description;
+            Name = original.Name;
+        }
+    }
 }
