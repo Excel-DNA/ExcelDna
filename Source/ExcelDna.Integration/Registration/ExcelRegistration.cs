@@ -8,6 +8,13 @@ using System.Threading.Tasks;
 
 namespace ExcelDna.Registration
 {
+    // Ideas:
+    // * Object Instances - Methods and Properties (with INotifyPropertyChanged support, and Disposable from Observable handles)
+    // * Struct semantics, like built-in COMPLEX data
+    // * Cache  - PostSharp example from: http://vimeo.com/66549243 (esp. MethodExecutionTag for keeping stuff together)
+    // * Apply a Module name XlQualifiedName(true), or use Class Name.
+
+    // A first attempt to allow chaining of the Registration rewrites.
     public static class ExcelRegistration
     {
         /// <summary>

@@ -5,6 +5,12 @@ using System.Linq.Expressions;
 
 namespace ExcelDna.Registration
 {
+    // Used for parameter and return type conversions (when these can be done without interfering with the rest of the function).
+
+    // CONSIDER: Add a name to the XXXConversion for tracing and debugging
+    // CONSIDER: Do we need to consider Co-/Contravariance and allow processing of sub-/super-types?
+    // What about native async function, they return 'void' type?
+
     public class ParameterConversionConfiguration
     {
         internal class ParameterConversion
