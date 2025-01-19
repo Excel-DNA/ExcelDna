@@ -135,6 +135,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExcelDna.Host.Shared", "Exc
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExcelDna.Host.NativeAOT", "ExcelDna.Host.NativeAOT\ExcelDna.Host.NativeAOT.vcxproj", "{D50C3A8E-46F1-F61B-C8F5-ECDA05995EEB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.SourceGenerator.NativeAOT", "ExcelDna.SourceGenerator.NativeAOT\ExcelDna.SourceGenerator.NativeAOT.csproj", "{DAF494B7-16F3-AAA7-5F71-234663023BB6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -291,6 +293,14 @@ Global
 		{D50C3A8E-46F1-F61B-C8F5-ECDA05995EEB}.Release|Win32.Build.0 = Release|Win32
 		{D50C3A8E-46F1-F61B-C8F5-ECDA05995EEB}.Release|x64.ActiveCfg = Release|x64
 		{D50C3A8E-46F1-F61B-C8F5-ECDA05995EEB}.Release|x64.Build.0 = Release|x64
+		{DAF494B7-16F3-AAA7-5F71-234663023BB6}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{DAF494B7-16F3-AAA7-5F71-234663023BB6}.Debug|Win32.Build.0 = Debug|Any CPU
+		{DAF494B7-16F3-AAA7-5F71-234663023BB6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DAF494B7-16F3-AAA7-5F71-234663023BB6}.Debug|x64.Build.0 = Debug|Any CPU
+		{DAF494B7-16F3-AAA7-5F71-234663023BB6}.Release|Win32.ActiveCfg = Release|Any CPU
+		{DAF494B7-16F3-AAA7-5F71-234663023BB6}.Release|Win32.Build.0 = Release|Any CPU
+		{DAF494B7-16F3-AAA7-5F71-234663023BB6}.Release|x64.ActiveCfg = Release|Any CPU
+		{DAF494B7-16F3-AAA7-5F71-234663023BB6}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
