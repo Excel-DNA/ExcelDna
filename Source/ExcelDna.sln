@@ -131,6 +131,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ExcelDna.AddIn.Registration
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.RegistrationTests", "Tests\ExcelDna.RegistrationTests\ExcelDna.RegistrationTests.csproj", "{151AE960-6320-402D-BDD0-D76DF96F2BD7}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExcelDna.Host.Shared", "ExcelDna.Host.Shared\ExcelDna.Host.Shared.vcxitems", "{65CCAD73-FE1A-47F7-B8AC-3603919C49FE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -303,7 +305,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		ExcelDna.PackedResources\ExcelDna.PackedResources.projitems*{28d046d4-b414-4daf-818f-897a97b921df}*SharedItemsImports = 5
+		ExcelDna.Host.Shared\ExcelDna.Host.Shared.vcxitems*{65ccad73-fe1a-47f7-b8ac-3603919c49fe}*SharedItemsImports = 9
 		ExcelDna.PackedResources\ExcelDna.PackedResources.projitems*{7ebb8fa9-a153-422e-b454-144c3fb03450}*SharedItemsImports = 13
+		ExcelDna.Host.Shared\ExcelDna.Host.Shared.vcxitems*{a9887347-3e93-4e4e-96df-227648e57b60}*SharedItemsImports = 4
 		ExcelDna.PackedResources\ExcelDna.PackedResources.projitems*{b5cc04d3-0507-4431-9f45-7c60bac3047a}*SharedItemsImports = 5
 		ExcelDna.PackedResources\ExcelDna.PackedResources.projitems*{dc10cec8-c6ce-4148-838f-c3dd4ea2a2a3}*SharedItemsImports = 5
 		ExcelDna.PackedResources\ExcelDna.PackedResources.projitems*{fd7f2ee3-9922-4825-96a2-be2c877baeb9}*SharedItemsImports = 5
