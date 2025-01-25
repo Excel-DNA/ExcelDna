@@ -30,7 +30,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT
         {
             [FUNCTIONS]
 
-            return ExcelDna.ManagedHost.AddInInitialize.Initialize(xlAddInExportInfoAddress, hModuleXll, pPathXLL, disableAssemblyContextUnload, pTempDirPath);
+            return ExcelDna.ManagedHost.AddInInitialize.InitializeNativeAOT(xlAddInExportInfoAddress, hModuleXll, pPathXLL, disableAssemblyContextUnload, pTempDirPath);
         }
     }
 }
@@ -38,12 +38,12 @@ namespace ExcelDna.SourceGenerator.NativeAOT
             string functions = "";
             foreach (var i in receiver.Functions)
             {
-                functions += $"ExcelDna.Integration.DnaLibrary.MethodsForRegistration.Add(typeof({i.ContainingType}).GetMethod(\"{i.Name}\")!);\r\n";
+                functions += $"ExcelDna.Integration.NativeAOT.MethodsForRegistration.Add(typeof({i.ContainingType}).GetMethod(\"{i.Name}\")!);\r\n";
             }
 
             source = source.Replace("[FUNCTIONS]", functions);
 
-            context.AddSource($"ExcelDna.SourceGenerator.NativeAOT.Initialize.g.cs", source);
+            context.AddSource($"ExcelDna.SG.NAOT.Init.g.cs", source);
         }
 
         public void Initialize(GeneratorInitializationContext context)
