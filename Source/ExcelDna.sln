@@ -137,6 +137,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExcelDna.Host.NativeAOT", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.SourceGenerator.NativeAOT", "ExcelDna.SourceGenerator.NativeAOT\ExcelDna.SourceGenerator.NativeAOT.csproj", "{DAF494B7-16F3-AAA7-5F71-234663023BB6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.AddIn.RuntimeTestsAOT", "Tests\ExcelDna.AddIn.RuntimeTestsAOT\ExcelDna.AddIn.RuntimeTestsAOT.csproj", "{1EC2EE86-7C59-4CA9-9D6A-FBF206DA9D3F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -301,6 +303,14 @@ Global
 		{DAF494B7-16F3-AAA7-5F71-234663023BB6}.Release|Win32.Build.0 = Release|Any CPU
 		{DAF494B7-16F3-AAA7-5F71-234663023BB6}.Release|x64.ActiveCfg = Release|Any CPU
 		{DAF494B7-16F3-AAA7-5F71-234663023BB6}.Release|x64.Build.0 = Release|Any CPU
+		{1EC2EE86-7C59-4CA9-9D6A-FBF206DA9D3F}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{1EC2EE86-7C59-4CA9-9D6A-FBF206DA9D3F}.Debug|Win32.Build.0 = Debug|Any CPU
+		{1EC2EE86-7C59-4CA9-9D6A-FBF206DA9D3F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1EC2EE86-7C59-4CA9-9D6A-FBF206DA9D3F}.Debug|x64.Build.0 = Debug|Any CPU
+		{1EC2EE86-7C59-4CA9-9D6A-FBF206DA9D3F}.Release|Win32.ActiveCfg = Release|Any CPU
+		{1EC2EE86-7C59-4CA9-9D6A-FBF206DA9D3F}.Release|Win32.Build.0 = Release|Any CPU
+		{1EC2EE86-7C59-4CA9-9D6A-FBF206DA9D3F}.Release|x64.ActiveCfg = Release|Any CPU
+		{1EC2EE86-7C59-4CA9-9D6A-FBF206DA9D3F}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -319,6 +329,7 @@ Global
 		{2F5539CC-E302-49B6-88A9-9264DC6413B3} = {511CE610-5E55-457F-B818-1522D1A96727}
 		{7CA501E1-FB74-4903-B34D-EFE513C5B428} = {511CE610-5E55-457F-B818-1522D1A96727}
 		{151AE960-6320-402D-BDD0-D76DF96F2BD7} = {511CE610-5E55-457F-B818-1522D1A96727}
+		{1EC2EE86-7C59-4CA9-9D6A-FBF206DA9D3F} = {511CE610-5E55-457F-B818-1522D1A96727}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {69EF43B0-B903-4775-BC81-C7E7E012EDA3}
