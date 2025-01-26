@@ -19,7 +19,7 @@ namespace ExcelDna.ManagedHost
         {
             _basePath = basePath;
 
-            if (!ExcelDna.Integration.NativeAOT.IsActive)
+            if (System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported)
                 _resolver = new AssemblyDependencyResolver(basePath);
 
 #if DEBUG
