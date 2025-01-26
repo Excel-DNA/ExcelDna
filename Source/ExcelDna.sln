@@ -138,6 +138,11 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.SourceGenerator.NativeAOT", "ExcelDna.SourceGenerator.NativeAOT\ExcelDna.SourceGenerator.NativeAOT.csproj", "{DAF494B7-16F3-AAA7-5F71-234663023BB6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.AddIn.RuntimeTestsAOT", "Tests\ExcelDna.AddIn.RuntimeTestsAOT\ExcelDna.AddIn.RuntimeTestsAOT.csproj", "{1EC2EE86-7C59-4CA9-9D6A-FBF206DA9D3F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{196735BC-5A5C-4A21-9FE4-EC01CB7F3DE9} = {196735BC-5A5C-4A21-9FE4-EC01CB7F3DE9}
+		{59AE5BC6-F37E-4CE3-BAE3-796F807A9882} = {59AE5BC6-F37E-4CE3-BAE3-796F807A9882}
+		{D50C3A8E-46F1-F61B-C8F5-ECDA05995EEB} = {D50C3A8E-46F1-F61B-C8F5-ECDA05995EEB}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
