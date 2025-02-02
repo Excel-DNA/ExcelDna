@@ -322,6 +322,9 @@ namespace ExcelDna.Integration
             // Register special RegistrationInfo function
             RegistrationInfo.Register();
             SynchronizationManager.Install(true);
+
+            _methods.AddRange(NativeAOT.MethodsForRegistration);
+
             // Register my Methods
             if (_excelFunctionExecutionHandlerSelectors.Count == 0)
                 ExcelIntegration.RegisterMethods(_methods);
@@ -500,7 +503,8 @@ namespace ExcelDna.Integration
             // If there have been problems, ensure that there is at lease some current library.
             if (rootLibrary == null)
             {
-                Logger.Initialization.Error("No Dna Library found.");
+                if (!NativeAOT.IsActive)
+                    Logger.Initialization.Error("No Dna Library found.");
                 rootLibrary = new DnaLibrary();
             }
 
@@ -542,7 +546,8 @@ namespace ExcelDna.Integration
 
             if (!File.Exists(fileName))
             {
-                Logger.Initialization.Error("The required .dna script file {0} does not exist.", fileName);
+                if (!NativeAOT.IsActive)
+                    Logger.Initialization.Error("The required .dna script file {0} does not exist.", fileName);
                 return null;
             }
 

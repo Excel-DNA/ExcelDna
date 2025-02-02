@@ -150,6 +150,18 @@ namespace ExcelDna.PackedResources
             return 0;
         }
 
+        public static int PackNativeAOT(string xllOutput, bool multithreading, bool useManagedResourceResolver, IBuildLogger buildLogger)
+        {
+            string mainNativeAssembly = Path.ChangeExtension(xllOutput, "dll");
+
+            ResourceHelper.ResourceUpdater ru = new ResourceHelper.ResourceUpdater(xllOutput, useManagedResourceResolver, buildLogger);
+            ru.AddFile(File.ReadAllBytes(mainNativeAssembly), "__MAIN__", ResourceHelper.TypeName.NATIVE_ASSEMBLY, null, false, multithreading);  // Name here must exactly match name in host.cpp.
+            ru.EndUpdate();
+
+            // All OK - set process exit code to 'Success'
+            return 0;
+        }
+
         static private byte[] PackDnaLibrary(string dnaPath, byte[] dnaContent, string dnaDirectory, ResourceHelper.ResourceUpdater ru, bool compress, bool multithreading, List<string> filesToPublish, bool packManagedDependencies, string[] dependenciesToExcludeParam, string outputBitness, IBuildLogger buildLogger)
         {
             List<string> dependenciesToExclude = new List<string>();
