@@ -1,52 +1,58 @@
-﻿using System;
+﻿using ExcelDna.Integration;
+using ExcelDna.Registration;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Numerics;
-using ExcelDna.Integration.ObjectHandles;
-using ExcelDna.Registration;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace ExcelDna.Integration.ExtendedRegistration
+namespace ExcelDna.AddIn.RegistrationSample
 {
-    internal class Registration
+    public class ExampleAddIn : IExcelAddIn
     {
-        public static void RegisterExtended(IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> functions, IEnumerable<ExcelParameterConversion> parameterConversions, IEnumerable<ExcelFunctionProcessor> excelFunctionProcessors, IEnumerable<FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors)
+        public void AutoOpen()
         {
+            ExcelIntegration.RegisterUnhandledExceptionHandler(ex => "!!! ERROR: " + ex.ToString());
+
             // Set the Parameter Conversions before they are applied by the ProcessParameterConversions call below.
             // CONSIDER: We might change the registration to be an object...?
-            var conversionConfig = GetParameterConversionConfig(parameterConversions);
+            var conversionConfig = GetParameterConversionConfig();
+            var postAsyncReturnConfig = GetPostAsyncReturnConversionConfig();
 
-            var functionHandlerConfig = GetFunctionExecutionHandlerConfig(excelFunctionExecutionHandlerSelectors);
+            var functionHandlerConfig = GetFunctionExecutionHandlerConfig();
 
-            Register(functions
-                .UpdateRegistrationsForRangeParameters()
-                .ProcessFunctionProcessors(excelFunctionProcessors, conversionConfig)
+            ExcelRegistration.GetExcelFunctions()
+                .ProcessMapArrayFunctions(conversionConfig)
                 .ProcessParameterConversions(conversionConfig)
                 .ProcessAsyncRegistrations(nativeAsyncIfAvailable: false)
+                .ProcessParameterConversions(postAsyncReturnConfig)
                 .ProcessParamsRegistrations()
-                .ProcessObjectHandles()
                 .ProcessFunctionExecutionHandlers(functionHandlerConfig)
-                );
+                .RegisterFunctions()
+                ;
+
+            // First example if Instance -> Static conversion
+            InstanceMemberRegistration.TestInstanceRegistration();
         }
 
-        public static void RegisterStandard(IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> functions, IEnumerable<FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors)
+        public void AutoClose()
         {
-            var functionHandlerConfig = GetFunctionExecutionHandlerConfig(excelFunctionExecutionHandlerSelectors);
-
-            Register(functions
-                .ProcessFunctionExecutionHandlers(functionHandlerConfig)
-                );
         }
 
-        internal static void Register(IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> functions)
+        static ParameterConversionConfiguration GetPostAsyncReturnConversionConfig()
         {
-            var lambdas = functions.Select(reg => reg.FunctionLambda).ToList();
-            var attribs = functions.Select(reg => reg.FunctionAttribute).ToList<object>();
-            var argAttribs = functions.Select(reg => reg.ParameterRegistrations.Select(pr => pr.ArgumentAttribute).ToList<object>()).ToList();
-            ExcelIntegration.RegisterLambdaExpressions(lambdas, attribs, argAttribs);
+            // This conversion replaces the default #N/A return value of async functions with the #GETTING_DATA value.
+            // This is not supported on old Excel versions, bu looks nicer these days.
+            // Note that this ReturnConversion does not actually check whether the functions is an async function, 
+            // so all registered functions are affected by this processing.
+            return new ParameterConversionConfiguration()
+                .AddReturnConversion((type, customAttributes) => type != typeof(object) ? null : ((Expression<Func<object, object>>)
+                                                ((object returnValue) => returnValue.Equals(ExcelError.ExcelErrorNA) ? ExcelError.ExcelErrorGettingData : returnValue)));
         }
 
-        static ParameterConversionConfiguration GetParameterConversionConfig(IEnumerable<ExcelParameterConversion> parameterConversions)
+        static ParameterConversionConfiguration GetParameterConversionConfig()
         {
             // NOTE: The parameter conversion list is processed once per parameter.
             //       Parameter conversions will apply from most inside, to most outside.
@@ -76,19 +82,21 @@ namespace ExcelDna.Integration.ExtendedRegistration
 
                 // Register the Standard Parameter Conversions (with the optional switch on how to treat references to empty cells)
                 .AddParameterConversion(ParameterConversions.GetOptionalConversion(treatEmptyAsMissing: true))
-                .AddParameterConversion(RangeConversion.GetRangeParameterConversion, null)
 
-                .AddParameterConversions(ParameterConversions.GetUserConversions(parameterConversions))
+                // Register some type conversions (note the ordering discussed above)        
+                .AddParameterConversion((TestType1 value) => new TestType2(value))
+                .AddParameterConversion((string value) => new TestType1(value))
 
                 // This is a conversion applied to the return value of the function
+                .AddReturnConversion((TestType1 value) => value.ToString())
                 .AddReturnConversion((Complex value) => new double[2] { value.Real, value.Imaginary })
 
+                //  .AddParameterConversion((string value) => convert2(convert1(value)));
+
                 // This parameter conversion adds support for string[] parameters (by accepting object[] instead).
-                // It uses the TypeConversion utility class to get an object->string
+                // It uses the TypeConversion utility class defined in ExcelDna.Registration to get an object->string
                 // conversion that is consist with Excel (in this case, Excel is called to do the conversion).
                 .AddParameterConversion((object[] inputs) => inputs.Select(TypeConversion.ConvertToString).ToArray())
-
-                .AddParameterConversion((object[,] inputs) => TypeConversion.ConvertToString2D(inputs))
 
                 // This is a pair of very generic conversions for Enum types
                 .AddReturnConversion((Enum value) => value.ToString(), handleSubTypes: true)
@@ -100,16 +108,13 @@ namespace ExcelDna.Integration.ExtendedRegistration
             return paramConversionConfig;
         }
 
-        static FunctionExecutionConfiguration GetFunctionExecutionHandlerConfig(IEnumerable<FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors)
+        static FunctionExecutionConfiguration GetFunctionExecutionHandlerConfig()
         {
-            FunctionExecutionConfiguration result = new FunctionExecutionConfiguration();
-
-            foreach (var s in excelFunctionExecutionHandlerSelectors)
-            {
-                result = result.AddFunctionExecutionHandler((ExcelDna.Registration.ExcelFunctionRegistration functionRegistration) => s(functionRegistration));
-            }
-
-            return result;
+            return new FunctionExecutionConfiguration()
+                .AddFunctionExecutionHandler(FunctionLoggingHandler.LoggingHandlerSelector)
+                .AddFunctionExecutionHandler(CacheFunctionExecutionHandler.CacheHandlerSelector)
+                .AddFunctionExecutionHandler(TimingFunctionExecutionHandler.TimingHandlerSelector)
+                .AddFunctionExecutionHandler(SuppressInDialogFunctionExecutionHandler.SuppressInDialogSelector);
         }
     }
 }

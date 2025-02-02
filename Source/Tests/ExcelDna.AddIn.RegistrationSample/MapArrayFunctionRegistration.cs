@@ -7,7 +7,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace ExcelDna.AddIn.RuntimeTests
+namespace ExcelDna.AddIn.RegistrationSample
 {
     /// <summary>
     /// Attribute for functions that will be mapped to an Excel UDF,
@@ -39,7 +39,7 @@ namespace ExcelDna.AddIn.RuntimeTests
     {
     }
 
-    internal static class MapArrayFunctionRegistration
+    public static class MapArrayFunctionRegistration
     {
         /// <summary>
         /// Modifies RegistrationEntries which have [MapArrayFunction],
@@ -52,10 +52,9 @@ namespace ExcelDna.AddIn.RuntimeTests
         /// 2-dimensional Excel arrays can be mapped to a single function parameter with
         /// [MapPropertiesToColumnHeaders].
         /// </summary>
-        [ExcelFunctionProcessor]
-        public static IEnumerable<IExcelFunctionInfo> ProcessMapArrayFunctions(
-            IEnumerable<IExcelFunctionInfo> registrations,
-            IExcelFunctionRegistrationConfiguration config)
+        public static IEnumerable<ExcelFunctionRegistration> ProcessMapArrayFunctions(
+            this IEnumerable<ExcelFunctionRegistration> registrations,
+            ParameterConversionConfiguration config = null)
         {
             foreach (var reg in registrations)
             {
@@ -243,33 +242,34 @@ namespace ExcelDna.AddIn.RuntimeTests
 
             ExcelParameterRegistration ParameterRegistration { set; get; }
 
-            void PreparePropertyConverters<Registration>(Registration reg, Func<Type, Registration, LambdaExpression> getConversion)
+            void PreparePropertyConverters<Registration>(ParameterConversionConfiguration config,
+                Registration reg, Func<ParameterConversionConfiguration, Type, Registration, LambdaExpression> getConversion)
             {
                 Type[] propTypes = (MappedProperties == null)
                     ? new[] { EnumeratedType ?? Type }
                     : Array.ConvertAll(MappedProperties, p => p.PropertyType);
                 LambdaExpression[] lambdas = Array.ConvertAll(propTypes,
-                    pt => getConversion(EnumeratedType ?? Type, reg));
+                    pt => (config == null) ? null : getConversion(config, EnumeratedType ?? Type, reg));
                 lambdas = Array.ConvertAll(lambdas, l => CastParamAndResult(l, typeof(object)));
                 PropertyConverters = Array.ConvertAll(lambdas,
                     l => (l == null) ? null : (Func<object, object>)l.Compile());
             }
 
-            public ShimParameter(Type type, ExcelParameterRegistration reg, IExcelFunctionRegistrationConfiguration config)
+            public ShimParameter(Type type, ExcelParameterRegistration reg, ParameterConversionConfiguration config)
                 : this(type, reg.CustomAttributes)
             {
                 // Try to find a converter for EnumeratedType
                 ParameterRegistration = reg;
-                PreparePropertyConverters(reg, config.GetParameterConversion);
+                PreparePropertyConverters(config, reg, ParameterConversionRegistration.GetParameterConversion);
             }
 
             IExcelFunctionReturn ReturnRegistration { set; get; }
 
-            public ShimParameter(Type type, IExcelFunctionReturn reg, IExcelFunctionRegistrationConfiguration config)
+            public ShimParameter(Type type, IExcelFunctionReturn reg, ParameterConversionConfiguration config)
                 : this(type, reg.CustomAttributes)
             {
                 ReturnRegistration = reg;
-                PreparePropertyConverters(reg, config.GetReturnConversion);
+                PreparePropertyConverters(config, reg, ParameterConversionRegistration.GetReturnConversion);
             }
 
             /// <summary>

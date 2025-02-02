@@ -1,4 +1,5 @@
 ﻿using ExcelDna.Integration;
+using ExcelDna.Registration;
 
 [assembly: ExcelHandleExternal(typeof(System.Reflection.Assembly))]
 

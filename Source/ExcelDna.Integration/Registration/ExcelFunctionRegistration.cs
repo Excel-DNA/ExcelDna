@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ExcelDna.Integration;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -6,22 +7,22 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace ExcelDna.Integration.ExtendedRegistration
+namespace ExcelDna.Registration
 {
     // CONSIDER: Improve safety here... make invalid data unrepresentable.
     // CONSIDER: Should ExcelCommands also be handled here...? For the moment not...
-    internal class ExcelFunction : IExcelFunctionInfo
+    public class ExcelFunctionRegistration : IExcelFunctionInfo
     {
         // These are used for registration
         public LambdaExpression FunctionLambda { get; set; }
         public ExcelFunctionAttribute FunctionAttribute { get; set; }                   // May not be null
-        public List<ExcelParameter> ParameterRegistrations { get; private set; }    // A list of ExcelParameterRegistrations with length equal to the number of parameters in Delegate
+        public List<ExcelParameterRegistration> ParameterRegistrations { get; private set; }    // A list of ExcelParameterRegistrations with length equal to the number of parameters in Delegate
 
         // These are used only for the Registration processing
         public List<object> CustomAttributes { get; private set; }                 // List may not be null
-        public ExcelReturn ReturnRegistration { get; private set; }
+        public ExcelReturnRegistration ReturnRegistration { get; private set; }
 
-        public List<IExcelFunctionParameter> Parameters => ParameterRegistrations.Cast<IExcelFunctionParameter>().ToList();
+        public List<ExcelParameterRegistration> Parameters => ParameterRegistrations.Cast<ExcelParameterRegistration>().ToList();
         public IExcelFunctionReturn Return => ReturnRegistration;
 
         // Checks that the property invariants are met, particularly regarding the attributes lists.
@@ -48,7 +49,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
         /// <param name="functionLambda"></param>
         /// <param name="functionAttribute"></param>
         /// <param name="parameterRegistrations"></param>
-        public ExcelFunction(LambdaExpression functionLambda, ExcelFunctionAttribute functionAttribute, IEnumerable<ExcelParameter> parameterRegistrations = null)
+        public ExcelFunctionRegistration(LambdaExpression functionLambda, ExcelFunctionAttribute functionAttribute, IEnumerable<ExcelParameterRegistration> parameterRegistrations = null)
         {
             if (functionLambda == null) throw new ArgumentNullException("functionLambda");
             if (functionAttribute == null) throw new ArgumentNullException("functionAttribute");
@@ -58,17 +59,17 @@ namespace ExcelDna.Integration.ExtendedRegistration
             if (parameterRegistrations == null)
             {
                 if (functionLambda.Parameters.Count != 0) throw new ArgumentOutOfRangeException("parameterRegistrations", "No parameter registrations provided, but function has parameters.");
-                ParameterRegistrations = new List<ExcelParameter>();
+                ParameterRegistrations = new List<ExcelParameterRegistration>();
             }
             else
             {
-                ParameterRegistrations = new List<ExcelParameter>(parameterRegistrations);
+                ParameterRegistrations = new List<ExcelParameterRegistration>(parameterRegistrations);
                 if (functionLambda.Parameters.Count != ParameterRegistrations.Count) throw new ArgumentOutOfRangeException("parameterRegistrations", "Mismatched number of ParameterRegistrations provided.");
             }
 
             // Create the lists - hope the rest is filled in right...?
             CustomAttributes = new List<object>();
-            ReturnRegistration = new ExcelReturn();
+            ReturnRegistration = new ExcelReturnRegistration();
         }
 
         /// <summary>
@@ -76,18 +77,18 @@ namespace ExcelDna.Integration.ExtendedRegistration
         /// Uses the Name and Parameter Names to fill in the default attributes.
         /// </summary>
         /// <param name="functionLambda"></param>
-        public ExcelFunction(LambdaExpression functionLambda)
+        public ExcelFunctionRegistration(LambdaExpression functionLambda)
         {
             if (functionLambda == null) throw new ArgumentNullException("functionLambda");
 
             FunctionLambda = functionLambda;
             FunctionAttribute = new ExcelFunctionAttribute { Name = functionLambda.Name };
             ParameterRegistrations = functionLambda.Parameters
-                                     .Select(p => new ExcelParameter(new ExcelArgumentAttribute { Name = p.Name }))
+                                     .Select(p => new ExcelParameterRegistration(new ExcelArgumentAttribute { Name = p.Name }))
                                      .ToList();
 
             CustomAttributes = new List<object>();
-            ReturnRegistration = new ExcelReturn();
+            ReturnRegistration = new ExcelReturnRegistration();
         }
 
         // NOTE: 16 parameter max for Expression.GetDelegateType
@@ -100,7 +101,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
         /// All CustomAttributes on the method and parameters are copies to the respective collections in the ExcelFunctionRegistration.
         /// </summary>
         /// <param name="methodInfo"></param>
-        public ExcelFunction(MethodInfo methodInfo)
+        public ExcelFunctionRegistration(MethodInfo methodInfo)
         {
             CustomAttributes = new List<object>();
 
@@ -131,8 +132,8 @@ namespace ExcelDna.Integration.ExtendedRegistration
                 FunctionAttribute = new ExcelFunctionAttribute { Name = methodInfo.Name };
             }
 
-            ParameterRegistrations = methodInfo.GetParameters().Select(pi => new ExcelParameter(pi)).ToList();
-            ReturnRegistration = new ExcelReturn();
+            ParameterRegistrations = methodInfo.GetParameters().Select(pi => new ExcelParameterRegistration(pi)).ToList();
+            ReturnRegistration = new ExcelReturnRegistration();
             ReturnRegistration.CustomAttributes.AddRange(methodInfo.ReturnParameter.GetCustomAttributes(true));
 
             Type returnType = methodInfo.ReturnType;

@@ -1,13 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using ExcelDna.Integration;
+using System.Collections.Generic;
 
-namespace ExcelDna.Integration.ExtendedRegistration
+namespace ExcelDna.Registration
 {
-    internal class ExcelReturn : IExcelFunctionReturn
+    public class ExcelReturnRegistration : IExcelFunctionReturn
     {
         // Used only for the Registration processing
         public List<object> CustomAttributes { get; private set; } // Should not be null, and elements should not be null
 
-        public ExcelReturn()
+        public ExcelReturnRegistration()
         {
             CustomAttributes = new List<object>();
         }

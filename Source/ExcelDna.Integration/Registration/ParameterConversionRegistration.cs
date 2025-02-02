@@ -1,16 +1,17 @@
-﻿using System;
+﻿using ExcelDna.Integration;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using Expr = System.Linq.Expressions.Expression;
 
-namespace ExcelDna.Integration.ExtendedRegistration
+namespace ExcelDna.Registration
 {
     // CONSIDER: Can one use an ExpressionVisitor to do these things....?
-    internal static class ParameterConversionRegistration
+    public static class ParameterConversionRegistration
     {
-        public static IEnumerable<ExcelFunction> ProcessParameterConversions(this IEnumerable<ExcelFunction> registrations, ParameterConversionConfiguration conversionConfig)
+        public static IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> ProcessParameterConversions(this IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> registrations, ParameterConversionConfiguration conversionConfig)
         {
             foreach (var reg in registrations)
             {
@@ -19,7 +20,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             }
         }
 
-        public static void ApplyParameterConversions(ExcelFunction reg, ParameterConversionConfiguration conversionConfig)
+        public static void ApplyParameterConversions(ExcelDna.Registration.ExcelFunctionRegistration reg, ParameterConversionConfiguration conversionConfig)
         {
             // Keep a list of conversions for each parameter
             // TODO: Prevent having a cycle, but allow arbitrary ordering...?
@@ -42,7 +43,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
         }
 
         // returnsConversion and the entries in paramsConversions may be null.
-        public static void ApplyConversions(ExcelFunction reg, List<List<LambdaExpression>> paramsConversions, List<LambdaExpression> returnConversions)
+        public static void ApplyConversions(ExcelDna.Registration.ExcelFunctionRegistration reg, List<List<LambdaExpression>> paramsConversions, List<LambdaExpression> returnConversions)
         {
             // CAREFUL: The parameter transformations are applied in reverse order to how they're identified.
             // We do the following transformation
@@ -134,14 +135,14 @@ namespace ExcelDna.Integration.ExtendedRegistration
             return result;
         }
 
-        internal static LambdaExpression GetParameterConversion(ParameterConversionConfiguration conversionConfig,
-            Type initialParamType, IExcelFunctionParameter paramRegistration)
+        public static LambdaExpression GetParameterConversion(ParameterConversionConfiguration conversionConfig,
+            Type initialParamType, ExcelParameterRegistration paramRegistration)
         {
             return ComposeLambdas(GetParameterConversions(conversionConfig, initialParamType, paramRegistration));
         }
 
         // Should return null if there are no conversions to apply
-        internal static List<LambdaExpression> GetParameterConversions(ParameterConversionConfiguration conversionConfig, Type initialParamType, IExcelFunctionParameter paramRegistration)
+        internal static List<LambdaExpression> GetParameterConversions(ParameterConversionConfiguration conversionConfig, Type initialParamType, ExcelParameterRegistration paramRegistration)
         {
             var appliedConversions = new List<LambdaExpression>();
 
@@ -171,7 +172,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             return appliedConversions;
         }
 
-        internal static LambdaExpression GetReturnConversion(ParameterConversionConfiguration conversionConfig,
+        public static LambdaExpression GetReturnConversion(ParameterConversionConfiguration conversionConfig,
             Type initialReturnType, IExcelFunctionReturn returnRegistration)
         {
             return ComposeLambdas(GetReturnConversions(conversionConfig, initialReturnType, returnRegistration));

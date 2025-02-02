@@ -1,4 +1,5 @@
 ﻿using ExcelDna.Integration.ExtendedRegistration;
+using ExcelDna.Registration;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ namespace ExcelDna.Integration.ObjectHandles
 {
     internal static class ObjectHandleRegistration
     {
-        public static IEnumerable<ExcelFunction> ProcessObjectHandles(this IEnumerable<ExcelFunction> registrations)
+        public static IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> ProcessObjectHandles(this IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> registrations)
         {
             registrations = registrations.ProcessParameterConversions(GetParameterConversionConfiguration());
 
@@ -22,7 +23,7 @@ namespace ExcelDna.Integration.ObjectHandles
 
                     EntryFunctionExecutionHandler entryFunctionExecutionHandler = new EntryFunctionExecutionHandler();
 
-                    reg.FunctionLambda = FunctionExecutionRegistration.ApplyMethodHandler(reg.FunctionAttribute.Name, reg.FunctionLambda, entryFunctionExecutionHandler);
+                    reg.FunctionLambda = Registration.FunctionExecutionRegistration.ApplyMethodHandler(reg.FunctionAttribute.Name, reg.FunctionLambda, entryFunctionExecutionHandler);
 
                     var returnConversion = CreateReturnConversion((object value) => GetReturnConversion(value, reg.FunctionAttribute.Name, entryFunctionExecutionHandler));
 
@@ -38,7 +39,7 @@ namespace ExcelDna.Integration.ObjectHandles
             return new ParameterConversionConfiguration().AddParameterConversion(GetParameterConversion());
         }
 
-        public static bool IsMethodSupported(ExcelFunction reg)
+        public static bool IsMethodSupported(ExcelDna.Registration.ExcelFunctionRegistration reg)
         {
             if (HasExcelHandle(reg.Return.CustomAttributes))
                 return true;
@@ -121,7 +122,7 @@ namespace ExcelDna.Integration.ObjectHandles
             return "!!! INVALID HANDLE";
         }
 
-        private class EntryFunctionExecutionHandler : FunctionExecutionHandler
+        private class EntryFunctionExecutionHandler : ExcelDna.Registration.FunctionExecutionHandler
         {
             private ConcurrentDictionary<int, object> arguments = new ConcurrentDictionary<int, object>();
 
@@ -135,7 +136,7 @@ namespace ExcelDna.Integration.ObjectHandles
                 return null;
             }
 
-            public override void OnEntry(FunctionExecutionArgs args)
+            public override void OnEntry(ExcelDna.Registration.FunctionExecutionArgs args)
             {
                 this.arguments.AddOrUpdate(Thread.CurrentThread.ManagedThreadId, args.Arguments, (key, oldValue) => args.Arguments);
             }

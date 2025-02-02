@@ -1,4 +1,5 @@
 ﻿using ExcelDna.Integration;
+using ExcelDna.Registration;
 
 namespace ExcelDna.AddIn.RuntimeTests
 {

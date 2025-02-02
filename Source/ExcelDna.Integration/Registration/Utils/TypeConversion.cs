@@ -1,9 +1,10 @@
-﻿using System;
+﻿using ExcelDna.Integration;
+using System;
 using System.Linq.Expressions;
 
-namespace ExcelDna.Integration.ExtendedRegistration
+namespace ExcelDna.Registration
 {
-    internal static class TypeConversion
+    public static class TypeConversion
     {
         public static LambdaExpression GetConversion(Type inputType, Type targetType)
         {

@@ -1,14 +1,15 @@
-﻿using System;
+﻿using ExcelDna.Integration.ExtendedRegistration;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Expr = System.Linq.Expressions.Expression;
 
-namespace ExcelDna.Integration.ExtendedRegistration
+namespace ExcelDna.Registration
 {
-    internal static class FunctionExecutionRegistration
+    public static class FunctionExecutionRegistration
     {
-        public static IEnumerable<ExcelFunction> ProcessFunctionExecutionHandlers(this IEnumerable<ExcelFunction> registrations, FunctionExecutionConfiguration functionHandlerConfig)
+        public static IEnumerable<ExcelFunctionRegistration> ProcessFunctionExecutionHandlers(this IEnumerable<ExcelFunctionRegistration> registrations, FunctionExecutionConfiguration functionHandlerConfig)
         {
             foreach (var registration in registrations)
             {
@@ -102,9 +103,9 @@ namespace ExcelDna.Integration.ExtendedRegistration
             // Prepare the functionHandlerArgs that will be threaded through the handler, 
             // and a bunch of expressions that access various properties on it.
             var fhArgs = Expr.Variable(typeof(FunctionExecutionArgs), "fhArgs");
-            var fhArgsReturnValue = SymbolExtensions.GetProperty(fhArgs, (FunctionExecutionArgs mea) => mea.ReturnValue);
-            var fhArgsException = SymbolExtensions.GetProperty(fhArgs, (FunctionExecutionArgs mea) => mea.Exception);
-            var fhArgsFlowBehaviour = SymbolExtensions.GetProperty(fhArgs, (FunctionExecutionArgs mea) => mea.FlowBehavior);
+            var fhArgsReturnValue = SymbolExtensions.GetProperty(fhArgs, (ExcelDna.Registration.FunctionExecutionArgs mea) => mea.ReturnValue);
+            var fhArgsException = SymbolExtensions.GetProperty(fhArgs, (ExcelDna.Registration.FunctionExecutionArgs mea) => mea.Exception);
+            var fhArgsFlowBehaviour = SymbolExtensions.GetProperty(fhArgs, (ExcelDna.Registration.FunctionExecutionArgs mea) => mea.FlowBehavior);
 
             // Set up expressions to call the various handler methods.
             // TODO: Later we can determine which of these are actually implemented, and only write out the code needed in the particular case.
@@ -170,7 +171,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             return lambda;
         }
 
-        static void ApplyMethodHandlers(ExcelFunction reg, IEnumerable<IFunctionExecutionHandler> handlers)
+        static void ApplyMethodHandlers(ExcelFunctionRegistration reg, IEnumerable<IFunctionExecutionHandler> handlers)
         {
             // The order of method handlers is important - we follow PostSharp's convention for MethodExecutionHandlers.
             // They are passed from high priority (most inside) to low priority (most outside)

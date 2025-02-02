@@ -259,9 +259,9 @@ namespace ExcelDna.Integration
         [XmlIgnore]
         List<ExtendedRegistration.ExcelParameterConversion> _excelParameterConversions = new List<ExtendedRegistration.ExcelParameterConversion>();
         [XmlIgnore]
-        private List<ExtendedRegistration.ExcelFunction> _excelFunctionsExtendedRegistration = new List<ExtendedRegistration.ExcelFunction>();
+        private List<Registration.ExcelFunctionRegistration> _excelFunctionsExtendedRegistration = new List<Registration.ExcelFunctionRegistration>();
         [XmlIgnore]
-        private List<FunctionExecutionHandlerSelector> _excelFunctionExecutionHandlerSelectors = new List<FunctionExecutionHandlerSelector>();
+        private List<Registration.FunctionExecutionHandlerSelector> _excelFunctionExecutionHandlerSelectors = new List<Registration.FunctionExecutionHandlerSelector>();
         [XmlIgnore]
         private List<ExtendedRegistration.ExcelFunctionProcessor> _excelFunctionProcessors = new List<ExtendedRegistration.ExcelFunctionProcessor>();
         [XmlIgnore]
@@ -326,7 +326,7 @@ namespace ExcelDna.Integration
             if (_excelFunctionExecutionHandlerSelectors.Count == 0)
                 ExcelIntegration.RegisterMethods(_methods);
             else
-                ExtendedRegistration.Registration.RegisterStandard(_methods.Select(i => new ExtendedRegistration.ExcelFunction(i)), _excelFunctionExecutionHandlerSelectors);
+                ExtendedRegistration.Registration.RegisterStandard(_methods.Select(i => new ExcelDna.Registration.ExcelFunctionRegistration(i)), _excelFunctionExecutionHandlerSelectors);
 
             ExtendedRegistration.Registration.RegisterExtended(_excelFunctionsExtendedRegistration, _excelParameterConversions, _excelFunctionProcessors, _excelFunctionExecutionHandlerSelectors);
 

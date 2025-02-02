@@ -5,10 +5,13 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using ExcelDna.Integration;
+using ExcelDna.Integration.ExtendedRegistration;
+using ExcelDna.Integration.ObjectHandles;
 
-namespace ExcelDna.Integration.ExtendedRegistration
+namespace ExcelDna.Registration
 {
-    internal static class AsyncRegistration
+    public static class AsyncRegistration
     {
         /// <summary>
         /// Wraps methods that are marked with [ExcelFunction] and:
@@ -25,7 +28,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
         /// <param name="nativeAsyncIfAvailable">Under Excel 2010 and later, indicates whether the native async feature should be used.
         /// Does not apply to functions returning IObservable.</param>
         /// <returns>The list of RegistrationEntries, with the affected functions wrapped to allow registration in Excel.</returns>
-        public static IEnumerable<ExcelFunction> ProcessAsyncRegistrations(this IEnumerable<ExcelFunction> registrations, bool nativeAsyncIfAvailable = false)
+        public static IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> ProcessAsyncRegistrations(this IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> registrations, bool nativeAsyncIfAvailable = false)
         {
             // Decide whether Tasks should be using native async
             bool useNativeAsync = nativeAsyncIfAvailable && ExcelDnaUtil.ExcelVersion >= 14.0;
@@ -37,12 +40,12 @@ namespace ExcelDna.Integration.ExtendedRegistration
                 {
                     if (ReturnsObservable(reg.FunctionLambda))
                     {
-                        ParameterConversionRegistration.ApplyParameterConversions(reg, ObjectHandles.ObjectHandleRegistration.GetParameterConversionConfiguration());
+                        ParameterConversionRegistration.ApplyParameterConversions(reg, ObjectHandleRegistration.GetParameterConversionConfiguration());
                         reg.FunctionLambda = WrapMethodObservable(reg.FunctionLambda, reg.Return.CustomAttributes);
                     }
-                    else if (ReturnsTask(reg.FunctionLambda) || reg.FunctionAttribute is ExcelAsyncFunctionAttribute)
+                    else if (ReturnsTask(reg.FunctionLambda) || reg.FunctionAttribute is ExcelDna.Registration.ExcelAsyncFunctionAttribute)
                     {
-                        ParameterConversionRegistration.ApplyParameterConversions(reg, ObjectHandles.ObjectHandleRegistration.GetParameterConversionConfiguration());
+                        ParameterConversionRegistration.ApplyParameterConversions(reg, ObjectHandleRegistration.GetParameterConversionConfiguration());
                         if (HasCancellationToken(reg.FunctionLambda))
                         {
                             reg.FunctionLambda = useNativeAsync ? WrapMethodNativeAsyncTaskWithCancellation(reg.FunctionLambda)
@@ -117,13 +120,13 @@ namespace ExcelDna.Integration.ExtendedRegistration
 
             bool returnsTask = ReturnsTask(functionLambda);
             Type returnType = returnsTask ? functionLambda.ReturnType.GetGenericArguments()[0] : functionLambda.ReturnType;
-            bool userType = ObjectHandles.TaskObjectHandler.IsUserType(returnType);
+            bool userType = TaskObjectHandler.IsUserType(returnType);
             if (userType)
             {
-                if (!ObjectHandles.ObjectHandleRegistration.HasExcelHandle(returnCustomAttributes))
+                if (!ObjectHandleRegistration.HasExcelHandle(returnCustomAttributes))
                     throw new Exception($"Unsupported task return type {returnType}.");
 
-                ObjectHandles.ObjectHandleRegistration.ClearExcelHandle(returnCustomAttributes);
+                ObjectHandleRegistration.ClearExcelHandle(returnCustomAttributes);
             }
 
             // Either RunTask or RunAsTask, depending on whether the method returns Task<string> or string
@@ -134,7 +137,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             // mi returns some kind of Task<T>. What is T? 
             var newReturnType = returnsTask ? functionLambda.ReturnType.GetGenericArguments()[0] : functionLambda.ReturnType;
             if (userType)
-                newReturnType = ObjectHandles.TaskObjectHandler.ReturnType();
+                newReturnType = TaskObjectHandler.ReturnType();
 
             // Build up the RunTaskWithC... method with the right generic type argument
             var runMethod = typeof(ExcelAsyncUtil)
@@ -152,7 +155,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             var paramsArray = newParams.Select(p => Expression.Convert(p, typeof(object)));
             var paramsArrayExp = Expression.NewArrayInit(typeof(object), paramsArray);
             LambdaExpression adaptedFunctionLambda = userType ?
-                (returnsTask ? ObjectHandles.TaskObjectHandler.ProcessTaskObject(functionLambda) : ObjectHandles.TaskObjectHandler.ProcessObject(functionLambda)) :
+                (returnsTask ? TaskObjectHandler.ProcessTaskObject(functionLambda) : TaskObjectHandler.ProcessObject(functionLambda)) :
                 functionLambda;
             var innerLambda = Expression.Lambda(Expression.Invoke(adaptedFunctionLambda, newParams));
 
@@ -196,13 +199,13 @@ namespace ExcelDna.Integration.ExtendedRegistration
 
             bool returnsTask = ReturnsTask(functionLambda);
             Type returnType = returnsTask ? functionLambda.ReturnType.GetGenericArguments()[0] : functionLambda.ReturnType;
-            bool userType = ObjectHandles.TaskObjectHandler.IsUserType(returnType);
+            bool userType = TaskObjectHandler.IsUserType(returnType);
             if (userType)
             {
-                if (!ObjectHandles.ObjectHandleRegistration.HasExcelHandle(returnCustomAttributes))
+                if (!ObjectHandleRegistration.HasExcelHandle(returnCustomAttributes))
                     throw new Exception($"Unsupported task return type {returnType}.");
 
-                ObjectHandles.ObjectHandleRegistration.ClearExcelHandle(returnCustomAttributes);
+                ObjectHandleRegistration.ClearExcelHandle(returnCustomAttributes);
             }
 
             // Either RunTask or RunAsTask, depending on whether the method returns Task<string> or string
@@ -213,7 +216,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             // mi returns some kind of Task<T>. What is T? 
             var newReturnType = returnsTask ? functionLambda.ReturnType.GetGenericArguments()[0] : functionLambda.ReturnType;
             if (userType)
-                newReturnType = ObjectHandles.TaskObjectHandler.ReturnType();
+                newReturnType = TaskObjectHandler.ReturnType();
 
             // Build up the RunTaskWithC... method with the right generic type argument
             var runMethod = typeof(ExcelAsyncUtil)
@@ -239,7 +242,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             var ctParamExp = Expression.Parameter(typeof(CancellationToken));
             var allParams = new List<ParameterExpression>(newParams) { ctParamExp };
             LambdaExpression adaptedFunctionLambda = userType ?
-                (returnsTask ? ObjectHandles.TaskObjectHandler.ProcessTaskObject(functionLambda) : ObjectHandles.TaskObjectHandler.ProcessObject(functionLambda)) :
+                (returnsTask ? TaskObjectHandler.ProcessTaskObject(functionLambda) : TaskObjectHandler.ProcessObject(functionLambda)) :
                 functionLambda;
             var innerLambda = Expression.Lambda(Expression.Invoke(adaptedFunctionLambda, allParams), ctParamExp);
 
@@ -376,13 +379,13 @@ namespace ExcelDna.Integration.ExtendedRegistration
 
             // mi returns some kind of IObservable<T>. What is T? 
             Type returnType = functionLambda.ReturnType.GetGenericArguments()[0];
-            bool userType = ObjectHandles.TaskObjectHandler.IsUserType(returnType);
+            bool userType = TaskObjectHandler.IsUserType(returnType);
             if (userType)
             {
-                if (!ObjectHandles.ObjectHandleRegistration.HasExcelHandle(returnCustomAttributes))
+                if (!ObjectHandleRegistration.HasExcelHandle(returnCustomAttributes))
                     throw new Exception($"Unsupported observable return type {returnType}.");
 
-                ObjectHandles.ObjectHandleRegistration.ClearExcelHandle(returnCustomAttributes);
+                ObjectHandleRegistration.ClearExcelHandle(returnCustomAttributes);
             }
 
             // Build up the Observe method with the right generic type argument

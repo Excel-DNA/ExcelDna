@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ExcelDna.Integration
+namespace ExcelDna.Registration
 {
     // Inspired by PostSharp
     public enum FlowBehavior
@@ -86,5 +86,5 @@ namespace ExcelDna.Integration
         public virtual void OnExit(FunctionExecutionArgs args) { }
     }
 
-    public delegate IFunctionExecutionHandler FunctionExecutionHandlerSelector(IExcelFunctionInfo functionInfo);
+    public delegate IFunctionExecutionHandler FunctionExecutionHandlerSelector(ExcelDna.Integration.IExcelFunctionInfo functionInfo);
 }
