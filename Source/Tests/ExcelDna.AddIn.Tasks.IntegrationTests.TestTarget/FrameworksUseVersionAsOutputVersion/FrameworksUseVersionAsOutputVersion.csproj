@@ -1,7 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net472;net6.0-windows</TargetFrameworks>
+    <TargetFrameworks>net462;net6.0-windows</TargetFrameworks>
     <UseWindowsForms>True</UseWindowsForms>
 
     <FileVersion>1.2.3</FileVersion>
@@ -14,9 +14,9 @@
     </Reference>
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net462' ">
     <Reference Include="ExcelDna.Integration">
-      <HintPath>..\..\.exceldna.addin\tools\net452\ExcelDna.Integration.dll</HintPath>
+      <HintPath>..\..\.exceldna.addin\tools\net462\ExcelDna.Integration.dll</HintPath>
     </Reference>
   </ItemGroup>
 
