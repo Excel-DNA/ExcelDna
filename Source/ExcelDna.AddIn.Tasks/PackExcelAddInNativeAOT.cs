@@ -35,7 +35,11 @@ namespace ExcelDna.AddIn.Tasks
                 useManagedResourceResolver = PackManagedOnWindows || !OperatingSystem.IsWindows();
 #endif
 
-                int result = ExcelDna.PackedResources.ExcelDnaPack.PackNativeAOT(OutputPackedXllFileName, RunMultithreaded, useManagedResourceResolver, _log);
+                string mainNativeAssembly = Path.Combine(PublishDir, ProjectName + ".dll");
+                string xllOutput = Path.Combine(PublishDir, ProjectName + "-AddIn64.xll");
+                File.Copy(Xll64FilePath, xllOutput, true);
+
+                int result = ExcelDna.PackedResources.ExcelDnaPack.PackNativeAOT(mainNativeAssembly, xllOutput, RunMultithreaded, useManagedResourceResolver, _log);
                 if (result != 0)
                     throw new ApplicationException($"Pack failed with exit code {result}.");
 
@@ -50,10 +54,22 @@ namespace ExcelDna.AddIn.Tasks
         }
 
         /// <summary>
-        /// Output path
+        /// The 64-bit .xll file path
         /// </summary>
         [Required]
-        public string OutputPackedXllFileName { get; set; }
+        public string Xll64FilePath { get; set; }
+
+        /// <summary>
+        /// The name of the project being compiled
+        /// </summary>
+        [Required]
+        public string ProjectName { get; set; }
+
+        /// <summary>
+        /// The output location for the publish target; includes the trailing backslash (\).
+        /// </summary>
+        [Required]
+        public string PublishDir { get; set; }
 
         /// <summary>
         /// Use multi threading

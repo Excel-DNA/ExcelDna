@@ -22,18 +22,14 @@
   </PropertyGroup>
 
 	<Target Name="ExcelDnaAddInNativeAOTPublish" AfterTargets="Publish">
-		    <Copy SourceFiles="$(MSBuildThisFileDirectory)..\tools\ExcelDnaNativeAOT64.xll"
-          DestinationFiles="$(PublishDir)$(TargetName).xll"
-          ContinueOnError="false"
-          OverwriteReadOnlyFiles="true"
-          SkipUnchangedFiles="true" />
-
-	<PackExcelAddInNativeAOT
-		OutputPackedXllFileName="$(PublishDir)$(TargetName).xll"
-		RunMultithreaded="$(ExcelDnaPackRunMultithreaded)"
-		PackManagedOnWindows="$(ExcelDnaPackManagedResourcePackingOnWindows)"
->
-	</PackExcelAddInNativeAOT>
-</Target>
+		<PackExcelAddInNativeAOT
+			Xll64FilePath="$(ExcelDnaToolsPath)ExcelDnaNativeAOT64.xll"
+			ProjectName="$(MSBuildProjectName)"
+			PublishDir="$(PublishDir)"
+			RunMultithreaded="$(ExcelDnaPackRunMultithreaded)"
+			PackManagedOnWindows="$(ExcelDnaPackManagedResourcePackingOnWindows)"
+		>
+		</PackExcelAddInNativeAOT>
+	</Target>
 
 </Project>
