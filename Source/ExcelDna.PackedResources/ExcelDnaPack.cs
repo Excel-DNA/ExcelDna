@@ -150,10 +150,8 @@ namespace ExcelDna.PackedResources
             return 0;
         }
 
-        public static int PackNativeAOT(string xllOutput, bool multithreading, bool useManagedResourceResolver, IBuildLogger buildLogger)
+        public static int PackNativeAOT(string mainNativeAssembly, string xllOutput, bool multithreading, bool useManagedResourceResolver, IBuildLogger buildLogger)
         {
-            string mainNativeAssembly = Path.ChangeExtension(xllOutput, "dll");
-
             ResourceHelper.ResourceUpdater ru = new ResourceHelper.ResourceUpdater(xllOutput, useManagedResourceResolver, buildLogger);
             ru.AddFile(File.ReadAllBytes(mainNativeAssembly), "__MAIN__", ResourceHelper.TypeName.NATIVE_ASSEMBLY, null, false, multithreading);  // Name here must exactly match name in host.cpp.
             ru.EndUpdate();
