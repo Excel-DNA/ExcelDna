@@ -134,6 +134,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NET8.Dna", "NET8.Dna\NET8.D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AOTMinimal", "AOTMinimal\AOTMinimal.csproj", "{02FE8D18-36B0-47F3-AF76-00D05BC48332}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AOTAddIn", "AOTAddIn\AOTAddIn.csproj", "{43A4D6E9-5C82-530D-889B-D3EDDF43DBF2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -396,6 +398,10 @@ Global
 		{02FE8D18-36B0-47F3-AF76-00D05BC48332}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{02FE8D18-36B0-47F3-AF76-00D05BC48332}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{02FE8D18-36B0-47F3-AF76-00D05BC48332}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43A4D6E9-5C82-530D-889B-D3EDDF43DBF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43A4D6E9-5C82-530D-889B-D3EDDF43DBF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43A4D6E9-5C82-530D-889B-D3EDDF43DBF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43A4D6E9-5C82-530D-889B-D3EDDF43DBF2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{33B20965-1561-1FF1-FA16-5B5CCFB3D171}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{33B20965-1561-1FF1-FA16-5B5CCFB3D171}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{33B20965-1561-1FF1-FA16-5B5CCFB3D171}.Release|Any CPU.ActiveCfg = Release|Any CPU
