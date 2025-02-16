@@ -30,6 +30,8 @@ namespace ExcelDna.SourceGenerator.NativeAOT
         {
             ExcelDna.Integration.NativeAOT.IsActive = true;
 
+            [ADDINS]
+
             [FUNCTIONS]
 
             return ExcelDna.ManagedHost.AddInInitialize.InitializeNativeAOT(xlAddInExportInfoAddress, hModuleXll, pPathXLL, disableAssemblyContextUnload, pTempDirPath);
@@ -37,13 +39,22 @@ namespace ExcelDna.SourceGenerator.NativeAOT
     }
 }
 """;
-            string functions = "";
-            foreach (var i in receiver.Functions)
             {
-                functions += $"ExcelDna.Integration.NativeAOT.MethodsForRegistration.Add(typeof({i.ContainingType}).GetMethod(\"{i.Name}\")!);\r\n";
+                string addIns = "";
+                foreach (var i in receiver.AddIns)
+                {
+                    addIns += $"ExcelDna.Integration.NativeAOT.ExcelAddIns.Add(new ExcelDna.Integration.TypeHelper<{Util.GetFullTypeName(i)}>());\r\n";
+                }
+                source = source.Replace("[ADDINS]", addIns);
             }
-
-            source = source.Replace("[FUNCTIONS]", functions);
+            {
+                string functions = "";
+                foreach (var i in receiver.Functions)
+                {
+                    functions += $"ExcelDna.Integration.NativeAOT.MethodsForRegistration.Add(typeof({Util.GetFullTypeName(i.ContainingType)}).GetMethod(\"{i.Name}\")!);\r\n";
+                }
+                source = source.Replace("[FUNCTIONS]", functions);
+            }
 
             context.AddSource($"ExcelDna.SG.NAOT.Init.g.cs", source);
         }
@@ -56,6 +67,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT
         class SyntaxReceiver : ISyntaxContextReceiver
         {
             public List<IMethodSymbol> Functions { get; } = new List<IMethodSymbol>();
+            public List<ITypeSymbol> AddIns { get; } = new List<ITypeSymbol>();
 
             public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
             {
@@ -64,6 +76,17 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                     IMethodSymbol methodSymbol = (context.SemanticModel.GetDeclaredSymbol(methodSyntax) as IMethodSymbol)!;
                     if (methodSymbol.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString(fullNameFormat) == "ExcelDna.Integration.ExcelFunctionAttribute"))
                         Functions.Add(methodSymbol);
+                }
+
+                if (context.Node is ClassDeclarationSyntax classSyntax)
+                {
+                    if (context.SemanticModel.GetDeclaredSymbol(classSyntax) is ITypeSymbol typeSymbol)
+                    {
+                        if (typeSymbol.AllInterfaces.Any(i => Util.GetFullTypeName(i) == "ExcelDna.Integration.IExcelAddIn"))
+                        {
+                            AddIns.Add(typeSymbol);
+                        }
+                    }
                 }
             }
 
