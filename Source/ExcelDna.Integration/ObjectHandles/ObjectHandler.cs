@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace ExcelDna.Integration.ObjectHandles
 {
-    internal class ObjectHandler
+    public class ObjectHandler
     {
         private static ConcurrentDictionary<string, HandleInfo> _objects = new ConcurrentDictionary<string, HandleInfo>();
 
