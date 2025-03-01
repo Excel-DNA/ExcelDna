@@ -74,7 +74,9 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                 if (context.Node is MethodDeclarationSyntax methodSyntax)
                 {
                     IMethodSymbol methodSymbol = (context.SemanticModel.GetDeclaredSymbol(methodSyntax) as IMethodSymbol)!;
-                    if (methodSymbol.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString(fullNameFormat) == "ExcelDna.Integration.ExcelFunctionAttribute"))
+                    if (methodSymbol.GetAttributes().Any(a =>
+                    a.AttributeClass?.ToDisplayString(fullNameFormat) == "ExcelDna.Integration.ExcelFunctionAttribute" ||
+                    a.AttributeClass?.ToDisplayString(fullNameFormat) == "ExcelDna.Integration.ExcelCommandAttribute"))
                         Functions.Add(methodSymbol);
                 }
 
