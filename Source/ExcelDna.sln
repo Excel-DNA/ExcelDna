@@ -146,6 +146,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.AddIn.RuntimeTests
 		{D50C3A8E-46F1-F61B-C8F5-ECDA05995EEB} = {D50C3A8E-46F1-F61B-C8F5-ECDA05995EEB}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.COMWrappers.NativeAOT", "ExcelDna.COMWrappers.NativeAOT\ExcelDna.COMWrappers.NativeAOT.csproj", "{6D863736-3512-4595-8432-4E33D123DCAC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -306,6 +308,14 @@ Global
 		{1EC2EE86-7C59-4CA9-9D6A-FBF206DA9D3F}.Release|Win32.ActiveCfg = Release|Any CPU
 		{1EC2EE86-7C59-4CA9-9D6A-FBF206DA9D3F}.Release|x64.ActiveCfg = Release|Any CPU
 		{1EC2EE86-7C59-4CA9-9D6A-FBF206DA9D3F}.Release|x64.Build.0 = Release|Any CPU
+		{6D863736-3512-4595-8432-4E33D123DCAC}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{6D863736-3512-4595-8432-4E33D123DCAC}.Debug|Win32.Build.0 = Debug|Any CPU
+		{6D863736-3512-4595-8432-4E33D123DCAC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6D863736-3512-4595-8432-4E33D123DCAC}.Debug|x64.Build.0 = Debug|Any CPU
+		{6D863736-3512-4595-8432-4E33D123DCAC}.Release|Win32.ActiveCfg = Release|Any CPU
+		{6D863736-3512-4595-8432-4E33D123DCAC}.Release|Win32.Build.0 = Release|Any CPU
+		{6D863736-3512-4595-8432-4E33D123DCAC}.Release|x64.ActiveCfg = Release|Any CPU
+		{6D863736-3512-4595-8432-4E33D123DCAC}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

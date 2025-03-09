@@ -14,7 +14,7 @@ namespace ExcelDna.Integration
     /// TODO: Can we integrate with ExcelCommandBars?
     ///       Hierarchical menus.
     /// </summary>
-  
+
     // CAUTION: This 'internal' class is called via reflection by the ExcelDna Loader.
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     internal static class MenuManager
@@ -86,9 +86,9 @@ namespace ExcelDna.Integration
                         // Throws Access violation exception Excel if I add a string to description or helptopic
                         XlCall.Excel(XlCall.xlfAddMenu, 1.0 /*Worksheet and Macro sheet*/,
                             new object[,] { { menuName, null, null, null, null},
-				                            { menuText, commandName, 
-												null/*shortcut_key (Mac Only)*/, 
-												null, // mi.Description, 
+                                            { menuText, commandName,
+                                                null/*shortcut_key (Mac Only)*/,
+                                                null, // mi.Description, 
 												null /*mi.HelpTopic*/} });
                         _addedMenus.Add(menuName);
                         done = true;
@@ -105,11 +105,11 @@ namespace ExcelDna.Integration
                         XlCall.Excel(XlCall.xlfAddCommand,
                                      1.0 /*Worksheet and Macro sheet*/,
                                      menuName,
-                                     new object[] { 
-                                        menuText, 
-                                        commandName, 
-										null/*shortcut_key (Mac Only)*/, 
-										null, // mi.Description, 
+                                     new object[] {
+                                        menuText,
+                                        commandName,
+                                        null/*shortcut_key (Mac Only)*/,
+                                        null, // mi.Description, 
 										null /*mi.HelpTopic*/});
                         _addedMenuEntries.Add(new MenuEntry(commandName, menuName, menuText));
                     }
@@ -171,7 +171,6 @@ namespace ExcelDna.Integration
                 if (!_foundMenus.TryGetValue(menuName, out menu))
                 {
                     // We've not seen this menu before
-                    
                     // Check if the menu exists
                     CommandBars commandBars = ExcelCommandBarUtil.GetCommandBars();
                     CommandBar worksheetBar = commandBars[1];
@@ -219,6 +218,7 @@ namespace ExcelDna.Integration
             }
             catch (Exception e)
             {
+                System.Diagnostics.Trace.WriteLine("[MenuManager.AddCommandMenu] " + e.ToString());
                 Logger.Initialization.Error(e, "MenuManager.AddCommandMenu Error");
             }
         }

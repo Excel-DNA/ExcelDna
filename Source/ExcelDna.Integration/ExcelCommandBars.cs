@@ -45,16 +45,31 @@ namespace ExcelDna.Integration.CustomUI
         // List of loaded CustomUI 
         static List<XmlNode> loadedCustomUIs = new List<XmlNode>();
 
+        //static Util util = new Util();
+
+        //private class Util : ICommandBarUtil
+        //{
+        //    public ICommandBars GetCommandBars()
+        //    {
+        //        return ExcelCommandBarUtil.GetCommandBars();
+        //    }
+        //}
+
+        //public static ICommandBarUtil GetUtil()
+        //{
+        //    return util;
+        //}
+
         // Helper to call Application.CommandBars
         public static CommandBars GetCommandBars()
         {
-            Application excelApp = new Application(ExcelDnaUtil.Application);
+            Application excelApp = new Application(NativeAOT.IsActive ? NativeAOT.ExcelApplication : ExcelDnaUtil.Application);
             return excelApp.CommandBars;
         }
 
         public static void LoadCommandBars(string xmlCustomUI)
         {
-            LoadCommandBars(xmlCustomUI, delegate(string imageName) { return null; });
+            LoadCommandBars(xmlCustomUI, delegate (string imageName) { return null; });
         }
 
         public static void LoadCommandBars(string xmlCustomUI, GetImageDelegate getImage)
@@ -454,20 +469,20 @@ namespace ExcelDna.Integration.CustomUI
         private class Application
         {
             object _object;
-            Type _type;
+            //Type _type;
 
             public Application(object application)
             {
                 _object = application;
-                _type = _object.GetType();
+                //  _type = _object.GetType();
             }
 
             public CommandBars CommandBars
             {
                 get
                 {
-                    object commandBars = _type.InvokeMember("CommandBars", BindingFlags.GetProperty, null, _object, null);
-                    return new CommandBars(commandBars);
+                    //    object commandBars = _type.InvokeMember("CommandBars", BindingFlags.GetProperty, null, _object, null);
+                    return new CommandBars(ComInterop.Util.TypeAdapter.GetProperty("CommandBars", _object));
                 }
             }
         }
@@ -506,7 +521,8 @@ namespace ExcelDna.Integration.CustomUI
         {
             get
             {
-                object controls = ComObjectType.InvokeMember("Controls", BindingFlags.GetProperty, null, ComObject, null);
+                object controls = ComInterop.Util.TypeAdapter.GetProperty("Controls", ComObject);
+                //object controls = ComObjectType.InvokeMember("Controls", BindingFlags.GetProperty, null, ComObject, null);
                 return new CommandBarControls(controls);
             }
         }
@@ -583,7 +599,8 @@ namespace ExcelDna.Integration.CustomUI
         {
             get
             {
-                object commandBar = _type.InvokeMember("", BindingFlags.GetProperty, null, _object, new object[] { i });
+                object commandBar = ComInterop.Util.TypeAdapter.GetIndex(i, _object);
+                //object commandBar = _type.InvokeMember("", BindingFlags.GetProperty, null, _object, new object[] { i });
                 return new CommandBar(commandBar);
             }
         }
@@ -643,28 +660,48 @@ namespace ExcelDna.Integration.CustomUI
         // In this case we check the interfaces for the right type
         internal static CommandBarControl CreateCommandBarControl(object commandBarControl)
         {
-            IntPtr pUnk = Marshal.GetIUnknownForObject(commandBarControl);
-
-            IntPtr pButton;
-            Marshal.QueryInterface(pUnk, ref guidCommandBarButton, out pButton);
-            if (pButton != IntPtr.Zero)
+            if (ComInterop.Util.TypeAdapter.Is(ref guidCommandBarButton, commandBarControl))
             {
+                System.Diagnostics.Trace.WriteLine("[CreateCommandBarControl] is CommandBarButton");
                 return new CommandBarButton(commandBarControl);
             }
 
-            IntPtr pPopup;
-            Marshal.QueryInterface(pUnk, ref guidCommandBarPopup, out pPopup);
-            if (pPopup != IntPtr.Zero)
+            if (ComInterop.Util.TypeAdapter.Is(ref guidCommandBarPopup, commandBarControl))
             {
+                System.Diagnostics.Trace.WriteLine("[CreateCommandBarControl] is CommandBarPopup");
                 return new CommandBarPopup(commandBarControl);
             }
 
-            IntPtr pComboBox;
-            Marshal.QueryInterface(pUnk, ref guidCommandBarPopup, out pComboBox);
-            if (pComboBox != IntPtr.Zero)
+            if (ComInterop.Util.TypeAdapter.Is(ref guidCommandBarComboBox, commandBarControl))
             {
+                System.Diagnostics.Trace.WriteLine("[CreateCommandBarControl] is CommandBarComboBox");
                 return new CommandBarComboBox(commandBarControl);
             }
+
+            //IntPtr pUnk = Marshal.GetIUnknownForObject(commandBarControl);
+
+            //IntPtr pButton;
+            //Marshal.QueryInterface(pUnk, ref guidCommandBarButton, out pButton);
+            //if (pButton != IntPtr.Zero)
+            //{
+            //    return new CommandBarButton(commandBarControl);
+            //}
+
+            //IntPtr pPopup;
+            //Marshal.QueryInterface(pUnk, ref guidCommandBarPopup, out pPopup);
+            //if (pPopup != IntPtr.Zero)
+            //{
+            //    return new CommandBarPopup(commandBarControl);
+            //}
+
+            //IntPtr pComboBox;
+            //Marshal.QueryInterface(pUnk, ref guidCommandBarPopup, out pComboBox);
+            //if (pComboBox != IntPtr.Zero)
+            //{
+            //    return new CommandBarComboBox(commandBarControl);
+            //}
+
+            System.Diagnostics.Trace.WriteLine("[CreateCommandBarControl] is ???");
 
             return new CommandBarControl(commandBarControl);
         }
@@ -679,7 +716,8 @@ namespace ExcelDna.Integration.CustomUI
         {
             get
             {
-                return (string)ComObjectType.InvokeMember("Caption", BindingFlags.GetProperty, null, ComObject, null);
+                return (string)ComInterop.Util.TypeAdapter.GetProperty("Caption", ComObject);
+                //return (string)ComObjectType.InvokeMember("Caption", BindingFlags.GetProperty, null, ComObject, null);
             }
             set
             {
@@ -838,15 +876,18 @@ namespace ExcelDna.Integration.CustomUI
         {
             get
             {
-                object commandBarControl = ComObjectTtpe.InvokeMember(
-                    "", BindingFlags.GetProperty, null, ComObject, new object[] { id });
+                object commandBarControl = ComInterop.Util.TypeAdapter.GetIndex(id, ComObject);
+
+                //object commandBarControl = ComObjectTtpe.InvokeMember(
+                //"", BindingFlags.GetProperty, null, ComObject, new object[] { id });
                 return CommandBarControl.CreateCommandBarControl(commandBarControl);
             }
         }
 
         public int Count()
         {
-            object i = ComObjectTtpe.InvokeMember("Count", BindingFlags.GetProperty, null, ComObject, null);
+            object i = ComInterop.Util.TypeAdapter.GetProperty("Count", ComObject);
+            //object i = ComObjectTtpe.InvokeMember("Count", BindingFlags.GetProperty, null, ComObject, null);
             return Convert.ToInt32(i);
         }
 
@@ -871,8 +912,9 @@ namespace ExcelDna.Integration.CustomUI
                 }
             }
 
-            object /*CommandBarControl*/ newControl = ComObjectTtpe.InvokeMember("Add", BindingFlags.InvokeMethod, null, ComObject,
-                new object[] { controlType, Id, Parameter, Before, Temporary });
+            object /*CommandBarControl*/ newControl = ComInterop.Util.TypeAdapter.Invoke("Add", new object[] { controlType, Id, Parameter, Before, Temporary }, ComObject);
+            //object /*CommandBarControl*/ newControl = ComObjectTtpe.InvokeMember("Add", BindingFlags.InvokeMethod, null, ComObject,
+            //    new object[] { controlType, Id, Parameter, Before, Temporary });
 
             return CommandBarControl.CreateCommandBarControl(controlType, newControl);
         }
