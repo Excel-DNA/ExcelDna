@@ -879,12 +879,16 @@ namespace ExcelDna.ComInterop
 
         public bool Is(ref CLSID guid, object comObject)
         {
-            throw new NotImplementedException();
+            IntPtr pUnk = Marshal.GetIUnknownForObject(comObject);
+
+            IntPtr pButton;
+            Marshal.QueryInterface(pUnk, ref guid, out pButton);
+            return (pButton != IntPtr.Zero);
         }
 
         public object Invoke(string name, object[] args, object comObject)
         {
-            throw new NotImplementedException();
+            return comObject.GetType().InvokeMember(name, BindingFlags.InvokeMethod, null, comObject, args);
         }
     }
 }
