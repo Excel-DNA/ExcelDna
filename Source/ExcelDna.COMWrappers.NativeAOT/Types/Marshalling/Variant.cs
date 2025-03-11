@@ -8,8 +8,19 @@ namespace Addin.Types.Marshalling;
 [CustomMarshaller(typeof(Managed.Variant), MarshalMode.Default, typeof(Variant))]
 public static class Variant
 {
+    public const int DISP_E_PARAMNOTFOUND = -2147352572;
+
     public static Unmanaged.Variant ConvertToUnmanaged(Managed.Variant managed)
     {
+        if (managed.Value == Type.Missing)
+        {
+            return new Unmanaged.Variant
+            {
+                vt = (ushort)VariantType.VT_ERROR,
+                scode = DISP_E_PARAMNOTFOUND,
+            };
+        }
+
         return managed.Value switch
         {
             bool boolVal
@@ -27,15 +38,18 @@ public static class Variant
                     vt = (ushort)VariantType.VT_BSTR,
                     bstrVal = Marshal.StringToBSTR(bstrVal),
                 },
-            null => new Unmanaged.Variant { },
+            null => new Unmanaged.Variant { vt = (ushort)VariantType.VT_NULL, },
             _ =>
                 throw new NotImplementedException(managed.Value.GetType().ToString())
-        ,
+    ,
         };
     }
 
     public static unsafe Managed.Variant ConvertToManaged(Unmanaged.Variant unmanaged)
     {
+        if ((VariantType)unmanaged.vt == VariantType.VT_ERROR && unmanaged.scode == DISP_E_PARAMNOTFOUND)
+            return new Managed.Variant(Type.Missing);
+
         return (VariantType)unmanaged.vt switch
         {
             VariantType.VT_BOOL
@@ -54,7 +68,8 @@ public static class Variant
                     ),
                 },
             VariantType.VT_EMPTY => new Managed.Variant { },
-            _ => throw new NotImplementedException(),
+            VariantType.VT_NULL => new Managed.Variant { },
+            _ => throw new NotImplementedException(unmanaged.vt.ToString()),
         };
     }
 }
