@@ -14,7 +14,7 @@ public static class DispParams
             rgdispidNamedArgs = &managed.rgdispidNamedArgs,
             rgvarg =
                 managed.rgvarg != null
-                    ? Array.ArrayToPtr(managed.rgvarg.Select(Variant.ConvertToUnmanaged).ToArray())
+                    ? Array.ArrayToPtr(managed.rgvarg.Reverse().Select(Variant.ConvertToUnmanaged).ToArray())
                     : nint.Zero
         };
     }
@@ -29,6 +29,7 @@ public static class DispParams
             rgvarg = Array
                 .PtrToArray<Unmanaged.Variant>(unmanaged.rgvarg, unmanaged.cArgs)
                 .Select(Variant.ConvertToManaged)
+                .Reverse()
                 .ToArray(),
         };
     }
