@@ -119,8 +119,6 @@ public class ExcelObject : DynamicObject
         for (int i = 0; i < args.Length; ++i)
         {
             object? o = args[i].GetType().IsEnum ? (int)args[i] : args[i];
-            if (o == Type.Missing)
-                o = null;
 
             System.Diagnostics.Trace.WriteLine("[InvokeMember] " + name + " " + o?.GetType().ToString());
             a[i] = new Variant(o);
