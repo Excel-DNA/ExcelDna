@@ -48,5 +48,11 @@ namespace ExcelDna.COMWrappers.NativeAOT
 
             return result!;
         }
+
+        public void SetProperty(string name, object value, object comObject)
+        {
+            var excelWindowWrapper = new ExcelObject(comObject as IDispatch);
+            excelWindowWrapper.SetProperty(name, value);
+        }
     }
 }
