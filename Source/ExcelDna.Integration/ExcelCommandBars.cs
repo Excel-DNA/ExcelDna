@@ -721,7 +721,8 @@ namespace ExcelDna.Integration.CustomUI
             }
             set
             {
-                ComObjectType.InvokeMember("Caption", BindingFlags.SetProperty, null, ComObject, new object[] { value });
+                ComInterop.Util.TypeAdapter.SetProperty("Caption", value, ComObject);
+                //ComObjectType.InvokeMember("Caption", BindingFlags.SetProperty, null, ComObject, new object[] { value });
             }
         }
 
@@ -757,7 +758,9 @@ namespace ExcelDna.Integration.CustomUI
             }
             set
             {
-                ComObjectType.InvokeMember("OnAction", BindingFlags.SetProperty, null, ComObject, new object[] { value });
+                ComInterop.Util.TypeAdapter.SetProperty("OnAction", value, ComObject);
+
+                //ComObjectType.InvokeMember("OnAction", BindingFlags.SetProperty, null, ComObject, new object[] { value });
             }
         }
 
@@ -1096,7 +1099,9 @@ namespace ExcelDna.Integration.CustomUI
         {
             get
             {
-                object controls = ComObjectType.InvokeMember("Controls", BindingFlags.GetProperty, null, ComObject, null);
+                object controls = ComInterop.Util.TypeAdapter.GetProperty("Controls", ComObject);
+
+                //object controls = ComObjectType.InvokeMember("Controls", BindingFlags.GetProperty, null, ComObject, null);
                 return new CommandBarControls(controls);
             }
         }
