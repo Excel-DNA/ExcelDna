@@ -854,6 +854,7 @@ namespace ExcelDna.ComInterop
     public interface IType
     {
         object GetProperty(string name, object comObject);
+        void SetProperty(string name, object value, object comObject);
         object GetIndex(int i, object comObject);
         object Invoke(string name, object[] args, object comObject);
         bool Is(ref Guid guid, object comObject);
@@ -889,6 +890,11 @@ namespace ExcelDna.ComInterop
         public object Invoke(string name, object[] args, object comObject)
         {
             return comObject.GetType().InvokeMember(name, BindingFlags.InvokeMethod, null, comObject, args);
+        }
+
+        public void SetProperty(string name, object value, object comObject)
+        {
+            comObject.GetType().InvokeMember(name, BindingFlags.SetProperty, null, comObject, new object[] { value });
         }
     }
 }
