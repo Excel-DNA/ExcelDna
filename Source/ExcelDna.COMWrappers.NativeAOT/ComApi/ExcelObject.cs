@@ -61,6 +61,19 @@ public class ExcelObject : DynamicObject
         return true;
     }
 
+    public void SetProperty(string name, object value)
+    {
+        var dispParams = new DispParams
+        {
+            rgvarg = [new Variant(value)],
+            rgdispidNamedArgs = DISPID_PROPERTYPUT,
+            cArgs = 1,
+            cNamedArgs = 1
+        };
+
+        InvokeWrapper(name, INVOKEKIND.INVOKE_PROPERTYPUT, dispParams);
+    }
+
     public override bool TryGetIndex(GetIndexBinder binder, object[] indexes, out object? result)
     {
         var index = (int)indexes[0];
