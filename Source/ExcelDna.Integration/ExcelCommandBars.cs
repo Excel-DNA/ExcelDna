@@ -63,7 +63,8 @@ namespace ExcelDna.Integration.CustomUI
         // Helper to call Application.CommandBars
         public static CommandBars GetCommandBars()
         {
-            Application excelApp = new Application(NativeAOT.IsActive ? NativeAOT.ExcelApplication : ExcelDnaUtil.Application);
+            Application excelApp = new Application(ExcelDnaUtil.ApplicationObject);
+            //Application excelApp = new Application(NativeAOT.IsActive ? NativeAOT.ExcelApplication : ExcelDnaUtil.Application);
             return excelApp.CommandBars;
         }
 

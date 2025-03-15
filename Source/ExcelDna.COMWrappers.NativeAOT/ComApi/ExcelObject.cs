@@ -37,6 +37,20 @@ public class ExcelObject : DynamicObject
         return InvokeWrapper(name, INVOKEKIND.INVOKE_PROPERTYGET, dispParams);
     }
 
+    public bool HasProperty(string name)
+    {
+        try
+        {
+            GetDispIDs(name);
+            return true;
+        }
+        catch
+        {
+        }
+
+        return false;
+    }
+
     public override bool TryGetMember(GetMemberBinder binder, out object? result)
     {
         DispParams dispParams = new();
