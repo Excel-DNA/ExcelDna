@@ -66,6 +66,7 @@ public static class Variant
                     Value = ComInterfaceMarshaller<IDispatch>.ConvertToManaged(
                         (void*)unmanaged.pdispVal
                     ),
+                    DispVal = unmanaged.pdispVal
                 },
             VariantType.VT_EMPTY => new Managed.Variant { },
             VariantType.VT_NULL => new Managed.Variant { },

@@ -8,4 +8,5 @@ public struct Variant
     }
 
     public object? Value { get; set; }
+    public IntPtr DispVal { get; set; }
 }
