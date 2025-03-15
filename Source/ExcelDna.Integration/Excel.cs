@@ -215,9 +215,17 @@ namespace ExcelDna.Integration
         #region Get Application COM Object
         // CONSIDER: ThreadStatic not needed anymore - only cached and used on main thread anyway.
         // [ThreadStatic] 
-        static Microsoft.Office.Interop.Excel.Application _application;
+        static object _application;
         static readonly CultureInfo _enUsCulture = new CultureInfo(1033);
         public static Microsoft.Office.Interop.Excel.Application Application
+        {
+            get
+            {
+                return (Microsoft.Office.Interop.Excel.Application)ApplicationObject;
+            }
+        }
+
+        internal static object ApplicationObject
         {
             get
             {
@@ -282,11 +290,11 @@ namespace ExcelDna.Integration
             return true;
         }
 
-        private static Microsoft.Office.Interop.Excel.Application GetApplication(bool allowProtected, out bool isProtected)
+        private static object GetApplication(bool allowProtected, out bool isProtected)
         {
             // Don't cache the one we get from the Window, it keeps Excel alive! 
             // (?? Really ?? - Probably only when we're not on the main thread...)
-            Microsoft.Office.Interop.Excel.Application application = GetApplicationFromWindows(allowProtected, out isProtected);
+            object application = GetApplicationFromWindows(allowProtected, out isProtected);
             if (application != null) return application;
 
             // DOCUMENT: Under some circumstances, the C API and Automation interfaces are not available.
@@ -302,11 +310,11 @@ namespace ExcelDna.Integration
             return GetApplicationFromNewWorkbook(allowProtected, out isProtected);
         }
 
-        private static Microsoft.Office.Interop.Excel.Application GetApplicationFromNewWorkbook(bool allowProtected, out bool isProtected)
+        private static object GetApplicationFromNewWorkbook(bool allowProtected, out bool isProtected)
         {
             // Create new workbook with the right stuff
             // Echo calls removed for Excel 2013 - this caused trouble in the Excel 2013 'browse' scenario.
-            Microsoft.Office.Interop.Excel.Application application;
+            object application;
             bool isExcelPre15 = SafeIsExcelVersionPre15;
             if (isExcelPre15) XlCall.Excel(XlCall.xlcEcho, false);
             try
@@ -377,7 +385,7 @@ namespace ExcelDna.Integration
             return application;
         }
 
-        static Microsoft.Office.Interop.Excel.Application GetApplicationFromWindows(bool allowProtected, out bool isProtected)
+        static object GetApplicationFromWindows(bool allowProtected, out bool isProtected)
         {
             if (SafeIsExcelVersionPre15)
             {
@@ -389,9 +397,9 @@ namespace ExcelDna.Integration
 
         // Enumerate through all top-level windows of the main thread,
         // and for those of class XLMAIN, dig down by calling GetApplicationFromWindow.
-        static Microsoft.Office.Interop.Excel.Application GetApplicationFromWindows15(bool allowProtected, out bool isProtected)
+        static object GetApplicationFromWindows15(bool allowProtected, out bool isProtected)
         {
-            Microsoft.Office.Interop.Excel.Application application = null;
+            object application = null;
             StringBuilder buffer = new StringBuilder(256);
             bool localIsProtected = false;
 
@@ -413,11 +421,11 @@ namespace ExcelDna.Integration
             return application; // May or may not be null
         }
 
-        private static Microsoft.Office.Interop.Excel.Application GetApplicationFromWindow(IntPtr hWndMain, bool allowProtected, out bool isProtected)
+        private static object GetApplicationFromWindow(IntPtr hWndMain, bool allowProtected, out bool isProtected)
         {
             // This is Andrew Whitechapel's plan for getting the Application object.
             // It does not work when there are no Workbooks open.
-            Microsoft.Office.Interop.Excel.Application app = null;
+            object app = null;
             StringBuilder cname = new StringBuilder(256);
             bool localIsProtected = false;
 
@@ -438,14 +446,15 @@ namespace ExcelDna.Integration
                 }
 
                 // Marshal to .NET, then call .Application
-                object obj = Marshal.GetObjectForIUnknown(pUnk);
+                object obj = ComInterop.Util.TypeAdapter.GetObject(pUnk);
                 Marshal.Release(pUnk);
 
                 try
                 {
-                    if (ComInterop.DispatchHelper.HasProperty(obj, "Application"))
+                    if (ComInterop.Util.TypeAdapter.HasProperty("Application", obj))
                     {
-                        app = (Microsoft.Office.Interop.Excel.Application)obj.GetType().InvokeMember("Application", BindingFlags.GetProperty, null, obj, null, _enUsCulture);
+                        app = ComInterop.Util.TypeAdapter.GetProperty("Application", obj);
+                        //app = obj.GetType().InvokeMember("Application", BindingFlags.GetProperty, null, obj, null, _enUsCulture);
                     }
                     else
                     {
@@ -455,8 +464,10 @@ namespace ExcelDna.Integration
                         {
                             try
                             {
-                                object workbook = obj.GetType().InvokeMember("Workbook", BindingFlags.GetProperty, null, obj, null, _enUsCulture);
-                                app = (Microsoft.Office.Interop.Excel.Application)workbook.GetType().InvokeMember("Application", BindingFlags.GetProperty, null, workbook, null, _enUsCulture);
+                                object workbook = ComInterop.Util.TypeAdapter.GetProperty("Workbook", obj);
+                                //object workbook = obj.GetType().InvokeMember("Workbook", BindingFlags.GetProperty, null, obj, null, _enUsCulture);
+                                app = ComInterop.Util.TypeAdapter.GetProperty("Application", workbook);
+                                //app = workbook.GetType().InvokeMember("Application", BindingFlags.GetProperty, null, workbook, null, _enUsCulture);
 
                                 // WARNING: The Application object returning from here can be problematic:
                                 //          * It is a "sandbox" view of the Application that cannot Run macros or change workbooks
@@ -484,7 +495,8 @@ namespace ExcelDna.Integration
                 }
                 finally
                 {
-                    Marshal.ReleaseComObject(obj);
+                    ComInterop.Util.TypeAdapter.ReleaseObject(obj);
+                    //Marshal.ReleaseComObject(obj);
                 }
 
                 // Continue enumeration? Only if the app is not yet found and protected flag not set.

@@ -853,6 +853,10 @@ namespace ExcelDna.ComInterop
 {
     public interface IType
     {
+        object GetObject(IntPtr pUnk);
+        void ReleaseObject(object comObject);
+
+        bool HasProperty(string name, object comObject);
         object GetProperty(string name, object comObject);
         void SetProperty(string name, object value, object comObject);
         object GetIndex(int i, object comObject);
@@ -895,6 +899,21 @@ namespace ExcelDna.ComInterop
         public void SetProperty(string name, object value, object comObject)
         {
             comObject.GetType().InvokeMember(name, BindingFlags.SetProperty, null, comObject, new object[] { value });
+        }
+
+        public object GetObject(IntPtr pUnk)
+        {
+            return Marshal.GetObjectForIUnknown(pUnk);
+        }
+
+        public void ReleaseObject(object comObject)
+        {
+            Marshal.ReleaseComObject(comObject);
+        }
+
+        public bool HasProperty(string name, object comObject)
+        {
+            return ComInterop.DispatchHelper.HasProperty(comObject, name);
         }
     }
 }
