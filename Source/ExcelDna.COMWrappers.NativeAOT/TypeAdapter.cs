@@ -1,5 +1,7 @@
 ﻿using Addin.ComApi;
 using ExcelDna.ComInterop;
+using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.Marshalling;
 
 namespace ExcelDna.COMWrappers.NativeAOT
 {
@@ -53,6 +55,22 @@ namespace ExcelDna.COMWrappers.NativeAOT
         {
             var excelWindowWrapper = new ExcelObject(comObject as IDispatch);
             excelWindowWrapper.SetProperty(name, value);
+        }
+
+        public object GetObject(IntPtr pUnk)
+        {
+            ComWrappers cw = new StrategyBasedComWrappers();
+            return cw.GetOrCreateObjectForComInstance(pUnk, CreateObjectFlags.None);
+        }
+
+        public void ReleaseObject(object comObject)
+        {
+        }
+
+        public bool HasProperty(string name, object comObject)
+        {
+            var excelWindowWrapper = new ExcelObject(comObject as IDispatch);
+            return excelWindowWrapper.HasProperty(name);
         }
     }
 }
