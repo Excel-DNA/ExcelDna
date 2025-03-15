@@ -1,7 +1,4 @@
-﻿using Addin.ComApi;
-using ExcelDna.ComInterop;
-using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.Marshalling;
+﻿using ExcelDna.ComInterop;
 
 namespace ExcelDna.COMWrappers.NativeAOT
 {
@@ -9,58 +6,32 @@ namespace ExcelDna.COMWrappers.NativeAOT
     {
         public object GetProperty(string name, object comObject)
         {
-            var excelWindowWrapper = new ExcelObject(comObject as IDispatch);
-            object? result = excelWindowWrapper.GetProperty(name);
-            if (result is ExcelObject excelObject)
-                return excelObject._interfacePtr;
-
-            return result!;
+            return (comObject as ComObject)!.GetProperty(name)!;
         }
 
         public object GetIndex(int i, object comObject)
         {
-            var excelWindowWrapper = new ExcelObject(comObject as IDispatch);
-            excelWindowWrapper.TryGetIndex(null, new object[] { i }, out object? result);
-            if (result is ExcelObject excelObject)
-                return excelObject._interfacePtr;
-
-            return result!;
+            return (comObject as ComObject)!.GetIndex(i)!;
         }
 
         public bool Is(ref Guid guid, object comObject)
         {
-            if (guid == new Guid("000C030E-0000-0000-C000-000000000046"))
-                return comObject is ICommandBarButton;
-
-            if (guid == new Guid("000C030A-0000-0000-C000-000000000046"))
-                return comObject is ICommandBarPopup;
-
-            if (guid == new Guid("000C030C-0000-0000-C000-000000000046"))
-                return comObject is ICommandBarComboBox;
-
-            throw new NotImplementedException();
+            return (comObject as ComObject)!.HasInterface(ref guid);
         }
 
         public object Invoke(string name, object[] args, object comObject)
         {
-            var excelWindowWrapper = new ExcelObject(comObject as IDispatch);
-            object? result = excelWindowWrapper.InvokeMember(name, args);
-            if (result is ExcelObject excelObject)
-                return excelObject._interfacePtr;
-
-            return result!;
+            return (comObject as ComObject)!.Invoke(name, args)!;
         }
 
         public void SetProperty(string name, object value, object comObject)
         {
-            var excelWindowWrapper = new ExcelObject(comObject as IDispatch);
-            excelWindowWrapper.SetProperty(name, value);
+            (comObject as ComObject)!.SetProperty(name, value);
         }
 
         public object GetObject(IntPtr pUnk)
         {
-            ComWrappers cw = new StrategyBasedComWrappers();
-            return cw.GetOrCreateObjectForComInstance(pUnk, CreateObjectFlags.None);
+            return new ComObject(pUnk);
         }
 
         public void ReleaseObject(object comObject)
@@ -69,8 +40,7 @@ namespace ExcelDna.COMWrappers.NativeAOT
 
         public bool HasProperty(string name, object comObject)
         {
-            var excelWindowWrapper = new ExcelObject(comObject as IDispatch);
-            return excelWindowWrapper.HasProperty(name);
+            return (comObject as ComObject)!.HasProperty(name);
         }
     }
 }
