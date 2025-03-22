@@ -1,26 +1,25 @@
-﻿using Addin.ComApi;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using System.Runtime.InteropServices.ComTypes;
 
-namespace ExcelDna.COMWrappers.NativeAOT
+namespace ExcelDna.COMWrappers.NativeAOT.ComInterfaces
 {
-    internal class ComObject
+    internal class DispatchObject : UnknownObject
     {
-        private IntPtr pUnk;
-        private IDispatch? dispatch;
+        private IDispatch dispatch;
         private Guid emptyGuid = Guid.Empty;
 
         private const int LOCALE_USER_DEFAULT = 0x0400;
         private const int DISPID_PROPERTYPUT = -3;
 
-
-        public ComObject(IntPtr pUnk)
+        public DispatchObject(IntPtr unknown) : base(unknown)
         {
-            this.pUnk = pUnk;
-
             ComWrappers cw = new StrategyBasedComWrappers();
-            dispatch = cw.GetOrCreateObjectForComInstance(pUnk, CreateObjectFlags.None) as IDispatch;
+            IDispatch? dispatch = cw.GetOrCreateObjectForComInstance(P, CreateObjectFlags.None) as IDispatch;
+            if (dispatch == null)
+                throw new ArgumentException();
+
+            this.dispatch = dispatch;
         }
 
         public bool HasProperty(string name)
@@ -39,16 +38,16 @@ namespace ExcelDna.COMWrappers.NativeAOT
 
         public object? GetProperty(string name)
         {
-            Addin.Types.Managed.DispParams dispParams = new();
+            DispParams dispParams = new();
 
             return InvokeWrapper(name, INVOKEKIND.INVOKE_PROPERTYGET, dispParams);
         }
 
         public void SetProperty(string name, object value)
         {
-            var dispParams = new Addin.Types.Managed.DispParams
+            var dispParams = new DispParams
             {
-                rgvarg = [new Addin.Types.Managed.Variant(value)],
+                rgvarg = [new Variant(value)],
                 rgdispidNamedArgs = DISPID_PROPERTYPUT,
                 cArgs = 1,
                 cNamedArgs = 1
@@ -61,9 +60,9 @@ namespace ExcelDna.COMWrappers.NativeAOT
         {
             var index = i;
 
-            var dispParams = new Addin.Types.Managed.DispParams
+            var dispParams = new DispParams
             {
-                rgvarg = [new Addin.Types.Managed.Variant(index)],
+                rgvarg = [new Variant(index)],
                 rgdispidNamedArgs = 0,
                 cArgs = 1,
                 cNamedArgs = 0
@@ -74,14 +73,9 @@ namespace ExcelDna.COMWrappers.NativeAOT
 
         public object? Invoke(string name, object[] args)
         {
-            Addin.Types.Managed.Variant[] a = new Addin.Types.Managed.Variant[args.Length];
-            for (int i = 0; i < args.Length; ++i)
-            {
-                object? o = args[i].GetType().IsEnum ? (int)args[i] : args[i];
-                a[i] = new Addin.Types.Managed.Variant(o);
-            }
+            Variant[] a = args.Select(i => new Variant(i)).ToArray();
 
-            var dispParams = new Addin.Types.Managed.DispParams
+            var dispParams = new DispParams
             {
                 rgvarg = a,
                 rgdispidNamedArgs = 0,
@@ -90,13 +84,6 @@ namespace ExcelDna.COMWrappers.NativeAOT
             };
 
             return InvokeWrapper(name, INVOKEKIND.INVOKE_FUNC, dispParams);
-        }
-
-        public unsafe bool HasInterface(ref Guid guid)
-        {
-            IIUnknownStrategy iUnknownStrategy = StrategyBasedComWrappers.DefaultIUnknownStrategy;
-            iUnknownStrategy.QueryInterface(pUnk.ToPointer(), in guid, out void* ppObj);
-            return ppObj != null;
         }
 
         private int[] GetDispIDs(string propName)
@@ -112,20 +99,17 @@ namespace ExcelDna.COMWrappers.NativeAOT
                 dispIds
             );
 
-            if (hr < 0)
-            {
-                Marshal.ThrowExceptionForHR(hr);
-            }
+            Marshal.ThrowExceptionForHR(hr);
 
             return dispIds;
         }
 
-        private object? InvokeWrapper(string propName, INVOKEKIND kind, Addin.Types.Managed.DispParams dispParams)
+        private object? InvokeWrapper(string propName, INVOKEKIND kind, DispParams dispParams)
         {
             var dispIds = GetDispIDs(propName);
 
-            Addin.Types.Managed.ExcepInfo pExcepInfo = new();
-            Addin.Types.Managed.Variant pVarResult = new();
+            ExcepInfo pExcepInfo = new();
+            Variant pVarResult = new();
             uint puArgErr = 0;
 
             var hr = dispatch!.Invoke(
@@ -140,11 +124,6 @@ namespace ExcelDna.COMWrappers.NativeAOT
             );
 
             Marshal.ThrowExceptionForHR(hr);
-
-            if (pVarResult.Value is IDispatch interfacePtr)
-            {
-                return new ComObject(pVarResult.DispVal);
-            }
 
             return pVarResult.Value;
         }
