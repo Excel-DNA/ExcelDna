@@ -454,7 +454,6 @@ namespace ExcelDna.Integration
                     if (ComInterop.Util.TypeAdapter.HasProperty("Application", obj))
                     {
                         app = ComInterop.Util.TypeAdapter.GetProperty("Application", obj);
-                        //app = obj.GetType().InvokeMember("Application", BindingFlags.GetProperty, null, obj, null, _enUsCulture);
                     }
                     else
                     {
@@ -465,9 +464,7 @@ namespace ExcelDna.Integration
                             try
                             {
                                 object workbook = ComInterop.Util.TypeAdapter.GetProperty("Workbook", obj);
-                                //object workbook = obj.GetType().InvokeMember("Workbook", BindingFlags.GetProperty, null, obj, null, _enUsCulture);
                                 app = ComInterop.Util.TypeAdapter.GetProperty("Application", workbook);
-                                //app = workbook.GetType().InvokeMember("Application", BindingFlags.GetProperty, null, workbook, null, _enUsCulture);
 
                                 // WARNING: The Application object returning from here can be problematic:
                                 //          * It is a "sandbox" view of the Application that cannot Run macros or change workbooks
@@ -496,7 +493,6 @@ namespace ExcelDna.Integration
                 finally
                 {
                     ComInterop.Util.TypeAdapter.ReleaseObject(obj);
-                    //Marshal.ReleaseComObject(obj);
                 }
 
                 // Continue enumeration? Only if the app is not yet found and protected flag not set.
