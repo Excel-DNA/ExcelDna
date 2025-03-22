@@ -58,11 +58,22 @@ namespace ExcelDna.COMWrappers.NativeAOT.ComInterfaces
 
         public object? GetIndex(int i)
         {
-            var index = i;
-
             var dispParams = new DispParams
             {
-                rgvarg = [new Variant(index)],
+                rgvarg = [new Variant(i)],
+                rgdispidNamedArgs = 0,
+                cArgs = 1,
+                cNamedArgs = 0
+            };
+
+            return InvokeWrapper("Item", INVOKEKIND.INVOKE_PROPERTYGET, dispParams);
+        }
+
+        public object? GetIndex(string name)
+        {
+            var dispParams = new DispParams
+            {
+                rgvarg = [new Variant(name)],
                 rgdispidNamedArgs = 0,
                 cArgs = 1,
                 cNamedArgs = 0

@@ -20,6 +20,11 @@ namespace ExcelDna.Integration.ComInterop
             return comObject.GetType().InvokeMember("", BindingFlags.GetProperty, null, comObject, new object[] { i }, _enUsCulture);
         }
 
+        public object GetIndex(string name, object comObject)
+        {
+            return comObject.GetType().InvokeMember("", BindingFlags.GetProperty, null, comObject, new object[] { name }, _enUsCulture);
+        }
+
         public bool Is(ref CLSID guid, object comObject)
         {
             IntPtr pUnk = Marshal.GetIUnknownForObject(comObject);
