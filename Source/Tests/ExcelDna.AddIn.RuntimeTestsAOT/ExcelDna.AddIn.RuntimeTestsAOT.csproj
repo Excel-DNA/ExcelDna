@@ -25,12 +25,13 @@
   <Target Name="PublishAfterBuild" AfterTargets="AfterBuild" DependsOnTargets="SetNoBuild;Publish" />
 
   <ItemGroup>
+    <ProjectReference Include="..\..\ExcelDna.COMWrappers.NativeAOT\ExcelDna.COMWrappers.NativeAOT.csproj" />
     <ProjectReference Include="..\..\ExcelDna.ManagedHost\ExcelDna.ManagedHost.csproj" />
     <ProjectReference Include="..\..\ExcelDna.SourceGenerator.NativeAOT\ExcelDna.SourceGenerator.NativeAOT.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <Target Name="PostBuildAOT" AfterTargets="PublishAfterBuild">
-    <Exec Command='xcopy /y "$(SolutionDir)ExcelDna.Host.NativeAOT\bin\$(ConfigurationName)\x64\ExcelDna.Host.NativeAOT.x64.xll" "$(TargetDir)publish\ExcelDna.AddIn.RuntimeTestsAOT64.xll*"&#xD;&#xA;' />
+    <Exec Command="xcopy /y &quot;$(SolutionDir)ExcelDna.Host.NativeAOT\bin\$(ConfigurationName)\x64\ExcelDna.Host.NativeAOT.x64.xll&quot; &quot;$(TargetDir)publish\ExcelDna.AddIn.RuntimeTestsAOT64.xll*&quot;&#xD;&#xA;" />
   </Target>
 
 </Project>

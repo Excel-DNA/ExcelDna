@@ -29,6 +29,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT
         public static short Initialize(void* xlAddInExportInfoAddress, void* hModuleXll, void* pPathXLL, byte disableAssemblyContextUnload, void* pTempDirPath)
         {
             ExcelDna.Integration.NativeAOT.IsActive = true;
+            ExcelDna.Integration.NativeAOT.TypeAdapter = new ExcelDna.COMWrappers.NativeAOT.TypeAdapter();
 
             [ADDINS]
 
