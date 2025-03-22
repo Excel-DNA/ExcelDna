@@ -1,5 +1,5 @@
-﻿using ExcelDna.ComInterop;
-using ExcelDna.COMWrappers.NativeAOT.ComInterfaces;
+﻿using ExcelDna.COMWrappers.NativeAOT.ComInterfaces;
+using ExcelDna.Integration.ComInterop;
 
 namespace ExcelDna.COMWrappers.NativeAOT
 {
