@@ -15,6 +15,11 @@ namespace ExcelDna.COMWrappers.NativeAOT
             return (comObject as DispatchObject)!.GetIndex(i)!;
         }
 
+        public object GetIndex(string name, object comObject)
+        {
+            return (comObject as DispatchObject)!.GetIndex(name)!;
+        }
+
         public bool Is(ref Guid guid, object comObject)
         {
             return (comObject as DispatchObject)!.HasInterface(ref guid);
