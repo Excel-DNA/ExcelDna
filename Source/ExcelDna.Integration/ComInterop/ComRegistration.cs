@@ -559,16 +559,15 @@ namespace ExcelDna.ComInterop.ComRegistration
 
         object SetAutomationSecurity(object value)
         {
-            CultureInfo ci = new CultureInfo(1033);
-            Type appType = _app.GetType();
+            Integration.ComInterop.IType appType = Integration.ComInterop.Util.TypeAdapter;
             try
             {
-                var oldValue = appType.InvokeMember("AutomationSecurity", BindingFlags.GetProperty, null, _app, null, ci);
+                var oldValue = appType.GetProperty("AutomationSecurity", _app);
                 if (oldValue.Equals(value)) // Careful...they're boxed ints
                     return null;
 
                 Logger.ComAddIn.Verbose("AutomationSecurityEnable - Setting Application.AutomationSecurity to {0}", value);
-                appType.InvokeMember("AutomationSecurity", BindingFlags.SetProperty, null, _app, new object[] { value }, ci);
+                appType.SetProperty("AutomationSecurity", value, _app);
                 return oldValue;
             }
             catch (Exception ex)

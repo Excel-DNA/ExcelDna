@@ -106,7 +106,7 @@ namespace ExcelDna.Integration
         }
         #endregion
     }
-    
+
     public static class ExcelComAddInHelper
     {
         // Com Add-ins loaded for Ribbons.
@@ -162,11 +162,10 @@ namespace ExcelDna.Integration
 
 
             Logger.ComAddIn.Verbose("Getting Application object");
-            object app = ExcelDnaUtil.Application;
-            Type appType = app.GetType();
+            object app = ExcelDnaUtil.ApplicationObject;
+            ComInterop.IType typeAdapter = ComInterop.Util.TypeAdapter;
             Logger.ComAddIn.Verbose("Got Application object: " + app.GetType().ToString());
 
-            CultureInfo ci = new CultureInfo(1033);
             object excelComAddIns;
             object comAddIn;
 
@@ -188,12 +187,12 @@ namespace ExcelDna.Integration
                     var dummyAddIn = new DummyComAddIn();
                     using (new SingletonClassFactoryRegistration(dummyAddIn, clsId))
                     {
-                        excelComAddIns = appType.InvokeMember("COMAddIns", BindingFlags.GetProperty, null, app, null, ci);
+                        excelComAddIns = typeAdapter.GetProperty("COMAddIns", app);
 
                         //                            Debug.Print("Got COMAddins object: " + excelComAddIns.GetType().ToString());
-                        appType.InvokeMember("Update", BindingFlags.InvokeMethod, null, excelComAddIns, null, ci);
+                        typeAdapter.Invoke("Update", null, excelComAddIns);
                         //                            Debug.Print("Updated COMAddins object with AddIn registered");
-                        comAddIn = excelComAddIns.GetType().InvokeMember("Item", BindingFlags.InvokeMethod, null, excelComAddIns, new object[] { progId }, ci);
+                        comAddIn = typeAdapter.Invoke("Item", new object[] { progId }, excelComAddIns);
                         //                            Debug.Print("Got the COMAddin object: " + comAddIn.GetType().ToString());
 
                         // At this point Excel knows how to load our add-in by CLSID, so we could clean up the 
@@ -201,13 +200,13 @@ namespace ExcelDna.Integration
                         // But this seems to lead to some distress - Excel has some assertion checked when 
                         // it updates the LoadBehavior after a successful load....
 
-                        object connectState = comAddIn.GetType().InvokeMember("Connect", BindingFlags.GetProperty, null, comAddIn, null, ci);
-                        comAddIn.GetType().InvokeMember("Connect", BindingFlags.SetProperty, null, comAddIn, new object[] { false }, ci);
+                        object connectState = typeAdapter.GetProperty("Connect", comAddIn);
+                        typeAdapter.SetProperty("Connect", false, comAddIn);
                     }
                     // Swap out the dummy add-in for the real one
                     using (new SingletonClassFactoryRegistration(addIn, clsId))
                     {
-                        comAddIn.GetType().InvokeMember("Connect", BindingFlags.SetProperty, null, comAddIn, new object[] { true }, ci);
+                        typeAdapter.SetProperty("Connect", true, comAddIn);
                     }
                     //                            Debug.Print("COMAddin is loaded.");
                     loadedComAddIns.Add(comAddIn);
