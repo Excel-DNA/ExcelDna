@@ -84,15 +84,23 @@ namespace ExcelDna.COMWrappers.NativeAOT.ComInterfaces
 
         public object? Invoke(string name, object[] args)
         {
-            Variant[] a = args.Select(i => new Variant(i)).ToArray();
-
-            var dispParams = new DispParams
+            DispParams dispParams;
+            if (args != null)
             {
-                rgvarg = a,
-                rgdispidNamedArgs = 0,
-                cArgs = a.Length,
-                cNamedArgs = 0
-            };
+                Variant[] a = args.Select(i => new Variant(i)).ToArray();
+
+                dispParams = new DispParams
+                {
+                    rgvarg = a,
+                    rgdispidNamedArgs = 0,
+                    cArgs = a.Length,
+                    cNamedArgs = 0
+                };
+            }
+            else
+            {
+                dispParams = new DispParams();
+            }
 
             return InvokeWrapper(name, INVOKEKIND.INVOKE_FUNC, dispParams);
         }

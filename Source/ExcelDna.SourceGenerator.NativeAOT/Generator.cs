@@ -85,7 +85,8 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                 {
                     if (context.SemanticModel.GetDeclaredSymbol(classSyntax) is ITypeSymbol typeSymbol)
                     {
-                        if (typeSymbol.AllInterfaces.Any(i => Util.GetFullTypeName(i) == "ExcelDna.Integration.IExcelAddIn"))
+                        if (typeSymbol.AllInterfaces.Any(i => Util.GetFullTypeName(i) == "ExcelDna.Integration.IExcelAddIn") ||
+                            Util.GetBaseTypesAndThis(typeSymbol).Any(i => Util.GetFullTypeName(i) == "ExcelDna.Integration.CustomUI.ExcelRibbon"))
                         {
                             AddIns.Add(typeSymbol);
                         }
