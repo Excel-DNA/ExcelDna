@@ -75,7 +75,7 @@ namespace ExcelDna.Integration.Rtd
             if (!string.IsNullOrEmpty(server))
             {
                 // Just pass on to Excel.
-                return TryCallRTD(out result, progId, null, topics);
+                return TryCallRTD(out result, progId, server, topics);
             }
 
             Type rtdServerType;
