@@ -46,7 +46,11 @@ namespace ExcelDna.ComInterop.ComRegistration
             _comClass = excelComClassType;
         }
 
+#if COM_GENERATED
+        public HRESULT CreateInstance([In] IntPtr pUnkOuter, [In] in IID riid, [Out] out IntPtr ppvObject)
+#else
         public HRESULT CreateInstance([In] IntPtr pUnkOuter, [In] ref IID riid, [Out] out IntPtr ppvObject)
+#endif
         {
             Logger.RtdServer.Info("Creating the RTD server COM object");
 
@@ -78,7 +82,11 @@ namespace ExcelDna.ComInterop.ComRegistration
                     else
                     {
                         ppvObject = Marshal.GetIUnknownForObject(instance);
+#if COM_GENERATED
+                        HRESULT hrQI = Marshal.QueryInterface(ppvObject, riid, out ppvObject);
+#else
                         HRESULT hrQI = Marshal.QueryInterface(ppvObject, ref riid, out ppvObject);
+#endif
                         Marshal.Release(ppvObject);
                         if (hrQI != ComAPI.S_OK)
                         {
@@ -107,9 +115,13 @@ namespace ExcelDna.ComInterop.ComRegistration
     // - it will return exactly that object when CreateInstance is called 
     // (checking interface support).
     // Used for the RTD classes.
+#if COM_GENERATED
+    [System.Runtime.InteropServices.Marshalling.GeneratedComClass]
+#else
     [ComVisible(true)]
     [ClassInterface(ClassInterfaceType.None)]
-    internal class SingletonClassFactory : ComAPI.IClassFactory
+#endif
+    internal partial class SingletonClassFactory : ComAPI.IClassFactory
     {
         private object _instance;
 
@@ -118,7 +130,11 @@ namespace ExcelDna.ComInterop.ComRegistration
             _instance = instance;
         }
 
+#if COM_GENERATED
+        public HRESULT CreateInstance([In] IntPtr pUnkOuter, [In] in IID riid, [Out] out IntPtr ppvObject)
+#else
         public HRESULT CreateInstance([In] IntPtr pUnkOuter, [In] ref IID riid, [Out] out IntPtr ppvObject)
+#endif
         {
             using (XlCall.Suspend())
             {

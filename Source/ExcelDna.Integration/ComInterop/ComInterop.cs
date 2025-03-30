@@ -7,9 +7,9 @@ using System.Runtime.InteropServices.ComTypes;
 using ExcelDna.ComInterop;
 
 using HRESULT = System.Int32;
-using IID     = System.Guid;
-using CLSID   = System.Guid;
-using DWORD   = System.Int32;
+using IID = System.Guid;
+using CLSID = System.Guid;
+using DWORD = System.Int32;
 using System.Runtime.CompilerServices;
 using System.Reflection;
 using System.Collections;
@@ -17,7 +17,7 @@ using System.Threading;
 
 namespace ExcelDna.ComInterop
 {
-    internal class ComAPI
+    internal partial class ComAPI
     {
         public const HRESULT S_OK = 0;
         public const HRESULT S_FALSE = 1;
@@ -38,6 +38,18 @@ namespace ExcelDna.ComInterop
         public static readonly Guid guidIRtdServer = new Guid(gstrIRtdServer);
         public const string gstrIRTDUpdateEvent = "A43788C1-D91B-11D3-8F39-00C04F3651B8";
 
+#if COM_GENERATED
+        [System.Runtime.InteropServices.Marshalling.GeneratedComInterface]
+        [Guid(gstrIClassFactory)]
+        internal partial interface IClassFactory
+        {
+            [PreserveSig]
+            HRESULT CreateInstance(IntPtr pUnkOuter, in Guid riid, out IntPtr ppvObject);
+
+            [PreserveSig]
+            HRESULT LockServer([MarshalAs(UnmanagedType.Bool)] bool fLock);
+        }
+#else
         [ComImport]
         [Guid(gstrIClassFactory)]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -60,6 +72,7 @@ namespace ExcelDna.ComInterop
             //    virtual /* [local] */ HRESULT STDMETHODCALLTYPE LockServer( 
             //        /* [in] */ BOOL fLock) = 0;
         }
+#endif
 
         [DllImport("Ole32.dll")]
         public static extern HRESULT CoRegisterClassObject([In] ref CLSID rclsid, IntPtr pUnk,
@@ -173,11 +186,11 @@ namespace ExcelDna.Integration.CustomUI
     public interface IRibbonControl
     {
         [DispId(1)]
-        string Id { [return: MarshalAs(UnmanagedType.BStr)] [DispId(1)] get; }
+        string Id { [return: MarshalAs(UnmanagedType.BStr)][DispId(1)] get; }
         [DispId(2)]
-        object Context { [return: MarshalAs(UnmanagedType.IDispatch)] [DispId(2)] get; }
+        object Context { [return: MarshalAs(UnmanagedType.IDispatch)][DispId(2)] get; }
         [DispId(3)]
-        string Tag { [return: MarshalAs(UnmanagedType.BStr)] [DispId(3)] get; }
+        string Tag { [return: MarshalAs(UnmanagedType.BStr)][DispId(3)] get; }
     }
 
     [ComImport]
@@ -191,14 +204,14 @@ namespace ExcelDna.Integration.CustomUI
         [DispId(2)]
         void InvalidateControl([In, MarshalAs(UnmanagedType.BStr)] string ControlID);
         [DispId(3)]
-        void InvalidateControlMso([MarshalAs(UnmanagedType.BStr)] [In] string ControlID);
+        void InvalidateControlMso([MarshalAs(UnmanagedType.BStr)][In] string ControlID);
         // The ActiveTab methods were added in Office 2010
         [DispId(4)]
-        void ActivateTab([MarshalAs(UnmanagedType.BStr)] [In] string ControlID);
+        void ActivateTab([MarshalAs(UnmanagedType.BStr)][In] string ControlID);
         [DispId(5)]
-        void ActivateTabMso([MarshalAs(UnmanagedType.BStr)] [In] string ControlID);
+        void ActivateTabMso([MarshalAs(UnmanagedType.BStr)][In] string ControlID);
         [DispId(6)]
-        void ActivateTabQ([MarshalAs(UnmanagedType.BStr)] [In] string ControlID, [MarshalAs(UnmanagedType.BStr)] [In] string Namespace);
+        void ActivateTabQ([MarshalAs(UnmanagedType.BStr)][In] string ControlID, [MarshalAs(UnmanagedType.BStr)][In] string Namespace);
     }
 
     //// Actually from System.Windows.Forms.UnsafeNativeMethods
@@ -248,23 +261,23 @@ namespace ExcelDna.Integration.CustomUI
     public interface ICustomTaskPane
     {
         [DispId(0)]
-        string Title { [return: MarshalAs(UnmanagedType.BStr)] [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(0)] get; }
+        string Title { [return: MarshalAs(UnmanagedType.BStr)][MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(0)] get; }
         [DispId(1)]
-        object Application { [return: MarshalAs(UnmanagedType.IDispatch)] [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(1)] get; }
+        object Application { [return: MarshalAs(UnmanagedType.IDispatch)][MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(1)] get; }
         [DispId(2)]
-        object Window { [return: MarshalAs(UnmanagedType.IDispatch)] [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(2)] get; }
+        object Window { [return: MarshalAs(UnmanagedType.IDispatch)][MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(2)] get; }
         [DispId(3)]
-        bool Visible { [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(3)] get; [param: In] [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(3)] set; }
+        bool Visible { [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(3)] get; [param: In][MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(3)] set; }
         [DispId(4)]
-        object ContentControl { [return: MarshalAs(UnmanagedType.IDispatch)] [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(4)] get; }
+        object ContentControl { [return: MarshalAs(UnmanagedType.IDispatch)][MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(4)] get; }
         [DispId(5)]
-        int Height { [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(5)] get; [param: In] [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(5)] set; }
+        int Height { [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(5)] get; [param: In][MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(5)] set; }
         [DispId(6)]
-        int Width { [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(6)] get; [param: In] [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(6)] set; }
+        int Width { [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(6)] get; [param: In][MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(6)] set; }
         [DispId(7)]
-        MsoCTPDockPosition DockPosition { [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(7)] get; [param: In] [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(7)] set; }
+        MsoCTPDockPosition DockPosition { [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(7)] get; [param: In][MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(7)] set; }
         [DispId(8)]
-        MsoCTPDockPositionRestrict DockPositionRestrict { [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(8)] get; [param: In] [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(8)] set; }
+        MsoCTPDockPositionRestrict DockPositionRestrict { [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(8)] get; [param: In][MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(8)] set; }
         [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(9)]
         void Delete();
     }
@@ -596,7 +609,7 @@ namespace ExcelDna.Integration.Rtd
         [DispId(12)]
         [return: MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_VARIANT)]
         Array RefreshData(ref int topicCount);
-        
+
         //
         // Summary:
         //     Notifies a real-time data (RTD) server application that a topic is no longer
