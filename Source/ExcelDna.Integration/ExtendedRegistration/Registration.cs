@@ -40,6 +40,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
 
         internal static void Register(IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> functions)
         {
+            functions = functions.ToList();
             var lambdas = functions.Select(reg => reg.FunctionLambda).ToList();
             var attribs = functions.Select(reg => reg.FunctionAttribute).ToList<object>();
             var argAttribs = functions.Select(reg => reg.ParameterRegistrations.Select(pr => pr.ArgumentAttribute).ToList<object>()).ToList();
