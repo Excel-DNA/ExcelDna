@@ -197,6 +197,8 @@ namespace ExcelDna.Integration.Rtd
         // Can be overridden to track Refresh calls from Excel
         protected virtual void OnRefreshDataProcessedInsideLock(IReadOnlyCollection<Topic> dirtyTopics) { }
 
+        protected IReadOnlyCollection<Topic> GetActiveTopics() { return _activeTopics.Values; }
+
         // Called from any thread, inside the update lock
         // Add the topic to the dirty set and calls UpdateNotify()
         void SetDirtyInsideLock(Topic topic)
