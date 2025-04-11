@@ -25,7 +25,7 @@ namespace ExcelDna.Integration.ComInterop
             return comObject.GetType().InvokeMember("", BindingFlags.GetProperty, null, comObject, new object[] { name }, _enUsCulture);
         }
 
-        public bool Is(ref CLSID guid, object comObject)
+        public bool Is(CLSID guid, object comObject)
         {
             IntPtr pUnk = Marshal.GetIUnknownForObject(comObject);
 
@@ -57,6 +57,17 @@ namespace ExcelDna.Integration.ComInterop
         public bool HasProperty(string name, object comObject)
         {
             return ExcelDna.ComInterop.DispatchHelper.HasProperty(comObject, name);
+        }
+
+        public IntPtr QueryInterface(CLSID guid, object comObject)
+        {
+            IntPtr punk = Marshal.GetIUnknownForObject(comObject);
+            if (Marshal.QueryInterface(punk, ref guid, out IntPtr result) == 0)
+            {
+                return result;
+            }
+
+            return IntPtr.Zero;
         }
     }
 }

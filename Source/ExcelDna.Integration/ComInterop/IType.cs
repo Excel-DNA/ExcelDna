@@ -13,6 +13,7 @@ namespace ExcelDna.Integration.ComInterop
         object GetIndex(int i, object comObject);
         object GetIndex(string name, object comObject);
         object Invoke(string name, object[] args, object comObject);
-        bool Is(ref Guid guid, object comObject);
+        bool Is(Guid guid, object comObject);
+        IntPtr QueryInterface(Guid guid, object comObject);
     }
 }
