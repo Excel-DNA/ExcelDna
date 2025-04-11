@@ -2,7 +2,7 @@
 
 namespace ExcelDna.Integration.ComInterop
 {
-    public interface IType
+    internal interface IType
     {
         object GetObject(IntPtr pUnk);
         void ReleaseObject(object comObject);
