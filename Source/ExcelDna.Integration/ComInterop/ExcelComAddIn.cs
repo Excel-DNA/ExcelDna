@@ -73,40 +73,6 @@ namespace ExcelDna.Integration
         #endregion
     }
 
-    [ComVisible(true)]
-#pragma warning disable CS0618 // Type or member is obsolete (but probably not forever)
-    [ClassInterface(ClassInterfaceType.AutoDispatch)]
-#pragma warning restore CS0618 // Type or member is obsolete
-    internal class DummyComAddIn : IDTExtensibility2
-    {
-        #region IDTExtensibility2 interface
-        public virtual void OnConnection(object Application, ext_ConnectMode ConnectMode, object AddInInst, ref Array custom)
-        {
-            Logger.ComAddIn.Verbose("DummyComAddIn.OnConnection");
-        }
-
-        public virtual void OnDisconnection(ext_DisconnectMode RemoveMode, ref Array custom)
-        {
-            Logger.ComAddIn.Verbose("DummyComAddIn.OnDisconnection");
-        }
-
-        public virtual void OnAddInsUpdate(ref Array custom)
-        {
-            Logger.ComAddIn.Verbose("DummyComAddIn.OnAddInsUpdate");
-        }
-
-        public virtual void OnStartupComplete(ref Array custom)
-        {
-            Logger.ComAddIn.Verbose("DummyComAddIn.OnStartupComplete");
-        }
-
-        public virtual void OnBeginShutdown(ref Array custom)
-        {
-            Logger.ComAddIn.Verbose("DummyComAddIn.OnBeginShutdown");
-        }
-        #endregion
-    }
-
     public static class ExcelComAddInHelper
     {
         // Com Add-ins loaded for Ribbons.
@@ -184,7 +150,7 @@ namespace ExcelDna.Integration
                     // But the add-in is not 'fully' loaded, e.g. the Ribbon is not loaded
                     // However, events on the add-in object will fire, specifically the OnDisconnect event when we do Connect = false later.
                     // So to avoid inconvenience to our 'real' add-in, we give Excel a dummy add-in for now
-                    var dummyAddIn = new DummyComAddIn();
+                    var dummyAddIn = new ComInterop.DummyComAddIn();
                     using (new SingletonClassFactoryRegistration(dummyAddIn, clsId))
                     {
                         excelComAddIns = typeAdapter.GetProperty("COMAddIns", app);
