@@ -612,7 +612,7 @@ namespace ExcelDna.Integration.CustomUI
         private static Guid guidCommandBarComboBox = new Guid("000C030C-0000-0000-C000-000000000046");
 
         internal protected object ComObject;
-        internal protected ComInterop.IType ComObjectType;
+        internal ComInterop.IType ComObjectType;
 
         internal CommandBarControl(object commandBarControl)
         {
@@ -640,13 +640,13 @@ namespace ExcelDna.Integration.CustomUI
         // In this case we check the interfaces for the right type
         internal static CommandBarControl CreateCommandBarControl(object commandBarControl)
         {
-            if (ComInterop.Util.TypeAdapter.Is(ref guidCommandBarButton, commandBarControl))
+            if (ComInterop.Util.TypeAdapter.Is(guidCommandBarButton, commandBarControl))
                 return new CommandBarButton(commandBarControl);
 
-            if (ComInterop.Util.TypeAdapter.Is(ref guidCommandBarPopup, commandBarControl))
+            if (ComInterop.Util.TypeAdapter.Is(guidCommandBarPopup, commandBarControl))
                 return new CommandBarPopup(commandBarControl);
 
-            if (ComInterop.Util.TypeAdapter.Is(ref guidCommandBarComboBox, commandBarControl))
+            if (ComInterop.Util.TypeAdapter.Is(guidCommandBarComboBox, commandBarControl))
                 return new CommandBarComboBox(commandBarControl);
 
             return new CommandBarControl(commandBarControl);

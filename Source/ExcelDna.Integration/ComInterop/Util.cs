@@ -4,11 +4,19 @@
     {
         private static TypeAdapter typeAdapter = new TypeAdapter();
 
+#if COM_GENERATED
+        private static Generator.TypeAdapter generatorAdapter = new();
+#endif
+
         public static IType TypeAdapter
         {
             get
             {
-                return NativeAOT.IsActive ? NativeAOT.TypeAdapter : typeAdapter;
+#if COM_GENERATED
+                return NativeAOT.IsActive ? generatorAdapter : typeAdapter;
+#else
+                return typeAdapter;
+#endif
             }
         }
     }
