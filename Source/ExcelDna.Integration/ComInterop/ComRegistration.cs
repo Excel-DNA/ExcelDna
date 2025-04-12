@@ -150,7 +150,7 @@ namespace ExcelDna.ComInterop.ComRegistration
                 }
                 else if (riid == ComAPI.guidIDTExtensibility2)
                 {
-                    ppvObject = Marshal.GetComInterfaceForObject(_instance, typeof(IDTExtensibility2));
+                    Integration.ComInterop.Util.QueryInterfaceForObject(_instance, riid, out ppvObject);
                 }
                 else if (riid == ComAPI.guidIRtdServer)
                 {
