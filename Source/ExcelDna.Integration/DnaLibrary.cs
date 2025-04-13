@@ -404,7 +404,7 @@ namespace ExcelDna.Integration
                     if (addIn.IsCustomUI)
                     {
                         // Load ExcelRibbon classes
-                        ExcelRibbon excelRibbon = addIn.Instance as ExcelRibbon;
+                        ExcelComAddIn excelRibbon = addIn.Instance as ExcelComAddIn;
                         excelRibbon.DnaLibrary = addIn.ParentDnaLibrary;
                         ExcelComAddInHelper.LoadComAddIn(excelRibbon);
                         uiLoaded = true;
