@@ -1,13 +1,10 @@
-﻿using System.Runtime.InteropServices;
-using System.Windows.Forms;
-using ExcelDna.Integration.CustomUI;
+﻿using ExcelDna.Integration.CustomUI;
 
 namespace ExcelDna.AddIn.RuntimeTestsAOT
 {
-    [ComVisible(true)]
-    public class RibbonController : ExcelRibbon
+    public class RibbonController : IExcelRibbon
     {
-        public override string GetCustomUI(string RibbonID)
+        public string GetCustomUI(string RibbonID)
         {
             return @"
       <customUI xmlns='http://schemas.microsoft.com/office/2006/01/customui'>
