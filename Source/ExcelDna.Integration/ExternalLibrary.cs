@@ -107,40 +107,42 @@ namespace ExcelDna.Integration
                     if (Path.EndsWith(".DNA", StringComparison.OrdinalIgnoreCase))
                     {
                         byte[] dnaContent = ExcelIntegration.GetDnaFileBytes(resourceName);
-                        DnaLibrary lib = DnaLibrary.LoadFrom(dnaContent, pathResolveRoot);
-                        if (lib == null)
+                        if (dnaContent != null)
                         {
-                            Logger.Initialization.Error("External library could not be registered - Path: {0}\r\n - Packed DnaLibrary could not be loaded", Path);
-                            return list;
-                        }
+                            DnaLibrary lib = DnaLibrary.LoadFrom(dnaContent, pathResolveRoot);
+                            if (lib == null)
+                            {
+                                Logger.Initialization.Error("External library could not be registered - Path: {0}\r\n - Packed DnaLibrary could not be loaded", Path);
+                                return list;
+                            }
 
-                        return lib.GetAssemblies(pathResolveRoot);
+                            return lib.GetAssemblies(pathResolveRoot);
+                        }
                     }
-                    else
+
+                    // DOCUMENT: TypeLibPath which is a resource in a library is denoted as fileName.dll\4
+                    // For packed assemblies, we set TypeLibPath="packed:2"
+                    string typeLibPath = null;
+                    if (!string.IsNullOrEmpty(TypeLibPath) && TypeLibPath.StartsWith("packed:"))
                     {
-                        // DOCUMENT: TypeLibPath which is a resource in a library is denoted as fileName.dll\4
-                        // For packed assemblies, we set TypeLibPath="packed:2"
-                        string typeLibPath = null;
-                        if (!string.IsNullOrEmpty(TypeLibPath) && TypeLibPath.StartsWith("packed:"))
-                        {
-                            typeLibPath = DnaLibrary.XllPath + @"\" + TypeLibPath.Substring(7);
-                        }
-
-                        // It would be nice to check here whether the assembly is loaded already.
-                        // But because of the name mangling in the packing we can't easily check.
-
-                        // So we make the following assumptions:
-                        // 1. Packed assemblies won't also be loadable from files (else they might be loaded twice)
-                        // 2. ExternalLibrary loads will happen before reference loads via AssemblyResolve.
-                        // Under these assumptions we should not have assemblies loaded more than once, 
-                        // even if not checking here.
-                        byte[] rawAssembly = ExcelIntegration.GetAssemblyBytes(resourceName);
-                        byte[] rawPdb = ExcelIntegration.GetPdbBytes(resourceName);
-                        Assembly assembly = ExcelIntegration.LoadFromAssemblyBytes(rawAssembly, rawPdb);
-                        list.Add(new ExportedAssembly(assembly, ExplicitExports, ExplicitRegistration, ComServer, false, typeLibPath, dnaLibrary));
-                        return list;
+                        typeLibPath = DnaLibrary.XllPath + @"\" + TypeLibPath.Substring(7);
                     }
+
+                    // It would be nice to check here whether the assembly is loaded already.
+                    // But because of the name mangling in the packing we can't easily check.
+
+                    // So we make the following assumptions:
+                    // 1. Packed assemblies won't also be loadable from files (else they might be loaded twice)
+                    // 2. ExternalLibrary loads will happen before reference loads via AssemblyResolve.
+                    // Under these assumptions we should not have assemblies loaded more than once, 
+                    // even if not checking here.
+                    byte[] rawAssembly = ExcelIntegration.GetAssemblyBytes(resourceName);
+                    byte[] rawPdb = ExcelIntegration.GetPdbBytes(resourceName);
+                    Assembly assembly = ExcelIntegration.LoadFromAssemblyBytes(rawAssembly, rawPdb);
+                    list.Add(new ExportedAssembly(assembly, ExplicitExports, ExplicitRegistration, ComServer, false, typeLibPath, dnaLibrary));
+                    return list;
                 }
+
                 if (Uri.IsWellFormedUriString(Path, UriKind.Absolute))
                 {
                     Uri uri = new Uri(Path, UriKind.Absolute);
