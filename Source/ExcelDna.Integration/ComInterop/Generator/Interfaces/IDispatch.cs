@@ -19,11 +19,11 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
 
         [PreserveSig]
         int GetIDsOfNames(
-            ref Guid riid,
-            [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr)] string[] rgszNames,
+            Guid riid,
+            [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr, SizeParamIndex = 2)] string[] rgszNames,
             uint cNames,
             uint lcid,
-            [MarshalAs(UnmanagedType.LPArray)] int[] rgDispId
+            [In][Out][MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] int[] rgDispId
         );
 
         [PreserveSig]
@@ -33,8 +33,8 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
             uint lcid,
             INVOKEKIND wFlags,
             [MarshalUsing(typeof(DispParamsMarshaller))] ref DispParams pDispParams,
-            [MarshalUsing(typeof(VariantMarshaller))] ref Variant pVarResult,
-            [MarshalUsing(typeof(ExcepInfoMarshaller))] ref ExcepInfo pExcepInfo,
+            [MarshalUsing(typeof(VariantMarshaller))] out Variant pVarResult,
+            [MarshalUsing(typeof(ExcepInfoMarshaller))] out ExcepInfo pExcepInfo,
             ref uint puArgErr
         );
     }
