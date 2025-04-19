@@ -14,7 +14,7 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
             {
                 cArgs = managed.cArgs,
                 cNamedArgs = managed.cNamedArgs,
-                rgdispidNamedArgs = &managed.rgdispidNamedArgs,
+                rgdispidNamedArgs = managed.rgdispidNamedArgs != 0 ? &managed.rgdispidNamedArgs : null,
                 rgvarg =
                     managed.rgvarg != null
                         ? ArrayMarshaller.ArrayToPtr(managed.rgvarg.Reverse().Select(VariantMarshaller.ConvertToUnmanaged).ToArray())
@@ -28,7 +28,7 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
             {
                 cArgs = unmanaged.cArgs,
                 cNamedArgs = unmanaged.cNamedArgs,
-                rgdispidNamedArgs = *unmanaged.rgdispidNamedArgs,
+                rgdispidNamedArgs = unmanaged.rgdispidNamedArgs != null ? *unmanaged.rgdispidNamedArgs : 0,
                 rgvarg = ArrayMarshaller
                     .PtrToArray<VariantNative>(unmanaged.rgvarg, unmanaged.cArgs)
                     .Select(VariantMarshaller.ConvertToManaged)

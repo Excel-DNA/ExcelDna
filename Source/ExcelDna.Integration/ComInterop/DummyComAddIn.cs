@@ -24,12 +24,12 @@ namespace ExcelDna.Integration.ComInterop
             throw new NotImplementedException();
         }
 
-        public int GetIDsOfNames(ref Guid riid, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr)] string[] rgszNames, uint cNames, uint lcid, [MarshalAs(UnmanagedType.LPArray)] int[] rgDispId)
+        public int GetIDsOfNames(Guid riid, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr, SizeParamIndex = 2)] string[] rgszNames, uint cNames, uint lcid, [In][Out][MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] int[] rgDispId)
         {
             throw new NotImplementedException();
         }
 
-        public int Invoke(int dispIdMember, Guid riid, uint lcid, INVOKEKIND wFlags, [MarshalUsing(typeof(Generator.Interfaces.DispParamsMarshaller))] ref Generator.Interfaces.DispParams pDispParams, [MarshalUsing(typeof(Generator.Interfaces.VariantMarshaller))] ref Generator.Interfaces.Variant pVarResult, [MarshalUsing(typeof(Generator.Interfaces.ExcepInfoMarshaller))] ref Generator.Interfaces.ExcepInfo pExcepInfo, ref uint puArgErr)
+        public int Invoke(int dispIdMember, Guid riid, uint lcid, INVOKEKIND wFlags, [MarshalUsing(typeof(Generator.Interfaces.DispParamsMarshaller))] ref Generator.Interfaces.DispParams pDispParams, [MarshalUsing(typeof(Generator.Interfaces.VariantMarshaller))] out Generator.Interfaces.Variant pVarResult, [MarshalUsing(typeof(Generator.Interfaces.ExcepInfoMarshaller))] out Generator.Interfaces.ExcepInfo pExcepInfo, ref uint puArgErr)
         {
             throw new NotImplementedException();
         }
