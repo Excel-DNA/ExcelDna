@@ -115,7 +115,7 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
 
             var dispIds = new int[names.Length];
             var hr = dispatch!.GetIDsOfNames(
-                ref emptyGuid,
+                emptyGuid,
                 names,
                 (uint)names.Length,
                 LOCALE_USER_DEFAULT,
@@ -141,8 +141,8 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
                 LOCALE_USER_DEFAULT,
                 kind,
                 ref dispParams,
-                ref pVarResult,
-                ref pExcepInfo,
+                out pVarResult,
+                out pExcepInfo,
                 ref puArgErr
             );
 
