@@ -115,6 +115,7 @@ namespace ExcelDna.Integration
         // We assume UpdateNotify is not called too often here (need RTD server to be careful).
         public void UpdateNotify(IRTDUpdateEvent updateEvent)
         {
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.f}] RtdUpdateSynchronization.UpdateNotify");
             lock (_lockObject)
             {
                 _pendingRtdUpdates[updateEvent] = null;
@@ -142,6 +143,7 @@ namespace ExcelDna.Integration
         //       However, the problem reported there was surely when called from another thread. Does suspension of the object model affect us here?
         public void ProcessUpdateNotifications()
         {
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.f}] ProcessUpdateNotifications");
             // CONSIDER: Do temp swap trick to reduce locking?
             lock (_lockObject)
             {
@@ -152,6 +154,7 @@ namespace ExcelDna.Integration
                     {
                         if (_registeredRtdUpdates.ContainsKey(pendingRtdUpdate))
                         {
+                            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.f}] Calling UpdateNotify - Thread: {System.Threading.Thread.CurrentThread.ManagedThreadId}");
                             pendingRtdUpdate.UpdateNotify();
                         }
                     }
