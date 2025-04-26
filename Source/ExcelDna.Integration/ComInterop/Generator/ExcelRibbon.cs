@@ -43,7 +43,7 @@ namespace ExcelDna.Integration.ComInterop.Generator
             return 0;
         }
 
-        public int Invoke(int dispIdMember, Guid riid, uint lcid, INVOKEKIND wFlags, [MarshalUsing(typeof(Generator.Interfaces.DispParamsMarshaller))] ref Generator.Interfaces.DispParams pDispParams, [MarshalUsing(typeof(Generator.Interfaces.VariantMarshaller))] out Generator.Interfaces.Variant pVarResult, [MarshalUsing(typeof(Generator.Interfaces.ExcepInfoMarshaller))] out Generator.Interfaces.ExcepInfo pExcepInfo, ref uint puArgErr)
+        public int Invoke(int dispIdMember, Guid riid, uint lcid, INVOKEKIND wFlags, [MarshalUsing(typeof(Generator.Interfaces.DispParamsMarshaller))] ref Generator.Interfaces.DispParams pDispParams, [MarshalUsing(typeof(Generator.Interfaces.VariantMarshaller))] out Generator.Interfaces.Variant pVarResult, nint pExcepInfo, ref uint puArgErr)
         {
             System.Diagnostics.Trace.WriteLine($"ExcelRibbon.Invoke {dispIdMember}");
 
