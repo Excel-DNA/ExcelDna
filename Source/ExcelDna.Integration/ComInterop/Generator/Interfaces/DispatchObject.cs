@@ -131,7 +131,6 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
         {
             var dispIds = GetDispIDs(propName);
 
-            ExcepInfo pExcepInfo = new();
             Variant pVarResult = new();
             uint puArgErr = 0;
 
@@ -142,7 +141,7 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
                 kind,
                 ref dispParams,
                 out pVarResult,
-                out pExcepInfo,
+                0,
                 ref puArgErr
             );
 
