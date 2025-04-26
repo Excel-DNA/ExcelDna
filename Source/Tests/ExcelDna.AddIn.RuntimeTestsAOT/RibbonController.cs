@@ -12,7 +12,8 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         <tabs>
           <tab id='tab1' label='My Native Tab'>
             <group id='group1' label='My Native Group'>
-              <button id='button1' label='My Native Button' onAction='OnButtonPressed'/>
+              <button id='button1' label='My Native Button1' onAction='OnButtonPressed1'/>
+              <button id='button2' label='My Native Button2' onAction='OnButtonPressed2'/>
             </group >
           </tab>
         </tabs>
@@ -20,9 +21,14 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
     </customUI>";
         }
 
-        public void OnButtonPressed(IRibbonControl control)
+        public void OnButtonPressed1(IRibbonControl control)
         {
-            MessageBox.Show("Hello from native control " + control.Id);
+            MessageBox.Show("Hello1 from native control "/* + control.Id*/);
+        }
+
+        public void OnButtonPressed2(IRibbonControl control)
+        {
+            MessageBox.Show("Hello2 from native control "/* + control.Id*/);
         }
     }
 }
