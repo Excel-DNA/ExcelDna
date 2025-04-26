@@ -9,6 +9,18 @@ namespace ExcelDna.SourceGenerator.NativeAOT
     [Generator]
     public class Generator : ISourceGenerator
     {
+        class TypeInfo
+        {
+            public ITypeSymbol Type { get; }
+            public IEnumerable<IMethodSymbol> Methods { get; }
+
+            public TypeInfo(ITypeSymbol type, IEnumerable<IMethodSymbol> methods)
+            {
+                this.Type = type;
+                this.Methods = methods;
+            }
+        }
+
         public void Execute(GeneratorExecutionContext context)
         {
             if (!(context.SyntaxContextReceiver is SyntaxReceiver receiver))
@@ -43,7 +55,15 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                 string addIns = "";
                 foreach (var i in receiver.AddIns)
                 {
-                    addIns += $"ExcelDna.Integration.NativeAOT.ExcelAddIns.Add(new ExcelDna.Integration.TypeHelper<{Util.GetFullTypeName(i)}>());\r\n";
+                    string actions = "";
+                    foreach (var m in i.Methods)
+                    {
+                        if (actions.Length > 0)
+                            actions += ",\r\n";
+                        actions += $"typeof({Util.GetFullTypeName(m.ContainingType)}).GetMethod(\"{m.Name}\")!";
+                    }
+
+                    addIns += $"ExcelDna.Integration.NativeAOT.ExcelAddIns.Add(new ExcelDna.Integration.TypeHelper<{Util.GetFullTypeName(i.Type)}>([{actions}]));\r\n";
                 }
                 source = source.Replace("[ADDINS]", addIns);
             }
@@ -67,7 +87,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT
         class SyntaxReceiver : ISyntaxContextReceiver
         {
             public List<IMethodSymbol> Functions { get; } = new List<IMethodSymbol>();
-            public List<ITypeSymbol> AddIns { get; } = new List<ITypeSymbol>();
+            public List<TypeInfo> AddIns { get; } = new List<TypeInfo>();
 
             public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
             {
@@ -86,7 +106,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                     {
                         if (typeSymbol.AllInterfaces.Any(i => Util.GetFullTypeName(i) == "ExcelDna.Integration.IExcelAddIn" || Util.GetFullTypeName(i) == "ExcelDna.Integration.CustomUI.IExcelRibbon"))
                         {
-                            AddIns.Add(typeSymbol);
+                            AddIns.Add(new TypeInfo(typeSymbol, typeSymbol.GetMembers().OfType<IMethodSymbol>()));
                         }
                     }
                 }
