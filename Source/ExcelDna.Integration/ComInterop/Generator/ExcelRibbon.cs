@@ -2,6 +2,8 @@
 
 using ExcelDna.Integration.Extensibility;
 using System;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Runtime.InteropServices.Marshalling;
@@ -11,11 +13,13 @@ namespace ExcelDna.Integration.ComInterop.Generator
     [GeneratedComClass]
     internal partial class ExcelRibbon : ExcelComAddIn, Interfaces.IDTExtensibility2, Interfaces.IRibbonExtensibility
     {
+        private MethodInfo[] methods;
         private CustomUI.IExcelRibbon customRibbon;
 
-        public ExcelRibbon(CustomUI.IExcelRibbon customRibbon)
+        public ExcelRibbon(ITypeHelper t)
         {
-            this.customRibbon = customRibbon;
+            methods = t.Methods.ToArray();
+            this.customRibbon = t.CreateInstance() as CustomUI.IExcelRibbon;
         }
 
         public int GetTypeInfoCount(out uint pctinfo)
@@ -33,7 +37,7 @@ namespace ExcelDna.Integration.ComInterop.Generator
             if (cNames == 1)
             {
                 System.Diagnostics.Trace.WriteLine($"ExcelRibbon.GetIDsOfNames {rgszNames[0]}");
-                rgDispId[0] = 42;
+                rgDispId[0] = Array.FindIndex(methods, i => i.Name == rgszNames[0]);
             }
 
             return 0;
@@ -42,6 +46,9 @@ namespace ExcelDna.Integration.ComInterop.Generator
         public int Invoke(int dispIdMember, Guid riid, uint lcid, INVOKEKIND wFlags, [MarshalUsing(typeof(Generator.Interfaces.DispParamsMarshaller))] ref Generator.Interfaces.DispParams pDispParams, [MarshalUsing(typeof(Generator.Interfaces.VariantMarshaller))] out Generator.Interfaces.Variant pVarResult, [MarshalUsing(typeof(Generator.Interfaces.ExcepInfoMarshaller))] out Generator.Interfaces.ExcepInfo pExcepInfo, ref uint puArgErr)
         {
             System.Diagnostics.Trace.WriteLine($"ExcelRibbon.Invoke {dispIdMember}");
+
+            if (dispIdMember >= 0 && dispIdMember < methods.Length)
+                methods[dispIdMember].Invoke(customRibbon, new object[] { null });
 
             pVarResult = new();
             pExcepInfo = new();
