@@ -316,7 +316,7 @@ namespace ExcelDna.Integration
                     }
                     info.IsCustomUI = isRibbon;
 #if COM_GENERATED
-                    info.Instance = IsRibbonInterface(t.Type) ? new ComInterop.Generator.ExcelRibbon(t.CreateInstance() as CustomUI.IExcelRibbon) : t.CreateInstance();
+                    info.Instance = IsRibbonInterface(t.Type) ? new ComInterop.Generator.ExcelRibbon(t) : t.CreateInstance();
 #else
                     info.Instance =  t.CreateInstance();
 #endif
