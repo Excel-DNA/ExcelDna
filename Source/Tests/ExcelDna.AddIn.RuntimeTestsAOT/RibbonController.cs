@@ -21,14 +21,14 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
     </customUI>";
         }
 
-        public void OnButtonPressed1(IRibbonControl control)
+        public void OnButtonPressed1(RibbonControl control)
         {
-            MessageBox.Show("Hello1 from native control "/* + control.Id*/);
+            MessageBox.Show("Hello1 from native control " + control.Id);
         }
 
-        public void OnButtonPressed2(IRibbonControl control)
+        public void OnButtonPressed2(RibbonControl control)
         {
-            MessageBox.Show("Hello2 from native control "/* + control.Id*/);
+            MessageBox.Show("Hello2 from native control " + control.Id);
         }
     }
 }
