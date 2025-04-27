@@ -1,5 +1,6 @@
 ﻿#if COM_GENERATED
 
+using ExcelDna.Integration.ComInterop.Generator.Interfaces;
 using ExcelDna.Integration.Extensibility;
 using System;
 using System.Linq;
@@ -34,21 +35,19 @@ namespace ExcelDna.Integration.ComInterop.Generator
 
         public int GetIDsOfNames(Guid riid, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr, SizeParamIndex = 2)] string[] rgszNames, uint cNames, uint lcid, [In][Out][MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] int[] rgDispId)
         {
-            if (cNames == 1)
-            {
-                System.Diagnostics.Trace.WriteLine($"ExcelRibbon.GetIDsOfNames {rgszNames[0]}");
-                rgDispId[0] = Array.FindIndex(methods, i => i.Name == rgszNames[0]);
-            }
+            for (int i = 0; i < cNames; ++i)
+                rgDispId[i] = Array.FindIndex(methods, m => m.Name == rgszNames[i]);
 
             return 0;
         }
 
         public int Invoke(int dispIdMember, Guid riid, uint lcid, INVOKEKIND wFlags, [MarshalUsing(typeof(Generator.Interfaces.DispParamsMarshaller))] in Generator.Interfaces.DispParams pDispParams, nint pVarResult, nint pExcepInfo, ref uint puArgErr)
         {
-            System.Diagnostics.Trace.WriteLine($"ExcelRibbon.Invoke {dispIdMember}");
-
-            if (dispIdMember >= 0 && dispIdMember < methods.Length)
-                methods[dispIdMember].Invoke(customRibbon, new object[] { null });
+            if (dispIdMember >= 0 && dispIdMember < methods.Length && pDispParams.cArgs == 1)
+            {
+                CustomUI.RibbonControl ribbonControl = new((pDispParams.rgvarg[0].Value as DispatchObject).ComObject as IRibbonControl);
+                methods[dispIdMember].Invoke(customRibbon, [ribbonControl]);
+            }
 
             return 0;
         }
