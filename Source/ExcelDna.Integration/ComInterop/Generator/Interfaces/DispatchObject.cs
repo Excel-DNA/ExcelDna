@@ -16,6 +16,8 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
         private const int LOCALE_USER_DEFAULT = 0x0400;
         private const int DISPID_PROPERTYPUT = -3;
 
+        public object ComObject => dispatch;
+
         public DispatchObject(IntPtr unknown) : base(unknown)
         {
             ComWrappers cw = new StrategyBasedComWrappers();
@@ -139,7 +141,7 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
                 emptyGuid,
                 LOCALE_USER_DEFAULT,
                 kind,
-                ref dispParams,
+                dispParams,
                 variantResult.Ptr,
                 0,
                 ref puArgErr
