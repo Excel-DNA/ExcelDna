@@ -131,7 +131,7 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
         {
             var dispIds = GetDispIDs(propName);
 
-            Variant pVarResult = new();
+            using VariantResultMarshaller variantResult = new();
             uint puArgErr = 0;
 
             var hr = dispatch!.Invoke(
@@ -140,14 +140,13 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
                 LOCALE_USER_DEFAULT,
                 kind,
                 ref dispParams,
-                out pVarResult,
+                variantResult.Ptr,
                 0,
                 ref puArgErr
             );
 
             Marshal.ThrowExceptionForHR(hr);
-
-            return pVarResult.Value;
+            return variantResult.GetResult().Value;
         }
     }
 }
