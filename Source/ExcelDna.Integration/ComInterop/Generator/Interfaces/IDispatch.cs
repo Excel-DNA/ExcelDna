@@ -32,8 +32,8 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
             Guid riid,
             uint lcid,
             INVOKEKIND wFlags,
-            [MarshalUsing(typeof(DispParamsMarshaller))] ref DispParams pDispParams,
-            [MarshalUsing(typeof(VariantMarshaller))] out Variant pVarResult,
+            [MarshalUsing(typeof(DispParamsMarshaller))] in DispParams pDispParams,
+            nint pVarResult,
             nint pExcepInfo,
             ref uint puArgErr
         );
