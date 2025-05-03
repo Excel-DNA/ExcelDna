@@ -158,10 +158,10 @@ namespace ExcelDna.Integration
 
         internal static void UnloadComAddIns()
         {
-            CultureInfo ci = new CultureInfo(1033);
+            ComInterop.IType typeAdapter = ComInterop.Util.TypeAdapter;
             foreach (LoadedComAddIn comAddIn in loadedComAddIns.ToArray()) // Disconnecting an add-in removes it from loadedComAddIns, so we operate on a copy of the collection.
             {
-                comAddIn.ComObject.GetType().InvokeMember("Connect", System.Reflection.BindingFlags.SetProperty, null, comAddIn.ComObject, new object[] { false }, ci);
+                typeAdapter.SetProperty("Connect", false, comAddIn.ComObject);
                 Logger.ComAddIn.Info("Ribbon/COM Add-In Unloaded.");
             }
         }
