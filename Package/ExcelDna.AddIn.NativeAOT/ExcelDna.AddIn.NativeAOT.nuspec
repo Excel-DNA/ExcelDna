@@ -43,7 +43,6 @@
       <file src="lib\net8.0-windows\ExcelDna.Integration.dll" target="lib\net8.0-windows7.0\ExcelDna.Integration.dll" />
       <file src="lib\net8.0-windows\ExcelDna.ManagedHost.dll" target="lib\net8.0-windows7.0\ExcelDna.ManagedHost.dll" />
       <file src="lib\net8.0-windows\ExcelDna.Loader.dll" target="lib\net8.0-windows7.0\ExcelDna.Loader.dll" />
-      <file src="lib\net8.0-windows\ExcelDna.COMWrappers.NativeAOT.dll" target="lib\net8.0-windows7.0\ExcelDna.COMWrappers.NativeAOT.dll" />
       
       <file src="analyzers\dotnet\cs\ExcelDna.SourceGenerator.NativeAOT.dll" target="analyzers\dotnet\cs" />
       

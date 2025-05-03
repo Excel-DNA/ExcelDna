@@ -35,8 +35,6 @@ namespace ExcelDna.Integration
                     List<Type> rtdServerTypes,
                     List<ExcelComClassType> comClassTypes)
         {
-            bool loadRibbons = (ExcelDnaUtil.ExcelVersion >= 12.0);
-
             foreach (ExportedAssembly assembly in assemblies)
             {
                 int initialObjectsCount = methods.Count +
@@ -89,7 +87,7 @@ namespace ExcelDna.Integration
                             GetExcelMethods(type, explicitExports, methods, excelFunctionsExtendedRegistration);
                             GetExcelFunctionExecutionHandlerSelectors(type, excelFunctionExecutionHandlerSelectors);
                         }
-                        GetExcelAddIns(assembly, new TypeHelperDynamic(type), loadRibbons, addIns);
+                        GetExcelAddIns(assembly, new TypeHelperDynamic(type), addIns);
                         GetRtdServerTypes(type, rtdServerTypes, out isRtdServer);
                         GetComClassTypes(assembly, type, attribs, isRtdServer, comClassTypes);
                     }
@@ -292,8 +290,10 @@ namespace ExcelDna.Integration
             public DnaLibrary ParentDnaLibrary;
         }
 
-        static public void GetExcelAddIns(ExportedAssembly assembly, ITypeHelper t, bool loadRibbons, List<ExcelAddInInfo> addIns)
+        static public void GetExcelAddIns(ExportedAssembly assembly, ITypeHelper t, List<ExcelAddInInfo> addIns)
         {
+            bool loadRibbons = (ExcelDnaUtil.ExcelVersion >= 12.0);
+
             // NOTE: We probably should have restricted this to public types, but didn't. Now it's too late.
             //       So internal classes that implement IExcelAddIn are also loaded.
             try
@@ -315,7 +315,11 @@ namespace ExcelDna.Integration
                         info.AutoCloseMethod = typeof(IExcelAddIn).GetMethod("AutoClose");
                     }
                     info.IsCustomUI = isRibbon;
-                    info.Instance = t.CreateInstance();
+#if COM_GENERATED
+                    info.Instance = IsRibbonInterface(t.Type) ? new ComInterop.Generator.ExcelRibbon(t) : t.CreateInstance();
+#else
+                    info.Instance =  t.CreateInstance();
+#endif
                     info.ParentDnaLibrary = assembly?.ParentDnaLibrary;
                     addIns.Add(info);
                     Logger.Registration.Verbose("GetExcelAddIns - Created add-in object of type: {0}", t.Type.FullName);
@@ -422,11 +426,20 @@ namespace ExcelDna.Integration
 
             bool isRibbon =
                     type != null &&
-                    TypeHasAncestorWithFullName(type.BaseType, "ExcelDna.Integration.CustomUI.ExcelRibbon") &&
+                    (TypeHasAncestorWithFullName(type.BaseType, "ExcelDna.Integration.CustomUI.ExcelRibbon") || IsRibbonInterface(type)) &&
                     !type.IsAbstract &&
                     !IsRibbonType(type.BaseType);
 
             return isRibbon;
+        }
+
+        static bool IsRibbonInterface(Type type)
+        {
+#if COM_GENERATED
+            return type.GetInterface("ExcelDna.Integration.CustomUI.IExcelRibbon") != null;
+#else
+            return false;
+#endif
         }
 
         private static bool IsParameterConversion(MethodInfo methodInfo)

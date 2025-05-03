@@ -1,8 +1,11 @@
-﻿using System.Runtime.InteropServices;
+﻿#if COM_GENERATED
+
+using System;
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Runtime.InteropServices.Marshalling;
 
-namespace ExcelDna.COMWrappers.NativeAOT.ComInterfaces
+namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
 {
     [GeneratedComInterface]
     [Guid("00020400-0000-0000-C000-000000000046")]
@@ -16,11 +19,11 @@ namespace ExcelDna.COMWrappers.NativeAOT.ComInterfaces
 
         [PreserveSig]
         int GetIDsOfNames(
-            ref Guid riid,
-            [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr)] string[] rgszNames,
+            Guid riid,
+            [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr, SizeParamIndex = 2)] string[] rgszNames,
             uint cNames,
             uint lcid,
-            [MarshalAs(UnmanagedType.LPArray)] int[] rgDispId
+            [In][Out][MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] int[] rgDispId
         );
 
         [PreserveSig]
@@ -29,10 +32,12 @@ namespace ExcelDna.COMWrappers.NativeAOT.ComInterfaces
             Guid riid,
             uint lcid,
             INVOKEKIND wFlags,
-            [MarshalUsing(typeof(DispParamsMarshaller))] ref DispParams pDispParams,
-            [MarshalUsing(typeof(VariantMarshaller))] ref Variant pVarResult,
-            [MarshalUsing(typeof(ExcepInfoMarshaller))] ref ExcepInfo pExcepInfo,
+            [MarshalUsing(typeof(DispParamsMarshaller))] in DispParams pDispParams,
+            nint pVarResult,
+            nint pExcepInfo,
             ref uint puArgErr
         );
     }
 }
+
+#endif

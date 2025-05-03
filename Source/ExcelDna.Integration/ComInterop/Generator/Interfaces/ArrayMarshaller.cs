@@ -1,7 +1,9 @@
-﻿using System.Runtime.CompilerServices;
+﻿#if COM_GENERATED
+
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace ExcelDna.COMWrappers.NativeAOT.ComInterfaces
+namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
 {
     internal static class ArrayMarshaller
     {
@@ -22,3 +24,5 @@ namespace ExcelDna.COMWrappers.NativeAOT.ComInterfaces
         }
     }
 }
+
+#endif

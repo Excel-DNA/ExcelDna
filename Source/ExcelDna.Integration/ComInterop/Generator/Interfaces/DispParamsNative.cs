@@ -1,6 +1,8 @@
-﻿using System.Runtime.InteropServices;
+﻿#if COM_GENERATED
 
-namespace ExcelDna.COMWrappers.NativeAOT.ComInterfaces
+using System.Runtime.InteropServices;
+
+namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
 {
     [StructLayout(LayoutKind.Sequential)]
     internal unsafe struct DispParamsNative
@@ -11,3 +13,5 @@ namespace ExcelDna.COMWrappers.NativeAOT.ComInterfaces
         public int cNamedArgs;
     }
 }
+
+#endif

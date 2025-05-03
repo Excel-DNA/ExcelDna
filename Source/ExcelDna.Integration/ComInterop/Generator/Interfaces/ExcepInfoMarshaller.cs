@@ -1,7 +1,9 @@
-﻿using System.Runtime.InteropServices;
+﻿#if COM_GENERATED
+
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 
-namespace ExcelDna.COMWrappers.NativeAOT.ComInterfaces
+namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
 {
     [CustomMarshaller(typeof(ExcepInfo), MarshalMode.Default, typeof(ExcepInfoMarshaller))]
     internal static class ExcepInfoMarshaller
@@ -44,3 +46,5 @@ namespace ExcelDna.COMWrappers.NativeAOT.ComInterfaces
         }
     }
 }
+
+#endif

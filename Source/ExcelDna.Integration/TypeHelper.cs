@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -8,11 +9,19 @@ namespace ExcelDna.Integration
     {
         Type Type { get; }
         object CreateInstance();
+        IEnumerable<MethodInfo> Methods { get; }
     }
 
     public class TypeHelper<T> : ITypeHelper
     {
+        public TypeHelper(IEnumerable<MethodInfo> methods)
+        {
+            this.Methods = methods;
+        }
+
         public Type Type => typeof(T);
+
+        public IEnumerable<MethodInfo> Methods { get; private set; }
 
         public object CreateInstance()
         {
@@ -25,9 +34,12 @@ namespace ExcelDna.Integration
         public TypeHelperDynamic(Type t)
         {
             Type = t;
+            Methods = Type.GetMethods();
         }
 
         public Type Type { get; }
+
+        public IEnumerable<MethodInfo> Methods { get; private set; }
 
         public object CreateInstance()
         {

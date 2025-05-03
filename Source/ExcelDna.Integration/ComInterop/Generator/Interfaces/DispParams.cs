@@ -1,4 +1,6 @@
-﻿namespace ExcelDna.COMWrappers.NativeAOT.ComInterfaces
+﻿#if COM_GENERATED
+
+namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
 {
     internal struct DispParams
     {
@@ -8,3 +10,5 @@
         public Variant[] rgvarg;
     }
 }
+
+#endif

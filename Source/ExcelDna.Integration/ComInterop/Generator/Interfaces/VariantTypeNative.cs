@@ -1,4 +1,6 @@
-﻿namespace ExcelDna.COMWrappers.NativeAOT.ComInterfaces
+﻿#if COM_GENERATED
+
+namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
 {
     internal enum VariantTypeNative : ushort
     {
@@ -56,3 +58,5 @@
         VT_TYPEMASK = 0xfff
     }
 }
+
+#endif

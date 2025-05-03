@@ -1,8 +1,12 @@
-﻿using System.Runtime.InteropServices;
+﻿#if COM_GENERATED
+
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using System.Runtime.InteropServices.ComTypes;
+using System;
+using System.Linq;
 
-namespace ExcelDna.COMWrappers.NativeAOT.ComInterfaces
+namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
 {
     internal class DispatchObject : UnknownObject
     {
@@ -11,6 +15,8 @@ namespace ExcelDna.COMWrappers.NativeAOT.ComInterfaces
 
         private const int LOCALE_USER_DEFAULT = 0x0400;
         private const int DISPID_PROPERTYPUT = -3;
+
+        public object ComObject => dispatch;
 
         public DispatchObject(IntPtr unknown) : base(unknown)
         {
@@ -84,15 +90,23 @@ namespace ExcelDna.COMWrappers.NativeAOT.ComInterfaces
 
         public object? Invoke(string name, object[] args)
         {
-            Variant[] a = args.Select(i => new Variant(i)).ToArray();
-
-            var dispParams = new DispParams
+            DispParams dispParams;
+            if (args != null)
             {
-                rgvarg = a,
-                rgdispidNamedArgs = 0,
-                cArgs = a.Length,
-                cNamedArgs = 0
-            };
+                Variant[] a = args.Select(i => new Variant(i)).ToArray();
+
+                dispParams = new DispParams
+                {
+                    rgvarg = a,
+                    rgdispidNamedArgs = 0,
+                    cArgs = a.Length,
+                    cNamedArgs = 0
+                };
+            }
+            else
+            {
+                dispParams = new DispParams();
+            }
 
             return InvokeWrapper(name, INVOKEKIND.INVOKE_FUNC, dispParams);
         }
@@ -103,7 +117,7 @@ namespace ExcelDna.COMWrappers.NativeAOT.ComInterfaces
 
             var dispIds = new int[names.Length];
             var hr = dispatch!.GetIDsOfNames(
-                ref emptyGuid,
+                emptyGuid,
                 names,
                 (uint)names.Length,
                 LOCALE_USER_DEFAULT,
@@ -119,8 +133,7 @@ namespace ExcelDna.COMWrappers.NativeAOT.ComInterfaces
         {
             var dispIds = GetDispIDs(propName);
 
-            ExcepInfo pExcepInfo = new();
-            Variant pVarResult = new();
+            using VariantResultMarshaller variantResult = new();
             uint puArgErr = 0;
 
             var hr = dispatch!.Invoke(
@@ -128,15 +141,16 @@ namespace ExcelDna.COMWrappers.NativeAOT.ComInterfaces
                 emptyGuid,
                 LOCALE_USER_DEFAULT,
                 kind,
-                ref dispParams,
-                ref pVarResult,
-                ref pExcepInfo,
+                dispParams,
+                variantResult.Ptr,
+                0,
                 ref puArgErr
             );
 
             Marshal.ThrowExceptionForHR(hr);
-
-            return pVarResult.Value;
+            return variantResult.GetResult().Value;
         }
     }
 }
+
+#endif

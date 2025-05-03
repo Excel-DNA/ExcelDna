@@ -1,7 +1,9 @@
-﻿using ExcelDna.COMWrappers.NativeAOT.ComInterfaces;
-using ExcelDna.Integration.ComInterop;
+﻿#if COM_GENERATED
 
-namespace ExcelDna.COMWrappers.NativeAOT
+using ExcelDna.Integration.ComInterop.Generator.Interfaces;
+using System;
+
+namespace ExcelDna.Integration.ComInterop.Generator
 {
     public class TypeAdapter : IType
     {
@@ -20,9 +22,9 @@ namespace ExcelDna.COMWrappers.NativeAOT
             return (comObject as DispatchObject)!.GetIndex(name)!;
         }
 
-        public bool Is(ref Guid guid, object comObject)
+        public bool Is(Guid guid, object comObject)
         {
-            return (comObject as DispatchObject)!.HasInterface(ref guid);
+            return (comObject as UnknownObject)!.HasInterface(ref guid);
         }
 
         public object Invoke(string name, object[] args, object comObject)
@@ -48,5 +50,15 @@ namespace ExcelDna.COMWrappers.NativeAOT
         {
             return (comObject as DispatchObject)!.HasProperty(name);
         }
+
+        public IntPtr QueryInterface(Guid guid, object comObject)
+        {
+            if ((comObject as UnknownObject)!.QueryInterface(ref guid, out IntPtr result) == 0)
+                return result;
+
+            return IntPtr.Zero;
+        }
     }
 }
+
+#endif

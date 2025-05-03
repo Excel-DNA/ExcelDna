@@ -1,6 +1,9 @@
-﻿using System.Runtime.InteropServices.Marshalling;
+﻿#if COM_GENERATED
 
-namespace ExcelDna.COMWrappers.NativeAOT.ComInterfaces
+using System.Linq;
+using System.Runtime.InteropServices.Marshalling;
+
+namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
 {
     [CustomMarshaller(typeof(DispParams), MarshalMode.Default, typeof(DispParamsMarshaller))]
     internal static class DispParamsMarshaller
@@ -11,7 +14,7 @@ namespace ExcelDna.COMWrappers.NativeAOT.ComInterfaces
             {
                 cArgs = managed.cArgs,
                 cNamedArgs = managed.cNamedArgs,
-                rgdispidNamedArgs = &managed.rgdispidNamedArgs,
+                rgdispidNamedArgs = managed.rgdispidNamedArgs != 0 ? &managed.rgdispidNamedArgs : null,
                 rgvarg =
                     managed.rgvarg != null
                         ? ArrayMarshaller.ArrayToPtr(managed.rgvarg.Reverse().Select(VariantMarshaller.ConvertToUnmanaged).ToArray())
@@ -25,7 +28,7 @@ namespace ExcelDna.COMWrappers.NativeAOT.ComInterfaces
             {
                 cArgs = unmanaged.cArgs,
                 cNamedArgs = unmanaged.cNamedArgs,
-                rgdispidNamedArgs = *unmanaged.rgdispidNamedArgs,
+                rgdispidNamedArgs = unmanaged.rgdispidNamedArgs != null ? *unmanaged.rgdispidNamedArgs : 0,
                 rgvarg = ArrayMarshaller
                     .PtrToArray<VariantNative>(unmanaged.rgvarg, unmanaged.cArgs)
                     .Select(VariantMarshaller.ConvertToManaged)
@@ -35,3 +38,5 @@ namespace ExcelDna.COMWrappers.NativeAOT.ComInterfaces
         }
     }
 }
+
+#endif

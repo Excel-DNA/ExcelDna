@@ -1,6 +1,8 @@
-﻿using System.Runtime.InteropServices;
+﻿#if COM_GENERATED
 
-namespace ExcelDna.COMWrappers.NativeAOT.ComInterfaces
+using System.Runtime.InteropServices;
+
+namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
 {
     [StructLayout(LayoutKind.Explicit)]
     internal struct VariantNative
@@ -207,3 +209,5 @@ namespace ExcelDna.COMWrappers.NativeAOT.ComInterfaces
         }
     }
 }
+
+#endif
