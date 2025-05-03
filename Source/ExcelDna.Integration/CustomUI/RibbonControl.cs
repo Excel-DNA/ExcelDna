@@ -10,8 +10,17 @@ namespace ExcelDna.Integration.CustomUI
         {
             get
             {
-                control.get_Id(out string id);
-                return id;
+                control.get_Id(out string result);
+                return result;
+            }
+        }
+
+        public string Tag
+        {
+            get
+            {
+                control.get_Tag(out string result);
+                return result;
             }
         }
 
