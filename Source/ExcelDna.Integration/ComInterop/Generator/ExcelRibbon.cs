@@ -59,6 +59,7 @@ namespace ExcelDna.Integration.ComInterop.Generator
 
         public virtual void OnDisconnection(ext_DisconnectMode RemoveMode, ref Generator.Interfaces.SafeArray custom)
         {
+            ExcelComAddInHelper.OnUnloadComAddIn(this, null);
         }
 
         public virtual void OnAddInsUpdate(ref Generator.Interfaces.SafeArray custom)

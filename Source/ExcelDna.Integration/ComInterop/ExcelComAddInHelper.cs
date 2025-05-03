@@ -16,11 +16,21 @@ namespace ExcelDna.Integration
     public static class ExcelComAddInHelper
     {
         // Com Add-ins loaded for Ribbons.
-        static List<object> loadedComAddIns = new List<object>();
+        private class LoadedComAddIn
+        {
+            public ExcelComAddIn AddIn { get; }
+            public object ComObject { get; }
+            public LoadedComAddIn(ExcelComAddIn addIn, object comObject)
+            {
+                this.AddIn = addIn;
+                this.ComObject = comObject;
+            }
+        }
+        private static List<LoadedComAddIn> loadedComAddIns = new List<LoadedComAddIn>();
 
         public static void OnUnloadComAddIn(ExcelComAddIn addIn, object addInInst)
         {
-            loadedComAddIns.Remove(addInInst);
+            loadedComAddIns.RemoveAll(i => i.AddIn == addIn || i.ComObject == addInInst);
         }
 
         public static void LoadComAddIn(ExcelComAddIn addIn)
@@ -119,7 +129,7 @@ namespace ExcelDna.Integration
                         typeAdapter.SetProperty("Connect", true, comAddIn);
                     }
                     //                            Debug.Print("COMAddin is loaded.");
-                    loadedComAddIns.Add(comAddIn);
+                    loadedComAddIns.Add(new LoadedComAddIn(addIn, comAddIn));
 
                     Logger.ComAddIn.Verbose("Completed Loading Ribbon/COM Add-In");
 
@@ -149,9 +159,9 @@ namespace ExcelDna.Integration
         internal static void UnloadComAddIns()
         {
             CultureInfo ci = new CultureInfo(1033);
-            foreach (object comAddIn in loadedComAddIns.ToArray()) // Disconnecting an add-in removes it from loadedComAddIns, so we operate on a copy of the collection.
+            foreach (LoadedComAddIn comAddIn in loadedComAddIns.ToArray()) // Disconnecting an add-in removes it from loadedComAddIns, so we operate on a copy of the collection.
             {
-                comAddIn.GetType().InvokeMember("Connect", System.Reflection.BindingFlags.SetProperty, null, comAddIn, new object[] { false }, ci);
+                comAddIn.ComObject.GetType().InvokeMember("Connect", System.Reflection.BindingFlags.SetProperty, null, comAddIn.ComObject, new object[] { false }, ci);
                 Logger.ComAddIn.Info("Ribbon/COM Add-In Unloaded.");
             }
         }

@@ -8,10 +8,11 @@ namespace ExcelDna.Integration.ComInterop
 {
     internal static class Util
     {
-        private static TypeAdapter typeAdapter = new TypeAdapter();
 #if COM_GENERATED
         private static ComWrappers comWrappers = new StrategyBasedComWrappers();
         private static Generator.TypeAdapter generatorAdapter = new();
+#else
+        private static TypeAdapter typeAdapter = new TypeAdapter();
 #endif
 
         public static IType TypeAdapter
@@ -19,7 +20,7 @@ namespace ExcelDna.Integration.ComInterop
             get
             {
 #if COM_GENERATED
-                return NativeAOT.IsActive ? generatorAdapter : typeAdapter;
+                return generatorAdapter;
 #else
                 return typeAdapter;
 #endif
