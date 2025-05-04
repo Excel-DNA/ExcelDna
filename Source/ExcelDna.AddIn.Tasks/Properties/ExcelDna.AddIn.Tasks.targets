@@ -86,6 +86,14 @@
 		SkipUnchangedFiles="true" />
 
 	<Copy 
+		Condition="Exists('$(ProjectDir)..\ExcelDna.Integration\bin\$(Configuration)\net8.0-windows\ExcelDna.Integration.dll')"
+		SourceFiles="$(ProjectDir)..\ExcelDna.Integration\bin\$(Configuration)\net8.0-windows\ExcelDna.Integration.dll"
+		DestinationFiles="$(ExcelDnaTestPackageDir)tools\net8.0-windows7.0\ExcelDna.Integration.dll"
+		ContinueOnError="false"
+		OverwriteReadOnlyFiles="true"
+		SkipUnchangedFiles="true" />
+
+	<Copy 
 		Condition="Exists('$(ProjectDir)..\ExcelDna\x64\$(Configuration)\ExcelDna64.xll')"
 		SourceFiles="$(ProjectDir)..\ExcelDna\x64\$(Configuration)\ExcelDna64.xll"
 		DestinationFiles="$(ExcelDnaTestPackageDir)tools\net462\ExcelDna64.xll"

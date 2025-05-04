@@ -1,6 +1,6 @@
 ﻿using ExcelDna.Integration.CustomUI;
 
-namespace ExcelDna.AddIn.RuntimeTestsAOT
+namespace AOTRibbon
 {
     public class RibbonController : IExcelRibbon
     {
