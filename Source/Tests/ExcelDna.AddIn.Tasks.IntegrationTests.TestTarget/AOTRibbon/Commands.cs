@@ -1,13 +1,13 @@
 ﻿using ExcelDna.Integration;
 
-namespace ExcelDna.AddIn.RuntimeTestsAOT
+namespace AOTRibbon
 {
     public class Commands
     {
         [ExcelCommand(MenuText = "MyNativeCommand")]
         public static void NativeCommand()
         {
-            System.Diagnostics.Trace.WriteLine("RuntimeTestsAOT NativeCommand");
+            MessageBox.Show("My NativeCommand");
         }
     }
 }
