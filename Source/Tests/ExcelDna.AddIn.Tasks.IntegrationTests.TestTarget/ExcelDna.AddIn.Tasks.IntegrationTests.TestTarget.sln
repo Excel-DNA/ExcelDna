@@ -134,6 +134,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AOTMinimal", "AOTMinimal\AO
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AOTAddIn", "AOTAddIn\AOTAddIn.csproj", "{43A4D6E9-5C82-530D-889B-D3EDDF43DBF2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AOTRibbon", "AOTRibbon\AOTRibbon.csproj", "{F22C89B4-9833-F64F-A5CC-802229C54A39}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -400,6 +402,10 @@ Global
 		{43A4D6E9-5C82-530D-889B-D3EDDF43DBF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{43A4D6E9-5C82-530D-889B-D3EDDF43DBF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{43A4D6E9-5C82-530D-889B-D3EDDF43DBF2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F22C89B4-9833-F64F-A5CC-802229C54A39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F22C89B4-9833-F64F-A5CC-802229C54A39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F22C89B4-9833-F64F-A5CC-802229C54A39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F22C89B4-9833-F64F-A5CC-802229C54A39}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
