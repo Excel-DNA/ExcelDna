@@ -1,4 +1,5 @@
 ﻿using ExcelDna.Integration;
+using ExcelDna.Registration;
 
 namespace ExcelDna.AddIn.RuntimeTestsAOT
 {
@@ -14,6 +15,13 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         public static int NativeSum(int i1, int i2)
         {
             return i1 + i2;
+        }
+
+        [ExcelAsyncFunction]
+        public static async Task<string> MyAsyncTaskHello(string name, int msDelay)
+        {
+            await Task.Delay(msDelay);
+            return $"Hello async task {name}";
         }
     }
 }
