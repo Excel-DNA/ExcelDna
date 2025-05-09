@@ -113,6 +113,27 @@ namespace ExcelDna.Integration
             }
         }
 
+        public static void GetExcelMethods(IEnumerable<MethodInfo> mis, bool explicitExports, List<MethodInfo> excelMethods, List<Registration.ExcelFunctionRegistration> excelFunctionsExtendedRegistration)
+        {
+            foreach (MethodInfo mi in mis)
+            {
+                bool isSupported = IsMethodSupported(mi, explicitExports);
+
+                if (!isSupported && IsMethodMarkedForExport(mi))
+                {
+                    excelFunctionsExtendedRegistration.Add(new Registration.ExcelFunctionRegistration(mi));
+                }
+                else if (!isSupported)
+                {
+                    // CONSIDER: More detailed logging
+                    Logger.Initialization.Info("Method not registered - unsupported signature, abstract or generic: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
+                }
+
+                if (isSupported)
+                    excelMethods.Add(mi);
+            }
+        }
+
         static void GetExcelParameterConversions(Type t, List<ExtendedRegistration.ExcelParameterConversion> excelParameterConversions)
         {
             MethodInfo[] mis = t.GetMethods(BindingFlags.Public | BindingFlags.Static);
@@ -153,25 +174,7 @@ namespace ExcelDna.Integration
                 return;
             }
 
-            MethodInfo[] mis = t.GetMethods(BindingFlags.Public | BindingFlags.Static);
-            // Filter list first - LINQ would be nice here :-)
-            foreach (MethodInfo mi in mis)
-            {
-                bool isSupported = IsMethodSupported(mi, explicitExports);
-
-                if (!isSupported && IsMethodMarkedForExport(mi))
-                {
-                    excelFunctionsExtendedRegistration.Add(new Registration.ExcelFunctionRegistration(mi));
-                }
-                else if (!isSupported)
-                {
-                    // CONSIDER: More detailed logging
-                    Logger.Initialization.Info("Method not registered - unsupported signature, abstract or generic: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
-                }
-
-                if (isSupported)
-                    excelMethods.Add(mi);
-            }
+            GetExcelMethods(t.GetMethods(BindingFlags.Public | BindingFlags.Static), explicitExports, excelMethods, excelFunctionsExtendedRegistration);
         }
 
         static void GetExcelFunctionExecutionHandlerSelectors(Type type, List<Registration.FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors)
@@ -318,7 +321,7 @@ namespace ExcelDna.Integration
 #if COM_GENERATED
                     info.Instance = IsRibbonInterface(t.Type) ? new ComInterop.Generator.ExcelRibbon(t) : t.CreateInstance();
 #else
-                    info.Instance =  t.CreateInstance();
+                    info.Instance = t.CreateInstance();
 #endif
                     info.ParentDnaLibrary = assembly?.ParentDnaLibrary;
                     addIns.Add(info);

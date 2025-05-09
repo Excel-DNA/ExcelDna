@@ -324,7 +324,7 @@ namespace ExcelDna.Integration
             RegistrationInfo.Register();
             SynchronizationManager.Install(true);
 
-            _methods.AddRange(NativeAOT.MethodsForRegistration);
+            AssemblyLoader.GetExcelMethods(NativeAOT.MethodsForRegistration, true, _methods, _excelFunctionsExtendedRegistration);
 
             // Register my Methods
             if (_excelFunctionExecutionHandlerSelectors.Count == 0)
