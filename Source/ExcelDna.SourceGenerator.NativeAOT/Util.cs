@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ExcelDna.SourceGenerator.NativeAOT
 {
@@ -24,5 +25,12 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                 current = current.BaseType;
             }
         }
+
+        public static bool TypeHasAncestorWithFullName(ITypeSymbol type, string fullName)
+        {
+            return GetBaseTypesAndThis(type).Any(i => i.ToDisplayString(FullNameFormat) == fullName);
+        }
+
+        private static SymbolDisplayFormat FullNameFormat = new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
     }
 }
