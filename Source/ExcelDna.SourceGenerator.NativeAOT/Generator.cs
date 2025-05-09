@@ -94,10 +94,13 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                 if (context.Node is MethodDeclarationSyntax methodSyntax)
                 {
                     IMethodSymbol methodSymbol = (context.SemanticModel.GetDeclaredSymbol(methodSyntax) as IMethodSymbol)!;
-                    if (methodSymbol.GetAttributes().Any(a =>
-                    a.AttributeClass?.ToDisplayString(fullNameFormat) == "ExcelDna.Integration.ExcelFunctionAttribute" ||
-                    a.AttributeClass?.ToDisplayString(fullNameFormat) == "ExcelDna.Integration.ExcelCommandAttribute"))
+                    if (methodSymbol.GetAttributes().Any(a => a.AttributeClass != null && (
+                        Util.TypeHasAncestorWithFullName(a.AttributeClass, "ExcelDna.Integration.ExcelFunctionAttribute") ||
+                        Util.TypeHasAncestorWithFullName(a.AttributeClass, "ExcelDna.Integration.ExcelCommandAttribute")
+                    )))
+                    {
                         Functions.Add(methodSymbol);
+                    }
                 }
 
                 if (context.Node is ClassDeclarationSyntax classSyntax)
@@ -111,8 +114,6 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                     }
                 }
             }
-
-            private static SymbolDisplayFormat fullNameFormat = new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
         }
     }
 }
