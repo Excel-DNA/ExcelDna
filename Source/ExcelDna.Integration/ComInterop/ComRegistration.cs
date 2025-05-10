@@ -148,13 +148,9 @@ namespace ExcelDna.ComInterop.ComRegistration
                 {
                     ppvObject = Marshal.GetIUnknownForObject(_instance);
                 }
-                else if (riid == ComAPI.guidIDTExtensibility2)
+                else if (riid == ComAPI.guidIDTExtensibility2 || riid == ComAPI.guidIRtdServer)
                 {
                     Integration.ComInterop.Util.QueryInterfaceForObject(_instance, riid, out ppvObject);
-                }
-                else if (riid == ComAPI.guidIRtdServer)
-                {
-                    ppvObject = Marshal.GetComInterfaceForObject(_instance, typeof(IRtdServer));
                 }
                 else // Unsupported interface for us.
                 {
