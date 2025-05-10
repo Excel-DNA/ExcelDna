@@ -454,7 +454,13 @@ namespace ExcelDna.Integration.Rtd
             {
                 if (!_isRegistered)
                 {
-                    RtdRegistration.RegisterRtdServerTypes(new ITypeHelper[] { new TypeHelper<ExcelObserverRtdServer>(typeof(ExcelObserverRtdServer).GetMethods()) });
+                    RtdRegistration.RegisterRtdServerTypes(new ITypeHelper[] {
+#if COM_GENERATED
+                        new TypeHelper<ComInterop.Generator.ExcelObserverRtdServer>(typeof(ComInterop.Generator.ExcelObserverRtdServer).GetMethods())
+#else
+                        new TypeHelper<ExcelObserverRtdServer>(typeof(ExcelObserverRtdServer).GetMethods())
+#endif
+                    });
                 }
                 _isRegistered = true;
             }
@@ -770,7 +776,11 @@ namespace ExcelDna.Integration.Rtd
     // ThreadSafe
     internal class AsyncObservableState
     {
+#if COM_GENERATED
+        const string _observerRtdServerProgId = "ExcelDna.Integration.ComInterop.Generator.ExcelObserverRtdServer";
+#else
         const string _observerRtdServerProgId = "ExcelDna.Integration.Rtd.ExcelObserverRtdServer";
+#endif
         readonly AsyncCallerState _callerState;
         readonly AsyncCallInfo _callInfo; // Bit ugly having this here - need a bi-directional dictionary...
         readonly string[] _topics; // Contains id (Guid.ToString()) and possibly Integer retpresentation of the ExcelObservableOptions enum value
