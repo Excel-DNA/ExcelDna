@@ -454,7 +454,7 @@ namespace ExcelDna.Integration.Rtd
             {
                 if (!_isRegistered)
                 {
-                    RtdRegistration.RegisterRtdServerTypes(new Type[] { typeof(ExcelObserverRtdServer) });
+                    RtdRegistration.RegisterRtdServerTypes(new ITypeHelper[] { new TypeHelper<ExcelObserverRtdServer>(typeof(ExcelObserverRtdServer).GetMethods()) });
                 }
                 _isRegistered = true;
             }

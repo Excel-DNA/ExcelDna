@@ -285,7 +285,7 @@ namespace ExcelDna.Integration
             NativeAOT.ExcelAddIns.ForEach(i => AssemblyLoader.GetExcelAddIns(null, i, _addIns));
 
             // Register RTD Server Types (i.e. remember that these types are available as RTD servers, with relevant ProgId etc.)
-            RtdRegistration.RegisterRtdServerTypes(rtdServerTypes);
+            RtdRegistration.RegisterRtdServerTypes(rtdServerTypes.Select(i => new TypeHelperDynamic(i)));
 
             // CAREFUL: This interacts with the implementation of ExcelRtdServer to implement the thread-safe synchronization.
             // Check whether we have an ExcelRtdServer type, and need to install the Sync Window
