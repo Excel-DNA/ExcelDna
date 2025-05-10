@@ -68,10 +68,12 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                 source = source.Replace("[ADDINS]", addIns);
             }
             {
-                string functions = "";
+                string functions = "List<Type> functionTypes = new List<Type>();\r\n";
                 foreach (var i in receiver.Functions)
                 {
                     functions += $"ExcelDna.Integration.NativeAOT.MethodsForRegistration.Add(typeof({Util.GetFullTypeName(i.ContainingType)}).GetMethod(\"{i.Name}\")!);\r\n";
+                    functions += $"functionTypes.Add(typeof({Util.MethodType(i)}));\r\n";
+                    functions += "\r\n";
                 }
                 source = source.Replace("[FUNCTIONS]", functions);
             }
