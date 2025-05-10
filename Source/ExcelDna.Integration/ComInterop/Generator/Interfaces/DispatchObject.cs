@@ -1,5 +1,7 @@
 ﻿#if COM_GENERATED
 
+#nullable enable
+
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using System.Runtime.InteropServices.ComTypes;
