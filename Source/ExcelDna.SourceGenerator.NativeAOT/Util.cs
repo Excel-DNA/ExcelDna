@@ -31,6 +31,15 @@ namespace ExcelDna.SourceGenerator.NativeAOT
             return GetBaseTypesAndThis(type).Any(i => i.ToDisplayString(FullNameFormat) == fullName);
         }
 
+        public static string MethodType(IMethodSymbol method)
+        {
+            string parameters = "";
+            foreach (var p in method.Parameters)
+                parameters += GetFullTypeName(p.Type) + ", ";
+
+            return $"Func<{parameters}{GetFullTypeName(method.ReturnType)}>";
+        }
+
         private static SymbolDisplayFormat FullNameFormat = new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
     }
 }
