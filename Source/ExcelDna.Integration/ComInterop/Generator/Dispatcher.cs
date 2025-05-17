@@ -1,4 +1,7 @@
-﻿using System;
+﻿#if COM_GENERATED
+
+using ExcelDna.Integration.ComInterop.Generator.Interfaces;
+using System;
 
 namespace ExcelDna.Integration.ComInterop.Generator
 {
@@ -6,14 +9,14 @@ namespace ExcelDna.Integration.ComInterop.Generator
     {
         public class Method
         {
-            public Method(string name, Action func)
+            public Method(string name, Action<DispParams> func)
             {
                 this.Name = name;
                 this.Func = func;
             }
 
             public string Name { get; }
-            public Action Func { get; }
+            public Action<DispParams> Func { get; }
         }
 
         private Method[] methods;
@@ -29,12 +32,14 @@ namespace ExcelDna.Integration.ComInterop.Generator
                 rgDispId[i] = Array.FindIndex(methods, m => m.Name == rgszNames[i]);
         }
 
-        public void Invoke(int dispIdMember)
+        public void Invoke(int dispIdMember, DispParams pDispParams)
         {
             if (dispIdMember >= 0 && dispIdMember < methods.Length)
             {
-                methods[dispIdMember].Func.Invoke();
+                methods[dispIdMember].Func.Invoke(pDispParams);
             }
         }
     }
 }
+
+#endif

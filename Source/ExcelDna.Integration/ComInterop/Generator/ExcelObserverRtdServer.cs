@@ -41,7 +41,7 @@ namespace ExcelDna.Integration.ComInterop.Generator
 
         public int Invoke(int dispIdMember, Guid riid, uint lcid, INVOKEKIND wFlags, [MarshalUsing(typeof(DispParamsMarshaller))] in DispParams pDispParams, nint pVarResult, nint pExcepInfo, nint puArgErr)
         {
-            dispatcher.Invoke(dispIdMember);
+            dispatcher.Invoke(dispIdMember, pDispParams);
 
             return 0;
         }
@@ -79,11 +79,12 @@ namespace ExcelDna.Integration.ComInterop.Generator
 
         //
 
-        private void OnServerStart()
+        private void OnServerStart(DispParams pDispParams)
         {
+            IRTDUpdateEvent callbackObject = (pDispParams.rgvarg[0].Value as DispatchObject).ComObject as IRTDUpdateEvent;
         }
 
-        private void OnServerTerminate()
+        private void OnServerTerminate(DispParams pDispParams)
         {
         }
     }
