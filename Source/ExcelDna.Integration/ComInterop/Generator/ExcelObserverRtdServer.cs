@@ -11,6 +11,16 @@ namespace ExcelDna.Integration.ComInterop.Generator
     [GeneratedComClass]
     internal partial class ExcelObserverRtdServer : Rtd.ExcelObserverRtdServer, IRtdServer
     {
+        private Dispatcher dispatcher;
+
+        public ExcelObserverRtdServer()
+        {
+            dispatcher = new Dispatcher(new Dispatcher.Method[] {
+                new Dispatcher.Method("ServerStart", OnServerStart),
+                new Dispatcher.Method("ServerTerminate", OnServerTerminate),
+            });
+        }
+
         // IDispatch:
         public int GetTypeInfoCount(out uint pctinfo)
         {
@@ -24,12 +34,16 @@ namespace ExcelDna.Integration.ComInterop.Generator
 
         public int GetIDsOfNames(Guid riid, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr, SizeParamIndex = 2)] string[] rgszNames, uint cNames, uint lcid, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2), Out] int[] rgDispId)
         {
-            throw new NotImplementedException();
+            dispatcher.GetIDsOfNames(rgszNames, rgDispId);
+
+            return 0;
         }
 
-        public int Invoke(int dispIdMember, Guid riid, uint lcid, INVOKEKIND wFlags, [MarshalUsing(typeof(DispParamsMarshaller))] in DispParams pDispParams, nint pVarResult, nint pExcepInfo, ref uint puArgErr)
+        public int Invoke(int dispIdMember, Guid riid, uint lcid, INVOKEKIND wFlags, [MarshalUsing(typeof(DispParamsMarshaller))] in DispParams pDispParams, nint pVarResult, nint pExcepInfo, nint puArgErr)
         {
-            throw new NotImplementedException();
+            dispatcher.Invoke(dispIdMember);
+
+            return 0;
         }
 
         // IRtdServer:
@@ -61,6 +75,16 @@ namespace ExcelDna.Integration.ComInterop.Generator
         public void ServerTerminate()
         {
             throw new NotImplementedException();
+        }
+
+        //
+
+        private void OnServerStart()
+        {
+        }
+
+        private void OnServerTerminate()
+        {
         }
     }
 }
