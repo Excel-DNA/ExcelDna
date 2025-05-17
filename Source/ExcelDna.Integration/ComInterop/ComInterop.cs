@@ -561,11 +561,13 @@ namespace ExcelDna.Integration.Rtd
 {
     // Summary:
     //     Represents an interface for a real-time data server.
+#if !COM_GENERATED
     [ComImport]
     [Guid(ComAPI.gstrIRtdServer)]
     //[TypeLibType(TypeLibTypeFlags.FDispatchable | TypeLibTypeFlags.FDual)] // 4160
     [InterfaceType(ComInterfaceType.InterfaceIsDual)]
     //[TypeIdentity(ComAPI.guidIRtdServer, "Microsoft.Office.Interop.IRtdServer")]
+#endif
     public interface IRtdServer
     {
         //
@@ -632,11 +634,13 @@ namespace ExcelDna.Integration.Rtd
 
     // Summary:
     //     Represents real-time data update events.
+#if !COM_GENERATED
     [ComImport]
     [Guid(ComAPI.gstrIRTDUpdateEvent)]
     // [TypeLibType(TypeLibTypeFlags.FDispatchable | TypeLibTypeFlags.FDual)] // 4160
     [InterfaceType(ComInterfaceType.InterfaceIsDual)]
     // [TypeIdentity(ComAPI.guidIRTDUpdateEvent, "Microsoft.Office.Interop.IRTDUpdateEvent")]
+#endif
     public interface IRTDUpdateEvent
     {
         // Summary:

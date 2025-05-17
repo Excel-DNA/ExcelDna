@@ -41,7 +41,7 @@ namespace ExcelDna.Integration.ComInterop.Generator
 
         public int Invoke(int dispIdMember, Guid riid, uint lcid, INVOKEKIND wFlags, [MarshalUsing(typeof(DispParamsMarshaller))] in DispParams pDispParams, nint pVarResult, nint pExcepInfo, nint puArgErr)
         {
-            dispatcher.Invoke(dispIdMember, pDispParams);
+            dispatcher.Invoke(dispIdMember, pDispParams, pVarResult);
 
             return 0;
         }
@@ -77,14 +77,15 @@ namespace ExcelDna.Integration.ComInterop.Generator
             throw new NotImplementedException();
         }
 
-        //
+        // IRtdServer adapter:
 
-        private void OnServerStart(DispParams pDispParams)
+        private void OnServerStart(DispParams pDispParams, nint pVarResult)
         {
             IRTDUpdateEvent callbackObject = (pDispParams.rgvarg[0].Value as DispatchObject).ComObject as IRTDUpdateEvent;
+            Dispatcher.SetResult(pVarResult, (this as Rtd.IRtdServer).ServerStart(new RTDUpdateEvent(callbackObject)));
         }
 
-        private void OnServerTerminate(DispParams pDispParams)
+        private void OnServerTerminate(DispParams pDispParams, nint pVarResult)
         {
         }
     }
