@@ -136,7 +136,6 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
             var dispIds = GetDispIDs(propName);
 
             using VariantResultMarshaller variantResult = new();
-            uint puArgErr = 0;
 
             var hr = dispatch!.Invoke(
                 dispIds[0],
@@ -146,7 +145,7 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
                 dispParams,
                 variantResult.Ptr,
                 0,
-                ref puArgErr
+                0
             );
 
             Marshal.ThrowExceptionForHR(hr);
