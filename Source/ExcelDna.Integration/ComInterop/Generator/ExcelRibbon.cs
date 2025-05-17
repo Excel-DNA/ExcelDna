@@ -41,7 +41,7 @@ namespace ExcelDna.Integration.ComInterop.Generator
             return 0;
         }
 
-        public int Invoke(int dispIdMember, Guid riid, uint lcid, INVOKEKIND wFlags, [MarshalUsing(typeof(Generator.Interfaces.DispParamsMarshaller))] in Generator.Interfaces.DispParams pDispParams, nint pVarResult, nint pExcepInfo, ref uint puArgErr)
+        public int Invoke(int dispIdMember, Guid riid, uint lcid, INVOKEKIND wFlags, [MarshalUsing(typeof(Generator.Interfaces.DispParamsMarshaller))] in Generator.Interfaces.DispParams pDispParams, nint pVarResult, nint pExcepInfo, nint puArgErr)
         {
             if (dispIdMember >= 0 && dispIdMember < methods.Length && pDispParams.cArgs == 1)
             {

@@ -35,7 +35,7 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
             [MarshalUsing(typeof(DispParamsMarshaller))] in DispParams pDispParams,
             nint pVarResult,
             nint pExcepInfo,
-            ref uint puArgErr
+            nint puArgErr
         );
     }
 }
