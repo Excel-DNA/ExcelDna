@@ -64,11 +64,12 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
 
             return (VariantTypeNative)unmanaged.vt switch
             {
-                VariantTypeNative.VT_BOOL or VT_BYREF_BOOL
+                VariantTypeNative.VT_BOOL
                     => new Variant
                     {
                         Value = unmanaged.boolVal == (short)VariantBoolNative.VARIANT_TRUE,
                     },
+                VT_BYREF_BOOL => RefBoolToManaged(unmanaged.pboolVal),
                 VariantTypeNative.VT_I4 => new Variant { Value = unmanaged.lVal, },
                 VariantTypeNative.VT_BSTR
                     => new Variant { Value = Marshal.PtrToStringBSTR(unmanaged.bstrVal), },
@@ -89,6 +90,12 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
             SafeArray sa = Marshal.PtrToStructure<SafeArray>(parray);
             VariantNative[] vna = ArrayMarshaller.PtrToArray<VariantNative>(sa.pvData, (int)sa.rgsabound.Data.cElements);
             return new Variant(ArrayMarshaller.PtrToArray<VariantNative>(sa.pvData, (int)sa.rgsabound.Data.cElements).Select(i => ConvertToManaged(i)).ToArray());
+        }
+
+        private static Variant RefBoolToManaged(nint pboolVal)
+        {
+            short boolVal = Marshal.PtrToStructure<short>(pboolVal);
+            return new Variant(boolVal == (short)VariantBoolNative.VARIANT_TRUE);
         }
     }
 }
