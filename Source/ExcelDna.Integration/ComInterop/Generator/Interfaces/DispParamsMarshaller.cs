@@ -1,6 +1,7 @@
 ﻿#if COM_GENERATED
 
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 
 namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
@@ -34,7 +35,16 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
                     .Select(VariantMarshaller.ConvertToManaged)
                     .Reverse()
                     .ToArray(),
+                rgvargNative = unmanaged.rgvarg,
             };
+        }
+
+        public static unsafe void UpdateArg(DispParams dp, Variant v, int i)
+        {
+            int ri = dp.cArgs - 1 - i;
+            var size = Marshal.SizeOf<VariantNative>();
+            VariantNative vn = VariantMarshaller.ConvertToUnmanaged(v);
+            Marshal.StructureToPtr<VariantNative>(vn, dp.rgvargNative + ri * size, false);
         }
     }
 }

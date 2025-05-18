@@ -8,6 +8,8 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
         public int cNamedArgs;
         public int rgdispidNamedArgs;
         public Variant[] rgvarg;
+
+        public nint rgvargNative;
     }
 }
 
