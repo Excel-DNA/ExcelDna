@@ -49,6 +49,7 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
                         vt = (ushort)VariantTypeNative.VT_BSTR,
                         bstrVal = Marshal.StringToBSTR(bstrVal),
                     },
+                DispatchObject doVal => new VariantNative { vt = (ushort)VariantTypeNative.VT_DISPATCH, pdispVal = doVal.P, },
                 null => new VariantNative { vt = (ushort)VariantTypeNative.VT_NULL, },
                 _ =>
                     throw new NotImplementedException(managed.Value.GetType().ToString())
