@@ -2,6 +2,7 @@
 
 using ExcelDna.Integration.ComInterop.Generator.Interfaces;
 using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Runtime.InteropServices.Marshalling;
@@ -17,6 +18,8 @@ namespace ExcelDna.Integration.ComInterop.Generator
         {
             dispatcher = new Dispatcher(new Dispatcher.Method[] {
                 new Dispatcher.Method("ServerStart", OnServerStart),
+                new Dispatcher.Method("ConnectData", OnConnectData),
+                new Dispatcher.Method("Heartbeat", OnHeartbeat),
                 new Dispatcher.Method("ServerTerminate", OnServerTerminate),
             });
         }
@@ -83,6 +86,22 @@ namespace ExcelDna.Integration.ComInterop.Generator
         {
             IRTDUpdateEvent callbackObject = (pDispParams.rgvarg[0].Value as DispatchObject).ComObject as IRTDUpdateEvent;
             Dispatcher.SetResult(pVarResult, (this as Rtd.IRtdServer).ServerStart(new RTDUpdateEvent(callbackObject)));
+        }
+
+        private void OnConnectData(DispParams pDispParams, nint pVarResult)
+        {
+            Variant[] vstrings = pDispParams.rgvarg[1].Value as Variant[];
+            Array strings = vstrings.Select(i => i.Value as string).ToArray();
+            bool newValues = (bool)pDispParams.rgvarg[2].Value;
+            Dispatcher.SetResult(pVarResult, (this as Rtd.IRtdServer).ConnectData(
+                (int)pDispParams.rgvarg[0].Value,
+                ref strings,
+                ref newValues));
+        }
+
+        private void OnHeartbeat(DispParams pDispParams, nint pVarResult)
+        {
+            Dispatcher.SetResult(pVarResult, (this as Rtd.IRtdServer).Heartbeat());
         }
 
         private void OnServerTerminate(DispParams pDispParams, nint pVarResult)
