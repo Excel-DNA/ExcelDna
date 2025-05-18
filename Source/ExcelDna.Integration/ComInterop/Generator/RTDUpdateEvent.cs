@@ -24,7 +24,11 @@ namespace ExcelDna.Integration.ComInterop.Generator
             throw new NotImplementedException();
         }
 
-        int Rtd.IRTDUpdateEvent.HeartbeatInterval { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        int Rtd.IRTDUpdateEvent.HeartbeatInterval
+        {
+            get => throw new NotImplementedException();
+            set => throw new NotImplementedException();
+        }
 
         void Rtd.IRTDUpdateEvent.Disconnect()
         {
