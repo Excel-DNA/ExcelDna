@@ -42,6 +42,7 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
                         ),
                     },
                 int lVal => new VariantNative { vt = (ushort)VariantTypeNative.VT_I4, lVal = lVal, },
+                double dVal => new VariantNative { vt = (ushort)VariantTypeNative.VT_R8, dblVal = dVal, },
                 string bstrVal
                     => new VariantNative
                     {
