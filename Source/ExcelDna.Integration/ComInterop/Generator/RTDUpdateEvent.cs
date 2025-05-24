@@ -21,7 +21,7 @@ namespace ExcelDna.Integration.ComInterop.Generator
 
         void Rtd.IRTDUpdateEvent.UpdateNotify()
         {
-            throw new NotImplementedException();
+            impl.UpdateNotify();
         }
 
         int Rtd.IRTDUpdateEvent.HeartbeatInterval
