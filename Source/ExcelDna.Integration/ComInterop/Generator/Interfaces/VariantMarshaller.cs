@@ -11,6 +11,7 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
     internal static class VariantMarshaller
     {
         private const VariantTypeNative VT_BYREF_BOOL = (VariantTypeNative)(ushort)VariantTypeNative.VT_BOOL + (ushort)VariantTypeNative.VT_BYREF;
+        private const VariantTypeNative VT_BYREF_I4 = (VariantTypeNative)(ushort)VariantTypeNative.VT_I4 + (ushort)VariantTypeNative.VT_BYREF;
         private const VariantTypeNative VT_VARIANT_ARRAY = (VariantTypeNative)(ushort)VariantTypeNative.VT_VARIANT + (ushort)VariantTypeNative.VT_ARRAY;
 
         public const int DISP_E_PARAMNOTFOUND = -2147352572;
@@ -71,6 +72,7 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
                     },
                 VT_BYREF_BOOL => RefBoolToManaged(unmanaged.pboolVal),
                 VariantTypeNative.VT_I4 => new Variant { Value = unmanaged.lVal, },
+                VT_BYREF_I4 => RefIntToManaged(unmanaged.plVal),
                 VariantTypeNative.VT_BSTR
                     => new Variant { Value = Marshal.PtrToStringBSTR(unmanaged.bstrVal), },
                 VariantTypeNative.VT_DISPATCH
@@ -96,6 +98,11 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
         {
             short boolVal = Marshal.PtrToStructure<short>(pboolVal);
             return new Variant(boolVal == (short)VariantBoolNative.VARIANT_TRUE);
+        }
+
+        private static Variant RefIntToManaged(nint plVal)
+        {
+            return new Variant(Marshal.PtrToStructure<int>(plVal));
         }
     }
 }
