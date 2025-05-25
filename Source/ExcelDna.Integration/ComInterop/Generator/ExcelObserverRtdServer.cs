@@ -19,6 +19,8 @@ namespace ExcelDna.Integration.ComInterop.Generator
             dispatcher = new Dispatcher(new Dispatcher.Method[] {
                 new Dispatcher.Method("ServerStart", OnServerStart),
                 new Dispatcher.Method("ConnectData", OnConnectData),
+                new Dispatcher.Method("RefreshData", OnRefreshData),
+                new Dispatcher.Method("DisconnectData", OnDisconnectData),
                 new Dispatcher.Method("Heartbeat", OnHeartbeat),
                 new Dispatcher.Method("ServerTerminate", OnServerTerminate),
             });
@@ -100,6 +102,18 @@ namespace ExcelDna.Integration.ComInterop.Generator
             //DispParamsMarshaller.UpdateArg(pDispParams, new Variant(newValues), 2);
         }
 
+        private void OnRefreshData(DispParams pDispParams, nint pVarResult)
+        {
+            int topicCount = (int)pDispParams.rgvarg[0].Value;
+            Dispatcher.SetResult(pVarResult, (this as Rtd.IRtdServer).RefreshData(ref topicCount));
+            DispParamsMarshaller.UpdateRefIntArg(pDispParams, topicCount, 0);
+        }
+
+        private void OnDisconnectData(DispParams pDispParams, nint pVarResult)
+        {
+            (this as Rtd.IRtdServer).DisconnectData((int)pDispParams.rgvarg[0].Value);
+        }
+
         private void OnHeartbeat(DispParams pDispParams, nint pVarResult)
         {
             Dispatcher.SetResult(pVarResult, (this as Rtd.IRtdServer).Heartbeat());
@@ -107,6 +121,7 @@ namespace ExcelDna.Integration.ComInterop.Generator
 
         private void OnServerTerminate(DispParams pDispParams, nint pVarResult)
         {
+            (this as Rtd.IRtdServer).ServerTerminate();
         }
     }
 }
