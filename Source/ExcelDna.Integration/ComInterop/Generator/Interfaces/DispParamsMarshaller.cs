@@ -46,6 +46,14 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
             VariantNative vn = VariantMarshaller.ConvertToUnmanaged(v);
             Marshal.StructureToPtr<VariantNative>(vn, dp.rgvargNative + ri * size, false);
         }
+
+        public static unsafe void UpdateRefIntArg(DispParams dp, int v, int i)
+        {
+            int ri = dp.cArgs - 1 - i;
+            var size = Marshal.SizeOf<VariantNative>();
+            VariantNative vn = Marshal.PtrToStructure<VariantNative>(dp.rgvargNative + ri * size);
+            VariantMarshaller.UpdateRefInt(vn, v);
+        }
     }
 }
 

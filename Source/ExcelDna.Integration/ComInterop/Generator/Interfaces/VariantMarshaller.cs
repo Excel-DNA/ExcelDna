@@ -50,6 +50,7 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
                         vt = (ushort)VariantTypeNative.VT_BSTR,
                         bstrVal = Marshal.StringToBSTR(bstrVal),
                     },
+                Array array => VariantArrayToUnmanaged(array),
                 DispatchObject doVal => new VariantNative { vt = (ushort)VariantTypeNative.VT_DISPATCH, pdispVal = doVal.P, },
                 null => new VariantNative { vt = (ushort)VariantTypeNative.VT_NULL, },
                 _ =>
@@ -90,8 +91,37 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
         private static Variant VariantArrayToManaged(nint parray)
         {
             SafeArray sa = Marshal.PtrToStructure<SafeArray>(parray);
-            VariantNative[] vna = ArrayMarshaller.PtrToArray<VariantNative>(sa.pvData, (int)sa.rgsabound.Data.cElements);
-            return new Variant(ArrayMarshaller.PtrToArray<VariantNative>(sa.pvData, (int)sa.rgsabound.Data.cElements).Select(i => ConvertToManaged(i)).ToArray());
+            if (sa.cDims == 1)
+            {
+                VariantNative[] vna = ArrayMarshaller.PtrToArray<VariantNative>(sa.pvData, (int)sa.rgsabound.Data.cElements);
+                return new Variant(ArrayMarshaller.PtrToArray<VariantNative>(sa.pvData, (int)sa.rgsabound.Data.cElements).Select(i => ConvertToManaged(i)).ToArray());
+            }
+
+            throw new NotImplementedException();
+        }
+
+        private static VariantNative VariantArrayToUnmanaged(Array array)
+        {
+            if (array.Rank != 2)
+                throw new NotImplementedException();
+
+            nint pBounds = Marshal.AllocHGlobal(Marshal.SizeOf<SAFEARRAYBOUND>() * array.Rank);
+            Marshal.StructureToPtr(new SAFEARRAYBOUND { cElements = (uint)array.GetLength(0), lLbound = 0 }, pBounds, false);
+            Marshal.StructureToPtr(new SAFEARRAYBOUND { cElements = (uint)array.GetLength(1), lLbound = 0 }, pBounds + Marshal.SizeOf<SAFEARRAYBOUND>(), false);
+
+            nint psa = SafeArray.SafeArrayCreate((ushort)VariantTypeNative.VT_VARIANT, (uint)array.Rank, pBounds);
+            SafeArray sa = Marshal.PtrToStructure<SafeArray>(psa);
+
+            for (int col = 0; col < array.GetLength(1); ++col)
+            {
+                for (int row = 0; row < array.GetLength(0); ++row)
+                {
+                    int i = col * array.GetLength(0) + row;
+                    Marshal.StructureToPtr(ConvertToUnmanaged(new Variant(array.GetValue(row, col))), sa.pvData + i * (int)sa.cbElements, false);
+                }
+            }
+
+            return new VariantNative { vt = (ushort)VT_VARIANT_ARRAY, parray = psa };
         }
 
         private static Variant RefBoolToManaged(nint pboolVal)
@@ -103,6 +133,11 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
         private static Variant RefIntToManaged(nint plVal)
         {
             return new Variant(Marshal.PtrToStructure<int>(plVal));
+        }
+
+        public static void UpdateRefInt(VariantNative unmanaged, int v)
+        {
+            Marshal.StructureToPtr(v, unmanaged.plVal, false);
         }
     }
 }
