@@ -20,6 +20,9 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
 
     internal partial struct SafeArray
     {
+        [System.Runtime.InteropServices.DllImport("oleaut32.dll", ExactSpelling = true)]
+        public static unsafe extern /*SafeArray**/nint SafeArrayCreate(ushort vt, uint cDims, /*SAFEARRAYBOUND**/nint rgsabound);
+
         public ushort cDims;
         public ushort fFeatures;
         public uint cbElements;
