@@ -201,8 +201,8 @@
 	<PropertyGroup>
 		<ExcelDnaTlbDscom Condition="'$(ExcelDnaTlbDscom)' == ''">false</ExcelDnaTlbDscom>
 	</PropertyGroup>
-		
-	<PropertyGroup Condition="'$(TargetFrameworkVersion.Length())' >= '2' AND '$(TargetFrameworkVersion.Substring(1,1))' >= '6'">
+
+	<PropertyGroup Condition="$([System.Version]::Parse('$(TargetFrameworkVersion.Substring(1))').CompareTo($([System.Version]::Parse('6.0')))) >= 0">
 		<ExcelDnaRuntimeToolsPath>$(ExcelDnaToolsPath)\net6.0-windows7.0\</ExcelDnaRuntimeToolsPath>
 		<ExcelDnaTlbDscom>true</ExcelDnaTlbDscom>
 	</PropertyGroup>
