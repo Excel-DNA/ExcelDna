@@ -202,16 +202,11 @@
 		<ExcelDnaTlbDscom Condition="'$(ExcelDnaTlbDscom)' == ''">false</ExcelDnaTlbDscom>
 	</PropertyGroup>
 
-	<!--
-    Updated to use TargetFramework instead of old TargetFrameworkVersion
-			.Net versions: netcoreapp3.1, net6.0, net7.0, etc..
-			or .Net Framework: v4.7.2, v4.8, etc.. 
-  -->
-	<PropertyGroup Condition="'$(TargetFramework.Length())' >= '3' AND '$(TargetFramework.Substring(0,3))' == 'net'">
+	<PropertyGroup Condition="$([System.Version]::Parse('$(TargetFrameworkVersion.Substring(1))').CompareTo($([System.Version]::Parse('6.0')))) >= 0">
 		<ExcelDnaRuntimeToolsPath>$(ExcelDnaToolsPath)\net6.0-windows7.0\</ExcelDnaRuntimeToolsPath>
 		<ExcelDnaTlbDscom>true</ExcelDnaTlbDscom>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(TargetFramework.Length())' >= '3' AND '$(TargetFramework.Substring(0,3))' != 'net'">
+	<PropertyGroup Condition="'$(TargetFrameworkVersion.Length())' >= '2' AND '$(TargetFrameworkVersion.Substring(0,2))' == 'v4'">
 		<ExcelDnaRuntimeToolsPath>$(ExcelDnaToolsPath)\net462\</ExcelDnaRuntimeToolsPath>
 	</PropertyGroup>
 
