@@ -83,7 +83,7 @@ namespace ExcelDna.ComInterop.ComRegistration
                     {
                         ppvObject = Marshal.GetIUnknownForObject(instance);
 #if COM_GENERATED
-                        HRESULT hrQI = Marshal.QueryInterface(ppvObject, riid, out ppvObject);
+                        HRESULT hrQI = Marshal.QueryInterface(ppvObject, in riid, out ppvObject);
 #else
                         HRESULT hrQI = Marshal.QueryInterface(ppvObject, ref riid, out ppvObject);
 #endif
