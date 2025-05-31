@@ -99,7 +99,7 @@ namespace ExcelDna.Integration.ComInterop.Generator
                 (int)pDispParams.rgvarg[0].Value,
                 ref strings,
                 ref newValues));
-            //DispParamsMarshaller.UpdateArg(pDispParams, new Variant(newValues), 2);
+            DispParamsMarshaller.UpdateRefBoolArg(pDispParams, newValues, 2);
         }
 
         private void OnRefreshData(DispParams pDispParams, nint pVarResult)

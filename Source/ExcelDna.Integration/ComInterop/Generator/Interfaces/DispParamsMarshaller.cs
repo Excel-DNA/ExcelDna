@@ -39,7 +39,7 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
             };
         }
 
-        public static unsafe void UpdateArg(DispParams dp, Variant v, int i)
+        public static void UpdateArg(DispParams dp, Variant v, int i)
         {
             int ri = dp.cArgs - 1 - i;
             var size = Marshal.SizeOf<VariantNative>();
@@ -47,12 +47,21 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
             Marshal.StructureToPtr<VariantNative>(vn, dp.rgvargNative + ri * size, false);
         }
 
-        public static unsafe void UpdateRefIntArg(DispParams dp, int v, int i)
+        public static void UpdateRefIntArg(DispParams dp, int v, int i)
+        {
+            VariantMarshaller.UpdateRefInt(GetVariantParam(dp, i), v);
+        }
+
+        public static void UpdateRefBoolArg(DispParams dp, bool v, int i)
+        {
+            VariantMarshaller.UpdateRefBool(GetVariantParam(dp, i), v);
+        }
+
+        private static VariantNative GetVariantParam(DispParams dp, int i)
         {
             int ri = dp.cArgs - 1 - i;
             var size = Marshal.SizeOf<VariantNative>();
-            VariantNative vn = Marshal.PtrToStructure<VariantNative>(dp.rgvargNative + ri * size);
-            VariantMarshaller.UpdateRefInt(vn, v);
+            return Marshal.PtrToStructure<VariantNative>(dp.rgvargNative + ri * size);
         }
     }
 }

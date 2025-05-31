@@ -139,6 +139,12 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
         {
             Marshal.StructureToPtr(v, unmanaged.plVal, false);
         }
+
+        public static void UpdateRefBool(VariantNative unmanaged, bool v)
+        {
+            short boolVal = v ? (short)VariantBoolNative.VARIANT_TRUE : (short)VariantBoolNative.VARIANT_FALSE;
+            Marshal.StructureToPtr(boolVal, unmanaged.pboolVal, false);
+        }
     }
 }
 
