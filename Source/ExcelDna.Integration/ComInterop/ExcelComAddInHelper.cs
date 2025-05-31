@@ -13,108 +13,24 @@ using ExcelDna.Logging;
 
 namespace ExcelDna.Integration
 {
-    // NOTE: A COM add-in might be able to know phow Excel started by looking in the Custom() values passed to OnConnection
-    // See: https://msdn.microsoft.com/en-us/library/aa189748%28office.10%29.aspx
-    // Custom()	Variant	An array of Variant type values that provides additional data. 
-    // The numeric value of the first element in this array indicates how the host application was started: 
-    // from the user interface (1), 
-    // by embedding a document created in the host application in another application (2), 
-    // or through Automation (3).
-
-    [ComVisible(true)]
-#pragma warning disable CS0618 // Type or member is obsolete (but probably not forever)
-    [ClassInterface(ClassInterfaceType.AutoDispatch)]
-#pragma warning restore CS0618 // Type or member is obsolete
-    public class ExcelComAddIn : IDTExtensibility2
-    {
-        internal DnaLibrary DnaLibrary { get; set; }
-        private string _progId;
-        private object _addInInst;
-        protected string ProgId
-        {
-            get { return _progId; }
-        }
-
-        internal void SetProgId(string progId)
-        {
-            _progId = progId;
-        }
-
-        public string FriendlyName { get; protected set; }
-        public string Description { get; protected set; }
-
-        #region IDTExtensibility2 interface
-        public virtual void OnConnection(object Application, ext_ConnectMode ConnectMode, object AddInInst, ref Array custom)
-        {
-            _addInInst = AddInInst;
-            Logger.ComAddIn.Verbose("ExcelComAddIn.OnConnection");
-        }
-
-        public virtual void OnDisconnection(ext_DisconnectMode RemoveMode, ref Array custom)
-        {
-            ExcelComAddInHelper.OnUnloadComAddIn(this, _addInInst);
-            Logger.ComAddIn.Verbose("ExcelComAddIn.OnDisconnection");
-        }
-
-        public virtual void OnAddInsUpdate(ref Array custom)
-        {
-            Logger.ComAddIn.Verbose("ExcelComAddIn.OnAddInsUpdate");
-        }
-
-        public virtual void OnStartupComplete(ref Array custom)
-        {
-            Logger.ComAddIn.Verbose("ExcelComAddIn.OnStartupComplete");
-        }
-
-        public virtual void OnBeginShutdown(ref Array custom)
-        {
-            Logger.ComAddIn.Verbose("ExcelComAddIn.OnBeginShutdown");
-        }
-        #endregion
-    }
-
-    [ComVisible(true)]
-#pragma warning disable CS0618 // Type or member is obsolete (but probably not forever)
-    [ClassInterface(ClassInterfaceType.AutoDispatch)]
-#pragma warning restore CS0618 // Type or member is obsolete
-    internal class DummyComAddIn : IDTExtensibility2
-    {
-        #region IDTExtensibility2 interface
-        public virtual void OnConnection(object Application, ext_ConnectMode ConnectMode, object AddInInst, ref Array custom)
-        {
-            Logger.ComAddIn.Verbose("DummyComAddIn.OnConnection");
-        }
-
-        public virtual void OnDisconnection(ext_DisconnectMode RemoveMode, ref Array custom)
-        {
-            Logger.ComAddIn.Verbose("DummyComAddIn.OnDisconnection");
-        }
-
-        public virtual void OnAddInsUpdate(ref Array custom)
-        {
-            Logger.ComAddIn.Verbose("DummyComAddIn.OnAddInsUpdate");
-        }
-
-        public virtual void OnStartupComplete(ref Array custom)
-        {
-            Logger.ComAddIn.Verbose("DummyComAddIn.OnStartupComplete");
-        }
-
-        public virtual void OnBeginShutdown(ref Array custom)
-        {
-            Logger.ComAddIn.Verbose("DummyComAddIn.OnBeginShutdown");
-        }
-        #endregion
-    }
-    
     public static class ExcelComAddInHelper
     {
         // Com Add-ins loaded for Ribbons.
-        static List<object> loadedComAddIns = new List<object>();
+        private class LoadedComAddIn
+        {
+            public ExcelComAddIn AddIn { get; }
+            public object ComObject { get; }
+            public LoadedComAddIn(ExcelComAddIn addIn, object comObject)
+            {
+                this.AddIn = addIn;
+                this.ComObject = comObject;
+            }
+        }
+        private static List<LoadedComAddIn> loadedComAddIns = new List<LoadedComAddIn>();
 
         public static void OnUnloadComAddIn(ExcelComAddIn addIn, object addInInst)
         {
-            loadedComAddIns.Remove(addInInst);
+            loadedComAddIns.RemoveAll(i => i.AddIn == addIn || i.ComObject == addInInst);
         }
 
         public static void LoadComAddIn(ExcelComAddIn addIn)
@@ -152,7 +68,11 @@ namespace ExcelDna.Integration
             string friendlyName;
             if (addIn.FriendlyName != null)
                 friendlyName = addIn.FriendlyName;
-            else if (addIn is ExcelRibbon)
+            else if (addIn is ExcelRibbon
+#if COM_GENERATED
+                || addIn is ComInterop.Generator.ExcelRibbon
+#endif
+                )
                 friendlyName = addIn.DnaLibrary.Name; // + " (Ribbon Helper)"; (No more - it is displayed in the Ribbon tooltip!)
             else if (addIn is ExcelCustomTaskPaneAddIn)
                 friendlyName = addIn.DnaLibrary.Name + " (Custom Task Pane Helper)";
@@ -162,11 +82,10 @@ namespace ExcelDna.Integration
 
 
             Logger.ComAddIn.Verbose("Getting Application object");
-            object app = ExcelDnaUtil.Application;
-            Type appType = app.GetType();
+            object app = ExcelDnaUtil.ApplicationObject;
+            ComInterop.IType typeAdapter = ComInterop.Util.TypeAdapter;
             Logger.ComAddIn.Verbose("Got Application object: " + app.GetType().ToString());
 
-            CultureInfo ci = new CultureInfo(1033);
             object excelComAddIns;
             object comAddIn;
 
@@ -185,15 +104,15 @@ namespace ExcelDna.Integration
                     // But the add-in is not 'fully' loaded, e.g. the Ribbon is not loaded
                     // However, events on the add-in object will fire, specifically the OnDisconnect event when we do Connect = false later.
                     // So to avoid inconvenience to our 'real' add-in, we give Excel a dummy add-in for now
-                    var dummyAddIn = new DummyComAddIn();
+                    var dummyAddIn = new ComInterop.DummyComAddIn();
                     using (new SingletonClassFactoryRegistration(dummyAddIn, clsId))
                     {
-                        excelComAddIns = appType.InvokeMember("COMAddIns", BindingFlags.GetProperty, null, app, null, ci);
+                        excelComAddIns = typeAdapter.GetProperty("COMAddIns", app);
 
                         //                            Debug.Print("Got COMAddins object: " + excelComAddIns.GetType().ToString());
-                        appType.InvokeMember("Update", BindingFlags.InvokeMethod, null, excelComAddIns, null, ci);
+                        typeAdapter.Invoke("Update", null, excelComAddIns);
                         //                            Debug.Print("Updated COMAddins object with AddIn registered");
-                        comAddIn = excelComAddIns.GetType().InvokeMember("Item", BindingFlags.InvokeMethod, null, excelComAddIns, new object[] { progId }, ci);
+                        comAddIn = typeAdapter.Invoke("Item", new object[] { progId }, excelComAddIns);
                         //                            Debug.Print("Got the COMAddin object: " + comAddIn.GetType().ToString());
 
                         // At this point Excel knows how to load our add-in by CLSID, so we could clean up the 
@@ -201,16 +120,16 @@ namespace ExcelDna.Integration
                         // But this seems to lead to some distress - Excel has some assertion checked when 
                         // it updates the LoadBehavior after a successful load....
 
-                        object connectState = comAddIn.GetType().InvokeMember("Connect", BindingFlags.GetProperty, null, comAddIn, null, ci);
-                        comAddIn.GetType().InvokeMember("Connect", BindingFlags.SetProperty, null, comAddIn, new object[] { false }, ci);
+                        object connectState = typeAdapter.GetProperty("Connect", comAddIn);
+                        typeAdapter.SetProperty("Connect", false, comAddIn);
                     }
                     // Swap out the dummy add-in for the real one
                     using (new SingletonClassFactoryRegistration(addIn, clsId))
                     {
-                        comAddIn.GetType().InvokeMember("Connect", BindingFlags.SetProperty, null, comAddIn, new object[] { true }, ci);
+                        typeAdapter.SetProperty("Connect", true, comAddIn);
                     }
                     //                            Debug.Print("COMAddin is loaded.");
-                    loadedComAddIns.Add(comAddIn);
+                    loadedComAddIns.Add(new LoadedComAddIn(addIn, comAddIn));
 
                     Logger.ComAddIn.Verbose("Completed Loading Ribbon/COM Add-In");
 
@@ -239,10 +158,10 @@ namespace ExcelDna.Integration
 
         internal static void UnloadComAddIns()
         {
-            CultureInfo ci = new CultureInfo(1033);
-            foreach (object comAddIn in loadedComAddIns.ToArray()) // Disconnecting an add-in removes it from loadedComAddIns, so we operate on a copy of the collection.
+            ComInterop.IType typeAdapter = ComInterop.Util.TypeAdapter;
+            foreach (LoadedComAddIn comAddIn in loadedComAddIns.ToArray()) // Disconnecting an add-in removes it from loadedComAddIns, so we operate on a copy of the collection.
             {
-                comAddIn.GetType().InvokeMember("Connect", System.Reflection.BindingFlags.SetProperty, null, comAddIn, new object[] { false }, ci);
+                typeAdapter.SetProperty("Connect", false, comAddIn.ComObject);
                 Logger.ComAddIn.Info("Ribbon/COM Add-In Unloaded.");
             }
         }

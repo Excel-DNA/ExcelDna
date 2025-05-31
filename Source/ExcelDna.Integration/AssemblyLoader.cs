@@ -35,8 +35,6 @@ namespace ExcelDna.Integration
                     List<Type> rtdServerTypes,
                     List<ExcelComClassType> comClassTypes)
         {
-            bool loadRibbons = (ExcelDnaUtil.ExcelVersion >= 12.0);
-
             foreach (ExportedAssembly assembly in assemblies)
             {
                 int initialObjectsCount = methods.Count +
@@ -89,7 +87,7 @@ namespace ExcelDna.Integration
                             GetExcelMethods(type, explicitExports, methods, excelFunctionsExtendedRegistration);
                             GetExcelFunctionExecutionHandlerSelectors(type, excelFunctionExecutionHandlerSelectors);
                         }
-                        GetExcelAddIns(assembly, type, loadRibbons, addIns);
+                        GetExcelAddIns(assembly, new TypeHelperDynamic(type), addIns);
                         GetRtdServerTypes(type, rtdServerTypes, out isRtdServer);
                         GetComClassTypes(assembly, type, attribs, isRtdServer, comClassTypes);
                     }
@@ -112,6 +110,27 @@ namespace ExcelDna.Integration
                 {
                     Logger.Initialization.Error("No objects loaded from {0}", assembly.Assembly.FullName);
                 }
+            }
+        }
+
+        public static void GetExcelMethods(IEnumerable<MethodInfo> mis, bool explicitExports, List<MethodInfo> excelMethods, List<Registration.ExcelFunctionRegistration> excelFunctionsExtendedRegistration)
+        {
+            foreach (MethodInfo mi in mis)
+            {
+                bool isSupported = IsMethodSupported(mi, explicitExports);
+
+                if (!isSupported && IsMethodMarkedForExport(mi))
+                {
+                    excelFunctionsExtendedRegistration.Add(new Registration.ExcelFunctionRegistration(mi));
+                }
+                else if (!isSupported)
+                {
+                    // CONSIDER: More detailed logging
+                    Logger.Initialization.Info("Method not registered - unsupported signature, abstract or generic: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
+                }
+
+                if (isSupported)
+                    excelMethods.Add(mi);
             }
         }
 
@@ -155,25 +174,7 @@ namespace ExcelDna.Integration
                 return;
             }
 
-            MethodInfo[] mis = t.GetMethods(BindingFlags.Public | BindingFlags.Static);
-            // Filter list first - LINQ would be nice here :-)
-            foreach (MethodInfo mi in mis)
-            {
-                bool isSupported = IsMethodSupported(mi, explicitExports);
-
-                if (!isSupported && IsMethodMarkedForExport(mi))
-                {
-                    excelFunctionsExtendedRegistration.Add(new Registration.ExcelFunctionRegistration(mi));
-                }
-                else if (!isSupported)
-                {
-                    // CONSIDER: More detailed logging
-                    Logger.Initialization.Info("Method not registered - unsupported signature, abstract or generic: '{0}.{1}'", mi.DeclaringType.Name, mi.Name);
-                }
-
-                if (isSupported)
-                    excelMethods.Add(mi);
-            }
+            GetExcelMethods(t.GetMethods(BindingFlags.Public | BindingFlags.Static), explicitExports, excelMethods, excelFunctionsExtendedRegistration);
         }
 
         static void GetExcelFunctionExecutionHandlerSelectors(Type type, List<Registration.FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors)
@@ -292,38 +293,44 @@ namespace ExcelDna.Integration
             public DnaLibrary ParentDnaLibrary;
         }
 
-        static public void GetExcelAddIns(ExportedAssembly assembly, Type t, bool loadRibbons, List<ExcelAddInInfo> addIns)
+        static public void GetExcelAddIns(ExportedAssembly assembly, ITypeHelper t, List<ExcelAddInInfo> addIns)
         {
+            bool loadRibbons = (ExcelDnaUtil.ExcelVersion >= 12.0);
+
             // NOTE: We probably should have restricted this to public types, but didn't. Now it's too late.
             //       So internal classes that implement IExcelAddIn are also loaded.
             try
             {
-                if (!t.IsClass || t.IsAbstract)
+                if (!t.Type.IsClass || t.Type.IsAbstract)
                 {
-                    Logger.Registration.Verbose("GetExcelAddIns - Skipped add-in object of type: {0}", t.FullName);
+                    Logger.Registration.Verbose("GetExcelAddIns - Skipped add-in object of type: {0}", t.Type.FullName);
                     return;
                 }
 
-                Type addInType = t.GetInterface("ExcelDna.Integration.IExcelAddIn");
-                bool isRibbon = IsRibbonType(t);
+                Type addInType = t.Type.GetInterface("ExcelDna.Integration.IExcelAddIn");
+                bool isRibbon = IsRibbonType(t.Type);
                 if (addInType != null || (isRibbon && loadRibbons))
                 {
                     ExcelAddInInfo info = new ExcelAddInInfo();
                     if (addInType != null)
                     {
-                        info.AutoOpenMethod = addInType.GetMethod("AutoOpen");
-                        info.AutoCloseMethod = addInType.GetMethod("AutoClose");
+                        info.AutoOpenMethod = typeof(IExcelAddIn).GetMethod("AutoOpen");
+                        info.AutoCloseMethod = typeof(IExcelAddIn).GetMethod("AutoClose");
                     }
                     info.IsCustomUI = isRibbon;
-                    info.Instance = Activator.CreateInstance(t);
-                    info.ParentDnaLibrary = assembly.ParentDnaLibrary;
+#if COM_GENERATED
+                    info.Instance = IsRibbonInterface(t.Type) ? new ComInterop.Generator.ExcelRibbon(t) : t.CreateInstance();
+#else
+                    info.Instance = t.CreateInstance();
+#endif
+                    info.ParentDnaLibrary = assembly?.ParentDnaLibrary;
                     addIns.Add(info);
-                    Logger.Registration.Verbose("GetExcelAddIns - Created add-in object of type: {0}", t.FullName);
+                    Logger.Registration.Verbose("GetExcelAddIns - Created add-in object of type: {0}", t.Type.FullName);
                 }
             }
             catch (Exception e) // I think only CreateInstance can throw an exception here...
             {
-                Logger.Initialization.Warn("GetExcelAddIns CreateInstance problem for type: {0} - exception: {1}", t.FullName, e);
+                Logger.Initialization.Warn("GetExcelAddIns CreateInstance problem for type: {0} - exception: {1}", t.Type.FullName, e);
             }
 
         }
@@ -422,11 +429,20 @@ namespace ExcelDna.Integration
 
             bool isRibbon =
                     type != null &&
-                    TypeHasAncestorWithFullName(type.BaseType, "ExcelDna.Integration.CustomUI.ExcelRibbon") &&
+                    (TypeHasAncestorWithFullName(type.BaseType, "ExcelDna.Integration.CustomUI.ExcelRibbon") || IsRibbonInterface(type)) &&
                     !type.IsAbstract &&
                     !IsRibbonType(type.BaseType);
 
             return isRibbon;
+        }
+
+        static bool IsRibbonInterface(Type type)
+        {
+#if COM_GENERATED
+            return type.GetInterface("ExcelDna.Integration.CustomUI.IExcelRibbon") != null;
+#else
+            return false;
+#endif
         }
 
         private static bool IsParameterConversion(MethodInfo methodInfo)
