@@ -72,12 +72,12 @@ namespace ExcelDna.Integration.ComInterop.Generator
             throw new NotImplementedException();
         }
 
-        public int Heartbeat()
+        public new int Heartbeat()
         {
             throw new NotImplementedException();
         }
 
-        public void ServerTerminate()
+        public new void ServerTerminate()
         {
             throw new NotImplementedException();
         }
