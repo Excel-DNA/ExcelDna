@@ -18,10 +18,10 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         }
 
         [ExcelAsyncFunction]
-        public static async Task<string> MyAsyncTaskHello(string name, int msDelay)
+        public static async Task<string> NativeAsyncTaskHello(string name, int msDelay)
         {
             await Task.Delay(msDelay);
-            return $"Hello async task {name}";
+            return $"Hello native async task {name}";
         }
     }
 }
