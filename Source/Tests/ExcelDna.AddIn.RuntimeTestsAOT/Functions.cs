@@ -23,5 +23,11 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
             await Task.Delay(msDelay);
             return $"Hello native async task {name}";
         }
+
+        [ExcelFunction]
+        public static string NativeApplicationName()
+        {
+            return (string)ExcelDnaUtil.DynamicApplication.GetProperty("Name");
+        }
     }
 }

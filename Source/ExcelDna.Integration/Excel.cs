@@ -225,6 +225,16 @@ namespace ExcelDna.Integration
             }
         }
 
+#if COM_GENERATED
+        public static IDynamic DynamicApplication
+        {
+            get
+            {
+                return new ComInterop.Generator.DynamicComObject(ApplicationObject as ComInterop.Generator.Interfaces.DispatchObject);
+            }
+        }
+#endif
+
         internal static object ApplicationObject
         {
             get
