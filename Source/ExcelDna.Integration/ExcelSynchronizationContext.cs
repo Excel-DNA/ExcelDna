@@ -236,7 +236,9 @@ namespace ExcelDna.Integration
         // Here we catch an InvalidOperationException that we throw from CallPenHelper below
         // This seems to need the special attribute too !?
         // TODO: NET6+: See notes at CallPenHelper
+#if NETFRAMEWORK
         [HandleProcessCorruptedStateExceptions]
+#endif
         public void ProcessRunSyncMacroMessage()
         {
             try
@@ -411,7 +413,7 @@ namespace ExcelDna.Integration
                     }
                     else
                     {
-                        if (   (int)result != E_FAIL
+                        if ((int)result != E_FAIL
                             && (int)result != E_NA)
                         {
                             Logger.Registration.Error("Unexpected return value from Application.Run(\"SyncMacro_...\") - " + result);
