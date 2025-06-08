@@ -51,6 +51,11 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
             return InvokeWrapper(name, INVOKEKIND.INVOKE_PROPERTYGET, dispParams);
         }
 
+        public object? GetProperty(string name, object[]? args)
+        {
+            return InvokeWrapper(name, INVOKEKIND.INVOKE_PROPERTYGET, ArgsToParams(args));
+        }
+
         public void SetProperty(string name, object value)
         {
             var dispParams = new DispParams
@@ -90,27 +95,9 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
             return InvokeWrapper("Item", INVOKEKIND.INVOKE_PROPERTYGET, dispParams);
         }
 
-        public object? Invoke(string name, object[] args)
+        public object? Invoke(string name, object[]? args)
         {
-            DispParams dispParams;
-            if (args != null)
-            {
-                Variant[] a = args.Select(i => new Variant(i)).ToArray();
-
-                dispParams = new DispParams
-                {
-                    rgvarg = a,
-                    rgdispidNamedArgs = 0,
-                    cArgs = a.Length,
-                    cNamedArgs = 0
-                };
-            }
-            else
-            {
-                dispParams = new DispParams();
-            }
-
-            return InvokeWrapper(name, INVOKEKIND.INVOKE_FUNC, dispParams);
+            return InvokeWrapper(name, INVOKEKIND.INVOKE_FUNC, ArgsToParams(args));
         }
 
         private int[] GetDispIDs(string propName)
@@ -150,6 +137,29 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
 
             Marshal.ThrowExceptionForHR(hr);
             return variantResult.GetResult().Value;
+        }
+
+        private static DispParams ArgsToParams(object[]? args)
+        {
+            DispParams dispParams;
+            if (args != null)
+            {
+                Variant[] a = args.Select(i => new Variant(i)).ToArray();
+
+                dispParams = new DispParams
+                {
+                    rgvarg = a,
+                    rgdispidNamedArgs = 0,
+                    cArgs = a.Length,
+                    cNamedArgs = 0
+                };
+            }
+            else
+            {
+                dispParams = new DispParams();
+            }
+
+            return dispParams;
         }
     }
 }
