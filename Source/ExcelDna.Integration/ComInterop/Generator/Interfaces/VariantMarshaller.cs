@@ -73,6 +73,7 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
                     },
                 VT_BYREF_BOOL => RefBoolToManaged(unmanaged.pboolVal),
                 VariantTypeNative.VT_I4 => new Variant { Value = unmanaged.lVal, },
+                VariantTypeNative.VT_R8 => new Variant { Value = unmanaged.dblVal, },
                 VT_BYREF_I4 => RefIntToManaged(unmanaged.plVal),
                 VariantTypeNative.VT_BSTR
                     => new Variant { Value = Marshal.PtrToStringBSTR(unmanaged.bstrVal), },
