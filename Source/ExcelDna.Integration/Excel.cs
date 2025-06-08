@@ -274,11 +274,13 @@ namespace ExcelDna.Integration
             }
         }
 
-        // This call might throw an access violation 
+        // This call might throw an access violation
         // NOTE .NET5+: If this assembly is run under .NET 5+ we need to re-engineer this call to handle possible access violations outside the managed code,
         // or figure out the source and timing of safe vs dangerous calls.
         // (Also for CallPenHelper)
+#if NETFRAMEWORK
         [HandleProcessCorruptedStateExceptions]
+#endif
         private static bool IsExcelApiAvailable()
         {
             try
