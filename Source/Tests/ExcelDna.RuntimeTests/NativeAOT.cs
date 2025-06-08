@@ -44,10 +44,21 @@ namespace ExcelDna.RuntimeTests
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
         public void DynamicApplication()
         {
-            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
-            functionRange.Formula = "=NativeApplicationName()";
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
+                functionRange.Formula = "=NativeApplicationName()";
 
-            Assert.Equal("Microsoft Excel", functionRange.Value.ToString());
+                Assert.Equal("Microsoft Excel", functionRange.Value.ToString());
+            }
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
+                functionRange1.Value = 4.2;
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C2"];
+                functionRange2.Formula = "=NativeApplicationGetCellValue(\"C1\")";
+
+                Assert.Equal(4.2, functionRange2.Value);
+            }
         }
     }
 }

@@ -29,5 +29,15 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         {
             return (string)ExcelDnaUtil.DynamicApplication.GetProperty("Name");
         }
+
+        [ExcelFunction]
+        public static double NativeApplicationGetCellValue(string cell)
+        {
+            var workbook = (IDynamic)ExcelDnaUtil.DynamicApplication.GetProperty("ActiveWorkbook");
+            var sheets = (IDynamic)workbook.GetProperty("Sheets");
+            var sheet = (IDynamic)sheets[1];
+            var range = (IDynamic)sheet.GetProperty("Range", [cell]);
+            return (double)range.GetProperty("Value");
+        }
     }
 }
