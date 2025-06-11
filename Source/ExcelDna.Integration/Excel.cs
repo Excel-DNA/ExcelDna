@@ -217,7 +217,7 @@ namespace ExcelDna.Integration
         // [ThreadStatic] 
         static Microsoft.Office.Interop.Excel.Application _application;
         static readonly CultureInfo _enUsCulture = new CultureInfo(1033);
-        public static Microsoft.Office.Interop.Excel.Application Application
+        public static object Application
         {
             get
             {

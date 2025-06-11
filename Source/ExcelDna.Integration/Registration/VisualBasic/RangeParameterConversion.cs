@@ -15,7 +15,7 @@ namespace ExcelDna.Registration.VisualBasic
         public static Range ReferenceToRange(object xlInput)
         {
             ExcelReference reference = (ExcelReference)xlInput;  // Will throw some Exception if not valid, which will be returned as #VALUE
-            Application app = ExcelDnaUtil.Application;
+            Application app = (Application)ExcelDnaUtil.Application;
 
             string sheetName = (string)XlCall.Excel(XlCall.xlSheetNm, reference);
             int index = sheetName.LastIndexOf("]");
