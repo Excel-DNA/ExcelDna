@@ -390,8 +390,9 @@ namespace ExcelDna.AddIn.Tasks
             if (!string.IsNullOrWhiteSpace(AddInInclude))
             {
                 string includes = "";
+                string IncludePdbValue = IncludePdb ? "true" : "false";
                 foreach (string path in SplitDlls(AddInInclude))
-                    includes += $"  <Reference Path=\"{path}\" Pack=\"true\" />" + Environment.NewLine;
+                    includes += $"  <Reference Path=\"{path}\" Pack=\"true\" IncludePdb=\"{IncludePdbValue}\" />" + Environment.NewLine;
                 result = result.Replace("</DnaLibrary>", includes + "</DnaLibrary>");
             }
 
@@ -472,6 +473,9 @@ namespace ExcelDna.AddIn.Tasks
 
             if (!LoadFromBytes)
                 result = result.Replace("LoadFromBytes=\"true\"", "LoadFromBytes=\"false\"");
+
+            if (IncludePdb)
+                result = result.Replace("IncludePdb=\"false\"", "IncludePdb=\"true\"");
 
             return result.Replace("%OutputFileName%", dllFileName);
         }
@@ -799,6 +803,11 @@ namespace ExcelDna.AddIn.Tasks
         /// Enable/disable more dynamic .dll loading
         /// </summary>
         public bool LoadFromBytes { get; set; }
+
+        /// <summary>
+        /// Enable/disable including pdb files in packed add-in
+        /// </summary>
+        public bool IncludePdb { get; set; }
 
         /// <summary>
         /// The list of .dna files copied to the output
