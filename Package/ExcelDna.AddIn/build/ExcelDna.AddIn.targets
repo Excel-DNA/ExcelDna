@@ -265,6 +265,7 @@
 	  ExplicitRegistration="$(ExcelAddInExplicitRegistration)"
 		ComServer="$(ExcelAddInComServer)"
 		LoadFromBytes="$(ExcelAddInLoadFromBytes)"
+		IncludePdb="$(ExcelAddInIncludePdb)"
 	  IntegrationDllPath="$(ExcelDnaRuntimeToolsPath)ExcelDna.Integration.dll"
 	  TemplateDnaPath="$(MSBuildThisFileDirectory)..\content\ExcelDna-Template.dna">
       <Output TaskParameter="DnaFilesToPack" ItemName="ExcelDnaFilesToPack" />

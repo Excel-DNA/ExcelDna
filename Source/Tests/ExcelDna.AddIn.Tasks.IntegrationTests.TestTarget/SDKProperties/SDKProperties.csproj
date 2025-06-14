@@ -177,6 +177,10 @@
     <!-- Default value: true -->
     <ExcelAddInLoadFromBytes></ExcelAddInLoadFromBytes>
 
+    <!-- Enable/disable including pdb files in packed add-in. -->
+    <!-- Default value: false -->
+    <ExcelAddInIncludePdb></ExcelAddInIncludePdb>
+
     <!-- We don't need the extra 'ref' directory and reference assemblies for the Excel add-in -->
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 
