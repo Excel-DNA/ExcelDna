@@ -70,7 +70,7 @@ namespace ExcelDna.Integration.Rtd
         // ThreadSafe
         public static bool TryRTD(out object result, string progId, string server, params string[] topics)
         {
-            Debug.Print("### RtdRegistration.RTD " + progId);
+            Debug.Print($"[{DateTime.Now:HH:mm:ss.f}] ### RtdRegistration.RTD " + progId);
             // Check if this is any of our business.
             if (!string.IsNullOrEmpty(server))
             {
