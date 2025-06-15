@@ -27,7 +27,7 @@ namespace ExcelDna.Integration.ObjectHandles
 
         public void Dispose()
         {
-            ObjectHandler.Remove(this);               // Called when last instance of this topic is removed from the current session
+            ObjectHandler.Remove(Handle);               // Called when last instance of this topic is removed from the current session
         }
     }
 }

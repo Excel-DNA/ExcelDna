@@ -4,7 +4,7 @@
     {
         public static Microsoft.Office.Interop.Excel.Range ReferenceToRange(ExcelReference reference)
         {
-            Microsoft.Office.Interop.Excel.Application app = ExcelDnaUtil.Application;
+            Microsoft.Office.Interop.Excel.Application app = (Microsoft.Office.Interop.Excel.Application)ExcelDnaUtil.Application;
 
             string sheetName = (string)XlCall.Excel(XlCall.xlSheetNm, reference);
             int index = sheetName.LastIndexOf("]");

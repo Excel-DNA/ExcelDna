@@ -10,7 +10,7 @@ namespace ExcelDna.PackedResources
 {
     internal class ExcelDnaPack
     {
-        public static int Pack(string dnaPath, string xllOutputPathParam, bool compress, bool multithreading, bool overwrite, string usageInfo, List<string> filesToPublish, bool packNativeLibraryDependencies, bool packManagedDependencies, string excludeDependencies, bool useManagedResourceResolver, string outputBitness, IBuildLogger buildLogger)
+        public static int Pack(string dnaPath, string xllOutputPathParam, bool compress, bool multithreading, bool overwrite, string usageInfo, List<string> filesToPublish, bool packNativeLibraryDependencies, bool packManagedDependencies, string excludeDependencies, bool useManagedResourceResolver, string outputBitness, string docPath, IBuildLogger buildLogger)
         {
             string HostXLL = outputBitness == "64" ? "ExcelDna64.xll" : "ExcelDna.xll";
             string dnaDirectory = Path.GetDirectoryName(dnaPath);
@@ -125,6 +125,11 @@ namespace ExcelDna.PackedResources
 
                     ru.AddFile(File.ReadAllBytes(nativeLibrary), Path.GetFileName(nativeLibrary).ToUpperInvariant(), ResourceHelper.TypeName.NATIVE_LIBRARY, "Native deps.json", compress, multithreading);
                 }
+            }
+
+            if (!string.IsNullOrWhiteSpace(docPath) && filesToPublish == null)
+            {
+                ru.AddFile(File.ReadAllBytes(docPath), Path.GetFileName(docPath).ToUpperInvariant(), ResourceHelper.TypeName.DOC, null, compress, multithreading);
             }
 
             byte[] dnaBytes = File.ReadAllBytes(dnaPath);

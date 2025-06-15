@@ -75,6 +75,11 @@ namespace ExcelDna.Integration
             return Observe(callerFunctionName, callerParameters, () => new ExcelObservable<T>(observableSource()));
         }
 
+        public static object Observe<T>(string callerFunctionName, object callerParameters, ExcelObservableOptions options, Func<IObservable<T>> observableSource)
+        {
+            return Observe(callerFunctionName, callerParameters, options, () => new ExcelObservable<T>(observableSource()));
+        }
+
         // Async function support
         // ThreadSafe
         public static object Run(string callerFunctionName, object callerParameters, ExcelFunc asyncFunc)
@@ -141,6 +146,40 @@ namespace ExcelDna.Integration
         static void RunMacro(object macroName)
         {
             XlCall.Excel(XlCall.xlcRun, macroName);
+        }
+
+        internal static object ObserveObject<T>(string callerFunctionName, object callerParameters, Func<IObservable<T>> observableSource)
+        {
+            return Observe(callerFunctionName, callerParameters, () => new ExcelObjectObservable<T>(observableSource()));
+        }
+
+        internal static object RunTaskObject<TResult>(string callerFunctionName, object callerParameters, Func<Task<TResult>> taskSource)
+        {
+            return Observe(callerFunctionName, callerParameters, delegate
+            {
+                var task = taskSource();
+                return new ExcelTaskObjectObservable<TResult>(task);
+            });
+        }
+
+        internal static object RunTaskObjectWithCancellation<TResult>(string callerFunctionName, object callerParameters, Func<CancellationToken, Task<TResult>> taskSource)
+        {
+            return Observe(callerFunctionName, callerParameters, delegate
+            {
+                var cts = new CancellationTokenSource();
+                var task = taskSource(cts.Token);
+                return new ExcelTaskObjectObservable<TResult>(task, cts);
+            });
+        }
+
+        internal static object RunAsTaskObject<TResult>(string callerFunctionName, object callerParameters, Func<TResult> function)
+        {
+            return RunTaskObject(callerFunctionName, callerParameters, () => Task.Factory.StartNew(function));
+        }
+
+        internal static object RunAsTaskObjectWithCancellation<TResult>(string callerFunctionName, object callerParameters, Func<CancellationToken, TResult> function)
+        {
+            return RunTaskObjectWithCancellation(callerFunctionName, callerParameters, cancellationToken => Task.Factory.StartNew(() => function(cancellationToken), cancellationToken));
         }
 
         #region Async calculation events

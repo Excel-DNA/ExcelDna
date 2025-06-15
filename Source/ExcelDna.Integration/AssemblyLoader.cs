@@ -29,8 +29,8 @@ namespace ExcelDna.Integration
                     List<MethodInfo> methods,
                     List<ExtendedRegistration.ExcelParameterConversion> excelParameterConversions,
                     List<ExtendedRegistration.ExcelFunctionProcessor> excelFunctionProcessors,
-                    List<ExtendedRegistration.ExcelFunction> excelFunctionsExtendedRegistration,
-                    List<FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors,
+                    List<Registration.ExcelFunctionRegistration> excelFunctionsExtendedRegistration,
+                    List<Registration.FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors,
                     List<ExcelAddInInfo> addIns,
                     List<Type> rtdServerTypes,
                     List<ExcelComClassType> comClassTypes)
@@ -49,6 +49,9 @@ namespace ExcelDna.Integration
                     comClassTypes.Count;
                 Logger.Initialization.Verbose("Processing assembly {0}. ExplicitExports {1}, ExplicitRegistration {2}, ComServer {3}, IsDynamic {4}",
                     assembly.Assembly.FullName, assembly.ExplicitExports, assembly.ExplicitRegistration, assembly.ComServer, assembly.IsDynamic);
+
+                int assemblyAttributes = ObjectHandles.ObjectHandleRegistration.ProcessAssemblyAttributes(assembly.Assembly.GetCustomAttributes());
+
                 // Patch contributed by y_i on CodePlex:
                 // http://stackoverflow.com/questions/11915389/assembly-gettypes-throwing-an-exception
                 Type[] types;
@@ -103,7 +106,9 @@ namespace ExcelDna.Integration
                     excelFunctionExecutionHandlerSelectors.Count +
                     addIns.Count +
                     rtdServerTypes.Count +
-                    comClassTypes.Count == initialObjectsCount)
+                    comClassTypes.Count +
+                    assemblyAttributes
+                    == initialObjectsCount)
                 {
                     Logger.Initialization.Error("No objects loaded from {0}", assembly.Assembly.FullName);
                 }
@@ -134,7 +139,7 @@ namespace ExcelDna.Integration
             }
         }
 
-        static void GetExcelMethods(Type t, bool explicitExports, List<MethodInfo> excelMethods, List<ExtendedRegistration.ExcelFunction> excelFunctionsExtendedRegistration)
+        static void GetExcelMethods(Type t, bool explicitExports, List<MethodInfo> excelMethods, List<Registration.ExcelFunctionRegistration> excelFunctionsExtendedRegistration)
         {
             // DOCUMENT: Exclude if not a class, not public, /*abstract,*/ an array,  
             // open generic type or in "My" namespace.
@@ -158,7 +163,7 @@ namespace ExcelDna.Integration
 
                 if (!isSupported && IsMethodMarkedForExport(mi))
                 {
-                    excelFunctionsExtendedRegistration.Add(new ExtendedRegistration.ExcelFunction(mi));
+                    excelFunctionsExtendedRegistration.Add(new Registration.ExcelFunctionRegistration(mi));
                 }
                 else if (!isSupported)
                 {
@@ -171,13 +176,13 @@ namespace ExcelDna.Integration
             }
         }
 
-        static void GetExcelFunctionExecutionHandlerSelectors(Type type, List<FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors)
+        static void GetExcelFunctionExecutionHandlerSelectors(Type type, List<Registration.FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors)
         {
             MethodInfo[] mis = type.GetMethods(BindingFlags.Public | BindingFlags.Static);
             foreach (MethodInfo mi in mis)
             {
                 if (IsExcelFunctionExecutionHandlerSelector(mi))
-                    excelFunctionExecutionHandlerSelectors.Add((IExcelFunctionInfo functionInfo) => (IFunctionExecutionHandler)mi.Invoke(null, new object[] { functionInfo }));
+                    excelFunctionExecutionHandlerSelectors.Add((IExcelFunctionInfo functionInfo) => (Registration.IFunctionExecutionHandler)mi.Invoke(null, new object[] { functionInfo }));
             }
         }
 
@@ -196,6 +201,10 @@ namespace ExcelDna.Integration
             {
                 isSupported = false;
             }
+            else if (ObjectHandles.ObjectHandleRegistration.IsMethodSupported(new ExcelDna.Registration.ExcelFunctionRegistration(mi)))
+            {
+                isSupported = false;
+            }
             else if (!IsPrimitiveParameterType(mi.ReturnType))
             {
                 isSupported = false;
@@ -204,7 +213,7 @@ namespace ExcelDna.Integration
             {
                 isSupported = false;
             }
-            else if (ExtendedRegistration.ParamsRegistration.IsParamsMethod(new ExtendedRegistration.ExcelFunction(mi)))
+            else if (ExcelDna.Registration.ParamsRegistration.IsParamsMethod(new ExcelDna.Registration.ExcelFunctionRegistration(mi)))
             {
                 isSupported = false;
             }

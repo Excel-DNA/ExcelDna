@@ -1066,6 +1066,73 @@ namespace ExcelDna.Integration.Rtd
         }
     }
 
+    internal class ExcelTaskObjectObservable<TResult> : IExcelObservable
+    {
+        readonly Task<TResult> _task;
+
+        public ExcelTaskObjectObservable(Task<TResult> task)
+        {
+            _task = task;
+        }
+
+        public ExcelTaskObjectObservable(Task<TResult> task, CancellationTokenSource cts) : this(task)
+        {
+        }
+
+        public IDisposable Subscribe(IExcelObserver observer)
+        {
+            IDisposable disp = new TaskObjectDisposable(_task);
+
+            switch (_task.Status)
+            {
+                case TaskStatus.RanToCompletion:
+                    observer.OnNext(_task.Result);
+                    break;
+                case TaskStatus.Faulted:
+                    observer.OnError(_task.Exception.InnerException);
+                    break;
+                case TaskStatus.Canceled:
+                    observer.OnError(new TaskCanceledException(_task));
+                    break;
+                default:
+                    _task.ContinueWith(t =>
+                    {
+                        switch (t.Status)
+                        {
+                            case TaskStatus.RanToCompletion:
+                                observer.OnNext(t.Result);
+                                break;
+                            case TaskStatus.Faulted:
+                                observer.OnError(t.Exception.InnerException);
+                                break;
+                            case TaskStatus.Canceled:
+                                observer.OnError(new TaskCanceledException(t));
+                                break;
+                        }
+                    });
+                    break;
+            }
+
+            return disp;
+        }
+
+        sealed class TaskObjectDisposable : IDisposable
+        {
+            private Task<TResult> task;
+
+            public TaskObjectDisposable(Task<TResult> task)
+            {
+                this.task = task;
+            }
+
+            public void Dispose()
+            {
+                if (task.Status == TaskStatus.RanToCompletion)
+                    ObjectHandles.ObjectHandler.Remove(task.Result as string);
+            }
+        }
+    }
+
     // An IExcelObservable that wraps an IObservable
     internal class ExcelObservable<T> : IExcelObservable
     {
@@ -1121,6 +1188,69 @@ namespace ExcelDna.Integration.Rtd
             public void OnCompleted()
             {
                 _onCompleted();
+            }
+        }
+    }
+
+    internal class ExcelObjectObservable<T> : IExcelObservable
+    {
+        readonly IObservable<T> _observable;
+
+        public ExcelObjectObservable(IObservable<T> observable)
+        {
+            _observable = observable;
+        }
+
+        public IDisposable Subscribe(IExcelObserver excelObserver)
+        {
+            var observer = new AnonymousObserver<T>(value => excelObserver.OnNext(value), excelObserver.OnError, excelObserver.OnCompleted);
+            return _observable.Subscribe(observer);
+        }
+
+        // An IObserver that forwards the inputs to given methods.
+        class AnonymousObserver<OT> : IObserver<OT>
+        {
+            readonly Action<string> _onNext;
+            readonly Action<Exception> _onError;
+            readonly Action _onCompleted;
+
+            public AnonymousObserver(Action<string> onNext, Action<Exception> onError, Action onCompleted)
+            {
+                if (onNext == null)
+                {
+                    throw new ArgumentNullException("onNext");
+                }
+                if (onError == null)
+                {
+                    throw new ArgumentNullException("onError");
+                }
+                if (onCompleted == null)
+                {
+                    throw new ArgumentNullException("onCompleted");
+                }
+                _onNext = onNext;
+                _onError = onError;
+                _onCompleted = onCompleted;
+            }
+
+            public void OnNext(OT value)
+            {
+                _onNext(CreateHandle(value));
+            }
+
+            public void OnError(Exception error)
+            {
+                _onError(error);
+            }
+
+            public void OnCompleted()
+            {
+                _onCompleted();
+            }
+
+            private static string CreateHandle(object o)
+            {
+                return ObjectHandles.ObjectHandler.GetHandle(o.GetType().ToString(), o);
             }
         }
     }

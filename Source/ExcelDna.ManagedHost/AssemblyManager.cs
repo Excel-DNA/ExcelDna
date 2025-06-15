@@ -204,6 +204,10 @@ namespace ExcelDna.ManagedHost
             {
                 typeName = "NATIVE_LIBRARY";
             }
+            else if (type == 6)
+            {
+                typeName = "DOC";
+            }
             else
             {
                 throw new ArgumentOutOfRangeException("type", "Unknown resource type.");

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace ExcelDna.Integration.ObjectHandles
 {
-    internal class ObjectHandler
+    public class ObjectHandler
     {
         private static ConcurrentDictionary<string, HandleInfo> _objects = new ConcurrentDictionary<string, HandleInfo>();
 
@@ -26,6 +26,13 @@ namespace ExcelDna.Integration.ObjectHandles
             return result;
         }
 
+        public static string GetHandle(string tag, object userObject)
+        {
+            var handleInfo = new HandleInfo(tag, userObject);
+            _objects.TryAdd(handleInfo.Handle, handleInfo);
+            return handleInfo.Handle;
+        }
+
         public static bool TryGetObject(string handle, out object value)
         {
             HandleInfo handleInfo;
@@ -38,10 +45,10 @@ namespace ExcelDna.Integration.ObjectHandles
             return false;
         }
 
-        public static void Remove(HandleInfo handleInfo)
+        public static void Remove(string handle)
         {
             HandleInfo value;
-            if (_objects.TryRemove(handleInfo.Handle, out value))
+            if (_objects.TryRemove(handle, out value))
             {
                 var disp = value.UserObject as IDisposable;
                 if (disp != null)

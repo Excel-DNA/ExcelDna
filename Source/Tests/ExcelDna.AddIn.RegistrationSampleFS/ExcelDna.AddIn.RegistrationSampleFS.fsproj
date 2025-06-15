@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+	<EnableDynamicLoading>true</EnableDynamicLoading>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ExcelDna.Interop" Version="15.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\ExcelDna.Integration\ExcelDna.Integration.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="FsAsyncUtil.fs" />
+    <Compile Include="FsAsyncRegistration.fs" />
+    <Compile Include="AsyncFunctionExamples.fs" />
+    <Compile Include="FsParameterConversions.fs" />
+    <Compile Include="OptionalExamples.fs" />
+    <Compile Include="ExampleAddIn.fs" />
+    <None Include="ExcelDna.AddIn.RegistrationSampleFS-AddIn64.dna">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy /y &quot;$(SolutionDir)ExcelDna.Host\bin\$(ConfigurationName)\x64\ExcelDna.Host.x64.xll&quot; &quot;$(TargetDir)ExcelDna.AddIn.RegistrationSampleFS-AddIn64.xll*&quot;&#xD;&#xA;" />
+  </Target>
+
+</Project>

@@ -1,4 +1,5 @@
 ﻿using ExcelDna.Integration;
+using ExcelDna.Registration;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -240,7 +241,7 @@ namespace ExcelDna.AddIn.RuntimeTests
 
             private Func<object, object>[] PropertyConverters { set; get; }
 
-            IExcelFunctionParameter ParameterRegistration { set; get; }
+            ExcelParameterRegistration ParameterRegistration { set; get; }
 
             void PreparePropertyConverters<Registration>(Registration reg, Func<Type, Registration, LambdaExpression> getConversion)
             {
@@ -254,7 +255,7 @@ namespace ExcelDna.AddIn.RuntimeTests
                     l => (l == null) ? null : (Func<object, object>)l.Compile());
             }
 
-            public ShimParameter(Type type, IExcelFunctionParameter reg, IExcelFunctionRegistrationConfiguration config)
+            public ShimParameter(Type type, ExcelParameterRegistration reg, IExcelFunctionRegistrationConfiguration config)
                 : this(type, reg.CustomAttributes)
             {
                 // Try to find a converter for EnumeratedType

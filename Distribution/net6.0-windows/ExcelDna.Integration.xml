@@ -51,12 +51,166 @@
             For macro commands.
             </summary>
         </member>
+        <member name="T:ExcelDna.Integration.ExcelParameterConversionAttribute">
+            <summary>
+            For user-defined parameter conversions.
+            </summary>
+        </member>
+        <member name="T:ExcelDna.Integration.ExcelFunctionExecutionHandlerSelectorAttribute">
+            <summary>
+            For user-defined function execution handlers.
+            </summary>
+        </member>
         <member name="M:ExcelDna.Integration.ExcelIntegration.RegisterXLL(System.String)">
             <summary>
             
             </summary>
             <param name="xllPath"></param>
             <returns>Either a string with the name of the XLL, or the ExcelError.ExcelErrorValue error.</returns>
+        </member>
+        <member name="M:ExcelDna.Integration.ExtendedRegistration.AsyncRegistration.ProcessAsyncRegistrations(System.Collections.Generic.IEnumerable{ExcelDna.Integration.ExtendedRegistration.ExcelFunction},System.Boolean)">
+            <summary>
+            Wraps methods that are marked with [ExcelFunction] and:
+            * Return IObservable, or
+            * Return Task or 
+            * Are marked with [ExcelAsyncFunction] attribute.
+            
+            If the function takes as last parameter a CancellationToken, this will be hooked up to the async function cancellation.
+            </summary>
+            <remarks>NOTE: Currently supports functions with no more than sixteen parameters (fifteen for the native async),
+                          due to the limitation of the Expression.LambdaExpression call we use.
+            </remarks>
+            <param name="registrations">The list is RegistrationEntries to process.</param>
+            <param name="nativeAsyncIfAvailable">Under Excel 2010 and later, indicates whether the native async feature should be used.
+            Does not apply to functions returning IObservable.</param>
+            <returns>The list of RegistrationEntries, with the affected functions wrapped to allow registration in Excel.</returns>
+        </member>
+        <member name="M:ExcelDna.Integration.ExtendedRegistration.ExcelFunction.#ctor(System.Linq.Expressions.LambdaExpression,ExcelDna.Integration.ExcelFunctionAttribute,System.Collections.Generic.IEnumerable{ExcelDna.Integration.ExtendedRegistration.ExcelParameter})">
+            <summary>
+            Creates a new ExcelFunctionRegistration with the given LambdaExpression.
+            Uses the passes in attributes for registration.
+            
+            The number of ExcelParameterRegistrations passed in must match the number of parameters in the LambdaExpression.
+            </summary>
+            <param name="functionLambda"></param>
+            <param name="functionAttribute"></param>
+            <param name="parameterRegistrations"></param>
+        </member>
+        <member name="M:ExcelDna.Integration.ExtendedRegistration.ExcelFunction.#ctor(System.Linq.Expressions.LambdaExpression)">
+            <summary>
+            Creates a new ExcelFunctionRegistration from a LambdaExpression.
+            Uses the Name and Parameter Names to fill in the default attributes.
+            </summary>
+            <param name="functionLambda"></param>
+        </member>
+        <member name="M:ExcelDna.Integration.ExtendedRegistration.ExcelFunction.#ctor(System.Reflection.MethodInfo)">
+            <summary>
+            Creates a new ExcelFunctionRegistration from a MethodInfo, with a LambdaExpression that represents a call to the method.
+            Uses the Name and Parameter Names from the MethodInfo to fill in the default attributes.
+            All CustomAttributes on the method and parameters are copies to the respective collections in the ExcelFunctionRegistration.
+            </summary>
+            <param name="methodInfo"></param>
+        </member>
+        <member name="M:ExcelDna.Integration.ExtendedRegistration.ExcelParameter.#ctor(System.Reflection.ParameterInfo)">
+            <summary>
+            Also craetes attributes from Optional / Default Value
+            </summary>
+            <param name="parameterInfo"></param>
+        </member>
+        <member name="P:ExcelDna.Integration.ExtendedRegistration.ParameterConversionConfiguration.ReturnConversion.HandleSubTypes">
+            <summary>
+            If true, the conversion will also convert all subtypes of its input type
+            </summary>
+        </member>
+        <member name="M:ExcelDna.Integration.ExtendedRegistration.ParameterConversionConfiguration.AddParameterConversion(System.Func{System.Type,ExcelDna.Integration.IExcelFunctionParameter,System.Linq.Expressions.LambdaExpression},System.Type)">
+            <summary>
+            Converts a parameter from an Excel-friendly type (e.g. object, or string) to an add-in friendly type, e.g. double? or InternalType.
+            Will only be considered for those parameters that have a 'to' type that matches targetTypeOrNull,
+             or for all types if null is passes for the first parameter.
+            </summary>
+            <param name="parameterConversion"></param>
+            <param name="targetTypeOrNull"></param>
+        </member>
+        <member name="M:ExcelDna.Integration.ExtendedRegistration.ParameterConversionConfiguration.AddNullableConversion(System.Boolean,System.Boolean)">
+            <summary>
+            Adds a Nullable conversion that will also translate any type parameter T of Nullable[T] for which there is a conversion in the configutation.
+            Note that the added rule is quite generic and only has access to the T conversion rules that have already been added before it, so you should
+            call this at the very bottom of your configuration setup sequence.
+            </summary>
+            <param name="treatEmptyAsMissing">If true, any empty cells will be treated as null values</param>
+            <param name="treatNAErrorAsMissing">If true, any #NA! errors will be treated as null values</param>
+            <returns>The parameter conversion configuration with the new added rule</returns>
+        </member>
+        <member name="T:ExcelDna.Integration.ExtendedRegistration.ParameterConversions">
+            <summary>
+            Defines some standard Parameter Conversions.
+            Register by calling ParameterConversionConfiguration.AddParameterConversion(ParameterConversions.NullableConversion);
+            </summary>
+        </member>
+        <member name="M:ExcelDna.Integration.ExtendedRegistration.ParameterConversions.GetNullableConversion(System.Boolean,System.Boolean)">
+            <summary>
+            Legacy method: this returns a converter for Nullable[T] where T is one of the basic types that do not require any converter.
+            If you need a Nullable[T] converter that can call into another for T, then use ParameterConversionConfiguration.AddNullableConversion.
+            </summary>
+            <param name="treatEmptyAsMissing"></param>
+            <param name="treatNAErrorAsMissing"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ExcelDna.Integration.ExtendedRegistration.ParamsRegistration.ProcessParamsRegistrations(System.Collections.Generic.IEnumerable{ExcelDna.Integration.ExtendedRegistration.ExcelFunction})">
+            <summary>
+            Adds parameters to amy function ending in a params parameter, to take the total number of parameters to 125 (or 29 under Excel 2003).
+            </summary>
+            <param name="registrations"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ExcelDna.Integration.ExtendedRegistration.SymbolExtensions.GetMethodInfo(System.Linq.Expressions.Expression{System.Action})">
+            <summary>
+            Given a lambda expression that calls a method, returns the method info.
+            </summary>
+            <param name="expression">The expression.</param>
+            <returns></returns>
+        </member>
+        <member name="M:ExcelDna.Integration.ExtendedRegistration.SymbolExtensions.GetMethodInfo``1(System.Linq.Expressions.Expression{System.Action{``0}})">
+            <summary>
+            Given a lambda expression that calls a method, returns the method info.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="expression">The expression.</param>
+            <returns></returns>
+        </member>
+        <member name="M:ExcelDna.Integration.ExtendedRegistration.SymbolExtensions.GetMethodInfo``2(System.Linq.Expressions.Expression{System.Func{``0,``1}})">
+            <summary>
+            Given a lambda expression that calls a method, returns the method info.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <typeparam name="TResult"></typeparam>
+            <param name="expression">The expression.</param>
+            <returns></returns>
+        </member>
+        <member name="M:ExcelDna.Integration.ExtendedRegistration.SymbolExtensions.GetMethodInfo(System.Linq.Expressions.LambdaExpression)">
+            <summary>
+            Given a lambda expression that calls a method, returns the method info.
+            </summary>
+            <param name="expression">The expression.</param>
+            <returns></returns>
+        </member>
+        <member name="F:ExcelDna.Integration.FlowBehavior.Default">
+            <summary>
+            Default behaviour - Same as continue for OnEnter, OnSuccess and OnExit; same as RethrowException for OnException.
+            </summary>
+        </member>
+        <member name="F:ExcelDna.Integration.FlowBehavior.RethrowException">
+            <summary>
+            Rethrow the current exception - only valid for OnException handlers.
+            </summary>
+        </member>
+        <member name="F:ExcelDna.Integration.FlowBehavior.Return">
+            Return the value of ReturnValue immediately  - For OnEnter will skip the method execution and the OnSuccess handlers, but will run OnExit handlers
+        </member>
+        <member name="F:ExcelDna.Integration.FlowBehavior.ThrowException">
+            <summary>
+            Throw the Exception in the Exception property - For OnException handlers only.
+            </summary>
         </member>
         <member name="T:ExcelDna.Integration.GuidUtility">
             <summary>

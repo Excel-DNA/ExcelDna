@@ -9,8 +9,8 @@
 		<ExcelDnaDscomIntegrationPath>$(ExcelDnaToolsPath)net6.0-windows7.0</ExcelDnaDscomIntegrationPath>
 </PropertyGroup>
 	<PropertyGroup Condition="'$(MSBuildRuntimeType)' != 'Core'">
-		<ExcelDnaTasksPath>$(ExcelDnaToolsPath)net452\</ExcelDnaTasksPath>
-		<ExcelDnaDscomIntegrationPath>$(ExcelDnaToolsPath)net452</ExcelDnaDscomIntegrationPath>
+		<ExcelDnaTasksPath>$(ExcelDnaToolsPath)net462\</ExcelDnaTasksPath>
+		<ExcelDnaDscomIntegrationPath>$(ExcelDnaToolsPath)net462</ExcelDnaDscomIntegrationPath>
 	</PropertyGroup>
 	
 	<UsingTask TaskName="ExcelDna.AddIn.Tasks.SetDebuggerOptions" AssemblyFile="$(ExcelDnaTasksPath)ExcelDna.AddIn.Tasks.dll" />
@@ -201,13 +201,13 @@
 	<PropertyGroup>
 		<ExcelDnaTlbDscom Condition="'$(ExcelDnaTlbDscom)' == ''">false</ExcelDnaTlbDscom>
 	</PropertyGroup>
-		
-	<PropertyGroup Condition="'$(TargetFrameworkVersion.Length())' >= '2' AND '$(TargetFrameworkVersion.Substring(1,1))' >= '6'">
+
+	<PropertyGroup Condition="$([System.Version]::Parse('$(TargetFrameworkVersion.Substring(1))').CompareTo($([System.Version]::Parse('6.0')))) >= 0">
 		<ExcelDnaRuntimeToolsPath>$(ExcelDnaToolsPath)\net6.0-windows7.0\</ExcelDnaRuntimeToolsPath>
 		<ExcelDnaTlbDscom>true</ExcelDnaTlbDscom>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(TargetFrameworkVersion.Length())' >= '2' AND '$(TargetFrameworkVersion.Substring(0,2))' == 'v4'">
-		<ExcelDnaRuntimeToolsPath>$(ExcelDnaToolsPath)\net452\</ExcelDnaRuntimeToolsPath>
+		<ExcelDnaRuntimeToolsPath>$(ExcelDnaToolsPath)\net462\</ExcelDnaRuntimeToolsPath>
 	</PropertyGroup>
 
 	<Message Text="---" Importance="High" />
@@ -256,6 +256,7 @@
 	  TargetFileName="$(TargetFileName)"
 	  RollForward="$(RollForward)"
 	  TargetFrameworkVersion="$(TargetFrameworkVersion)"
+	  RuntimeFrameworkVersion="$(RuntimeFrameworkVersion)"
 	  TlbDscom="$(ExcelDnaTlbDscom)"
 	  TlbExp="$(ExcelAddInTlbExp)"
 	  TlbCreate="$(ExcelAddInTlbCreate)"
@@ -282,6 +283,7 @@
 		OutputDnaFileName="%(ExcelDnaFilesToPack.OutputDnaFileName)"
 		OutputPackedXllFileName="%(ExcelDnaFilesToPack.OutputPackedXllFileName)"
 		OutputBitness="%(ExcelDnaFilesToPack.OutputBitness)"
+		DocPath="%(ExcelDnaFilesToPack.DocPath)"
 		CompressResources="$(ExcelDnaPackCompressResources)"
 		RunMultithreaded="$(ExcelDnaPackRunMultithreaded)"
 		PackNativeLibraryDependencies="$(ExcelDnaPackNativeLibraryDependencies)"

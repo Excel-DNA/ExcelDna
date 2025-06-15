@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0-windows</TargetFramework>
@@ -185,12 +185,15 @@
 
     <!-- Controls how the add-in chooses a runtime when multiple runtime versions are available. -->
     <RollForward></RollForward>
+
+    <!-- Specifies the version of the runtime to use. -->
+    <RuntimeFrameworkVersion></RuntimeFrameworkVersion>
     
   </PropertyGroup>
   
   <ItemGroup>
     <Reference Include="ExcelDna.Integration">
-      <HintPath>..\..\.exceldna.addin\tools\net6.0-windows\ExcelDna.Integration.dll</HintPath>
+      <HintPath>..\..\.exceldna.addin\tools\net6.0-windows7.0\ExcelDna.Integration.dll</HintPath>
     </Reference>
   </ItemGroup>
 

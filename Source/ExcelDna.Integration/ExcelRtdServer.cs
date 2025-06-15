@@ -48,7 +48,7 @@ namespace ExcelDna.Integration.Rtd
                     if (!object.Equals(_value, fixedValue))
                     {
                         _value = fixedValue;
-                        _server.SetDirty(this);
+                        _server.SetDirtyInsideLock(this);
                     }
                 }
             }
@@ -63,7 +63,10 @@ namespace ExcelDna.Integration.Rtd
             [Obsolete("Due to recent Excel updates, can no longer cause Topic update without changing value")]
             public void UpdateNotify()
             {
-                _server.SetDirty(this);
+                lock (_server._updateLock)
+                {
+                    _server.SetDirtyInsideLock(this);
+                }
             }
 
             protected internal Topic(ExcelRtdServer server, int topicId)
@@ -114,11 +117,9 @@ namespace ExcelDna.Integration.Rtd
         internal string RegisteredProgId;
 
         readonly Dictionary<int, Topic> _activeTopics = new Dictionary<int, Topic>();
-        // Using a Dictionary for the dirty topics instead of a HashSet, since we are targeting .NET 2.0
-        Dictionary<Topic, object> _dirtyTopics = new Dictionary<Topic, object>();
-        bool _notified;
+        HashSet<Topic> _dirtyTopics = new HashSet<Topic>();
         RtdUpdateSynchronization _updateSync;
-        IRTDUpdateEvent _callbackObject;
+        RTDUpdateEvent _callbackObject;
         readonly object _updateLock = new object();
 
         /// <summary>
@@ -137,35 +138,14 @@ namespace ExcelDna.Integration.Rtd
 
             lock (_updateLock)
             {
-                // Pretend that we've already notified, which will suppress the extra notification calls
-                var wasNotified = _notified;
-                _notified = true;
-                try
+                for (int i = 0; i < topics.Count; i++)
                 {
-                    for (int i = 0; i < topics.Count; i++)
-                    {
-                        var topic = topics[i];
-                        var value = values[i];
-                        // Call the real Topic.UpdateValue so that values get normalized and server notified
-                        topic.UpdateValue(value);
-                    }
-                }
-                finally
-                {
-                    if (!wasNotified && _dirtyTopics.Count > 0)
-                    {
-                        _updateSync.UpdateNotify(_callbackObject);
-                        // and leave _notified as true (which we've alread set above)
-                    }
-                    else
-                    {
-                        // else wasNotified is false, or there are no dirty topics
-                        // set _notified false so that next update will notify
-                        _notified = false;
-                    }
+                    var topic = topics[i];
+                    var value = values[i];
+                    // Call the real Topic.UpdateValue so that values get normalized and server notified
+                    topic.UpdateValue(value);
                 }
             }
-
         }
 
         // The next few are the core RTD methods to be overridden by implementations
@@ -208,31 +188,49 @@ namespace ExcelDna.Integration.Rtd
             return new Topic(this, topicId);
         }
 
+        // These three methods are added to allow derived classes to track UpdateNotify and RefreshData calls
+        // Can be overridden to track posted notifications
+        protected virtual void OnUpdateNotifyPostedInsideLock(IReadOnlyCollection<Topic> dirtyTopics) { }
+
+        // Can be overridden to track notifications called in Excel
+        protected virtual void OnUpdateNotifyInvokedInsideLock(IReadOnlyCollection<Topic> dirtyTopics) { }
+
+        // Can be overridden to track Refresh calls from Excel
+        protected virtual void OnRefreshDataProcessedInsideLock(IReadOnlyCollection<Topic> dirtyTopics) { }
+
+        protected IReadOnlyCollection<Topic> GetActiveTopics() { return _activeTopics.Values; }
+
+        // Called from any thread, inside the update lock
         // Add the topic to the dirty set and calls UpdateNotify()
-        void SetDirty(Topic topic)
+        void SetDirtyInsideLock(Topic topic)
         {
-            lock (_updateLock)
+            // Check that this topic is still active 
+            // (we might be processing the update from another thread, after DisconnectData has been called)
+            // and ensure the active topic really is this one.
+            Topic activeTopic;
+            if (!_activeTopics.TryGetValue(topic.TopicId, out activeTopic) ||
+                !ReferenceEquals(topic, activeTopic))
             {
-                // Check that this topic is still active 
-                // (we might be processing the update from another thread, after DisconnectData has been called)
-                // and ensure the active topic really is this one.
-                Topic activeTopic;
-                if (!_activeTopics.TryGetValue(topic.TopicId, out activeTopic) ||
-                    !ReferenceEquals(topic, activeTopic))
-                {
-                    return;
-                }
-                // Ensure that the topic is in the current dirty list, and call UpdateNotify if needed.
-                _dirtyTopics[topic] = null;
-                if (!_notified)
-                {
-                    _updateSync.UpdateNotify(_callbackObject);
-                }
-                _notified = true;
+                return;
+            }
+            // Ensure that the topic is in the current dirty list, and call UpdateNotify if needed.
+            var dirtyTopicsWasEmpty = _dirtyTopics.Count == 0;
+            _dirtyTopics.Add(topic);
+            if (dirtyTopicsWasEmpty)
+            {
+                PostUpdateNotifyInsideLock();
             }
         }
 
+        // Called from any thread, inside the update lock
+        void PostUpdateNotifyInsideLock()
+        {
+            _updateSync.UpdateNotify(_callbackObject);
+            OnUpdateNotifyPostedInsideLock(_dirtyTopics);
+        }
+
         // This is the private implementation of the IRtdServer interface
+        // All these interface methods can be called only on the main Excel thread
         int IRtdServer.ServerStart(IRTDUpdateEvent callbackObject)
         {
             Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.f}] ServerStart");
@@ -245,7 +243,7 @@ namespace ExcelDna.Integration.Rtd
                     return 0;
                 }
 
-                _callbackObject = callbackObject;
+                _callbackObject = new RTDUpdateEvent(this, callbackObject);   // Wrap the callback object to allow logging our call
                 _updateSync.RegisterUpdateNotify(_callbackObject);
                 using (XlCall.Suspend())
                 {
@@ -336,23 +334,22 @@ namespace ExcelDna.Integration.Rtd
             Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.f}] RefreshData");
             // Get a copy of the dirty topics to work with, 
             // locking as briefly as possible (thanks Naju).
-            Dictionary<Topic, object> temp;
-            Dictionary<Topic, object> newDirtyTopics = new Dictionary<Topic, object>();
+            HashSet<Topic> dirty;
+            HashSet<Topic> newDirtyTopics = new HashSet<Topic>();
             lock (_updateLock)
             {
-                temp = _dirtyTopics;
+                dirty = _dirtyTopics;
                 _dirtyTopics = newDirtyTopics;
-                _notified = false;
+                OnRefreshDataProcessedInsideLock(dirty);
             }
 
             // The topics in _dirtyTopics may have been Disconnected already.
             // (With another thread updating the value and setting dirty afterwards)
             // We assume Excel doesn't mind being notified of Disconnected topics.
-            Dictionary<Topic, object>.KeyCollection dirtyTopics = temp.Keys;
-            topicCount = dirtyTopics.Count;
+            topicCount = dirty.Count;
             object[,] result = new object[2, topicCount];
             int i = 0;
-            foreach (Topic topic in dirtyTopics)
+            foreach (Topic topic in dirty)
             {
                 result[0, i] = topic.TopicId;
                 result[1, i] = topic.Value;
@@ -374,6 +371,10 @@ namespace ExcelDna.Integration.Rtd
                 }
 
                 _activeTopics.Remove(topicId);
+                lock (_updateLock)
+                {
+                    _dirtyTopics.Remove(topic);
+                }
                 using (XlCall.Suspend())
                 {
                     DisconnectData(topic);
@@ -386,9 +387,9 @@ namespace ExcelDna.Integration.Rtd
             }
         }
 
-        // Called by Excel is more that HeartbeatInterval millseconds have elapsed since the last UpdateNotify call
+        // Called by Excel if more than HeartbeatInterval millseconds have elapsed since the last UpdateNotify call
         // HeartbeatInterval cannot be less than 15000, but Heartbeat support can be switched off (-1)
-        // So our redundant UpdateNotify call should not happenin often
+        // So our redundant UpdateNotify call should not be happening often
         // We use the Heartbeat to retry any outstanding UpdateNotify call
         // (though this should not be needed according to the RTD interface contract)
         int IRtdServer.Heartbeat()
@@ -396,20 +397,29 @@ namespace ExcelDna.Integration.Rtd
             Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.f}] Heartbeat");
             try
             {
+                var updateNotifyPosted = false;
                 // Re-post the notify in case something went wrong on the Excel side or our sync window
                 // This should not be necessary but should not be harmful either
                 // There has been a report of the RTD server stopping, perhaps due to sync window PostMessage failing
                 // This is just an extra safety measure
                 lock (_updateLock)
                 {
-                    if (_notified)
+                    if (_dirtyTopics.Count > 0)
                     {
                         // We've notified but Excel has not called us back, and Excel has not seen an UpdateNotify recently...
                         // This is unexpected
-                        Logger.RtdServer.Warn("Heartbeat callback while Notified in RTD server {0} - retrying UpdateNotify", GetType().Name);
-                        _updateSync.UpdateNotify(_callbackObject);
+                        // We might be able to call UpdateNotify on Excel directly here, instead of scheduling it
+                        // But it is convenient to allow Heartbeat to be called from any thread
+                        PostUpdateNotifyInsideLock();
+                        updateNotifyPosted = true;
                     }
                 }
+
+                if (updateNotifyPosted)
+                {
+                    Logger.RtdServer.Warn("Heartbeat callback while Notified in RTD server {0} - retrying UpdateNotify", GetType().Name);
+                }
+
                 using (XlCall.Suspend())
                 {
                     // Call the derived class's override
@@ -446,6 +456,43 @@ namespace ExcelDna.Integration.Rtd
             catch (Exception e)
             {
                 Logger.RtdServer.Error("Error in RTD server {0} ServerTerminate: {1}", GetType().Name, e.ToString());
+            }
+        }
+
+        // We create a small wrapper around the IRTDUpdateEvent to allow logging of the UpdateNotify call
+        class RTDUpdateEvent : IRTDUpdateEvent
+        {
+            readonly ExcelRtdServer _server;
+            readonly IRTDUpdateEvent _inner;
+            public RTDUpdateEvent(ExcelRtdServer server, IRTDUpdateEvent inner)
+            {
+                _server = server;
+                _inner = inner;
+            }
+
+            public void UpdateNotify()
+            {
+                lock (_server._updateLock)
+                {
+                    _inner.UpdateNotify();
+                    _server.OnUpdateNotifyInvokedInsideLock(_server._dirtyTopics);
+                }
+            }
+
+            internal void CallInnerUpdateNotify()
+            {
+                _inner.UpdateNotify();
+            }
+
+            public int HeartbeatInterval
+            {
+                get { return _inner.HeartbeatInterval; }
+                set { _inner.HeartbeatInterval = value; }
+            }
+
+            public void Disconnect()
+            {
+                _inner.Disconnect();
             }
         }
     }

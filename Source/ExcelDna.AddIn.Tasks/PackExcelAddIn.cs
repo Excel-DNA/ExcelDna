@@ -35,7 +35,7 @@ namespace ExcelDna.AddIn.Tasks
                 useManagedResourceResolver = PackManagedOnWindows || !OperatingSystem.IsWindows();
 #endif
 
-                int result = ExcelDna.PackedResources.ExcelDnaPack.Pack(OutputDnaFileName, OutputPackedXllFileName, CompressResources, RunMultithreaded, true, null, null, PackNativeLibraryDependencies, PackManagedDependencies, ExcludeDependencies, useManagedResourceResolver, OutputBitness, _log);
+                int result = ExcelDna.PackedResources.ExcelDnaPack.Pack(OutputDnaFileName, OutputPackedXllFileName, CompressResources, RunMultithreaded, true, null, null, PackNativeLibraryDependencies, PackManagedDependencies, ExcludeDependencies, useManagedResourceResolver, OutputBitness, DocPath, _log);
                 if (result != 0)
                     throw new ApplicationException($"Pack failed with exit code {result}.");
 
@@ -130,6 +130,11 @@ namespace ExcelDna.AddIn.Tasks
         /// Enable/disable cross-platform resource packing implementation when executing on Windows.
         /// </summary>
         public bool PackManagedOnWindows { get; set; }
+
+        /// <summary>
+        /// .chm help file path
+        /// </summary>
+        public string DocPath { get; set; }
 
         /// <summary>
         /// Path to signtool.exe

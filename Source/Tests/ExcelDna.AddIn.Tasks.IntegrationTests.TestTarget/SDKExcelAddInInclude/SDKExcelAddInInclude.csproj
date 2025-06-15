@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <Reference Include="ExcelDna.Integration">
-      <HintPath>..\..\.exceldna.addin\tools\net452\ExcelDna.Integration.dll</HintPath>
+      <HintPath>..\..\.exceldna.addin\tools\net462\ExcelDna.Integration.dll</HintPath>
     </Reference>
   </ItemGroup>
 

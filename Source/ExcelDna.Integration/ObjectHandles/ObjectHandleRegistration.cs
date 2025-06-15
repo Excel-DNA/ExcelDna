@@ -1,7 +1,9 @@
 ﻿using ExcelDna.Integration.ExtendedRegistration;
+using ExcelDna.Registration;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 
@@ -9,20 +11,19 @@ namespace ExcelDna.Integration.ObjectHandles
 {
     internal static class ObjectHandleRegistration
     {
-        public static IEnumerable<ExcelFunction> ProcessObjectHandles(this IEnumerable<ExcelFunction> registrations)
+        public static IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> ProcessObjectHandles(this IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> registrations)
         {
-            var paramConversionConfig = new ParameterConversionConfiguration().AddParameterConversion(GetParameterConversion());
-            registrations = registrations.ProcessParameterConversions(paramConversionConfig);
+            registrations = registrations.ProcessParameterConversions(GetParameterConversionConfiguration());
 
             foreach (var reg in registrations)
             {
-                if (!AssemblyLoader.IsPrimitiveParameterType(reg.FunctionLambda.ReturnType))
+                if (HasExcelHandle(reg.Return.CustomAttributes))
                 {
                     reg.FunctionLambda = LazyLambda.Create(reg.FunctionLambda);
 
                     EntryFunctionExecutionHandler entryFunctionExecutionHandler = new EntryFunctionExecutionHandler();
 
-                    reg.FunctionLambda = FunctionExecutionRegistration.ApplyMethodHandler(reg.FunctionAttribute.Name, reg.FunctionLambda, entryFunctionExecutionHandler);
+                    reg.FunctionLambda = Registration.FunctionExecutionRegistration.ApplyMethodHandler(reg.FunctionAttribute.Name, reg.FunctionLambda, entryFunctionExecutionHandler);
 
                     var returnConversion = CreateReturnConversion((object value) => GetReturnConversion(value, reg.FunctionAttribute.Name, entryFunctionExecutionHandler));
 
@@ -31,6 +32,44 @@ namespace ExcelDna.Integration.ObjectHandles
 
                 yield return reg;
             }
+        }
+
+        public static ParameterConversionConfiguration GetParameterConversionConfiguration()
+        {
+            return new ParameterConversionConfiguration().AddParameterConversion(GetParameterConversion());
+        }
+
+        public static bool IsMethodSupported(ExcelDna.Registration.ExcelFunctionRegistration reg)
+        {
+            if (HasExcelHandle(reg.Return.CustomAttributes))
+                return true;
+
+            return reg.Parameters.Any(paramReg => HasExcelHandle(paramReg.CustomAttributes));
+        }
+
+        public static bool HasExcelHandle(List<object> customAttributes)
+        {
+            return customAttributes.OfType<ExcelHandleAttribute>().Any();
+        }
+
+        public static void ClearExcelHandle(List<object> customAttributes)
+        {
+            customAttributes.RemoveAll(att => att is ExcelHandleAttribute);
+        }
+
+        public static int ProcessAssemblyAttributes(IEnumerable<object> attributes)
+        {
+            List<object> excelHandleAttribute = new List<object>();
+            excelHandleAttribute.Add(new ExcelHandleAttribute());
+
+            int result = 0;
+            foreach (Type t in attributes.OfType<ExcelHandleExternalAttribute>().Select(i => i.Type))
+            {
+                ExcelTypeDescriptor.AddCustomAttributes(t, excelHandleAttribute);
+                ++result;
+            }
+
+            return result;
         }
 
         static ParameterConversionConfiguration.ReturnConversion CreateReturnConversion<TFrom, TTo>(Expression<Func<TFrom, TTo>> convert)
@@ -53,7 +92,7 @@ namespace ExcelDna.Integration.ObjectHandles
         static LambdaExpression HandleStringConversion(Type type, IExcelFunctionParameter paramReg)
         {
             // Decide whether to return a conversion function for this parameter
-            if (AssemblyLoader.IsPrimitiveParameterType(type))
+            if (!HasExcelHandle(paramReg.CustomAttributes))
                 return null;
 
             var input = Expression.Parameter(typeof(object), "input");
@@ -65,6 +104,9 @@ namespace ExcelDna.Integration.ObjectHandles
                         Expression.Invoke(parse, Expression.Constant(type), input),
                         type),
                     input);
+
+            ClearExcelHandle(paramReg.CustomAttributes);
+
             return result;
         }
 
@@ -80,7 +122,7 @@ namespace ExcelDna.Integration.ObjectHandles
             return "!!! INVALID HANDLE";
         }
 
-        private class EntryFunctionExecutionHandler : FunctionExecutionHandler
+        private class EntryFunctionExecutionHandler : ExcelDna.Registration.FunctionExecutionHandler
         {
             private ConcurrentDictionary<int, object> arguments = new ConcurrentDictionary<int, object>();
 
@@ -94,7 +136,7 @@ namespace ExcelDna.Integration.ObjectHandles
                 return null;
             }
 
-            public override void OnEntry(FunctionExecutionArgs args)
+            public override void OnEntry(ExcelDna.Registration.FunctionExecutionArgs args)
             {
                 this.arguments.AddOrUpdate(Thread.CurrentThread.ManagedThreadId, args.Arguments, (key, oldValue) => args.Arguments);
             }
