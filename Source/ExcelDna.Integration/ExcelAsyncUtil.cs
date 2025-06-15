@@ -52,6 +52,8 @@ namespace ExcelDna.Integration
 
     public static class ExcelAsyncUtil
     {
+        internal struct VoidTaskResult { }
+
         [Obsolete("ExcelAsyncUtil.Initialize is no longer required. The call can be removed.")]
         public static void Initialize() { }
         [Obsolete("ExcelAsyncUtil.Uninitialize is no longer required. The call can be removed.")]
@@ -141,6 +143,37 @@ namespace ExcelDna.Integration
         public static void QueueAsMacro(SendOrPostCallback callback, object state)
         {
             SynchronizationManager.RunMacroSynchronization.RunAsMacroAsync(callback, state);
+        }
+
+        public static Task QueueMacroTask(string macroName)
+        {
+            return QueueAsMacroTask(RunMacro, macroName);
+        }
+
+        public static Task QueueAsMacroTask(ExcelAction action)
+        {
+            SendOrPostCallback callback = delegate { action(); };
+            return QueueAsMacroTask(callback, null);
+        }
+
+        public static Task QueueAsMacroTask(SendOrPostCallback callback, object state)
+        {
+            var tcs = new TaskCompletionSource<VoidTaskResult>();
+
+            QueueAsMacro((s) =>
+            {
+                try
+                {
+                    callback(s);
+                    tcs.SetResult(new VoidTaskResult());
+                }
+                catch (Exception ex)
+                {
+                    tcs.SetException(ex);
+                }
+            }, state);
+
+            return tcs.Task;
         }
 
         static void RunMacro(object macroName)
