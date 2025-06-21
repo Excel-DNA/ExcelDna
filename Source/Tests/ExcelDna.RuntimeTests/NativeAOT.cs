@@ -59,6 +59,15 @@ namespace ExcelDna.RuntimeTests
 
                 Assert.Equal(4.2, functionRange2.Value);
             }
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D1"];
+                functionRange1.Value = 41.22;
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D2"];
+                functionRange2.Formula = "=NativeApplicationGetCellValueT(\"D1\")";
+
+                Assert.Equal(41.22, functionRange2.Value);
+            }
         }
     }
 }
