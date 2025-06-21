@@ -13,29 +13,29 @@ namespace ExcelDna.Integration.ComInterop.Generator
             this.dispatchObject = dispatchObject;
         }
 
-        public object? GetProperty(string name)
+        public object? Get(string propertyName)
         {
-            return WrapDispatch(dispatchObject.GetProperty(name));
+            return WrapDispatch(dispatchObject.GetProperty(propertyName));
         }
 
-        public T GetProperty<T>(string name)
+        public T Get<T>(string propertyName)
         {
-            return (T)GetProperty(name)!;
+            return (T)Get(propertyName)!;
         }
 
-        public object? GetProperty(string name, object[]? args)
+        public object? Get(string propertyName, object[]? args)
         {
-            return WrapDispatch(dispatchObject.GetProperty(name, args));
+            return WrapDispatch(dispatchObject.GetProperty(propertyName, args));
         }
 
-        public T GetProperty<T>(string name, object[]? args)
+        public T Get<T>(string propertyName, object[]? args)
         {
-            return (T)GetProperty(name, args)!;
+            return (T)Get(propertyName, args)!;
         }
 
-        public void SetProperty(string name, object value)
+        public void Set(string propertyName, object value)
         {
-            dispatchObject.SetProperty(name, value);
+            dispatchObject.SetProperty(propertyName, value);
         }
 
         public object? this[int index]

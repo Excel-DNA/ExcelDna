@@ -27,27 +27,27 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         [ExcelFunction]
         public static string NativeApplicationName()
         {
-            return (string)ExcelDnaUtil.DynamicApplication.GetProperty("Name");
+            return (string)ExcelDnaUtil.DynamicApplication.Get("Name");
         }
 
         [ExcelFunction]
         public static double NativeApplicationGetCellValue(string cell)
         {
-            var workbook = (IDynamic)ExcelDnaUtil.DynamicApplication.GetProperty("ActiveWorkbook");
-            var sheets = (IDynamic)workbook.GetProperty("Sheets");
+            var workbook = (IDynamic)ExcelDnaUtil.DynamicApplication.Get("ActiveWorkbook");
+            var sheets = (IDynamic)workbook.Get("Sheets");
             var sheet = (IDynamic)sheets[1];
-            var range = (IDynamic)sheet.GetProperty("Range", [cell]);
-            return (double)range.GetProperty("Value");
+            var range = (IDynamic)sheet.Get("Range", [cell]);
+            return (double)range.Get("Value");
         }
 
         [ExcelFunction]
         public static double NativeApplicationGetCellValueT(string cell)
         {
-            var workbook = ExcelDnaUtil.DynamicApplication.GetProperty<IDynamic>("ActiveWorkbook");
-            var sheets = workbook.GetProperty<IDynamic>("Sheets");
+            var workbook = ExcelDnaUtil.DynamicApplication.Get<IDynamic>("ActiveWorkbook");
+            var sheets = workbook.Get<IDynamic>("Sheets");
             var sheet = (IDynamic)sheets[1];
-            var range = sheet.GetProperty<IDynamic>("Range", [cell]);
-            return range.GetProperty<double>("Value");
+            var range = sheet.Get<IDynamic>("Range", [cell]);
+            return range.Get<double>("Value");
         }
     }
 }
