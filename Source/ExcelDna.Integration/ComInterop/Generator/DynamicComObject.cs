@@ -18,9 +18,19 @@ namespace ExcelDna.Integration.ComInterop.Generator
             return WrapDispatch(dispatchObject.GetProperty(name));
         }
 
+        public T GetProperty<T>(string name)
+        {
+            return (T)GetProperty(name)!;
+        }
+
         public object? GetProperty(string name, object[]? args)
         {
             return WrapDispatch(dispatchObject.GetProperty(name, args));
+        }
+
+        public T GetProperty<T>(string name, object[]? args)
+        {
+            return (T)GetProperty(name, args)!;
         }
 
         public void SetProperty(string name, object value)
