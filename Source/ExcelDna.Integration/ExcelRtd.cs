@@ -36,27 +36,27 @@ namespace ExcelDna.Integration.Rtd
         // Map name to RtdServer.
         // DOCUMENT: We allow more than one name per server (ProgId and FullName)
         // but will make separate instances for the different names...?
-        static readonly ConcurrentDictionary<string, Type> registeredRtdServerTypes = new ConcurrentDictionary<string, Type>();
+        static readonly ConcurrentDictionary<string, ITypeHelper> registeredRtdServerTypes = new ConcurrentDictionary<string, ITypeHelper>();
         // Map names of loaded Rtd servers to a registered ProgId - "RtdSrv_A1B2C3...."
         static readonly ConcurrentDictionary<string, string> loadedRtdServers = new ConcurrentDictionary<string, string>();
         static readonly object tryRTDLock = new object();
 
-        public static void RegisterRtdServerTypes(IEnumerable<Type> rtdServerTypes)
+        public static void RegisterRtdServerTypes(IEnumerable<ITypeHelper> rtdServerTypes)
         {
-            foreach (Type rtdType in rtdServerTypes)
+            foreach (ITypeHelper rtdType in rtdServerTypes)
             {
                 // Decide under what name(s) to register.
-                object[] attrs = rtdType.GetCustomAttributes(typeof(ProgIdAttribute), false);
+                object[] attrs = rtdType.Type.GetCustomAttributes(typeof(ProgIdAttribute), false);
                 if (attrs.Length >= 1)
                 {
                     ProgIdAttribute progIdAtt = (ProgIdAttribute)attrs[0];
                     registeredRtdServerTypes[progIdAtt.Value] = rtdType;
-                    Logger.Initialization.Verbose("RTD Server found - Type {0}, ProgId {1}", rtdType.FullName, progIdAtt.Value);
+                    Logger.Initialization.Verbose("RTD Server found - Type {0}, ProgId {1}", rtdType.Type.FullName, progIdAtt.Value);
                 }
                 else
                 {
-                    registeredRtdServerTypes[rtdType.FullName] = rtdType;
-                    Logger.Initialization.Verbose("RTD Server found - Type {0} (No ProgId)", rtdType.FullName);
+                    registeredRtdServerTypes[rtdType.Type.FullName] = rtdType;
+                    Logger.Initialization.Verbose("RTD Server found - Type {0} (No ProgId)", rtdType.Type.FullName);
                 }
             }
         }
@@ -78,7 +78,7 @@ namespace ExcelDna.Integration.Rtd
                 return TryCallRTD(out result, progId, server, topics);
             }
 
-            Type rtdServerType;
+            ITypeHelper rtdServerType;
             if (!registeredRtdServerTypes.TryGetValue(progId, out rtdServerType))
             {
                 // Just pass on to Excel.
@@ -106,7 +106,7 @@ namespace ExcelDna.Integration.Rtd
                     object rtdServer;
                     using (XlCall.Suspend())
                     {
-                        rtdServer = Activator.CreateInstance(rtdServerType);
+                        rtdServer = rtdServerType.CreateInstance();
                     }
                     ExcelRtdServer excelRtdServer = rtdServer as ExcelRtdServer;
                     if (excelRtdServer != null)
@@ -132,7 +132,7 @@ namespace ExcelDna.Integration.Rtd
                     // by making a fresh progId, we are sure Excel will try to load when we are ready.
                     // Change from RtdSrv.xxx to RtdSrv_xxx to avoid McAfee bug that blocks registry writes with a "." anywhere
                     progIdRegistered = "RtdSrv_" + clsId.ToString("N");
-                    Debug.Print("RTD - Using ProgId: {0} for type: {1}", progIdRegistered, rtdServerType.FullName);
+                    Debug.Print("RTD - Using ProgId: {0} for type: {1}", progIdRegistered, rtdServerType.Type.FullName);
 
                     try
                     {
@@ -151,7 +151,7 @@ namespace ExcelDna.Integration.Rtd
                         progIdRegistration?.Dispose();
                         singletonClassFactoryRegistration?.Dispose();
 
-                        Logger.RtdServer.Error("The RTD server of type {0} required by add-in {1} could not be registered.\r\nThis may be due to restricted permissions on the user's HKCU\\Software\\Classes key.\r\nError message: {2}", rtdServerType.FullName, DnaLibrary.CurrentLibrary.Name, secex.Message);
+                        Logger.RtdServer.Error("The RTD server of type {0} required by add-in {1} could not be registered.\r\nThis may be due to restricted permissions on the user's HKCU\\Software\\Classes key.\r\nError message: {2}", rtdServerType.Type.FullName, DnaLibrary.CurrentLibrary.Name, secex.Message);
                         result = ExcelErrorUtil.ToComError(ExcelError.ExcelErrorValue);
                         // Return true to have the #VALUE stick, just as it was before the array-call refactoring
                         return true;
@@ -162,7 +162,7 @@ namespace ExcelDna.Integration.Rtd
                         progIdRegistration?.Dispose();
                         singletonClassFactoryRegistration?.Dispose();
 
-                        Logger.RtdServer.Error("The RTD server of type {0} required by add-in {1} could not be registered.\r\nThis is an unexpected error.\r\nError message: {2}", rtdServerType.FullName, DnaLibrary.CurrentLibrary.Name, ex.Message);
+                        Logger.RtdServer.Error("The RTD server of type {0} required by add-in {1} could not be registered.\r\nThis is an unexpected error.\r\nError message: {2}", rtdServerType.Type.FullName, DnaLibrary.CurrentLibrary.Name, ex.Message);
                         Debug.Print("RtdRegistration.RTD exception: " + ex.ToString());
                         result = ExcelErrorUtil.ToComError(ExcelError.ExcelErrorValue);
                         // Return true to have the #VALUE stick, just as it was before the array-call refactoring
@@ -192,7 +192,7 @@ namespace ExcelDna.Integration.Rtd
             }
             catch (Exception ex)
             {
-                Logger.RtdServer.Error("The RTD server of type {0} required by add-in {1} could not be registered.\r\nThis is an unexpected error.\r\nError message: {2}", rtdServerType.FullName, DnaLibrary.CurrentLibrary.Name, ex.Message);
+                Logger.RtdServer.Error("The RTD server of type {0} required by add-in {1} could not be registered.\r\nThis is an unexpected error.\r\nError message: {2}", rtdServerType.Type.FullName, DnaLibrary.CurrentLibrary.Name, ex.Message);
                 Debug.Print("RtdRegistration.RTD exception: " + ex.ToString());
                 result = ExcelErrorUtil.ToComError(ExcelError.ExcelErrorValue);
                 // Return true to have the #VALUE stick, just as it was before the array-call refactoring

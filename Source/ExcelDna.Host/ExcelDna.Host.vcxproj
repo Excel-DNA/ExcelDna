@@ -61,6 +61,7 @@
     <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props" />
   </ImportGroup>
   <ImportGroup Label="Shared">
+    <Import Project="..\ExcelDna.Host.Shared\ExcelDna.Host.Shared.vcxitems" Label="Shared" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -121,7 +122,7 @@
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
       <AdditionalOptions>/IGNORE:4099</AdditionalOptions>
-      <ModuleDefinitionFile>exports.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>..\ExcelDna.Host.Shared\exports.def</ModuleDefinitionFile>
       <OutputFile>$(OutDir)$(TargetName).xll</OutputFile>
     </Link>
   </ItemDefinitionGroup>
@@ -151,7 +152,7 @@
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
       <AdditionalOptions>/IGNORE:4099</AdditionalOptions>
-      <ModuleDefinitionFile>exports.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>..\ExcelDna.Host.Shared\exports.def</ModuleDefinitionFile>
       <OutputFile>$(OutDir)$(TargetName).xll</OutputFile>
     </Link>
   </ItemDefinitionGroup>
@@ -177,7 +178,7 @@
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
       <AdditionalOptions>/IGNORE:4099</AdditionalOptions>
-      <ModuleDefinitionFile>exports.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>..\ExcelDna.Host.Shared\exports.def</ModuleDefinitionFile>
       <OutputFile>$(OutDir)$(TargetName).xll</OutputFile>
     </Link>
   </ItemDefinitionGroup>
@@ -207,7 +208,7 @@
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
       <AdditionalOptions>/IGNORE:4099</AdditionalOptions>
-      <ModuleDefinitionFile>exports.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>..\ExcelDna.Host.Shared\exports.def</ModuleDefinitionFile>
       <OutputFile>$(OutDir)$(TargetName).xll</OutputFile>
     </Link>
   </ItemDefinitionGroup>
@@ -241,35 +242,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="addin.cpp" />
-    <ClCompile Include="dnainfo.cpp" />
-    <ClCompile Include="exports32.cpp" />
     <ClCompile Include="host.cpp" />
-    <ClCompile Include="loader.cpp" />
-    <ClCompile Include="LPenHelper.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="TempDir.cpp" />
-    <ClCompile Include="utils.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="assembly.bin" />
-    <None Include="exports.def" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="dnainfo.h" />
-    <ClInclude Include="exports.h" />
-    <ClInclude Include="host.h" />
-    <ClInclude Include="loader.h" />
-    <ClInclude Include="LPenHelper.h" />
-    <ClInclude Include="resource.h" />
-    <ClInclude Include="TempDir.h" />
-    <ClInclude Include="utils.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="ExcelDna.Host.rc" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(Platform)'=='x64'">
-    <MASM Include="exports64.asm" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Notes.txt" />
