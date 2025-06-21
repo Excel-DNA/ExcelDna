@@ -1,4 +1,8 @@
-﻿namespace ExcelDna.Integration
+﻿#if COM_GENERATED
+
+#nullable enable
+
+namespace ExcelDna.Integration
 {
     public interface IDynamic
     {
@@ -14,3 +18,5 @@
         object Invoke(string name, object[] args);
     }
 }
+
+#endif
