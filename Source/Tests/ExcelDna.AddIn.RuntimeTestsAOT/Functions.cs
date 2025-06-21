@@ -27,17 +27,17 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         [ExcelFunction]
         public static string NativeApplicationName()
         {
-            return (string)ExcelDnaUtil.DynamicApplication.Get("Name");
+            return (string)ExcelDnaUtil.DynamicApplication.Get("Name")!;
         }
 
         [ExcelFunction]
         public static double NativeApplicationGetCellValue(string cell)
         {
-            var workbook = (IDynamic)ExcelDnaUtil.DynamicApplication.Get("ActiveWorkbook");
-            var sheets = (IDynamic)workbook.Get("Sheets");
-            var sheet = (IDynamic)sheets[1];
-            var range = (IDynamic)sheet.Get("Range", [cell]);
-            return (double)range.Get("Value");
+            var workbook = (IDynamic)ExcelDnaUtil.DynamicApplication.Get("ActiveWorkbook")!;
+            var sheets = (IDynamic)workbook.Get("Sheets")!;
+            var sheet = (IDynamic)sheets[1]!;
+            var range = (IDynamic)sheet.Get("Range", [cell])!;
+            return (double)range.Get("Value")!;
         }
 
         [ExcelFunction]
@@ -45,7 +45,7 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         {
             var workbook = ExcelDnaUtil.DynamicApplication.Get<IDynamic>("ActiveWorkbook");
             var sheets = workbook.Get<IDynamic>("Sheets");
-            var sheet = (IDynamic)sheets[1];
+            var sheet = (IDynamic)sheets[1]!;
             var range = sheet.Get<IDynamic>("Range", [cell]);
             return range.Get<double>("Value");
         }
@@ -55,10 +55,21 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         {
             var workbook = ExcelDnaUtil.DynamicApplication.Get<IDynamic>("ActiveWorkbook");
             var sheets = workbook.Get<IDynamic>("Sheets");
-            var sheet = (IDynamic)sheets[1];
+            var sheet = (IDynamic)sheets[1]!;
             var range = sheet.Get<IDynamic>("Range", [cell]);
             range.Set("HorizontalAlignment", -4152);
             return range.Get<int>("HorizontalAlignment");
+        }
+
+        [ExcelFunction]
+        public static string NativeApplicationAddCellComment(string cell, string comment)
+        {
+            var workbook = ExcelDnaUtil.DynamicApplication.Get<IDynamic>("ActiveWorkbook");
+            var sheets = workbook.Get<IDynamic>("Sheets");
+            var sheet = (IDynamic)sheets[1]!;
+            var range = sheet.Get<IDynamic>("Range", [cell]);
+            var newComment = (IDynamic)range.Invoke("AddComment", [comment])!;
+            return newComment.Invoke<string>("Text", []);
         }
     }
 }

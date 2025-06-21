@@ -54,9 +54,14 @@ namespace ExcelDna.Integration.ComInterop.Generator
             }
         }
 
-        public object? Invoke(string name, object[] args)
+        public object? Invoke(string functionName, object[]? args)
         {
-            return WrapDispatch(dispatchObject.Invoke(name, args));
+            return WrapDispatch(dispatchObject.Invoke(functionName, args));
+        }
+
+        public T Invoke<T>(string functionName, object[]? args)
+        {
+            return (T)Invoke(functionName, args)!;
         }
 
         private static object? WrapDispatch(object? o)
