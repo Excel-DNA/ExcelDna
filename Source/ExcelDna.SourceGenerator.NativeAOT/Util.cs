@@ -33,11 +33,10 @@ namespace ExcelDna.SourceGenerator.NativeAOT
 
         public static string MethodType(IMethodSymbol method)
         {
-            string parameters = "";
-            foreach (var p in method.Parameters)
-                parameters += GetFullTypeName(p.Type) + ", ";
-
-            return $"Func<{parameters}{GetFullTypeName(method.ReturnType)}>";
+            string parameters = string.Join(", ", method.Parameters.Select(p => GetFullTypeName(p.Type)));
+            return method.ReturnsVoid ?
+                $"Action{(string.IsNullOrWhiteSpace(parameters) ? null : $"<{parameters}>")}" :
+                $"Func<{(string.IsNullOrWhiteSpace(parameters) ? null : $"{parameters}, ")}{GetFullTypeName(method.ReturnType)}>";
         }
 
         private static SymbolDisplayFormat FullNameFormat = new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
