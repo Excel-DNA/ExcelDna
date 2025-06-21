@@ -68,6 +68,15 @@ namespace ExcelDna.RuntimeTests
 
                 Assert.Equal(41.22, functionRange2.Value);
             }
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E1"];
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E2"];
+                functionRange2.Formula = "=NativeApplicationAddCellComment(\"E1\", \"Native Comment\")";
+
+                Assert.Equal("Native Comment", functionRange2.Value);
+                Assert.Equal("Native Comment", functionRange1.Comment.Text());
+            }
         }
     }
 }
