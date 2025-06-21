@@ -2,13 +2,13 @@
 {
     public interface IDynamic
     {
-        object GetProperty(string name);
-        T GetProperty<T>(string name);
+        object Get(string propertyName);
+        T Get<T>(string propertyName);
 
-        object GetProperty(string name, object[] args);
-        T GetProperty<T>(string name, object[] args);
+        object Get(string propertyName, object[] args);
+        T Get<T>(string propertyName, object[] args);
 
-        void SetProperty(string name, object value);
+        void Set(string propertyName, object value);
         object this[int index] { get; }
         object this[string index] { get; }
         object Invoke(string name, object[] args);
