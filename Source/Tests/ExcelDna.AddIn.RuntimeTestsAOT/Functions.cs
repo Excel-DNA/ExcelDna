@@ -49,5 +49,16 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
             var range = sheet.Get<IDynamic>("Range", [cell]);
             return range.Get<double>("Value");
         }
+
+        [ExcelFunction]
+        public static int NativeApplicationAlignCellRight(string cell)
+        {
+            var workbook = ExcelDnaUtil.DynamicApplication.Get<IDynamic>("ActiveWorkbook");
+            var sheets = workbook.Get<IDynamic>("Sheets");
+            var sheet = (IDynamic)sheets[1];
+            var range = sheet.Get<IDynamic>("Range", [cell]);
+            range.Set("HorizontalAlignment", -4152);
+            return range.Get<int>("HorizontalAlignment");
+        }
     }
 }

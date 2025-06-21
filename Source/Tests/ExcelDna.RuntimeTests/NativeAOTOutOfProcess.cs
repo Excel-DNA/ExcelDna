@@ -20,6 +20,20 @@ namespace ExcelDna.RuntimeTests
                 Assert.Equal("Hello native async task world", functionRange.Value.ToString());
             }
         }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void DynamicApplication()
+        {
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E1"];
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E2"];
+                functionRange2.Formula = "=NativeApplicationAlignCellRight(\"E1\")";
+
+                Assert.Equal(-4152, functionRange2.Value);
+                Assert.Equal(-4152, (int)functionRange1.HorizontalAlignment);
+            }
+        }
     }
 }
 
