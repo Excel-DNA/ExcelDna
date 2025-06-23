@@ -26,7 +26,7 @@ namespace ExcelDna.ComInterop
     {
         // COM Server support for persistently registered types.
         static readonly List<ExcelComClassType> registeredComClassTypes = new List<ExcelComClassType>();
-        
+
         // Used for on-demand COM add-in (and RTD Server and CTP control) registration.
         // Added and removed from the Dictionary as we go along.
         static readonly Dictionary<CLSID, ComAPI.IClassFactory> registeredClassFactories = new Dictionary<CLSID, ComAPI.IClassFactory>();
@@ -88,9 +88,15 @@ namespace ExcelDna.ComInterop
             if (registeredClassFactories.TryGetValue(clsid, out factory) ||
                 TryGetComClassType(clsid, out factory))
             {
+#if COM_GENERATED
+                ComWrappers cw = new System.Runtime.InteropServices.Marshalling.StrategyBasedComWrappers();
+                nint ptr = cw.GetOrCreateComInterfaceForObject(factory, CreateComInterfaceFlags.None);
+                HRESULT hrQI = Marshal.QueryInterface(ptr, in iid, out ppunk);
+#else
                 IntPtr punkFactory = Marshal.GetIUnknownForObject(factory);
                 HRESULT hrQI = Marshal.QueryInterface(punkFactory, ref iid, out ppunk);
                 Marshal.Release(punkFactory);
+#endif
                 if (hrQI == ComAPI.S_OK)
                 {
                     return ComAPI.S_OK;
@@ -164,12 +170,12 @@ namespace ExcelDna.ComInterop
                 Guid? typeLibId = RegisterTypeLibrary(rootKeyName);
                 if (typeLibId.HasValue)
                 {
-                    Registry.SetValue(rootKeyName + @"\CLSID\" + clsIdString + @"\TypeLib", 
+                    Registry.SetValue(rootKeyName + @"\CLSID\" + clsIdString + @"\TypeLib",
                         null, typeLibId.Value.ToString("B").ToUpperInvariant(), RegistryValueKind.String);
                 }
             }
         }
-        
+
         // Can throw UnauthorizedAccessException if nothing is writeable
         public void UnregisterServer()
         {
@@ -230,7 +236,7 @@ namespace ExcelDna.ComInterop
             libId = typeLibAttr.guid;
             string libIdString = libId.ToString("B").ToUpperInvariant();
             string version = typeLibAttr.wMajorVerNum.ToString(CultureInfo.InvariantCulture) + "." + typeLibAttr.wMinorVerNum.ToString(CultureInfo.InvariantCulture);
-            
+
             // Get Friendly Name
             string friendlyName;
             string docString;
