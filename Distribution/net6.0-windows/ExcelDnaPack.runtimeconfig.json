@@ -12,7 +12,8 @@
       }
     ],
     "configProperties": {
-      "System.Reflection.Metadata.MetadataUpdater.IsSupported": false
+      "System.Reflection.Metadata.MetadataUpdater.IsSupported": false,
+      "System.Runtime.Loader.UseRidGraph": true
     }
   }
 }
