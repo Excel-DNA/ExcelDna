@@ -78,5 +78,26 @@ namespace ExcelDna.RuntimeTests
                 Assert.Equal("Native Comment", functionRange1.Comment.Text());
             }
         }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void RangeArray2D()
+        {
+            Range functionRangeA1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A1"];
+            functionRangeA1.Value = "str";
+
+            Range functionRangeA2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A2"];
+            functionRangeA2.Value = 1;
+
+            Range functionRangeB1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+            functionRangeB1.Value = true;
+
+            Range functionRangeB2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B2"];
+            functionRangeB2.Value = 3.5;
+
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
+            functionRange.Formula = "=NativeRangeConcat2(A1:B2)";
+
+            Assert.Equal("strTrue13.5", functionRange.Value.ToString());
+        }
     }
 }
