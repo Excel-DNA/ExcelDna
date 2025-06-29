@@ -111,5 +111,17 @@ namespace ExcelDna.RuntimeTests
             functionRange2.Formula = "=NativeNullableDouble()";
             Assert.Equal("Native Nullable VAL: NULL", functionRange2.Value.ToString());
         }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void Optional()
+        {
+            Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A1"];
+            functionRange1.Formula = "=NativeOptionalDouble(2.3)";
+            Assert.Equal("Native Optional VAL: 2.3", functionRange1.Value.ToString());
+
+            Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A2"];
+            functionRange2.Formula = "=NativeOptionalDouble()";
+            Assert.Equal("Native Optional VAL: 1.23", functionRange2.Value.ToString());
+        }
     }
 }

@@ -94,5 +94,11 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         {
             return "Native Nullable VAL: " + (d.HasValue ? d : "NULL");
         }
+
+        [ExcelFunction]
+        public static string NativeOptionalDouble(double d = 1.23)
+        {
+            return "Native Optional VAL: " + d.ToString();
+        }
     }
 }
