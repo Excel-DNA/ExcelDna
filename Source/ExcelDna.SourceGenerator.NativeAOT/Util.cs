@@ -8,7 +8,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT
     {
         public static string GetFullTypeName(ITypeSymbol type)
         {
-            return type.ToDisplayString();
+            return type.ToDisplayString().Replace("[*,*]", "[,]");
         }
 
         public static string GetFullMethodName(IMethodSymbol method)
