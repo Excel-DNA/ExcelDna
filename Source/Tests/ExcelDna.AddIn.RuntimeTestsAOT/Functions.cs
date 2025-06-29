@@ -88,5 +88,11 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
             }
             return result;
         }
+
+        [ExcelFunction]
+        public static string NativeNullableDouble(double? d)
+        {
+            return "Native Nullable VAL: " + (d.HasValue ? d : "NULL");
+        }
     }
 }
