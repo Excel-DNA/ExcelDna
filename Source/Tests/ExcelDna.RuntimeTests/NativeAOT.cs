@@ -123,5 +123,21 @@ namespace ExcelDna.RuntimeTests
             functionRange2.Formula = "=NativeOptionalDouble()";
             Assert.Equal("Native Optional VAL: 1.23", functionRange2.Value.ToString());
         }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void Range()
+        {
+            Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A1"];
+            functionRange1.Formula = "=NativeRangeAddress(B2)";
+            Assert.Equal("Native Address: $B$2", functionRange1.Value.ToString());
+
+            Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A2"];
+            functionRange2.Formula = "=NativeRangeAddress(B2:C4)";
+            Assert.Equal("Native Address: $B$2:$C$4", functionRange2.Value.ToString());
+
+            Range functionRange3 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A3"];
+            functionRange3.Formula = "=NativeRangeAddress((B2,D5:E6))";
+            Assert.Equal("Native Address: $B$2,$D$5:$E$6", functionRange3.Value.ToString());
+        }
     }
 }

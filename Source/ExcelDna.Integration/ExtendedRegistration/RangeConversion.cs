@@ -12,6 +12,15 @@ namespace ExcelDna.Integration.ExtendedRegistration
             return registrations.Select(UpdateAttributesForRangeParameters);
         }
 
+#if COM_GENERATED
+        public static Expression<Func<object, IRange>> GetRangeParameterConversion(Type paramType, IExcelFunctionParameter paramRegistration)
+        {
+            if (!IsRange(paramType))
+                return null;
+
+            return (object input) => ExcelConversionUtil.ReferenceToRange((ExcelReference)input);
+        }
+#else
         public static Expression<Func<object, Microsoft.Office.Interop.Excel.Range>> GetRangeParameterConversion(Type paramType, IExcelFunctionParameter paramRegistration)
         {
             if (!IsRange(paramType))
@@ -19,6 +28,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
 
             return (object input) => ExcelConversionUtil.ReferenceToRange((ExcelReference)input);
         }
+#endif
 
         static ExcelDna.Registration.ExcelFunctionRegistration UpdateAttributesForRangeParameters(ExcelDna.Registration.ExcelFunctionRegistration reg)
         {
@@ -34,7 +44,13 @@ namespace ExcelDna.Integration.ExtendedRegistration
 
         static bool IsRange(Type type)
         {
-            return type.IsEquivalentTo(typeof(Microsoft.Office.Interop.Excel.Range));
+            return type.IsEquivalentTo(typeof(
+#if COM_GENERATED
+IRange
+#else
+Microsoft.Office.Interop.Excel.Range
+#endif
+            ));
         }
     }
 }

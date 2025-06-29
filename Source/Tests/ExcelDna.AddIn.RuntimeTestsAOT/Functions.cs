@@ -100,5 +100,11 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         {
             return "Native Optional VAL: " + d.ToString();
         }
+
+        [ExcelFunction]
+        public static string NativeRangeAddress(IRange r)
+        {
+            return "Native Address: " + r.Get<string>("Address");
+        }
     }
 }
