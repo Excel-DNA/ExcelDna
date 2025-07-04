@@ -71,5 +71,40 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
             var newComment = (IDynamic)range.Invoke("AddComment", [comment])!;
             return newComment.Invoke<string>("Text", []);
         }
+
+        [ExcelFunction]
+        public static object NativeRangeConcat2(object[,] values)
+        {
+            string result = "";
+            int rows = values.GetLength(0);
+            int cols = values.GetLength(1);
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
+                    object value = values[i, j];
+                    result += value.ToString();
+                }
+            }
+            return result;
+        }
+
+        [ExcelFunction]
+        public static string NativeNullableDouble(double? d)
+        {
+            return "Native Nullable VAL: " + (d.HasValue ? d : "NULL");
+        }
+
+        [ExcelFunction]
+        public static string NativeOptionalDouble(double d = 1.23)
+        {
+            return "Native Optional VAL: " + d.ToString();
+        }
+
+        [ExcelFunction]
+        public static string NativeRangeAddress(IRange r)
+        {
+            return "Native Address: " + r.Get<string>("Address");
+        }
     }
 }
