@@ -129,6 +129,15 @@ namespace ExcelDna.Integration
     }
 
     /// <summary>
+    /// For user-defined return conversions.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
+    [MeansImplicitUse]
+    public class ExcelReturnConversionAttribute : Attribute
+    {
+    }
+
+    /// <summary>
     /// For user-defined function execution handlers.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]

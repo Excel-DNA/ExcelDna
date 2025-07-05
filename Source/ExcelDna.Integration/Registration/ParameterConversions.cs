@@ -39,9 +39,14 @@ namespace ExcelDna.Registration
             return (type, paramReg) => EnumStringConversion(type, paramReg);
         }
 
-        internal static IEnumerable<Func<Type, ExcelParameterRegistration, LambdaExpression>> GetUserConversions(IEnumerable<Integration.ExtendedRegistration.ExcelParameterConversion> parameterConversions)
+        internal static IEnumerable<Func<Type, ExcelParameterRegistration, LambdaExpression>> GetUserParameterConversions(IEnumerable<Integration.ExtendedRegistration.ExcelParameterConversion> parameterConversions)
         {
             return parameterConversions.OrderBy(i => i.MethodInfo.Name).Select(i => i.GetConversion());
+        }
+
+        internal static IEnumerable<Func<Type, IExcelFunctionReturn, LambdaExpression>> GetUserReturnConversions(IEnumerable<Integration.ExtendedRegistration.ExcelReturnConversion> returnConversions)
+        {
+            return returnConversions.OrderBy(i => i.MethodInfo.Name).Select(i => i.GetConversion());
         }
 
         internal static LambdaExpression NullableConversion(
