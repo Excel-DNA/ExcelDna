@@ -10,11 +10,11 @@ namespace ExcelDna.Integration.ExtendedRegistration
 {
     internal class Registration
     {
-        public static void RegisterExtended(IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> functions, IEnumerable<ExcelParameterConversion> parameterConversions, IEnumerable<ExcelFunctionProcessor> excelFunctionProcessors, IEnumerable<FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors)
+        public static void RegisterExtended(IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> functions, IEnumerable<ExcelParameterConversion> parameterConversions, IEnumerable<ExcelReturnConversion> returnConversions, IEnumerable<ExcelFunctionProcessor> excelFunctionProcessors, IEnumerable<FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors)
         {
             // Set the Parameter Conversions before they are applied by the ProcessParameterConversions call below.
             // CONSIDER: We might change the registration to be an object...?
-            var conversionConfig = GetParameterConversionConfig(parameterConversions);
+            var conversionConfig = GetParameterConversionConfig(parameterConversions, returnConversions);
 
             var functionHandlerConfig = GetFunctionExecutionHandlerConfig(excelFunctionExecutionHandlerSelectors);
 
@@ -47,7 +47,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
             ExcelIntegration.RegisterLambdaExpressions(lambdas, attribs, argAttribs);
         }
 
-        static ParameterConversionConfiguration GetParameterConversionConfig(IEnumerable<ExcelParameterConversion> parameterConversions)
+        static ParameterConversionConfiguration GetParameterConversionConfig(IEnumerable<ExcelParameterConversion> parameterConversions, IEnumerable<ExcelReturnConversion> returnConversions)
         {
             // NOTE: The parameter conversion list is processed once per parameter.
             //       Parameter conversions will apply from most inside, to most outside.
@@ -79,7 +79,8 @@ namespace ExcelDna.Integration.ExtendedRegistration
                 .AddParameterConversion(ParameterConversions.GetOptionalConversion(treatEmptyAsMissing: true))
                 .AddParameterConversion(RangeConversion.GetRangeParameterConversion, null)
 
-                .AddParameterConversions(ParameterConversions.GetUserConversions(parameterConversions))
+                .AddParameterConversions(ParameterConversions.GetUserParameterConversions(parameterConversions))
+                .AddReturnConversions(ParameterConversions.GetUserReturnConversions(returnConversions))
 
                 // This is a conversion applied to the return value of the function
                 .AddReturnConversion((Complex value) => new double[2] { value.Real, value.Imaginary })
