@@ -28,6 +28,7 @@ namespace ExcelDna.Integration
                     List<ExportedAssembly> assemblies,
                     List<MethodInfo> methods,
                     List<ExtendedRegistration.ExcelParameterConversion> excelParameterConversions,
+                    List<ExtendedRegistration.ExcelReturnConversion> excelReturnConversions,
                     List<ExtendedRegistration.ExcelFunctionProcessor> excelFunctionProcessors,
                     List<Registration.ExcelFunctionRegistration> excelFunctionsExtendedRegistration,
                     List<Registration.FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors,
@@ -41,6 +42,7 @@ namespace ExcelDna.Integration
             {
                 int initialObjectsCount = methods.Count +
                     excelParameterConversions.Count +
+                    excelReturnConversions.Count +
                     excelFunctionProcessors.Count +
                     excelFunctionsExtendedRegistration.Count +
                     excelFunctionExecutionHandlerSelectors.Count +
@@ -85,6 +87,7 @@ namespace ExcelDna.Integration
                         if (!explicitRegistration)
                         {
                             GetExcelParameterConversions(type, excelParameterConversions);
+                            GetExcelReturnConversions(type, excelReturnConversions);
                             GetExcelFunctionProcessors(type, excelFunctionProcessors);
                             GetExcelMethods(type, explicitExports, methods, excelFunctionsExtendedRegistration);
                             GetExcelFunctionExecutionHandlerSelectors(type, excelFunctionExecutionHandlerSelectors);
@@ -101,6 +104,7 @@ namespace ExcelDna.Integration
 
                 if (methods.Count +
                     excelParameterConversions.Count +
+                    excelReturnConversions.Count +
                     excelFunctionProcessors.Count +
                     excelFunctionsExtendedRegistration.Count +
                     excelFunctionExecutionHandlerSelectors.Count +
@@ -123,6 +127,18 @@ namespace ExcelDna.Integration
                 if (IsParameterConversion(mi))
                 {
                     excelParameterConversions.Add(new ExtendedRegistration.ExcelParameterConversion(mi));
+                }
+            }
+        }
+
+        static void GetExcelReturnConversions(Type t, List<ExtendedRegistration.ExcelReturnConversion> excelReturnConversions)
+        {
+            MethodInfo[] mis = t.GetMethods(BindingFlags.Public | BindingFlags.Static);
+            foreach (MethodInfo mi in mis)
+            {
+                if (IsReturnConversion(mi))
+                {
+                    excelReturnConversions.Add(new ExtendedRegistration.ExcelReturnConversion(mi));
                 }
             }
         }
@@ -432,6 +448,11 @@ namespace ExcelDna.Integration
         private static bool IsParameterConversion(MethodInfo methodInfo)
         {
             return HasCustomAttribute(methodInfo, "ExcelDna.Integration.ExcelParameterConversionAttribute");
+        }
+
+        private static bool IsReturnConversion(MethodInfo methodInfo)
+        {
+            return HasCustomAttribute(methodInfo, "ExcelDna.Integration.ExcelReturnConversionAttribute");
         }
 
         private static bool IsFunctionProcessor(MethodInfo methodInfo)

@@ -142,6 +142,12 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
+        public static TestType1 MyReturnTestType1(string s)
+        {
+            return new TestType1("The TestType1 return value is " + s);
+        }
+
+        [ExcelFunction]
         public static string MyFunctionExecutionLog()
         {
             string result = Logger.GetLog();

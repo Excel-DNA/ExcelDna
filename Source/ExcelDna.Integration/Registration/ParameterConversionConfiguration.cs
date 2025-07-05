@@ -155,6 +155,14 @@ namespace ExcelDna.Registration
             AddReturnConversion<TFrom>((unusedReturnType, unusedAttributes) => convert, null, handleSubTypes);
             return this;
         }
+
+        public ParameterConversionConfiguration AddReturnConversions(IEnumerable<Func<Type, IExcelFunctionReturn, LambdaExpression>> returnConversions)
+        {
+            foreach (var i in returnConversions)
+                AddReturnConversion(i);
+
+            return this;
+        }
         #endregion
 
         Func<Type, ExcelParameterRegistration, LambdaExpression> GetNullableConversion(bool treatEmptyAsMissing, bool treatNAErrorAsMissing)
