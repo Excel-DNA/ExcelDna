@@ -27,5 +27,11 @@ namespace ExcelDna.AddIn.RuntimeTests
         {
             return new Version(s);
         }
+
+        [ExcelReturnConversion]
+        public static string Order1FromTestType1(TestType1 value)
+        {
+            return value.Value;
+        }
     }
 }

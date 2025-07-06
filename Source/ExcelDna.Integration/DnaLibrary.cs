@@ -259,6 +259,8 @@ namespace ExcelDna.Integration
         [XmlIgnore]
         List<ExtendedRegistration.ExcelParameterConversion> _excelParameterConversions = new List<ExtendedRegistration.ExcelParameterConversion>();
         [XmlIgnore]
+        List<ExtendedRegistration.ExcelReturnConversion> _excelReturnConversions = new List<ExtendedRegistration.ExcelReturnConversion>();
+        [XmlIgnore]
         private List<Registration.ExcelFunctionRegistration> _excelFunctionsExtendedRegistration = new List<Registration.ExcelFunctionRegistration>();
         [XmlIgnore]
         private List<Registration.FunctionExecutionHandlerSelector> _excelFunctionExecutionHandlerSelectors = new List<Registration.FunctionExecutionHandlerSelector>();
@@ -281,7 +283,7 @@ namespace ExcelDna.Integration
 
             // Recursively get assemblies down .dna tree.
             _exportedAssemblies = GetAssemblies(dnaResolveRoot);
-            AssemblyLoader.ProcessAssemblies(_exportedAssemblies, _methods, _excelParameterConversions, _excelFunctionProcessors, _excelFunctionsExtendedRegistration, _excelFunctionExecutionHandlerSelectors, _addIns, rtdServerTypes, comClassTypes);
+            AssemblyLoader.ProcessAssemblies(_exportedAssemblies, _methods, _excelParameterConversions, _excelReturnConversions, _excelFunctionProcessors, _excelFunctionsExtendedRegistration, _excelFunctionExecutionHandlerSelectors, _addIns, rtdServerTypes, comClassTypes);
             NativeAOT.ExcelAddIns.ForEach(i => AssemblyLoader.GetExcelAddIns(null, i, _addIns));
 
             // Register RTD Server Types (i.e. remember that these types are available as RTD servers, with relevant ProgId etc.)
@@ -332,7 +334,7 @@ namespace ExcelDna.Integration
             else
                 ExtendedRegistration.Registration.RegisterStandard(_methods.Select(i => new ExcelDna.Registration.ExcelFunctionRegistration(i)), _excelFunctionExecutionHandlerSelectors);
 
-            ExtendedRegistration.Registration.RegisterExtended(_excelFunctionsExtendedRegistration, _excelParameterConversions, _excelFunctionProcessors, _excelFunctionExecutionHandlerSelectors);
+            ExtendedRegistration.Registration.RegisterExtended(_excelFunctionsExtendedRegistration, _excelParameterConversions, _excelReturnConversions, _excelFunctionProcessors, _excelFunctionExecutionHandlerSelectors);
 
             // Invoke AutoOpen in all assemblies
             foreach (AssemblyLoader.ExcelAddInInfo addIn in _addIns)
