@@ -392,49 +392,47 @@ namespace ExcelDna.Integration
         internal void LoadCustomUI()
         {
             bool uiLoaded = false;
-            if (ExcelDnaUtil.ExcelVersion >= 12.0)
+            
+            // Load ComAddIns
+            foreach (AssemblyLoader.ExcelAddInInfo addIn in _addIns)
             {
-                // Load ComAddIns
-                foreach (AssemblyLoader.ExcelAddInInfo addIn in _addIns)
+                if (addIn.IsCustomUI)
                 {
-                    if (addIn.IsCustomUI)
-                    {
-                        // Load ExcelRibbon classes
-                        ExcelRibbon excelRibbon = addIn.Instance as ExcelRibbon;
-                        excelRibbon.DnaLibrary = addIn.ParentDnaLibrary;
-                        ExcelComAddInHelper.LoadComAddIn(excelRibbon);
-                        uiLoaded = true;
-                    }
+                    // Load ExcelRibbon classes
+                    ExcelRibbon excelRibbon = addIn.Instance as ExcelRibbon;
+                    excelRibbon.DnaLibrary = addIn.ParentDnaLibrary;
+                    ExcelComAddInHelper.LoadComAddIn(excelRibbon);
+                    uiLoaded = true;
                 }
-
-                // CONSIDER: Really not sure if this is a good idea - seems to interfere with unloading somehow.
-                //if (uiLoaded == false && CustomUIs != null)
-                //{
-                //    // Check whether we should add an empty ExcelCustomUI instance to load a Ribbon interface?
-                //    bool loadEmptyAddIn = false;
-                //    if (CustomUIs != null)
-                //    {
-                //        foreach (XmlNode xmlCustomUI in CustomUIs)
-                //        {
-                //            if (xmlCustomUI.LocalName == "customUI" &&
-                //                (xmlCustomUI.NamespaceURI == ExcelRibbon.NamespaceCustomUI2007 ||
-                //                 (ExcelDnaUtil.ExcelVersion >= 14.0 &&
-                //                  xmlCustomUI.NamespaceURI == ExcelRibbon.NamespaceCustomUI2010)))
-                //            {
-                //                loadEmptyAddIn = true;
-                //            }
-                //            if (loadEmptyAddIn)
-                //            {
-                //                // There will be Ribbon xml to load. Make a temp add-in and load it.
-                //                ExcelRibbon customUI = new ExcelRibbon();
-                //                customUI.DnaLibrary = this;
-                //                ExcelComAddInHelper.LoadComAddIn(customUI);
-                //                uiLoaded = true;
-                //            }
-                //        }
-                //    }
-                //}
             }
+
+            // CONSIDER: Really not sure if this is a good idea - seems to interfere with unloading somehow.
+            //if (uiLoaded == false && CustomUIs != null)
+            //{
+            //    // Check whether we should add an empty ExcelCustomUI instance to load a Ribbon interface?
+            //    bool loadEmptyAddIn = false;
+            //    if (CustomUIs != null)
+            //    {
+            //        foreach (XmlNode xmlCustomUI in CustomUIs)
+            //        {
+            //            if (xmlCustomUI.LocalName == "customUI" &&
+            //                (xmlCustomUI.NamespaceURI == ExcelRibbon.NamespaceCustomUI2007 ||
+            //                 (ExcelDnaUtil.ExcelVersion >= 14.0 &&
+            //                  xmlCustomUI.NamespaceURI == ExcelRibbon.NamespaceCustomUI2010)))
+            //            {
+            //                loadEmptyAddIn = true;
+            //            }
+            //            if (loadEmptyAddIn)
+            //            {
+            //                // There will be Ribbon xml to load. Make a temp add-in and load it.
+            //                ExcelRibbon customUI = new ExcelRibbon();
+            //                customUI.DnaLibrary = this;
+            //                ExcelComAddInHelper.LoadComAddIn(customUI);
+            //                uiLoaded = true;
+            //            }
+            //        }
+            //    }
+            //}
 
             // should we load CommandBars?
             if (uiLoaded == false && CustomUIs != null)

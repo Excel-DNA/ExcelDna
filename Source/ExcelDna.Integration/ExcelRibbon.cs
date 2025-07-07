@@ -56,15 +56,11 @@ namespace ExcelDna.Integration.CustomUI
                 }
                 return null;
             }
-            if (ExcelDnaUtil.ExcelVersion >= 12.0)
+            if (customUIs.ContainsKey(NamespaceCustomUI2007))
             {
-                if (customUIs.ContainsKey(NamespaceCustomUI2007))
-                {
-                    return customUIs[NamespaceCustomUI2007];
-                }
-                return null;
+                return customUIs[NamespaceCustomUI2007];
             }
-            throw new InvalidOperationException("Not expected to provide CustomUI string for Excel version < 12.0");
+            return null;
         }
 
         // LoadImage helper - to use need to mark loadImage='LoadImage' in the xml.
