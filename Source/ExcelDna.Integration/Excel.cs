@@ -746,20 +746,11 @@ namespace ExcelDna.Integration
                 if (_xlLimits == null)
                 {
                     _xlLimits = new ExcelLimits();
-                    if (ExcelVersion < 12.0)
-                    {
-                        _xlLimits.MaxRows = 65536;
-                        _xlLimits.MaxColumns = 256;
-                        _xlLimits.MaxArguments = 30;
-                        _xlLimits.MaxStringLength = 255;
-                    }
-                    else
-                    {
-                        _xlLimits.MaxRows = 1048576;
-                        _xlLimits.MaxColumns = 16384;
-                        _xlLimits.MaxArguments = 256;
-                        _xlLimits.MaxStringLength = 32767;
-                    }
+
+                    _xlLimits.MaxRows = 1048576;
+                    _xlLimits.MaxColumns = 16384;
+                    _xlLimits.MaxArguments = 256;
+                    _xlLimits.MaxStringLength = 32767;
                 }
                 return _xlLimits;
             }

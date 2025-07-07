@@ -36,7 +36,7 @@ namespace ExcelDna.Integration
                     List<Type> rtdServerTypes,
                     List<ExcelComClassType> comClassTypes)
         {
-            bool loadRibbons = (ExcelDnaUtil.ExcelVersion >= 12.0);
+            bool loadRibbons = true;
 
             foreach (ExportedAssembly assembly in assemblies)
             {

@@ -19,9 +19,6 @@ namespace ExcelDna.Integration
         // In both cases the XXXX is replaced with the Guid from the .xll path
         internal static void Register()
         {
-            // RegistrationInfo is supported for Excel 2007+ only
-            if (ExcelDnaUtil.ExcelVersion < 12.0) return;
-
             _registrationInfoName = RegistrationInfoName(ExcelDnaUtil.XllPath);
 
             object[] registerParameters = new object[6];
