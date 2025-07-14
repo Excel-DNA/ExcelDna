@@ -66,6 +66,11 @@
             For user-defined parameter conversions.
             </summary>
         </member>
+        <member name="T:ExcelDna.Integration.ExcelReturnConversionAttribute">
+            <summary>
+            For user-defined return conversions.
+            </summary>
+        </member>
         <member name="T:ExcelDna.Integration.ExcelFunctionExecutionHandlerSelectorAttribute">
             <summary>
             For user-defined function execution handlers.
