@@ -223,7 +223,7 @@ namespace ExcelDna.RuntimeTests
             Assert.Equal("The TestType2 value is From TestType1 world2", functionRange.Value.ToString());
         }
 
-        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTests)]
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
         public void UserDefinedReturnConversions()
         {
             Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
@@ -232,7 +232,7 @@ namespace ExcelDna.RuntimeTests
             Assert.Equal("The TestType1 return value is world", functionRange.Value.ToString());
         }
 
-        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTests)]
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
         public void FunctionExecutionHandlerExtended()
         {
             Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
