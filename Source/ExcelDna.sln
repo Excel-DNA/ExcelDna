@@ -101,10 +101,19 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelDna.RuntimeTests", "Tests\ExcelDna.RuntimeTests\ExcelDna.RuntimeTests.csproj", "{8D04B68B-1EFE-48DC-A0B5-D7ACC293694B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.AddIn.RegistrationSample", "Tests\ExcelDna.AddIn.RegistrationSample\ExcelDna.AddIn.RegistrationSample.csproj", "{55AEB960-2857-323E-3E82-5A8AA5913A18}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A9887347-3E93-4E4E-96DF-227648E57B60} = {A9887347-3E93-4E4E-96DF-227648E57B60}
+	EndProjectSection
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ExcelDna.AddIn.RegistrationSampleVB", "Tests\ExcelDna.AddIn.RegistrationSampleVB\ExcelDna.AddIn.RegistrationSampleVB.vbproj", "{2F5539CC-E302-49B6-88A9-9264DC6413B3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A9887347-3E93-4E4E-96DF-227648E57B60} = {A9887347-3E93-4E4E-96DF-227648E57B60}
+	EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ExcelDna.AddIn.RegistrationSampleFS", "Tests\ExcelDna.AddIn.RegistrationSampleFS\ExcelDna.AddIn.RegistrationSampleFS.fsproj", "{7CA501E1-FB74-4903-B34D-EFE513C5B428}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A9887347-3E93-4E4E-96DF-227648E57B60} = {A9887347-3E93-4E4E-96DF-227648E57B60}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.RegistrationTests", "Tests\ExcelDna.RegistrationTests\ExcelDna.RegistrationTests.csproj", "{151AE960-6320-402D-BDD0-D76DF96F2BD7}"
 EndProject
