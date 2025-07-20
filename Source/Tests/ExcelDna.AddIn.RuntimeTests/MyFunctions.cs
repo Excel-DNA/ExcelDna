@@ -13,6 +13,12 @@ namespace ExcelDna.AddIn.RuntimeTests
             return $"Hello {name}";
         }
 
+        [ExcelFunction]
+        public static string MySayHelloWithExclamation(string name)
+        {
+            return $"Hello with exclamation {name}";
+        }
+
         [ExcelFunction, Logging(7)]
         public static string SayHelloWithLoggingID(string name)
         {
