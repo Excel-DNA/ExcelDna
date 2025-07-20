@@ -329,12 +329,8 @@ namespace ExcelDna.Integration
             AssemblyLoader.GetExcelMethods(NativeAOT.MethodsForRegistration, true, _methods, _excelFunctionsExtendedRegistration);
 
             // Register my Methods
-            if (_excelFunctionExecutionHandlerSelectors.Count == 0)
-                ExcelIntegration.RegisterMethods(_methods);
-            else
-                ExtendedRegistration.Registration.RegisterStandard(_methods.Select(i => new ExcelDna.Registration.ExcelFunctionRegistration(i)), _excelFunctionExecutionHandlerSelectors);
-
-            ExtendedRegistration.Registration.RegisterExtended(_excelFunctionsExtendedRegistration, _excelParameterConversions, _excelReturnConversions, _excelFunctionProcessors, _excelFunctionExecutionHandlerSelectors);
+            var allMethods = _methods.Select(i => new Registration.ExcelFunctionRegistration(i)).Concat(_excelFunctionsExtendedRegistration);
+            ExtendedRegistration.Registration.RegisterExtended(allMethods, _excelParameterConversions, _excelReturnConversions, _excelFunctionProcessors, _excelFunctionExecutionHandlerSelectors);
 
             // Invoke AutoOpen in all assemblies
             foreach (AssemblyLoader.ExcelAddInInfo addIn in _addIns)
@@ -398,7 +394,7 @@ namespace ExcelDna.Integration
         internal void LoadCustomUI()
         {
             bool uiLoaded = false;
-            
+
             // Load ComAddIns
             foreach (AssemblyLoader.ExcelAddInInfo addIn in _addIns)
             {
