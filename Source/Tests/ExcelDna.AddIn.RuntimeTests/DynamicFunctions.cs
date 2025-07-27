@@ -9,6 +9,7 @@ namespace ExcelDna.AddIn.RuntimeTests
             ExcelFunctionRegistration[] functions = {
                 CreateRegistration(nameof(DynamicSayHello)),
                 CreateRegistration(nameof(DynamicOptionalDouble)),
+                ChangeName(CreateRegistration(nameof(ChangeMe)), "DynamicFunctionName"),
             };
 
             ExcelRegistration.RegisterFunctions(ExcelRegistration.ProcessFunctions(functions));
@@ -22,6 +23,17 @@ namespace ExcelDna.AddIn.RuntimeTests
         private static string DynamicOptionalDouble(double d = 4.56)
         {
             return "Dynamic Optional VAL: " + d.ToString();
+        }
+
+        private static string ChangeMe()
+        {
+            return $"Function {nameof(ChangeMe)}";
+        }
+
+        private static ExcelFunctionRegistration ChangeName(ExcelFunctionRegistration reg, string name)
+        {
+            reg.FunctionAttribute.Name = name;
+            return reg;
         }
 
         private static ExcelFunctionRegistration CreateRegistration(string name)

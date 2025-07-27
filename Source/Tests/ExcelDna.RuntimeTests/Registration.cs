@@ -639,6 +639,12 @@ namespace ExcelDna.RuntimeTests
                 functionRange.Formula = "=DynamicOptionalDouble()";
                 Assert.Equal("Dynamic Optional VAL: 4.56", functionRange.Value.ToString());
             }
+
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D1"];
+                functionRange.Formula = "=DynamicFunctionName()";
+                Assert.Equal("Function ChangeMe", functionRange.Value.ToString());
+            }
         }
     }
 }
