@@ -6,13 +6,22 @@ namespace ExcelDna.AddIn.RuntimeTests
     {
         public static void Register()
         {
-            ExcelFunctionRegistration[] functions = { CreateRegistration(nameof(DynamicSayHello)) };
-            ExcelRegistration.RegisterFunctions(functions);
+            ExcelFunctionRegistration[] functions = {
+                CreateRegistration(nameof(DynamicSayHello)),
+                CreateRegistration(nameof(DynamicOptionalDouble)),
+            };
+
+            ExcelRegistration.RegisterFunctions(ExcelRegistration.ProcessFunctions(functions));
         }
 
         private static string DynamicSayHello(string name)
         {
             return $"Dynamic Hello {name}";
+        }
+
+        private static string DynamicOptionalDouble(double d = 4.56)
+        {
+            return "Dynamic Optional VAL: " + d.ToString();
         }
 
         private static ExcelFunctionRegistration CreateRegistration(string name)
