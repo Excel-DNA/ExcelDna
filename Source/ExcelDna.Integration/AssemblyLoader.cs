@@ -36,8 +36,6 @@ namespace ExcelDna.Integration
                     List<Type> rtdServerTypes,
                     List<ExcelComClassType> comClassTypes)
         {
-            bool loadRibbons = true;
-
             foreach (ExportedAssembly assembly in assemblies)
             {
                 int initialObjectsCount = methods.Count +

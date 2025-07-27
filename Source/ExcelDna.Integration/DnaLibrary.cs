@@ -257,15 +257,9 @@ namespace ExcelDna.Integration
         [XmlIgnore]
         private List<MethodInfo> _methods = new List<MethodInfo>();
         [XmlIgnore]
-        List<ExtendedRegistration.ExcelParameterConversion> _excelParameterConversions = new List<ExtendedRegistration.ExcelParameterConversion>();
-        [XmlIgnore]
-        List<ExtendedRegistration.ExcelReturnConversion> _excelReturnConversions = new List<ExtendedRegistration.ExcelReturnConversion>();
+        private ExtendedRegistration.Registration.Configuration _extendedRegistrationConfiguration;
         [XmlIgnore]
         private List<Registration.ExcelFunctionRegistration> _excelFunctionsExtendedRegistration = new List<Registration.ExcelFunctionRegistration>();
-        [XmlIgnore]
-        private List<Registration.FunctionExecutionHandlerSelector> _excelFunctionExecutionHandlerSelectors = new List<Registration.FunctionExecutionHandlerSelector>();
-        [XmlIgnore]
-        private List<ExtendedRegistration.ExcelFunctionProcessor> _excelFunctionProcessors = new List<ExtendedRegistration.ExcelFunctionProcessor>();
         [XmlIgnore]
         private List<ExportedAssembly> _exportedAssemblies;
 
@@ -283,7 +277,14 @@ namespace ExcelDna.Integration
 
             // Recursively get assemblies down .dna tree.
             _exportedAssemblies = GetAssemblies(dnaResolveRoot);
-            AssemblyLoader.ProcessAssemblies(_exportedAssemblies, _methods, _excelParameterConversions, _excelReturnConversions, _excelFunctionProcessors, _excelFunctionsExtendedRegistration, _excelFunctionExecutionHandlerSelectors, _addIns, rtdServerTypes, comClassTypes);
+
+            var excelParameterConversions = new List<ExtendedRegistration.ExcelParameterConversion>();
+            var excelReturnConversions = new List<ExtendedRegistration.ExcelReturnConversion>();
+            var excelFunctionExecutionHandlerSelectors = new List<Registration.FunctionExecutionHandlerSelector>();
+            var excelFunctionProcessors = new List<ExtendedRegistration.ExcelFunctionProcessor>();
+            AssemblyLoader.ProcessAssemblies(_exportedAssemblies, _methods, excelParameterConversions, excelReturnConversions, excelFunctionProcessors, _excelFunctionsExtendedRegistration, excelFunctionExecutionHandlerSelectors, _addIns, rtdServerTypes, comClassTypes);
+            _extendedRegistrationConfiguration = new ExtendedRegistration.Registration.Configuration() { ParameterConversions = excelParameterConversions, ReturnConversions = excelReturnConversions, ExcelFunctionProcessors = excelFunctionProcessors, ExcelFunctionExecutionHandlerSelectors = excelFunctionExecutionHandlerSelectors };
+
             NativeAOT.ExcelAddIns.ForEach(i => AssemblyLoader.GetExcelAddIns(null, i, _addIns));
 
             // Register RTD Server Types (i.e. remember that these types are available as RTD servers, with relevant ProgId etc.)
@@ -330,7 +331,7 @@ namespace ExcelDna.Integration
 
             // Register my Methods
             var allMethods = _methods.Select(i => new Registration.ExcelFunctionRegistration(i)).Concat(_excelFunctionsExtendedRegistration);
-            ExtendedRegistration.Registration.RegisterExtended(allMethods, _excelParameterConversions, _excelReturnConversions, _excelFunctionProcessors, _excelFunctionExecutionHandlerSelectors);
+            ExtendedRegistration.Registration.Register(allMethods, _extendedRegistrationConfiguration);
 
             // Invoke AutoOpen in all assemblies
             foreach (AssemblyLoader.ExcelAddInInfo addIn in _addIns)
@@ -618,6 +619,14 @@ namespace ExcelDna.Integration
             get
             {
                 return Path.GetDirectoryName(XllPath);
+            }
+        }
+
+        internal static ExtendedRegistration.Registration.Configuration ExtendedRegistrationConfiguration
+        {
+            get
+            {
+                return CurrentLibrary._extendedRegistrationConfiguration;
             }
         }
 

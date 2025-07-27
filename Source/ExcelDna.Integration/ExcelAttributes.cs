@@ -38,6 +38,22 @@ namespace ExcelDna.Integration
         {
             Description = description;
         }
+
+        public ExcelFunctionAttribute(ExcelFunctionAttribute src)
+        {
+            Category = src.Category;
+            Name = src.Name;
+            Description = src.Description;
+            HelpTopic = src.HelpTopic;
+            IsVolatile = src.IsVolatile;
+            IsHidden = src.IsHidden;
+            IsExceptionSafe = src.IsExceptionSafe;
+            IsMacroType = src.IsMacroType;
+            IsThreadSafe = src.IsThreadSafe;
+            IsClusterSafe = src.IsClusterSafe;
+            ExplicitRegistration = src.ExplicitRegistration;
+            SuppressOverwriteError = src.SuppressOverwriteError;
+        }
     }
 
     /// <summary>
