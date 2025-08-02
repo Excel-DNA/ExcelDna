@@ -164,5 +164,23 @@ namespace ExcelDna.RuntimeTests
             functionRange.Formula = "=NativeEnumReturn(\"Local\")";
             Assert.Equal("Local", functionRange.Value.ToString());
         }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void StringArray()
+        {
+            Range a1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A1:A1"];
+            a1.Value = "01";
+
+            Range a2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A2:A2"];
+            a2.Value = "2.30";
+
+            Range a3 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A3:A3"];
+            a3.Value = "World";
+
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
+            functionRange.Formula = "=NativeStringArray(A1:A3)";
+
+            Assert.Equal("Native StringArray VALS: 12.3World", functionRange.Value.ToString());
+        }
     }
 }

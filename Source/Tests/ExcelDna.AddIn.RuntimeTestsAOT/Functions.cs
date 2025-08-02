@@ -118,5 +118,11 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         {
             return Enum.Parse<DateTimeKind>(s);
         }
+
+        [ExcelFunction]
+        public static string NativeStringArray(string[] s)
+        {
+            return "Native StringArray VALS: " + string.Concat(s);
+        }
     }
 }
