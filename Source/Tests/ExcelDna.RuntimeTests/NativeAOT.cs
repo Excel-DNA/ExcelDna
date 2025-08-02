@@ -139,5 +139,30 @@ namespace ExcelDna.RuntimeTests
             functionRange3.Formula = "=NativeRangeAddress((B2,D5:E6))";
             Assert.Equal("Native Address: $B$2,$D$5:$E$6", functionRange3.Value.ToString());
         }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void Enum()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
+            functionRange.Formula = "=NativeEnum(\"Unspecified\")";
+            Assert.Equal("Native Enum VAL: Unspecified", functionRange.Value.ToString());
+
+            functionRange.Formula = "=NativeEnum(\"Local\")";
+            Assert.Equal("Native Enum VAL: Local", functionRange.Value.ToString());
+
+            functionRange.Formula = "=NativeEnum(1)";
+            Assert.Equal("Native Enum VAL: Utc", functionRange.Value.ToString());
+        }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void EnumReturn()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
+            functionRange.Formula = "=NativeEnumReturn(\"Unspecified\")";
+            Assert.Equal("Unspecified", functionRange.Value.ToString());
+
+            functionRange.Formula = "=NativeEnumReturn(\"Local\")";
+            Assert.Equal("Local", functionRange.Value.ToString());
+        }
     }
 }

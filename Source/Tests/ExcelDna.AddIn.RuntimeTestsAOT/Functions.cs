@@ -106,5 +106,17 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         {
             return "Native Address: " + r.Get<string>("Address");
         }
+
+        [ExcelFunction]
+        public static string NativeEnum(DateTimeKind e)
+        {
+            return "Native Enum VAL: " + e.ToString();
+        }
+
+        [ExcelFunction]
+        public static DateTimeKind NativeEnumReturn(string s)
+        {
+            return Enum.Parse<DateTimeKind>(s);
+        }
     }
 }
