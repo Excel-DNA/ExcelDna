@@ -132,6 +132,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.AddIn.RuntimeTests
 		{D50C3A8E-46F1-F61B-C8F5-ECDA05995EEB} = {D50C3A8E-46F1-F61B-C8F5-ECDA05995EEB}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelDna.SourceGenerator.NativeAOT.Tests", "Tests\ExcelDna.SourceGenerator.NativeAOT.Tests\ExcelDna.SourceGenerator.NativeAOT.Tests.csproj", "{D47CC5BF-712E-4FFA-BE52-E783BDCC6D33}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -292,6 +294,14 @@ Global
 		{1EC2EE86-7C59-4CA9-9D6A-FBF206DA9D3F}.Release|Win32.ActiveCfg = Release|Any CPU
 		{1EC2EE86-7C59-4CA9-9D6A-FBF206DA9D3F}.Release|x64.ActiveCfg = Release|Any CPU
 		{1EC2EE86-7C59-4CA9-9D6A-FBF206DA9D3F}.Release|x64.Build.0 = Release|Any CPU
+		{D47CC5BF-712E-4FFA-BE52-E783BDCC6D33}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{D47CC5BF-712E-4FFA-BE52-E783BDCC6D33}.Debug|Win32.Build.0 = Debug|Any CPU
+		{D47CC5BF-712E-4FFA-BE52-E783BDCC6D33}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D47CC5BF-712E-4FFA-BE52-E783BDCC6D33}.Debug|x64.Build.0 = Debug|Any CPU
+		{D47CC5BF-712E-4FFA-BE52-E783BDCC6D33}.Release|Win32.ActiveCfg = Release|Any CPU
+		{D47CC5BF-712E-4FFA-BE52-E783BDCC6D33}.Release|Win32.Build.0 = Release|Any CPU
+		{D47CC5BF-712E-4FFA-BE52-E783BDCC6D33}.Release|x64.ActiveCfg = Release|Any CPU
+		{D47CC5BF-712E-4FFA-BE52-E783BDCC6D33}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -311,6 +321,7 @@ Global
 		{7CA501E1-FB74-4903-B34D-EFE513C5B428} = {511CE610-5E55-457F-B818-1522D1A96727}
 		{151AE960-6320-402D-BDD0-D76DF96F2BD7} = {511CE610-5E55-457F-B818-1522D1A96727}
 		{1EC2EE86-7C59-4CA9-9D6A-FBF206DA9D3F} = {511CE610-5E55-457F-B818-1522D1A96727}
+		{D47CC5BF-712E-4FFA-BE52-E783BDCC6D33} = {511CE610-5E55-457F-B818-1522D1A96727}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {69EF43B0-B903-4775-BC81-C7E7E012EDA3}
