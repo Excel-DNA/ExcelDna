@@ -144,8 +144,8 @@ namespace ExcelDna.Registration
              * 
              */
 
-            int maxArguments = 125; // Constrained by 255 char registration string, take off 3 type chars, use up to 2 chars per param (before we start doing object...) (& also return)
-                                    // CONSIDER: Might improve this if we generate the delegate based on the max length...
+            int maxArguments = NativeAOT.IsActive ? 16 : 125; // Constrained by 255 char registration string, take off 3 type chars, use up to 2 chars per param (before we start doing object...) (& also return)
+                                                              // CONSIDER: Might improve this if we generate the delegate based on the max length...
 
             var normalParams = functionLambda.Parameters.Take(functionLambda.Parameters.Count() - 1).ToList();
             var normalParamCount = normalParams.Count;
@@ -210,13 +210,19 @@ namespace ExcelDna.Registration
             if (maxArguments == 125)
             {
                 delegateType = typeof(CustomFunc125<,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>)
-                                    .MakeGenericType(allParamTypes.ToArray());
+                .MakeGenericType(allParamTypes.ToArray());
             }
-            else // if (maxArguments == 29)
+            else if (maxArguments == 29)
             {
                 delegateType = typeof(CustomFunc29<,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>)
                                     .MakeGenericType(allParamTypes.ToArray());
             }
+            else // if (maxArguments == 16)
+            {
+                delegateType = typeof(Func<,,,,,,,,,,,,,,,,>)
+                                    .MakeGenericType(allParamTypes.ToArray());
+            }
+
             return Expression.Lambda(delegateType, blockExpr, allParamExprs);
         }
     }
