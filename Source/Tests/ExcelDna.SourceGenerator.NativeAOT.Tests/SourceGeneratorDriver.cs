@@ -12,6 +12,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 [
                 MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
                 MetadataReference.CreateFromFile(System.Reflection.Assembly.Load("System.Runtime").Location),
+                MetadataReference.CreateFromFile(System.Reflection.Assembly.Load("System.Collections").Location),
                 MetadataReference.CreateFromFile(typeof(ExcelDna.Integration.NativeAOT).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(ExcelDna.ManagedHost.AddInInitialize).Assembly.Location),
                 ],
@@ -21,7 +22,8 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
 
             Assert.Empty(diagnostics);
             Assert.True(outputCompilation.SyntaxTrees.Count() == 2);
-            Assert.Empty(outputCompilation.GetDiagnostics());
+            var outputCompilationDiagnostics = outputCompilation.GetDiagnostics();
+            Assert.Empty(outputCompilationDiagnostics);
 
             GeneratorDriverRunResult runResult = driver.GetRunResult();
             Assert.True(runResult.GeneratedTrees.Length == 1);
