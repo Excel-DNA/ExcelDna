@@ -34,6 +34,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 typeRefs.Add(typeof(Func<string, string[], string>));
                 typeRefs.Add(typeof(Func<object, string>));
                 typeRefs.Add(typeof(Func<object, string[]>));
+                typeRefs.Add(typeof(Func<string,object,object,object,object,object,object,object,object,object,object,object,object,object,object,object,string>));
                 
                 List<MethodInfo> methodRefs = new List<MethodInfo>();
                 methodRefs.Add(typeof(List<string>).GetMethod("ToArray")!);
