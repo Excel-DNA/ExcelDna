@@ -738,23 +738,14 @@ namespace ExcelDna.Integration
         #endregion
 
         #region ExcelLimits
-        private static ExcelLimits _xlLimits;
-        public static ExcelLimits ExcelLimits
+        static readonly ExcelLimits _xlLimits = new ExcelLimits
         {
-            get
-            {
-                if (_xlLimits == null)
-                {
-                    _xlLimits = new ExcelLimits();
-
-                    _xlLimits.MaxRows = 1048576;
-                    _xlLimits.MaxColumns = 16384;
-                    _xlLimits.MaxArguments = 256;
-                    _xlLimits.MaxStringLength = 32767;
-                }
-                return _xlLimits;
-            }
-        }
+            MaxRows = 1048576,
+            MaxColumns = 16384,
+            MaxArguments = 256,
+            MaxStringLength = 32767
+        };
+        public static ExcelLimits ExcelLimits => _xlLimits;
         #endregion
 
         #region SupportsDynamicArrays
