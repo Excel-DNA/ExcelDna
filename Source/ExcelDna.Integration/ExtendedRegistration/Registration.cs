@@ -29,15 +29,6 @@ namespace ExcelDna.Integration.ExtendedRegistration
                 );
         }
 
-        public static void RegisterStandard(IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> functions, IEnumerable<FunctionExecutionHandlerSelector> excelFunctionExecutionHandlerSelectors)
-        {
-            var functionHandlerConfig = GetFunctionExecutionHandlerConfig(excelFunctionExecutionHandlerSelectors);
-
-            Register(functions
-                .ProcessFunctionExecutionHandlers(functionHandlerConfig)
-                );
-        }
-
         internal static void Register(IEnumerable<ExcelDna.Registration.ExcelFunctionRegistration> functions)
         {
             functions = functions.ToList();
