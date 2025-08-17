@@ -77,5 +77,10 @@ namespace ExcelDna.Registration
                 CommandAttribute = new ExcelCommandAttribute { Name = methodInfo.Name };
             }
         }
+
+        internal static bool IsCommand(MethodInfo methodInfo)
+        {
+            return methodInfo.GetCustomAttribute<ExcelCommandAttribute>() != null;
+        }
     }
 }

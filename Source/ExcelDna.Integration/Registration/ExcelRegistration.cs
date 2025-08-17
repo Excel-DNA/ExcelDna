@@ -60,7 +60,7 @@ namespace ExcelDna.Registration
             return from ass in ExcelIntegration.GetExportedAssemblies()
                    from typ in ass.GetTypes()
                    from mi in typ.GetMethods(BindingFlags.Public | BindingFlags.Static)
-                   where mi.GetCustomAttribute<ExcelCommandAttribute>() != null
+                   where ExcelCommandRegistration.IsCommand(mi)
                    select new ExcelCommandRegistration(mi);
         }
 
