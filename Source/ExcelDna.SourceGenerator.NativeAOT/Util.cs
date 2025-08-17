@@ -39,6 +39,19 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                 $"Func<{(string.IsNullOrWhiteSpace(parameters) ? null : $"{parameters}, ")}{GetFullTypeName(method.ReturnType)}>";
         }
 
+        public static string CreateFunc16Args(IMethodSymbol method)
+        {
+            List<ITypeSymbol?> allParamTypes = method.Parameters.Take(method.Parameters.Length - 1).Select(p => p.Type).Cast<ITypeSymbol?>().ToList();
+            var toAdd = 16 - allParamTypes.Count;
+            for (int i = 0; i < toAdd; i++)
+            {
+                allParamTypes.Add(null);
+            }
+            allParamTypes.Add(method.ReturnType);
+
+            return string.Join(",", allParamTypes.Select(i => i == null ? "object" : GetFullTypeName(i)));
+        }
+
         private static SymbolDisplayFormat FullNameFormat = new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
     }
 }

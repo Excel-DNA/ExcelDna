@@ -106,5 +106,73 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         {
             return "Native Address: " + r.Get<string>("Address");
         }
+
+        [ExcelFunction]
+        public static string NativeEnum(DateTimeKind e)
+        {
+            return "Native Enum VAL: " + e.ToString();
+        }
+
+        [ExcelFunction]
+        public static DateTimeKind NativeEnumReturn(string s)
+        {
+            return Enum.Parse<DateTimeKind>(s);
+        }
+
+        [ExcelFunction]
+        public static string NativeStringArray(string[] s)
+        {
+            return "Native StringArray VALS: " + string.Concat(s);
+        }
+
+        [ExcelFunction]
+        public static string NativeStringArray2D(string[,] s)
+        {
+            string result = "";
+            for (int i = 0; i < s.GetLength(0); i++)
+            {
+                for (int j = 0; j < s.GetLength(1); j++)
+                {
+                    result += s[i, j];
+                }
+
+                result += " ";
+            }
+
+            return $"Native StringArray2D VALS: {result}";
+        }
+
+        [ExcelFunction]
+        public static string NativeParamsFunc1(
+            [ExcelArgument(Name = "first.Input", Description = "is a useful start")]
+            object input,
+            [ExcelArgument(Description = "is another param start")]
+            string QtherInpEt,
+            [ExcelArgument(Name = "Value", Description = "gives the Rest")]
+            params object[] args)
+        {
+            return input + "," + QtherInpEt + ", : " + args.Length;
+        }
+
+        [ExcelFunction]
+        public static string NativeParamsFunc2(
+            [ExcelArgument(Name = "first.Input", Description = "is a useful start")]
+            object input,
+            [ExcelArgument(Name = "second.Input", Description = "is some more stuff")]
+            string input2,
+            [ExcelArgument(Description = "is another param ")]
+            string QtherInpEt,
+            [ExcelArgument(Name = "Value", Description = "gives the Rest")]
+            params object[] args)
+        {
+            var content = string.Join(",", args.Select(ValueType => ValueType.ToString()));
+            return input + "," + input2 + "," + QtherInpEt + ", " + $"[{args.Length}: {content}]";
+        }
+
+        [ExcelFunction]
+        public static string NativeParamsJoinString(string separator, params string[] values)
+        {
+            return String.Join(separator, values);
+        }
     }
 }

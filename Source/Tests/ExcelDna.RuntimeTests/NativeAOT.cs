@@ -139,5 +139,95 @@ namespace ExcelDna.RuntimeTests
             functionRange3.Formula = "=NativeRangeAddress((B2,D5:E6))";
             Assert.Equal("Native Address: $B$2,$D$5:$E$6", functionRange3.Value.ToString());
         }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void Enum()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
+            functionRange.Formula = "=NativeEnum(\"Unspecified\")";
+            Assert.Equal("Native Enum VAL: Unspecified", functionRange.Value.ToString());
+
+            functionRange.Formula = "=NativeEnum(\"Local\")";
+            Assert.Equal("Native Enum VAL: Local", functionRange.Value.ToString());
+
+            functionRange.Formula = "=NativeEnum(1)";
+            Assert.Equal("Native Enum VAL: Utc", functionRange.Value.ToString());
+        }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void EnumReturn()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
+            functionRange.Formula = "=NativeEnumReturn(\"Unspecified\")";
+            Assert.Equal("Unspecified", functionRange.Value.ToString());
+
+            functionRange.Formula = "=NativeEnumReturn(\"Local\")";
+            Assert.Equal("Local", functionRange.Value.ToString());
+        }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void StringArray()
+        {
+            Range a1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A1:A1"];
+            a1.Value = "01";
+
+            Range a2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A2:A2"];
+            a2.Value = "2.30";
+
+            Range a3 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A3:A3"];
+            a3.Value = "World";
+
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
+            functionRange.Formula = "=NativeStringArray(A1:A3)";
+
+            Assert.Equal("Native StringArray VALS: 12.3World", functionRange.Value.ToString());
+        }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void StringArray2D()
+        {
+            Range a1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A1"];
+            a1.Value = "01";
+
+            Range a2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A2"];
+            a2.Value = "2.30";
+
+            Range a3 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A3"];
+            a3.Value = "Hello";
+
+            Range b1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+            b1.Value = "5";
+
+            Range b2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B2"];
+            b2.Value = "6.7";
+
+            Range b3 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B3"];
+            b3.Value = "World";
+
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
+            functionRange.Formula = "=NativeStringArray2D(A1:B3)";
+
+            Assert.Equal("Native StringArray2D VALS: 15 2.36.7 HelloWorld ", functionRange.Value.ToString());
+        }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void Params()
+        {
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+                functionRange.Formula = "=NativeParamsFunc1(1,\"2\",4,5)";
+                Assert.Equal("1,2, : 2", functionRange.Value.ToString());
+            }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B2"];
+                functionRange.Formula = "=NativeParamsFunc2(\"a\",,\"c\",\"d\",,\"f\")";
+                Assert.Equal("a,,c, [3: d,ExcelDna.Integration.ExcelMissing,f]", functionRange.Value.ToString());
+            }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B3"];
+                functionRange.Formula = "=NativeParamsJoinString(\"//\",\"5\",\"4\",\"3\")";
+                Assert.Equal("5//4//3", functionRange.Value.ToString());
+            }
+        }
     }
 }
