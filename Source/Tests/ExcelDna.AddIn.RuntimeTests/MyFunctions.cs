@@ -7,6 +7,12 @@ namespace ExcelDna.AddIn.RuntimeTests
 {
     public class MyFunctions
     {
+        [ExcelCommand(MenuText = "MyCommandHello")]
+        public static void MyCommandHello()
+        {
+            Logger.Log("Hello command.");
+        }
+
         [ExcelFunction]
         public static string SayHello(string name)
         {
