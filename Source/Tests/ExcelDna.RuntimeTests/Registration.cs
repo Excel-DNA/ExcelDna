@@ -625,5 +625,30 @@ namespace ExcelDna.RuntimeTests
                 Assert.Equal("5//4//3", functionRange.Value.ToString());
             }
         }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTests)]
+        public void DynamicFunctions()
+        {
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+                functionRange.Formula = "=DynamicSayHello(\"world\")";
+                Assert.Equal("Dynamic Hello world", functionRange.Value.ToString());
+            }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
+                functionRange.Formula = "=DynamicOptionalDouble()";
+                Assert.Equal("Dynamic Optional VAL: 4.56", functionRange.Value.ToString());
+            }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D1"];
+                functionRange.Formula = "=DynamicFunctionName()";
+                Assert.Equal("Function ChangeMe", functionRange.Value.ToString());
+            }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E1"];
+                functionRange.Formula = "=DynamicOptionalDoubleUnprocessed()";
+                Assert.Equal("Dynamic Optional VAL: 0", functionRange.Value.ToString());
+            }
+        }
     }
 }

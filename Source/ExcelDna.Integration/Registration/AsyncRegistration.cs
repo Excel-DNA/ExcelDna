@@ -43,7 +43,7 @@ namespace ExcelDna.Registration
                         ParameterConversionRegistration.ApplyParameterConversions(reg, ObjectHandleRegistration.GetParameterConversionConfiguration());
                         reg.FunctionLambda = WrapMethodObservable(reg.FunctionLambda, reg.Return.CustomAttributes);
                     }
-                    else if (ReturnsTask(reg.FunctionLambda) || reg.FunctionAttribute is ExcelDna.Registration.ExcelAsyncFunctionAttribute)
+                    else if (ReturnsTask(reg.FunctionLambda) || reg.FunctionAttribute is ExcelAsyncFunctionAttribute)
                     {
                         ParameterConversionRegistration.ApplyParameterConversions(reg, ObjectHandleRegistration.GetParameterConversionConfiguration());
                         if (HasCancellationToken(reg.FunctionLambda))
@@ -58,6 +58,9 @@ namespace ExcelDna.Registration
                             reg.FunctionLambda = useNativeAsync ? WrapMethodNativeAsyncTask(reg.FunctionLambda)
                                                                 : WrapMethodRunTask(reg.FunctionLambda, reg.Return.CustomAttributes);
                         }
+
+                        if (reg.FunctionAttribute is ExcelAsyncFunctionAttribute)
+                            reg.FunctionAttribute = new ExcelFunctionAttribute(reg.FunctionAttribute);
                     }
                     // else do nothing to this registration
                 }

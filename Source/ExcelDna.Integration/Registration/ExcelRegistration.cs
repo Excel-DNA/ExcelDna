@@ -1,10 +1,7 @@
 ﻿using ExcelDna.Integration;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ExcelDna.Registration
 {
@@ -34,12 +31,21 @@ namespace ExcelDna.Registration
         }
 
         /// <summary>
+        /// Prepares the given functions for registration with Excel-DNA.
+        /// </summary>
+        /// <param name="registrationEntries"></param>
+        public static IEnumerable<ExcelFunctionRegistration> ProcessFunctions(this IEnumerable<ExcelFunctionRegistration> registrationEntries)
+        {
+            return Integration.ExtendedRegistration.Registration.Process(registrationEntries, DnaLibrary.ExtendedRegistrationConfiguration);
+        }
+
+        /// <summary>
         /// Registers the given functions with Excel-DNA.
         /// </summary>
         /// <param name="registrationEntries"></param>
         public static void RegisterFunctions(this IEnumerable<ExcelFunctionRegistration> registrationEntries)
         {
-            ExcelDna.Integration.ExtendedRegistration.Registration.Register(registrationEntries);
+            Integration.ExtendedRegistration.Registration.Register(registrationEntries);
         }
 
         /// <summary>
@@ -54,7 +60,7 @@ namespace ExcelDna.Registration
             return from ass in ExcelIntegration.GetExportedAssemblies()
                    from typ in ass.GetTypes()
                    from mi in typ.GetMethods(BindingFlags.Public | BindingFlags.Static)
-                   where mi.GetCustomAttribute<ExcelCommandAttribute>() != null
+                   where ExcelCommandRegistration.IsCommand(mi)
                    select new ExcelCommandRegistration(mi);
         }
 
