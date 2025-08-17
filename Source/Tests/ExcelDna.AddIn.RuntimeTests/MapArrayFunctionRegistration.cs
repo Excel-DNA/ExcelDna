@@ -7,6 +7,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
+#nullable disable
+
 namespace ExcelDna.AddIn.RuntimeTests
 {
     /// <summary>
