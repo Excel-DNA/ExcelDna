@@ -90,7 +90,7 @@ namespace ExcelDna.Integration
                             GetExcelMethods(type, explicitExports, methods, excelFunctionsExtendedRegistration);
                             GetExcelFunctionExecutionHandlerSelectors(type, excelFunctionExecutionHandlerSelectors);
                         }
-                        GetExcelAddIns(assembly, type, loadRibbons, addIns);
+                        GetExcelAddIns(assembly, type, addIns);
                         GetRtdServerTypes(type, rtdServerTypes, out isRtdServer);
                         GetComClassTypes(assembly, type, attribs, isRtdServer, comClassTypes);
                     }
@@ -306,7 +306,7 @@ namespace ExcelDna.Integration
             public DnaLibrary ParentDnaLibrary;
         }
 
-        static public void GetExcelAddIns(ExportedAssembly assembly, Type t, bool loadRibbons, List<ExcelAddInInfo> addIns)
+        static public void GetExcelAddIns(ExportedAssembly assembly, Type t, List<ExcelAddInInfo> addIns)
         {
             // NOTE: We probably should have restricted this to public types, but didn't. Now it's too late.
             //       So internal classes that implement IExcelAddIn are also loaded.
@@ -320,7 +320,7 @@ namespace ExcelDna.Integration
 
                 Type addInType = t.GetInterface("ExcelDna.Integration.IExcelAddIn");
                 bool isRibbon = IsRibbonType(t);
-                if (addInType != null || (isRibbon && loadRibbons))
+                if (addInType != null || isRibbon)
                 {
                     ExcelAddInInfo info = new ExcelAddInInfo();
                     if (addInType != null)

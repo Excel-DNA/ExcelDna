@@ -7,7 +7,7 @@ namespace ExcelDna.RuntimeTests
 {
     public class UI
     {
-        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTests)]
+        [ExcelFact(Workbook = "", AddIn = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn")]
         public void Command()
         {
             CommandBarPopup? menu = FindPopupMenu("ExcelDna.AddIn.RuntimeTests add-in");
