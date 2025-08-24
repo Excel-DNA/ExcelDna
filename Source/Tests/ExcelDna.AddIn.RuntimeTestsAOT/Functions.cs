@@ -24,6 +24,13 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
             return $"Hello native async task {name}";
         }
 
+        [ExcelAsyncFunction]
+        public static string NativeAsyncHello(string name, int msToSleep)
+        {
+            Thread.Sleep(msToSleep);
+            return $"Hello native async {name}";
+        }
+
         [ExcelFunction]
         public static string NativeApplicationName()
         {
