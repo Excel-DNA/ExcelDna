@@ -33,6 +33,15 @@ namespace ExcelDna.RuntimeTests
         }
 
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void TaskInstant()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
+            functionRange.Formula = "=NativeTaskHello(\"world\")";
+
+            Assert.Equal("Hello native task world", functionRange.Value.ToString());
+        }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
         public void DefaultAsyncReturnValue()
         {
             Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
