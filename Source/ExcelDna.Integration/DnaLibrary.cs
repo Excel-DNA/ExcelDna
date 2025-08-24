@@ -286,6 +286,7 @@ namespace ExcelDna.Integration
             _extendedRegistrationConfiguration = new ExtendedRegistration.Registration.Configuration() { ParameterConversions = excelParameterConversions, ReturnConversions = excelReturnConversions, ExcelFunctionProcessors = excelFunctionProcessors, ExcelFunctionExecutionHandlerSelectors = excelFunctionExecutionHandlerSelectors };
 
             NativeAOT.ExcelAddIns.ForEach(i => AssemblyLoader.GetExcelAddIns(null, i, _addIns));
+            ObjectHandles.ObjectHandleRegistration.ProcessAssemblyAttributes(NativeAOT.AssemblyAttributes);
 
             // Register RTD Server Types (i.e. remember that these types are available as RTD servers, with relevant ProgId etc.)
             RtdRegistration.RegisterRtdServerTypes(rtdServerTypes.Select(i => new TypeHelperDynamic(i)));

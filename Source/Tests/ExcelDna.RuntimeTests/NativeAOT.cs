@@ -260,6 +260,15 @@ namespace ExcelDna.RuntimeTests
 
                 Assert.Equal("0.7", functionRange2.Value.ToString());
             }
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D1"];
+                functionRange1.Formula = "=NativeGetExecutingAssembly()";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D2"];
+                functionRange2.Formula = "=NativeGetAssemblyName(D1)";
+
+                Assert.Equal("ExcelDna.AddIn.RuntimeTestsAOT64", functionRange2.Value.ToString());
+            }
         }
     }
 }

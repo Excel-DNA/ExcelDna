@@ -1,6 +1,8 @@
 ﻿using ExcelDna.Integration;
 using ExcelDna.Registration;
 
+[assembly: ExcelHandleExternal(typeof(System.Reflection.Assembly))]
+
 namespace ExcelDna.AddIn.RuntimeTestsAOT
 {
     public class Functions
@@ -211,6 +213,18 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         public static double NativeCalcExcelHandleMul(CalcExcelHandle c)
         {
             return c.Mul();
+        }
+
+        [ExcelFunction]
+        public static System.Reflection.Assembly NativeGetExecutingAssembly()
+        {
+            return System.Reflection.Assembly.GetExecutingAssembly();
+        }
+
+        [ExcelFunction]
+        public static string? NativeGetAssemblyName(System.Reflection.Assembly assembly)
+        {
+            return assembly.GetName().Name;
         }
     }
 }
