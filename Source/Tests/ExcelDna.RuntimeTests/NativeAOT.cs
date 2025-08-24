@@ -243,13 +243,22 @@ namespace ExcelDna.RuntimeTests
         public void ObjectHandles()
         {
             {
-                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["F1"];
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
                 functionRange1.Formula = "=NativeCreateCalc(1.2, 3.4)";
 
-                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["F2"];
-                functionRange2.Formula = "=NativeCalcSum(F1)";
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B2"];
+                functionRange2.Formula = "=NativeCalcSum(B1)";
 
                 Assert.Equal("4.6", functionRange2.Value.ToString());
+            }
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
+                functionRange1.Formula = "=NativeCreateCalcExcelHandle(1.4, 0.5)";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C2"];
+                functionRange2.Formula = "=NativeCalcExcelHandleMul(C1)";
+
+                Assert.Equal("0.7", functionRange2.Value.ToString());
             }
         }
     }

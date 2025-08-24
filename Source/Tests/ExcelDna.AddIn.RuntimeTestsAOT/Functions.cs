@@ -200,5 +200,17 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         {
             return c.Sum();
         }
+
+        [ExcelFunction]
+        public static CalcExcelHandle NativeCreateCalcExcelHandle(double d1, double d2)
+        {
+            return new CalcExcelHandle(d1, d2);
+        }
+
+        [ExcelFunction]
+        public static double NativeCalcExcelHandleMul(CalcExcelHandle c)
+        {
+            return c.Mul();
+        }
     }
 }
