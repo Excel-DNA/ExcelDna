@@ -36,6 +36,8 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+#nullable enable
+
 namespace ExcelDna.SourceGenerator.NativeAOT
 {
     public unsafe class AddInInitialize
@@ -48,6 +50,8 @@ namespace ExcelDna.SourceGenerator.NativeAOT
             [ADDINS]
 
 [FUNCTIONS]
+
+[ASSEMBLY-ATTRIBUTES]
 
             return ExcelDna.ManagedHost.AddInInitialize.InitializeNativeAOT(xlAddInExportInfoAddress, hModuleXll, pPathXLL, disableAssemblyContextUnload, pTempDirPath);
         }
@@ -91,6 +95,19 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                     functions += "\r\n";
                 }
                 source = source.Replace("[FUNCTIONS]", functions + methods);
+            }
+            {
+                string assemblyAttributes = "";
+                foreach (AttributeData a in context.Compilation.Assembly.GetAttributes())
+                {
+                    if (a.AttributeClass == null || a.ConstructorArguments.Length != 1)
+                        continue;
+
+                    if (a.ConstructorArguments[0].Value is ITypeSymbol arg)
+                        assemblyAttributes += $"ExcelDna.Integration.NativeAOT.AssemblyAttributes.Add(new {Util.GetFullTypeName(a.AttributeClass)}(typeof({Util.GetFullTypeName(arg)})));\r\n";
+                }
+
+                source = source.Replace("[ASSEMBLY-ATTRIBUTES]", assemblyAttributes);
             }
 
             context.AddSource($"ExcelDna.SG.NAOT.Init.g.cs", source);
