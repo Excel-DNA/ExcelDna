@@ -36,6 +36,8 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+#nullable enable
+
 namespace ExcelDna.SourceGenerator.NativeAOT
 {
     public unsafe class AddInInitialize
