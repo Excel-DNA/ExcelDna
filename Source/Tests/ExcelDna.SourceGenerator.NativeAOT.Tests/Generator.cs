@@ -106,6 +106,43 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 """);
         }
 
+        [Fact]
+        public void PrivateFunctions()
+        {
+            Verify("""
+                using ExcelDna.Integration;
+
+                namespace ExcelDna.AddIn.RuntimeTestsAOT
+                {
+                    public class ParameterClass { }
+
+                    public class PrivateFunctions
+                    {
+                        [ExcelFunction]
+                        internal static string InternalFunction(ParameterClass c)
+                        {
+                            return "";
+                        }
+
+                        [ExcelFunction]
+                        public string InstanceFunction(ParameterClass c)
+                        {
+                            return "";
+                        }
+                    }
+
+                    internal class InternalClass2
+                    {
+                        [ExcelFunction]
+                        public static string InternalClass(ParameterClass c)
+                        {
+                            return "";
+                        }
+                    }
+                }
+                """);
+        }
+
         private static void Verify(string sourceCode, string? addins = null, string? functions = null, string? assemblyAttributes = null, string? parameterConversions = null, string? returnConversions = null)
         {
             string template = """

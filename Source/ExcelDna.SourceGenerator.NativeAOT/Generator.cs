@@ -157,17 +157,20 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                 if (context.Node is MethodDeclarationSyntax methodSyntax)
                 {
                     IMethodSymbol methodSymbol = (context.SemanticModel.GetDeclaredSymbol(methodSyntax) as IMethodSymbol)!;
-                    if (HasCustomAttribute(methodSymbol, "ExcelDna.Integration.ExcelFunctionAttribute") || HasCustomAttribute(methodSymbol, "ExcelDna.Integration.ExcelCommandAttribute"))
+                    if (methodSymbol.ContainingType.DeclaredAccessibility == Accessibility.Public && methodSymbol.DeclaredAccessibility == Accessibility.Public && methodSymbol.IsStatic)
                     {
-                        Functions.Add(methodSymbol);
-                    }
-                    else if (HasCustomAttribute(methodSymbol, "ExcelDna.Integration.ExcelParameterConversionAttribute"))
-                    {
-                        ParameterConversions.Add(methodSymbol);
-                    }
-                    else if (HasCustomAttribute(methodSymbol, "ExcelDna.Integration.ExcelReturnConversionAttribute"))
-                    {
-                        ReturnConversions.Add(methodSymbol);
+                        if (HasCustomAttribute(methodSymbol, "ExcelDna.Integration.ExcelFunctionAttribute") || HasCustomAttribute(methodSymbol, "ExcelDna.Integration.ExcelCommandAttribute"))
+                        {
+                            Functions.Add(methodSymbol);
+                        }
+                        else if (HasCustomAttribute(methodSymbol, "ExcelDna.Integration.ExcelParameterConversionAttribute"))
+                        {
+                            ParameterConversions.Add(methodSymbol);
+                        }
+                        else if (HasCustomAttribute(methodSymbol, "ExcelDna.Integration.ExcelReturnConversionAttribute"))
+                        {
+                            ReturnConversions.Add(methodSymbol);
+                        }
                     }
                 }
 
