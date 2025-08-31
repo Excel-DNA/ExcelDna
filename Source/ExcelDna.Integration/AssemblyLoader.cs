@@ -138,9 +138,8 @@ namespace ExcelDna.Integration
             }
         }
 
-        static void GetExcelParameterConversions(Type t, List<ExtendedRegistration.ExcelParameterConversion> excelParameterConversions)
+        public static void GetExcelParameterConversions(IEnumerable<MethodInfo> mis, List<ExtendedRegistration.ExcelParameterConversion> excelParameterConversions)
         {
-            MethodInfo[] mis = t.GetMethods(BindingFlags.Public | BindingFlags.Static);
             foreach (MethodInfo mi in mis)
             {
                 if (IsParameterConversion(mi))
@@ -150,9 +149,9 @@ namespace ExcelDna.Integration
             }
         }
 
-        static void GetExcelReturnConversions(Type t, List<ExtendedRegistration.ExcelReturnConversion> excelReturnConversions)
+
+        public static void GetExcelReturnConversions(IEnumerable<MethodInfo> mis, List<ExtendedRegistration.ExcelReturnConversion> excelReturnConversions)
         {
-            MethodInfo[] mis = t.GetMethods(BindingFlags.Public | BindingFlags.Static);
             foreach (MethodInfo mi in mis)
             {
                 if (IsReturnConversion(mi))
@@ -160,6 +159,16 @@ namespace ExcelDna.Integration
                     excelReturnConversions.Add(new ExtendedRegistration.ExcelReturnConversion(mi));
                 }
             }
+        }
+
+        static void GetExcelParameterConversions(Type t, List<ExtendedRegistration.ExcelParameterConversion> excelParameterConversions)
+        {
+            GetExcelParameterConversions(t.GetMethods(BindingFlags.Public | BindingFlags.Static), excelParameterConversions);
+        }
+
+        static void GetExcelReturnConversions(Type t, List<ExtendedRegistration.ExcelReturnConversion> excelReturnConversions)
+        {
+            GetExcelReturnConversions(t.GetMethods(BindingFlags.Public | BindingFlags.Static), excelReturnConversions);
         }
 
         static void GetExcelFunctionProcessors(Type t, List<ExtendedRegistration.ExcelFunctionProcessor> excelFunctionProcessors)

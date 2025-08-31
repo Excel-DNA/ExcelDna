@@ -270,5 +270,23 @@ namespace ExcelDna.RuntimeTests
                 Assert.Equal("ExcelDna.AddIn.RuntimeTestsAOT64", functionRange2.Value.ToString());
             }
         }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void UserDefinedParameterConversions()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
+
+            functionRange.Formula = "=NativeVersion2(\"4.5.6.7\")";
+            Assert.Equal("The Native Version value with field count 2 is 4.5", functionRange.Value.ToString());
+        }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void UserDefinedReturnConversions()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
+
+            functionRange.Formula = "=NativeReturnTestType1(\"world\")";
+            Assert.Equal("The Native TestType1 return value is world", functionRange.Value.ToString());
+        }
     }
 }

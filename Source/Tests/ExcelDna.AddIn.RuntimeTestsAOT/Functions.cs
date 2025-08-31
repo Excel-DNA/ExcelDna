@@ -226,5 +226,17 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         {
             return assembly.GetName().Name;
         }
+
+        [ExcelFunction]
+        public static string NativeVersion2(Version v)
+        {
+            return "The Native Version value with field count 2 is " + v.ToString(2);
+        }
+
+        [ExcelFunction]
+        public static TestType1 NativeReturnTestType1(string s)
+        {
+            return new TestType1("The Native TestType1 return value is " + s);
+        }
     }
 }

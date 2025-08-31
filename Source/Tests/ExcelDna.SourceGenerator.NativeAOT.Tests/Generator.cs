@@ -10,6 +10,10 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 List<MethodInfo> methodRefs = new List<MethodInfo>();
 
 
+
+
+
+
                 """);
         }
 
@@ -42,6 +46,10 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 methodRefs.Add(typeof(List<string>).GetMethod("ToArray")!);
 
 
+
+
+
+
                 """);
         }
 
@@ -56,6 +64,81 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
 
 
                 ExcelDna.Integration.NativeAOT.AssemblyAttributes.Add(new ExcelDna.Integration.ExcelHandleExternalAttribute(typeof(System.Reflection.Assembly)));
+
+
+
+
+                """);
+        }
+
+        [Fact]
+        public void ExcelParameterConversions()
+        {
+            VerifyFunctions("""
+                using System;
+                using ExcelDna.Integration;
+
+                namespace ExcelDna.AddIn.RuntimeTestsAOT
+                {
+                    public class Conversions
+                    {
+                        [ExcelParameterConversion]
+                        public static Version ToVersion(string s)
+                        {
+                            return new Version(s);
+                        }
+                    }
+                }
+                """, """
+                List<Type> typeRefs = new List<Type>();
+                List<MethodInfo> methodRefs = new List<MethodInfo>();
+                
+
+
+
+                ExcelDna.Integration.NativeAOT.ExcelParameterConversions.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Conversions).GetMethod("ToVersion")!);
+
+
+                """);
+        }
+
+        [Fact]
+        public void ExcelReturnConversions()
+        {
+            VerifyFunctions("""
+                using ExcelDna.Integration;
+
+                namespace ExcelDna.AddIn.RuntimeTestsAOT
+                {
+                    public class TestType1
+                    {
+                        public string Value;
+
+                        public TestType1(string value)
+                        {
+                            Value = value;
+                        }
+                    }
+
+                    public class Conversions
+                    {
+                        [ExcelReturnConversion]
+                        public static string FromTestType1(TestType1 value)
+                        {
+                            return value.Value;
+                        }
+                    }
+                }
+                """, """
+                List<Type> typeRefs = new List<Type>();
+                List<MethodInfo> methodRefs = new List<MethodInfo>();
+                
+
+
+
+
+
+                ExcelDna.Integration.NativeAOT.ExcelReturnConversions.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Conversions).GetMethod("FromTestType1")!);
                 """);
         }
 

@@ -283,6 +283,8 @@ namespace ExcelDna.Integration
             var excelFunctionExecutionHandlerSelectors = new List<Registration.FunctionExecutionHandlerSelector>();
             var excelFunctionProcessors = new List<ExtendedRegistration.ExcelFunctionProcessor>();
             AssemblyLoader.ProcessAssemblies(_exportedAssemblies, _methods, excelParameterConversions, excelReturnConversions, excelFunctionProcessors, _excelFunctionsExtendedRegistration, excelFunctionExecutionHandlerSelectors, _addIns, rtdServerTypes, comClassTypes);
+            AssemblyLoader.GetExcelParameterConversions(NativeAOT.ExcelParameterConversions, excelParameterConversions);
+            AssemblyLoader.GetExcelReturnConversions(NativeAOT.ExcelReturnConversions, excelReturnConversions);
             _extendedRegistrationConfiguration = new ExtendedRegistration.Registration.Configuration() { ParameterConversions = excelParameterConversions, ReturnConversions = excelReturnConversions, ExcelFunctionProcessors = excelFunctionProcessors, ExcelFunctionExecutionHandlerSelectors = excelFunctionExecutionHandlerSelectors };
 
             NativeAOT.ExcelAddIns.ForEach(i => AssemblyLoader.GetExcelAddIns(null, i, _addIns));

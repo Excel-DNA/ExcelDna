@@ -53,6 +53,10 @@ namespace ExcelDna.SourceGenerator.NativeAOT
 
 [ASSEMBLY-ATTRIBUTES]
 
+[PARAMETER-CONVERSIONS]
+
+[RETURN-CONVERSIONS]
+
             return ExcelDna.ManagedHost.AddInInitialize.InitializeNativeAOT(xlAddInExportInfoAddress, hModuleXll, pPathXLL, disableAssemblyContextUnload, pTempDirPath);
         }
     }
@@ -79,7 +83,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                 string methods = "List<MethodInfo> methodRefs = new List<MethodInfo>();\r\n";
                 foreach (var i in receiver.Functions)
                 {
-                    functions += $"ExcelDna.Integration.NativeAOT.MethodsForRegistration.Add(typeof({Util.GetFullTypeName(i.ContainingType)}).GetMethod(\"{i.Name}\")!);\r\n";
+                    functions += $"ExcelDna.Integration.NativeAOT.MethodsForRegistration.Add({GetMethod(i)});\r\n";
                     functions += $"typeRefs.Add(typeof({Util.MethodType(i)}));\r\n";
                     foreach (var p in i.Parameters)
                     {
@@ -109,6 +113,24 @@ namespace ExcelDna.SourceGenerator.NativeAOT
 
                 source = source.Replace("[ASSEMBLY-ATTRIBUTES]", assemblyAttributes);
             }
+            {
+                string parameterConversions = "";
+                foreach (var i in receiver.ParameterConversions)
+                {
+                    parameterConversions += $"ExcelDna.Integration.NativeAOT.ExcelParameterConversions.Add({GetMethod(i)});\r\n";
+                }
+
+                source = source.Replace("[PARAMETER-CONVERSIONS]", parameterConversions);
+            }
+            {
+                string returnConversions = "";
+                foreach (var i in receiver.ReturnConversions)
+                {
+                    returnConversions += $"ExcelDna.Integration.NativeAOT.ExcelReturnConversions.Add({GetMethod(i)});\r\n";
+                }
+
+                source = source.Replace("[RETURN-CONVERSIONS]", returnConversions);
+            }
 
             context.AddSource($"ExcelDna.SG.NAOT.Init.g.cs", source);
         }
@@ -118,9 +140,16 @@ namespace ExcelDna.SourceGenerator.NativeAOT
             context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
         }
 
+        private static string GetMethod(IMethodSymbol method)
+        {
+            return $"typeof({Util.GetFullTypeName(method.ContainingType)}).GetMethod(\"{method.Name}\")!";
+        }
+
         class SyntaxReceiver : ISyntaxContextReceiver
         {
             public List<IMethodSymbol> Functions { get; } = new List<IMethodSymbol>();
+            public List<IMethodSymbol> ParameterConversions { get; } = new List<IMethodSymbol>();
+            public List<IMethodSymbol> ReturnConversions { get; } = new List<IMethodSymbol>();
             public List<TypeInfo> AddIns { get; } = new List<TypeInfo>();
 
             public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
@@ -128,12 +157,17 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                 if (context.Node is MethodDeclarationSyntax methodSyntax)
                 {
                     IMethodSymbol methodSymbol = (context.SemanticModel.GetDeclaredSymbol(methodSyntax) as IMethodSymbol)!;
-                    if (methodSymbol.GetAttributes().Any(a => a.AttributeClass != null && (
-                        Util.TypeHasAncestorWithFullName(a.AttributeClass, "ExcelDna.Integration.ExcelFunctionAttribute") ||
-                        Util.TypeHasAncestorWithFullName(a.AttributeClass, "ExcelDna.Integration.ExcelCommandAttribute")
-                    )))
+                    if (HasCustomAttribute(methodSymbol, "ExcelDna.Integration.ExcelFunctionAttribute") || HasCustomAttribute(methodSymbol, "ExcelDna.Integration.ExcelCommandAttribute"))
                     {
                         Functions.Add(methodSymbol);
+                    }
+                    else if (HasCustomAttribute(methodSymbol, "ExcelDna.Integration.ExcelParameterConversionAttribute"))
+                    {
+                        ParameterConversions.Add(methodSymbol);
+                    }
+                    else if (HasCustomAttribute(methodSymbol, "ExcelDna.Integration.ExcelReturnConversionAttribute"))
+                    {
+                        ReturnConversions.Add(methodSymbol);
                     }
                 }
 
@@ -147,6 +181,12 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                         }
                     }
                 }
+            }
+
+            private static bool HasCustomAttribute(IMethodSymbol methodSymbol, string attribute)
+            {
+                return methodSymbol.GetAttributes().Any(a => a.AttributeClass != null &&
+                        Util.TypeHasAncestorWithFullName(a.AttributeClass, attribute));
             }
         }
     }
