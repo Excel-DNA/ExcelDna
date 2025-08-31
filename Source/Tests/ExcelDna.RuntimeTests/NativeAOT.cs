@@ -288,5 +288,15 @@ namespace ExcelDna.RuntimeTests
             functionRange.Formula = "=NativeReturnTestType1(\"world\")";
             Assert.Equal("The Native TestType1 return value is world", functionRange.Value.ToString());
         }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void FunctionExecutionHandlerWithAttribute()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+
+            functionRange.Formula = "=NativeSayHelloWithLoggingID(\"NativeFunctionExecutionHandlerWithAttribute\")";
+            functionRange.Formula = "=NativeFunctionExecutionLog()";
+            Assert.True(functionRange.Value.ToString().Contains("ID=7 NativeSayHelloWithLoggingID - OnSuccess - Result: Native Hello NativeFunctionExecutionHandlerWithAttribute"));
+        }
     }
 }

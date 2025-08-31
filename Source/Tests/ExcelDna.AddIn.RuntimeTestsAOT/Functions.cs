@@ -238,5 +238,19 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         {
             return new TestType1("The Native TestType1 return value is " + s);
         }
+
+        [ExcelFunction]
+        public static string NativeFunctionExecutionLog()
+        {
+            string result = Logger.GetLog();
+            Logger.ClearLog();
+            return result;
+        }
+
+        [ExcelFunction, Logging(7)]
+        public static string NativeSayHelloWithLoggingID(string name)
+        {
+            return $"Native Hello {name}";
+        }
     }
 }

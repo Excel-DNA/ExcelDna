@@ -10,6 +10,7 @@ namespace ExcelDna.Integration
         public static List<MethodInfo> MethodsForRegistration { get; } = new List<MethodInfo>();
         public static List<MethodInfo> ExcelParameterConversions { get; } = new List<MethodInfo>();
         public static List<MethodInfo> ExcelReturnConversions { get; } = new List<MethodInfo>();
+        public static List<MethodInfo> ExcelFunctionExecutionHandlerSelectors { get; } = new List<MethodInfo>();
         public static List<ITypeHelper> ExcelAddIns { get; } = new List<ITypeHelper>();
         public static List<object> AssemblyAttributes { get; } = new List<object>();
     }

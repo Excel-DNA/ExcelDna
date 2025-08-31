@@ -57,6 +57,8 @@ namespace ExcelDna.SourceGenerator.NativeAOT
 
 [RETURN-CONVERSIONS]
 
+[EXECUTION-HANDLERS]
+
             return ExcelDna.ManagedHost.AddInInitialize.InitializeNativeAOT(xlAddInExportInfoAddress, hModuleXll, pPathXLL, disableAssemblyContextUnload, pTempDirPath);
         }
     }
@@ -131,6 +133,15 @@ namespace ExcelDna.SourceGenerator.NativeAOT
 
                 source = source.Replace("[RETURN-CONVERSIONS]", returnConversions);
             }
+            {
+                string executionHandlers = "";
+                foreach (var i in receiver.ExecutionHandlers)
+                {
+                    executionHandlers += $"ExcelDna.Integration.NativeAOT.ExcelFunctionExecutionHandlerSelectors.Add({GetMethod(i)});\r\n";
+                }
+
+                source = source.Replace("[EXECUTION-HANDLERS]", executionHandlers);
+            }
 
             context.AddSource($"ExcelDna.SG.NAOT.Init.g.cs", source);
         }
@@ -150,6 +161,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT
             public List<IMethodSymbol> Functions { get; } = new List<IMethodSymbol>();
             public List<IMethodSymbol> ParameterConversions { get; } = new List<IMethodSymbol>();
             public List<IMethodSymbol> ReturnConversions { get; } = new List<IMethodSymbol>();
+            public List<IMethodSymbol> ExecutionHandlers { get; } = new List<IMethodSymbol>();
             public List<TypeInfo> AddIns { get; } = new List<TypeInfo>();
 
             public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
@@ -170,6 +182,10 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                         else if (HasCustomAttribute(methodSymbol, "ExcelDna.Integration.ExcelReturnConversionAttribute"))
                         {
                             ReturnConversions.Add(methodSymbol);
+                        }
+                        else if (HasCustomAttribute(methodSymbol, "ExcelDna.Integration.ExcelFunctionExecutionHandlerSelectorAttribute"))
+                        {
+                            ExecutionHandlers.Add(methodSymbol);
                         }
                     }
                 }
