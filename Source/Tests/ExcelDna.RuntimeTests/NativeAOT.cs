@@ -33,6 +33,15 @@ namespace ExcelDna.RuntimeTests
         }
 
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void TaskInstant()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
+            functionRange.Formula = "=NativeTaskHello(\"world\")";
+
+            Assert.Equal("Hello native task world", functionRange.Value.ToString());
+        }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
         public void DefaultAsyncReturnValue()
         {
             Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
@@ -228,6 +237,66 @@ namespace ExcelDna.RuntimeTests
                 functionRange.Formula = "=NativeParamsJoinString(\"//\",\"5\",\"4\",\"3\")";
                 Assert.Equal("5//4//3", functionRange.Value.ToString());
             }
+        }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void ObjectHandles()
+        {
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+                functionRange1.Formula = "=NativeCreateCalc(1.2, 3.4)";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B2"];
+                functionRange2.Formula = "=NativeCalcSum(B1)";
+
+                Assert.Equal("4.6", functionRange2.Value.ToString());
+            }
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
+                functionRange1.Formula = "=NativeCreateCalcExcelHandle(1.4, 0.5)";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C2"];
+                functionRange2.Formula = "=NativeCalcExcelHandleMul(C1)";
+
+                Assert.Equal("0.7", functionRange2.Value.ToString());
+            }
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D1"];
+                functionRange1.Formula = "=NativeGetExecutingAssembly()";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D2"];
+                functionRange2.Formula = "=NativeGetAssemblyName(D1)";
+
+                Assert.Equal("ExcelDna.AddIn.RuntimeTestsAOT64", functionRange2.Value.ToString());
+            }
+        }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void UserDefinedParameterConversions()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
+
+            functionRange.Formula = "=NativeVersion2(\"4.5.6.7\")";
+            Assert.Equal("The Native Version value with field count 2 is 4.5", functionRange.Value.ToString());
+        }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void UserDefinedReturnConversions()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
+
+            functionRange.Formula = "=NativeReturnTestType1(\"world\")";
+            Assert.Equal("The Native TestType1 return value is world", functionRange.Value.ToString());
+        }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void FunctionExecutionHandlerWithAttribute()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+
+            functionRange.Formula = "=NativeSayHelloWithLoggingID(\"NativeFunctionExecutionHandlerWithAttribute\")";
+            functionRange.Formula = "=NativeFunctionExecutionLog()";
+            Assert.True(functionRange.Value.ToString().Contains("ID=7 NativeSayHelloWithLoggingID - OnSuccess - Result: Native Hello NativeFunctionExecutionHandlerWithAttribute"));
         }
     }
 }

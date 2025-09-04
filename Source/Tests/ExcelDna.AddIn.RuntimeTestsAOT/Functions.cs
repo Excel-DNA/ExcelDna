@@ -1,6 +1,8 @@
 ﻿using ExcelDna.Integration;
 using ExcelDna.Registration;
 
+[assembly: ExcelHandleExternal(typeof(System.Reflection.Assembly))]
+
 namespace ExcelDna.AddIn.RuntimeTestsAOT
 {
     public class Functions
@@ -22,6 +24,19 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         {
             await Task.Delay(msDelay);
             return $"Hello native async task {name}";
+        }
+
+        [ExcelAsyncFunction]
+        public static string NativeAsyncHello(string name, int msToSleep)
+        {
+            Thread.Sleep(msToSleep);
+            return $"Hello native async {name}";
+        }
+
+        [ExcelFunction]
+        public static Task<string> NativeTaskHello(string name)
+        {
+            return Task.FromResult($"Hello native task {name}");
         }
 
         [ExcelFunction]
@@ -173,6 +188,69 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         public static string NativeParamsJoinString(string separator, params string[] values)
         {
             return String.Join(separator, values);
+        }
+
+        [ExcelFunction]
+        [return: ExcelHandle]
+        public static Calc NativeCreateCalc(double d1, double d2)
+        {
+            return new Calc(d1, d2);
+        }
+
+        [ExcelFunction]
+        public static double NativeCalcSum([ExcelHandle] Calc c)
+        {
+            return c.Sum();
+        }
+
+        [ExcelFunction]
+        public static CalcExcelHandle NativeCreateCalcExcelHandle(double d1, double d2)
+        {
+            return new CalcExcelHandle(d1, d2);
+        }
+
+        [ExcelFunction]
+        public static double NativeCalcExcelHandleMul(CalcExcelHandle c)
+        {
+            return c.Mul();
+        }
+
+        [ExcelFunction]
+        public static System.Reflection.Assembly NativeGetExecutingAssembly()
+        {
+            return System.Reflection.Assembly.GetExecutingAssembly();
+        }
+
+        [ExcelFunction]
+        public static string? NativeGetAssemblyName(System.Reflection.Assembly assembly)
+        {
+            return assembly.GetName().Name;
+        }
+
+        [ExcelFunction]
+        public static string NativeVersion2(Version v)
+        {
+            return "The Native Version value with field count 2 is " + v.ToString(2);
+        }
+
+        [ExcelFunction]
+        public static TestType1 NativeReturnTestType1(string s)
+        {
+            return new TestType1("The Native TestType1 return value is " + s);
+        }
+
+        [ExcelFunction]
+        public static string NativeFunctionExecutionLog()
+        {
+            string result = Logger.GetLog();
+            Logger.ClearLog();
+            return result;
+        }
+
+        [ExcelFunction, Logging(7)]
+        public static string NativeSayHelloWithLoggingID(string name)
+        {
+            return $"Native Hello {name}";
         }
     }
 }
