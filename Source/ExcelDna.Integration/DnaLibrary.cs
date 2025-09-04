@@ -283,9 +283,13 @@ namespace ExcelDna.Integration
             var excelFunctionExecutionHandlerSelectors = new List<Registration.FunctionExecutionHandlerSelector>();
             var excelFunctionProcessors = new List<ExtendedRegistration.ExcelFunctionProcessor>();
             AssemblyLoader.ProcessAssemblies(_exportedAssemblies, _methods, excelParameterConversions, excelReturnConversions, excelFunctionProcessors, _excelFunctionsExtendedRegistration, excelFunctionExecutionHandlerSelectors, _addIns, rtdServerTypes, comClassTypes);
+            AssemblyLoader.GetExcelParameterConversions(NativeAOT.ExcelParameterConversions, excelParameterConversions);
+            AssemblyLoader.GetExcelReturnConversions(NativeAOT.ExcelReturnConversions, excelReturnConversions);
+            AssemblyLoader.GetExcelFunctionExecutionHandlerSelectors(NativeAOT.ExcelFunctionExecutionHandlerSelectors, excelFunctionExecutionHandlerSelectors);
             _extendedRegistrationConfiguration = new ExtendedRegistration.Registration.Configuration() { ParameterConversions = excelParameterConversions, ReturnConversions = excelReturnConversions, ExcelFunctionProcessors = excelFunctionProcessors, ExcelFunctionExecutionHandlerSelectors = excelFunctionExecutionHandlerSelectors };
 
             NativeAOT.ExcelAddIns.ForEach(i => AssemblyLoader.GetExcelAddIns(null, i, _addIns));
+            ObjectHandles.ObjectHandleRegistration.ProcessAssemblyAttributes(NativeAOT.AssemblyAttributes);
 
             // Register RTD Server Types (i.e. remember that these types are available as RTD servers, with relevant ProgId etc.)
             RtdRegistration.RegisterRtdServerTypes(rtdServerTypes.Select(i => new TypeHelperDynamic(i)));

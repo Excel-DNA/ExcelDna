@@ -22,6 +22,27 @@ namespace ExcelDna.RuntimeTests
         }
 
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void AsyncSleep()
+        {
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+                functionRange.Formula = "=NativeAsyncHello(\"world\", 0)";
+
+                Automation.WaitFor(() => functionRange.Value?.ToString() == "Hello native async world", 1000);
+
+                Assert.Equal("Hello native async world", functionRange.Value.ToString());
+            }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
+                functionRange.Formula = "=NativeAsyncHello(\"world\", 200)";
+
+                Automation.WaitFor(() => functionRange.Value?.ToString() == "Hello native async world", 1000);
+
+                Assert.Equal("Hello native async world", functionRange.Value.ToString());
+            }
+        }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
         public void DynamicApplication()
         {
             {
