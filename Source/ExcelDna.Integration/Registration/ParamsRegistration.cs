@@ -144,8 +144,8 @@ namespace ExcelDna.Registration
              * 
              */
 
-            int maxArguments = NativeAOT.IsActive ? 16 : 125; // Constrained by 255 char registration string, take off 3 type chars, use up to 2 chars per param (before we start doing object...) (& also return)
-                                                              // CONSIDER: Might improve this if we generate the delegate based on the max length...
+            int maxArguments = DnaLibrary.IsNativeAOTActive ? 16 : 125; // Constrained by 255 char registration string, take off 3 type chars, use up to 2 chars per param (before we start doing object...) (& also return)
+                                                                        // CONSIDER: Might improve this if we generate the delegate based on the max length...
 
             var normalParams = functionLambda.Parameters.Take(functionLambda.Parameters.Count() - 1).ToList();
             var normalParamCount = normalParams.Count;

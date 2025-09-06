@@ -60,6 +60,16 @@ namespace ExcelDna.Integration
             }
         }
 
+        private static bool _IsNativeAOTActive;
+        [XmlIgnore]
+        internal static bool IsNativeAOTActive
+        {
+            get
+            {
+                return _IsNativeAOTActive;
+            }
+        }
+
         private string _Name;
         [XmlAttribute]
         public string Name
@@ -476,7 +486,7 @@ namespace ExcelDna.Integration
 
         // Statics
         private static DnaLibrary rootLibrary;
-        internal static void InitializeRootLibrary(string xllPath)
+        internal static void InitializeRootLibrary(string xllPath, bool isNativeAOTActive)
         {
             // Loads the primary .dna library
             // Load sequence is:
@@ -486,6 +496,7 @@ namespace ExcelDna.Integration
             // CAREFUL: Sequence here is fragile - this is the first place where we start logging
             _XllPath = xllPath;
             _xllPathPathInfo = new FileInfo(xllPath);
+            _IsNativeAOTActive = isNativeAOTActive;
             Logging.LogDisplay.CreateInstance();
             Logger.Initialization.Verbose("Enter DnaLibrary.InitializeRootLibrary");
             byte[] dnaBytes = ExcelIntegration.GetDnaFileBytes("__MAIN__");
@@ -508,7 +519,7 @@ namespace ExcelDna.Integration
             // If there have been problems, ensure that there is at lease some current library.
             if (rootLibrary == null)
             {
-                if (!NativeAOT.IsActive)
+                if (!IsNativeAOTActive)
                     Logger.Initialization.Error("No Dna Library found.");
                 rootLibrary = new DnaLibrary();
             }
@@ -551,7 +562,7 @@ namespace ExcelDna.Integration
 
             if (!File.Exists(fileName))
             {
-                if (!NativeAOT.IsActive)
+                if (!IsNativeAOTActive)
                     Logger.Initialization.Error("The required .dna script file {0} does not exist.", fileName);
                 return null;
             }
