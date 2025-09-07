@@ -13,42 +13,42 @@ using ExcelDna.Logging;
 
 namespace ExcelDna.Integration
 {
-	[Serializable]
-	[XmlType(AnonymousType = true)]
-	public class Project
-	{
+    [Serializable]
+    [XmlType(AnonymousType = true)]
+    public class Project
+    {
 
         private string _Name;
         [XmlAttribute]
-		public string Name
-		{
-			get { return _Name; }
-			set { _Name = value; }
-		}
+        public string Name
+        {
+            get { return _Name; }
+            set { _Name = value; }
+        }
 
         private string _Language;
         [XmlAttribute]
-		public string Language
-		{
-			get { return _Language; }
-			set { _Language = value; }
-		}
+        public string Language
+        {
+            get { return _Language; }
+            set { _Language = value; }
+        }
 
-		private string _CompilerVersion;
-		[XmlAttribute]
-		public string CompilerVersion
-		{
-			get { return _CompilerVersion; }
-			set { _CompilerVersion = value; }
-		}
+        private string _CompilerVersion;
+        [XmlAttribute]
+        public string CompilerVersion
+        {
+            get { return _CompilerVersion; }
+            set { _CompilerVersion = value; }
+        }
 
         private List<Reference> _References;
         [XmlElement("Reference", typeof(Reference))]
-		public List<Reference> References
-		{
-			get { return _References; }
-			set	{ _References = value; }
-		}
+        public List<Reference> References
+        {
+            get { return _References; }
+            set { _References = value; }
+        }
 
         // Sets whether references to System, System.Data and System.Xml are added automatically
         private bool _DefaultReferences = true;
@@ -70,13 +70,13 @@ namespace ExcelDna.Integration
             set { _DefaultImports = value; }
         }
 
-		private bool _ExplicitExports = false;
-		[XmlAttribute]
-		public bool ExplicitExports
-		{
-			get { return _ExplicitExports; }
-			set { _ExplicitExports = value; }
-		}
+        private bool _ExplicitExports = false;
+        [XmlAttribute]
+        public bool ExplicitExports
+        {
+            get { return _ExplicitExports; }
+            set { _ExplicitExports = value; }
+        }
 
         private bool _ExplicitRegistration = false;
         [XmlAttribute]
@@ -96,11 +96,11 @@ namespace ExcelDna.Integration
 
         private List<SourceItem> _SourceItems;
         [XmlElement("SourceItem", typeof(SourceItem))]
-		public List<SourceItem> SourceItems
-		{
-			get { return _SourceItems; }
-			set	{ _SourceItems = value; }
-		}
+        public List<SourceItem> SourceItems
+        {
+            get { return _SourceItems; }
+            set { _SourceItems = value; }
+        }
 
         private string _Code;
         [XmlText]
@@ -116,15 +116,15 @@ namespace ExcelDna.Integration
 
         // Used by DnaLibrary to quickly make a default project
         internal Project(string language, string compilerVersion, List<Reference> references, string code,
-                bool defaultReferences, bool defaultImports, bool explicitExports )
+                bool defaultReferences, bool defaultImports, bool explicitExports)
         {
             Language = language;
-			CompilerVersion = compilerVersion;
+            CompilerVersion = compilerVersion;
             References = references;
             Code = code;
             DefaultReferences = defaultReferences;
             DefaultImports = defaultImports;
-			ExplicitExports = explicitExports;
+            ExplicitExports = explicitExports;
         }
 
         // Get projects explicit and implicitly present in the library
@@ -153,13 +153,14 @@ namespace ExcelDna.Integration
 
         private List<string> tempAssemblyPaths = new List<string>();
 
+#if USE_WINDOWS_FORMS
         public List<string> GetReferencePaths(string pathResolveRoot, CodeDomProvider provider)
         {
             List<string> refPaths = new List<string>();
-			if (References != null)
-			{
-				foreach (Reference rf in References)
-				{
+            if (References != null)
+            {
+                foreach (Reference rf in References)
+                {
                     bool isResolved = false;
                     if (rf.Path != null)
                     {
@@ -186,9 +187,9 @@ namespace ExcelDna.Integration
                     if (!isResolved && rf.Name != null)
                     {
                         // Try to resolve by Name
-                        #pragma warning disable 0618
+#pragma warning disable 0618
                         Assembly refAssembly = Assembly.LoadWithPartialName(rf.Name);
-                        #pragma warning restore 0618
+#pragma warning restore 0618
                         if (refAssembly != null)
                         {
                             if (!string.IsNullOrEmpty(refAssembly.Location))
@@ -204,8 +205,8 @@ namespace ExcelDna.Integration
                         Logger.DnaCompilation.Error("Assembly resolve failure - Reference Name: {0}, Path: {1}", rf.Name, rf.Path);
                     }
 
-				}
-			}
+                }
+            }
             if (DefaultReferences)
             {
                 // CONSIDER: Should these be considered more carefully? I'm just putting in what the default templates in Visual Studio 2010 put in.
@@ -233,52 +234,52 @@ namespace ExcelDna.Integration
             }
             else
             {
-				string assPath = Path.GetTempFileName();
+                string assPath = Path.GetTempFileName();
                 tempAssemblyPaths.Add(assPath);
                 File.WriteAllBytes(assPath, ExcelIntegration.GetAssemblyBytes("EXCELDNA.INTEGRATION"));
                 refPaths.Add(assPath);
             }
 
             Logger.DnaCompilation.Verbose("Compiler References: ");
-			foreach (string rfPath in refPaths)
-			{
+            foreach (string rfPath in refPaths)
+            {
                 Logger.DnaCompilation.Verbose("    " + rfPath);
-			}
+            }
 
             return refPaths;
         }
 
         // TODO: Move compilation stuff elsewhere.
         // TODO: Consider IronPython support: http://www.ironpython.info/index.php/Using_Compiled_Python_Classes_from_.NET/CSharp_IP_2.6
-		internal List<ExportedAssembly> GetAssemblies(string pathResolveRoot, DnaLibrary dnaLibrary)
-		{
-			List<ExportedAssembly> list = new List<ExportedAssembly>();
-			// Dynamically compile this project to an in-memory assembly
+        internal List<ExportedAssembly> GetAssemblies(string pathResolveRoot, DnaLibrary dnaLibrary)
+        {
+            List<ExportedAssembly> list = new List<ExportedAssembly>();
+            // Dynamically compile this project to an in-memory assembly
 
-			CodeDomProvider provider = GetProvider();
-			if (provider == null)
-				return list;
+            CodeDomProvider provider = GetProvider();
+            if (provider == null)
+                return list;
 
-			CompilerParameters cp = new CompilerParameters();
+            CompilerParameters cp = new CompilerParameters();
             bool isFsharp = false;
 
-			// TODO: Debug build ?
-			// cp.IncludeDebugInformation = true;
-			cp.GenerateExecutable = false;
-			//cp.OutputAssembly = Name; // TODO: Keep track of built assembly for the project
-			cp.GenerateInMemory = true;
-			cp.TreatWarningsAsErrors = false;
+            // TODO: Debug build ?
+            // cp.IncludeDebugInformation = true;
+            cp.GenerateExecutable = false;
+            //cp.OutputAssembly = Name; // TODO: Keep track of built assembly for the project
+            cp.GenerateInMemory = true;
+            cp.TreatWarningsAsErrors = false;
 
-			// This is attempt to fix the bug reported on the group, where the add-in compilation fails if the add-in is put into c:\
-			// It is caused by a quirk of the 'Path.GetDirectoryName' function when dealing with the path "c:\test.abc" 
-			// - it leaves the last DirectorySeparator in the path in this special case.
-			// Thanks to Nemo for the great fix.
-			//local variable to hold the quoted/unquoted version of the executing dirction
-			string ProcessedExecutingDirectory = DnaLibrary.ExecutingDirectory;
+            // This is attempt to fix the bug reported on the group, where the add-in compilation fails if the add-in is put into c:\
+            // It is caused by a quirk of the 'Path.GetDirectoryName' function when dealing with the path "c:\test.abc" 
+            // - it leaves the last DirectorySeparator in the path in this special case.
+            // Thanks to Nemo for the great fix.
+            //local variable to hold the quoted/unquoted version of the executing dirction
+            string ProcessedExecutingDirectory = DnaLibrary.ExecutingDirectory;
             if (ProcessedExecutingDirectory.IndexOf(' ') != -1)
                 ProcessedExecutingDirectory = "\"" + ProcessedExecutingDirectory + "\"";
 
-			//set compiler command line vars as needed
+            //set compiler command line vars as needed
             if (provider is Microsoft.VisualBasic.VBCodeProvider)
             {
                 cp.CompilerOptions = " /libPath:" + ProcessedExecutingDirectory;
@@ -292,7 +293,7 @@ namespace ExcelDna.Integration
                     cp.CompilerOptions += " /imports:" + importsList;
                 }
             }
-            else if (provider is Microsoft.CSharp.CSharpCodeProvider) 
+            else if (provider is Microsoft.CSharp.CSharpCodeProvider)
             {
                 cp.CompilerOptions = " /lib:" + ProcessedExecutingDirectory;
             }
@@ -316,8 +317,8 @@ namespace ExcelDna.Integration
             }
 
             // TODO: Consider what to do if we can't resolve some of the Reference paths -- do we try to compile anyway, throw an exception, ...what?
-			List<string> refPaths = GetReferencePaths(pathResolveRoot, provider);
-			cp.ReferencedAssemblies.AddRange(refPaths.ToArray());
+            List<string> refPaths = GetReferencePaths(pathResolveRoot, provider);
+            cp.ReferencedAssemblies.AddRange(refPaths.ToArray());
 
             List<string> sources = GetSources(pathResolveRoot);
 
@@ -335,8 +336,8 @@ namespace ExcelDna.Integration
                     string msg;
                     if (fsBinPath == null)
                     {
-                        msg = "    Calling the F# compiler failed (\"" + wex.Message + "\").\r\n" + 
-                              "    Please check that the F# compiler is correctly installed.\r\n" + 
+                        msg = "    Calling the F# compiler failed (\"" + wex.Message + "\").\r\n" +
+                              "    Please check that the F# compiler is correctly installed.\r\n" +
                               "    This error can sometimes be fixed by creating an FSHARP_BIN environment variable.\r\n" +
                               "    Create an environment variable FSHARP_BIN with the full path to the directory containing \r\n" +
                               "    the F# compiler fsc.exe - for example \r\n" +
@@ -354,83 +355,83 @@ namespace ExcelDna.Integration
                 }
                 throw;
             }
-            
 
-			foreach (string path in tempAssemblyPaths)
-			{
-				File.Delete(path);
-			}
-			tempAssemblyPaths.Clear();
-            
 
-			if (cr.Errors.HasErrors)
-			{
+            foreach (string path in tempAssemblyPaths)
+            {
+                File.Delete(path);
+            }
+            tempAssemblyPaths.Clear();
+
+
+            if (cr.Errors.HasErrors)
+            {
                 Logger.DnaCompilation.Error("There was an error in loading the add-in " + DnaLibrary.CurrentLibraryName + " (" + DnaLibrary.XllPath + "):");
                 Logger.DnaCompilation.Error("There were errors when compiling project: " + Name);
-				foreach (CompilerError err in cr.Errors)
-				{
+                foreach (CompilerError err in cr.Errors)
+                {
                     Logger.DnaCompilation.Error("    " + err.ToString());
-				}
-				return list;
-			}
+                }
+                return list;
+            }
 
-			// Success !!
-			// Now add all the references
-			// TODO: How to remove again??
-			foreach (Reference r in References)
-			{
-				AssemblyReference.AddAssembly(r.Path);
-			}
+            // Success !!
+            // Now add all the references
+            // TODO: How to remove again??
+            foreach (Reference r in References)
+            {
+                AssemblyReference.AddAssembly(r.Path);
+            }
 
             // TODO: Create TypeLib for execution-time compiled assemblies.
-			list.Add(new ExportedAssembly(cr.CompiledAssembly, ExplicitExports, ExplicitRegistration, ComServer, true, null, dnaLibrary));
-			return list;
-		}
+            list.Add(new ExportedAssembly(cr.CompiledAssembly, ExplicitExports, ExplicitRegistration, ComServer, true, null, dnaLibrary));
+            return list;
+        }
 
-		private CodeDomProvider GetProvider()
-		{
-			// DOCUMENT: Currently accepted languages: 
-			// CS / CSHARP / C# / VB / VISUAL BASIC / VISUALBASIC / FS /F# / FSHARP / F SHARP
-			// or a fully qualified TypeName that derives from CodeDomProvider
-			// DOCUMENT: CompilerVersion usage
+        private CodeDomProvider GetProvider()
+        {
+            // DOCUMENT: Currently accepted languages: 
+            // CS / CSHARP / C# / VB / VISUAL BASIC / VISUALBASIC / FS /F# / FSHARP / F SHARP
+            // or a fully qualified TypeName that derives from CodeDomProvider
+            // DOCUMENT: CompilerVersion usage
 
-			Dictionary<string, string> providerOptions = null; 
-			if (!string.IsNullOrEmpty(CompilerVersion))
-			{
-				providerOptions = new Dictionary<string, string>();
-				providerOptions.Add("CompilerVersion", CompilerVersion);
-			}
+            Dictionary<string, string> providerOptions = null;
+            if (!string.IsNullOrEmpty(CompilerVersion))
+            {
+                providerOptions = new Dictionary<string, string>();
+                providerOptions.Add("CompilerVersion", CompilerVersion);
+            }
 
             string lang;
             if (Language == null)
                 lang = "vb";
             else
-			    lang = Language.ToLower();
+                lang = Language.ToLower();
 
-			if (lang == "cs" || lang == "csharp" || lang == "c#" || lang == "c sharp")
-			{
-				if (providerOptions == null)
-				{
-					return new Microsoft.CSharp.CSharpCodeProvider();
-				}
-				else
-				{
-					Assembly sys = Assembly.GetAssembly(typeof(Microsoft.CSharp.CSharpCodeProvider));
-					return (CodeDomProvider)sys.CreateInstance("Microsoft.CSharp.CSharpCodeProvider", false, BindingFlags.CreateInstance, null, new object[] {providerOptions}, null, null);
-				}
-			}
-			else if (lang == "vb" || lang == "visual basic" || lang == "visualbasic")
-			{
-				if (providerOptions == null)
-				{
-					return new Microsoft.VisualBasic.VBCodeProvider();
-				}
-				else
-				{
-					Assembly sys = Assembly.GetAssembly(typeof(Microsoft.VisualBasic.VBCodeProvider));
-					return (CodeDomProvider)sys.CreateInstance("Microsoft.VisualBasic.VBCodeProvider", false, BindingFlags.CreateInstance, null, new object[] {providerOptions}, null, null);
-				}
-			}
+            if (lang == "cs" || lang == "csharp" || lang == "c#" || lang == "c sharp")
+            {
+                if (providerOptions == null)
+                {
+                    return new Microsoft.CSharp.CSharpCodeProvider();
+                }
+                else
+                {
+                    Assembly sys = Assembly.GetAssembly(typeof(Microsoft.CSharp.CSharpCodeProvider));
+                    return (CodeDomProvider)sys.CreateInstance("Microsoft.CSharp.CSharpCodeProvider", false, BindingFlags.CreateInstance, null, new object[] { providerOptions }, null, null);
+                }
+            }
+            else if (lang == "vb" || lang == "visual basic" || lang == "visualbasic")
+            {
+                if (providerOptions == null)
+                {
+                    return new Microsoft.VisualBasic.VBCodeProvider();
+                }
+                else
+                {
+                    Assembly sys = Assembly.GetAssembly(typeof(Microsoft.VisualBasic.VBCodeProvider));
+                    return (CodeDomProvider)sys.CreateInstance("Microsoft.VisualBasic.VBCodeProvider", false, BindingFlags.CreateInstance, null, new object[] { providerOptions }, null, null);
+                }
+            }
             else if (lang == "fs" || lang == "fsharp" || lang == "f#" || lang == "f sharp")
             {
                 try
@@ -438,9 +439,9 @@ namespace ExcelDna.Integration
                     // TODO: Reconsider how to support F#
 
                     // This is my best plan to attempt 'future' compatibility.
-                    #pragma warning disable 0618
-                    Assembly fsharp = Assembly.LoadWithPartialName("FSharp.Compiler.CodeDom" );
-                    #pragma warning restore 0618
+#pragma warning disable 0618
+                    Assembly fsharp = Assembly.LoadWithPartialName("FSharp.Compiler.CodeDom");
+#pragma warning restore 0618
                     if (fsharp != null)
                     {
                         return (CodeDomProvider)fsharp.CreateInstance("Microsoft.FSharp.Compiler.CodeDom.FSharpCodeProvider");
@@ -464,26 +465,27 @@ namespace ExcelDna.Integration
                 }
             }
 
-			// Else try to load the language as a type
-			// TODO: Test this !?
-			try
-			{
-				Type t = Type.GetType(Language);
-				if (t.IsSubclassOf(typeof(CodeDomProvider)))
-				{
-					ConstructorInfo ci = t.GetConstructor(new Type[] {} );
-					CodeDomProvider p = (CodeDomProvider)ci.Invoke(new object[] { });
-					return p;
-				}
+            // Else try to load the language as a type
+            // TODO: Test this !?
+            try
+            {
+                Type t = Type.GetType(Language);
+                if (t.IsSubclassOf(typeof(CodeDomProvider)))
+                {
+                    ConstructorInfo ci = t.GetConstructor(new Type[] { });
+                    CodeDomProvider p = (CodeDomProvider)ci.Invoke(new object[] { });
+                    return p;
+                }
 
-				return null;
-			}
-			catch (Exception e)
-			{
-				Logger.DnaCompilation.Error("Unknown Project Language: {0}", Language);
+                return null;
+            }
+            catch (Exception e)
+            {
+                Logger.DnaCompilation.Error("Unknown Project Language: {0}", Language);
                 Logger.DnaCompilation.Error(e, "   CodeDomProvider load error");
-			}
-			return null;
-		}
-	}
+            }
+            return null;
+        }
+#endif
+    }
 }

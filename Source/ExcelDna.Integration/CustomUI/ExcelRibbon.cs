@@ -71,7 +71,11 @@ namespace ExcelDna.Integration.CustomUI
         public virtual object LoadImage(string imageId)
         {
             // Default implementation ...
+#if USE_WINDOWS_FORMS
             return DnaLibrary.GetImage(imageId);
+#else
+            return null;
+#endif
         }
 
         // RunTagMacro helper function

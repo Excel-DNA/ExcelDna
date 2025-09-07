@@ -1,3 +1,4 @@
+#if USE_WINDOWS_FORMS
 namespace ExcelDna.Logging
 {
     partial class LogDisplayForm
@@ -146,3 +147,4 @@ namespace ExcelDna.Logging
 
     }
 }
+#endif

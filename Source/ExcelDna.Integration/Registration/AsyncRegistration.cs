@@ -66,7 +66,9 @@ namespace ExcelDna.Registration
                 }
                 catch (Exception ex)
                 {
+#if USE_WINDOWS_FORMS
                     Logging.LogDisplay.WriteLine("Exception while registering method {0} - {1}", reg.FunctionAttribute.Name, ex.ToString());
+#endif
                     continue;
                 }
 

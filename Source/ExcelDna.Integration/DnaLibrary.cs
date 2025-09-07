@@ -246,10 +246,12 @@ namespace ExcelDna.Integration
                         assemblies.AddRange(lib.GetAssemblies(pathResolveRoot, this));
                     }
                 }
+#if USE_WINDOWS_FORMS
                 foreach (Project proj in GetProjects())
                 {
                     assemblies.AddRange(proj.GetAssemblies(pathResolveRoot, this));
                 }
+#endif
             }
             catch (Exception e)
             {
@@ -320,7 +322,9 @@ namespace ExcelDna.Integration
             {
                 try
                 {
+#if USE_WINDOWS_FORMS
                     SynchronizationManager.Install(false);  // Install but don't try to register the SyncMacro yet
+#endif
                 }
                 catch (InvalidOperationException)
                 {
@@ -339,7 +343,9 @@ namespace ExcelDna.Integration
         {
             // Register special RegistrationInfo function
             RegistrationInfo.Register();
+#if USE_WINDOWS_FORMS
             SynchronizationManager.Install(true);
+#endif
 
             AssemblyLoader.GetExcelMethods(Registration.StaticRegistration.MethodsForRegistration, true, _methods, _excelFunctionsExtendedRegistration);
 
@@ -404,7 +410,9 @@ namespace ExcelDna.Integration
                 }
             }
             // This is safe, even if never registered
+#if USE_WINDOWS_FORMS
             SynchronizationManager.Uninstall();
+#endif
             RegistrationInfo.Unregister();
             _addIns.Clear();
         }
@@ -461,7 +469,9 @@ namespace ExcelDna.Integration
                 {
                     if (xmlCustomUI.LocalName == "commandBars")
                     {
+#if USE_WINDOWS_FORMS
                         ExcelCommandBarUtil.LoadCommandBars(xmlCustomUI, this.GetImage);
+#endif
                     }
                 }
             }
@@ -497,7 +507,9 @@ namespace ExcelDna.Integration
             _XllPath = xllPath;
             _xllPathPathInfo = new FileInfo(xllPath);
             _IsNativeAOTActive = isNativeAOTActive;
+#if USE_WINDOWS_FORMS
             Logging.LogDisplay.CreateInstance();
+#endif
             Logger.Initialization.Verbose("Enter DnaLibrary.InitializeRootLibrary");
             byte[] dnaBytes = ExcelIntegration.GetDnaFileBytes("__MAIN__");
             if (dnaBytes != null)
@@ -735,6 +747,7 @@ namespace ExcelDna.Integration
             return null;
         }
 
+#if USE_WINDOWS_FORMS
         public Bitmap GetImage(string imageId)
         {
             // We expect these to be small images.
@@ -776,6 +789,7 @@ namespace ExcelDna.Integration
             }
             return null;
         }
+#endif
 
     }
 

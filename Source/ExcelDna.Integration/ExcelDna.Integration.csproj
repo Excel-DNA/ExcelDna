@@ -3,7 +3,6 @@
   <PropertyGroup>
     
     <TargetFrameworks>net462;net6.0-windows;net8.0-windows</TargetFrameworks>
-    <UseWindowsForms>true</UseWindowsForms>
     
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
@@ -19,6 +18,16 @@
   <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);COM_GENERATED</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' != 'net8.0-windows'">
+    <UseWindowsForms>true</UseWindowsForms>
+    <DefineConstants>$(DefineConstants);USE_WINDOWS_FORMS</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
+    <UseWindowsForms>true</UseWindowsForms>
+    <DefineConstants>$(DefineConstants);USE_WINDOWS_FORMS</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net462' ">

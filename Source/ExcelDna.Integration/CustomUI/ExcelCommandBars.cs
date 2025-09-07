@@ -8,14 +8,19 @@ using System.Drawing;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Serialization;
 using ExcelDna.Serialization;
 
+#if USE_WINDOWS_FORMS
+using System.Windows.Forms;
+#endif
+
 namespace ExcelDna.Integration.CustomUI
 {
+#if USE_WINDOWS_FORMS
     public delegate Bitmap GetImageDelegate(string imageName);
+#endif
 
     //public class ExcelCommandBars
     //{
@@ -54,9 +59,12 @@ namespace ExcelDna.Integration.CustomUI
 
         public static void LoadCommandBars(string xmlCustomUI)
         {
+#if USE_WINDOWS_FORMS
             LoadCommandBars(xmlCustomUI, delegate (string imageName) { return null; });
+#endif
         }
 
+#if USE_WINDOWS_FORMS
         public static void LoadCommandBars(string xmlCustomUI, GetImageDelegate getImage)
         {
             string dnaLibraryWrapper = string.Format(@"<DnaLibrary><CustomUI>{0}</CustomUI></DnaLibrary>", xmlCustomUI);
@@ -92,6 +100,7 @@ namespace ExcelDna.Integration.CustomUI
                 Debug.Print("ExcelCommandBars: Error adding controls: {0}", e);
             }
         }
+#endif
 
         public static void UnloadCommandBars()
         {
@@ -117,6 +126,7 @@ namespace ExcelDna.Integration.CustomUI
             loadedCustomUIs.Clear();
         }
 
+#if USE_WINDOWS_FORMS
         private static void AddCommandBarControls(Application excelApp, XmlNodeList xmlNodes, GetImageDelegate getImage)
         {
             foreach (XmlNode childNode in xmlNodes)
@@ -151,6 +161,7 @@ namespace ExcelDna.Integration.CustomUI
                 }
             }
         }
+#endif
 
         private static void RemoveCommandBarControls(Application excelApp, XmlNodeList xmlNodes)
         {
@@ -234,7 +245,7 @@ namespace ExcelDna.Integration.CustomUI
         //    }
         //}
 
-
+#if USE_WINDOWS_FORMS
         private static void AddControls(CommandBarControls parentControls, XmlNodeList xmlNodes, GetImageDelegate getImage)
         {
             foreach (XmlNode childNode in xmlNodes)
@@ -242,6 +253,7 @@ namespace ExcelDna.Integration.CustomUI
                 AddControl(parentControls, childNode, getImage);
             }
         }
+#endif
 
         private static void RemoveControls(CommandBarControls parentControls, XmlNodeList xmlNodes)
         {
@@ -251,6 +263,7 @@ namespace ExcelDna.Integration.CustomUI
             }
         }
 
+#if USE_WINDOWS_FORMS
         private static void AddControl(CommandBarControls parentControls, XmlNode xmlNode, GetImageDelegate getImage)
         {
             if (xmlNode.Name == "popup")
@@ -268,6 +281,7 @@ namespace ExcelDna.Integration.CustomUI
                 ApplyControlAttributes(newButton, xmlNode, getImage);
             }
         }
+#endif
 
         private static void RemoveControl(CommandBarControls parentControls, XmlNode xmlNode)
         {
@@ -313,6 +327,7 @@ namespace ExcelDna.Integration.CustomUI
             return before;
         }
 
+#if USE_WINDOWS_FORMS
         private static void ApplyControlAttributes(CommandBarControl control, XmlNode xmlNode, GetImageDelegate getImage)
         {
             foreach (XmlAttribute att in xmlNode.Attributes)
@@ -449,6 +464,7 @@ namespace ExcelDna.Integration.CustomUI
                     break;
             }
         }
+#endif
 
         // Some minimal wrappers for the office types.
         private class Application
@@ -951,6 +967,7 @@ namespace ExcelDna.Integration.CustomUI
         {
         }
 
+#if USE_WINDOWS_FORMS
         public void SetButtonImage(Bitmap buttonImage)
         {
             // TODO: Consider using Picture property for Excel 2002+ (and Mask?)
@@ -964,6 +981,7 @@ namespace ExcelDna.Integration.CustomUI
             Clipboard.Clear();
             // Clipboard.SetDataObject(oldContent);
         }
+#endif
 
         public int FaceId
         {

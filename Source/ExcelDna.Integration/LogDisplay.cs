@@ -1,6 +1,7 @@
 //  Copyright (c) Govert van Drimmelen. All rights reserved.
 //  Excel-DNA is licensed under the zlib license. See LICENSE.txt for details.
 
+#if USE_WINDOWS_FORMS
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,7 +27,7 @@ namespace ExcelDna.Logging
             {
                 _form = new LogDisplayForm();
             }
-            
+
             if (_form.Visible == false)
             {
                 _form.Show(null);
@@ -223,7 +224,7 @@ namespace ExcelDna.Logging
             {
                 if (!IsFormVisible)
                 {
-                    _syncContext.Post(delegate(object state)
+                    _syncContext.Post(delegate (object state)
                     {
                         LogDisplayForm.ShowForm();
                     }, null);
@@ -234,7 +235,7 @@ namespace ExcelDna.Logging
 
         public static void Hide()
         {
-            _syncContext.Post(delegate(object state)
+            _syncContext.Post(delegate (object state)
             {
                 LogDisplayForm.HideForm();
             }, null);
@@ -319,10 +320,10 @@ namespace ExcelDna.Logging
         }
 
         static DisplayOrder _displayOrder;
-        public static DisplayOrder DisplayOrder 
+        public static DisplayOrder DisplayOrder
         {
             get { return _displayOrder; }
-            set 
+            set
             {
                 if (_displayOrder != value)
                 {
@@ -334,3 +335,5 @@ namespace ExcelDna.Logging
         }
     }
 }
+
+#endif
