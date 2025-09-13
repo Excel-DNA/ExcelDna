@@ -1,7 +1,6 @@
 ﻿//  Copyright (c) Govert van Drimmelen. All rights reserved.
 //  Excel-DNA is licensed under the zlib license. See LICENSE.txt for details.
 
-#if USE_WINDOWS_FORMS
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,9 +10,14 @@ using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using System.Windows.Forms;
 using ExcelDna.Integration.Rtd;
 using ExcelDna.Logging;
+
+#if USE_WINDOWS_FORMS
+using System.Windows.Forms;
+#else
+using ExcelDna.Integration.Win32;
+#endif
 
 namespace ExcelDna.Integration
 {
@@ -707,4 +711,3 @@ namespace ExcelDna.Integration
         }
     }
 }
-#endif

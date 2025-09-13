@@ -118,9 +118,7 @@ namespace ExcelDna.Integration.Rtd
 
         readonly Dictionary<int, Topic> _activeTopics = new Dictionary<int, Topic>();
         HashSet<Topic> _dirtyTopics = new HashSet<Topic>();
-#if USE_WINDOWS_FORMS
         RtdUpdateSynchronization _updateSync;
-#endif
         RTDUpdateEvent _callbackObject;
         readonly object _updateLock = new object();
 
@@ -227,9 +225,7 @@ namespace ExcelDna.Integration.Rtd
         // Called from any thread, inside the update lock
         void PostUpdateNotifyInsideLock()
         {
-#if USE_WINDOWS_FORMS
             _updateSync.UpdateNotify(_callbackObject);
-#endif
             OnUpdateNotifyPostedInsideLock(_dirtyTopics);
         }
 
@@ -240,7 +236,6 @@ namespace ExcelDna.Integration.Rtd
             Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.f}] ServerStart");
             try
             {
-#if USE_WINDOWS_FORMS
                 _updateSync = SynchronizationManager.RtdUpdateSynchronization;
                 if (_updateSync == null)
                 {
@@ -250,7 +245,6 @@ namespace ExcelDna.Integration.Rtd
 
                 _callbackObject = new RTDUpdateEvent(this, callbackObject);   // Wrap the callback object to allow logging our call
                 _updateSync.RegisterUpdateNotify(_callbackObject);
-#endif
                 using (XlCall.Suspend())
                 {
                     return ServerStart() ? 1 : 0;
@@ -449,12 +443,10 @@ namespace ExcelDna.Integration.Rtd
                 // Also safe to call (basically a no-op) if we are not loaded via reg-free, but via real COM Server.
                 RtdRegistration.UnregisterRTDServer(RegisteredProgId);
 
-#if USE_WINDOWS_FORMS
                 if (_updateSync != null)
                 {
                     _updateSync.DeregisterUpdateNotify(_callbackObject);
                 }
-#endif
 
                 using (XlCall.Suspend())
                 {
