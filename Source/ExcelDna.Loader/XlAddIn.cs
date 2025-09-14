@@ -229,7 +229,7 @@ namespace ExcelDna.Loader
         {
             if (!_initialized)
             {
-                ExcelIntegration.Initialize(PathXll, XlAddIn.IsNativeAOTActive);
+                ExcelIntegration.Initialize(PathXll, XlAddIn.IsNativeAOTActive, XlAddIn.hModuleXll);
                 TraceLogger.IntegrationTraceSource = ExcelIntegration.GetIntegrationTraceSource();
                 SetIntegrationTraceSource(TraceLogger.IntegrationTraceSource);
                 _initialized = true;
