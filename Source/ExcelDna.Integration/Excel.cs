@@ -612,11 +612,7 @@ namespace ExcelDna.Integration
             if (!IsMainThread)
                 throw new InvalidOperationException("IsInFormulaEditMode can only be called from the main thread.");
 
-#if USE_WINDOWS_FORMS
             return RunMacroSynchronization.IsInFormulaEditMode();
-#else
-            return false;
-#endif
         }
         #endregion
 
