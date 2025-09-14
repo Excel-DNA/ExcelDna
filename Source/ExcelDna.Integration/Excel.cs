@@ -52,8 +52,10 @@ namespace ExcelDna.Integration
 
         private static bool checkForIllegalCrossThreadCalls;
 
-        internal static void Initialize()
+        internal static void Initialize(IntPtr hModuleXll)
         {
+            ModuleXll = hModuleXll;
+
             // NOTE: Sequence here is important - Getting the Window Handle sometimes uses the _mainNativeThreadId
             _mainManagedThreadId = Thread.CurrentThread.ManagedThreadId;
             _mainNativeThreadId = GetCurrentThreadId();
@@ -75,6 +77,8 @@ namespace ExcelDna.Integration
                 return Thread.CurrentThread.ManagedThreadId == _mainManagedThreadId;
             }
         }
+
+        internal static IntPtr ModuleXll { get; private set; }
 
         public static int MainManagedThreadId
         {
@@ -608,11 +612,7 @@ namespace ExcelDna.Integration
             if (!IsMainThread)
                 throw new InvalidOperationException("IsInFormulaEditMode can only be called from the main thread.");
 
-#if USE_WINDOWS_FORMS
             return RunMacroSynchronization.IsInFormulaEditMode();
-#else
-            return false;
-#endif
         }
         #endregion
 

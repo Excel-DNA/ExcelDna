@@ -322,9 +322,7 @@ namespace ExcelDna.Integration
             {
                 try
                 {
-#if USE_WINDOWS_FORMS
                     SynchronizationManager.Install(false);  // Install but don't try to register the SyncMacro yet
-#endif
                 }
                 catch (InvalidOperationException)
                 {
@@ -343,9 +341,7 @@ namespace ExcelDna.Integration
         {
             // Register special RegistrationInfo function
             RegistrationInfo.Register();
-#if USE_WINDOWS_FORMS
             SynchronizationManager.Install(true);
-#endif
 
             AssemblyLoader.GetExcelMethods(Registration.StaticRegistration.MethodsForRegistration, true, _methods, _excelFunctionsExtendedRegistration);
 
@@ -410,9 +406,7 @@ namespace ExcelDna.Integration
                 }
             }
             // This is safe, even if never registered
-#if USE_WINDOWS_FORMS
             SynchronizationManager.Uninstall();
-#endif
             RegistrationInfo.Unregister();
             _addIns.Clear();
         }

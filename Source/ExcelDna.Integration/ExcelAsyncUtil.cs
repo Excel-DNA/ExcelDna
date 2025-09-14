@@ -142,9 +142,7 @@ namespace ExcelDna.Integration
 
         public static void QueueAsMacro(SendOrPostCallback callback, object state)
         {
-#if USE_WINDOWS_FORMS
             SynchronizationManager.RunMacroSynchronization.RunAsMacroAsync(callback, state);
-#endif
         }
 
         public static Task QueueMacroTask(string macroName)

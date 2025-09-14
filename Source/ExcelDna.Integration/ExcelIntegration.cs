@@ -198,9 +198,9 @@ namespace ExcelDna.Integration
             return _integrationHost.LoadFromAssemblyBytes(assemblyBytes, pdbBytes);
         }
 
-        internal static void Initialize(string xllPath, bool isNativeAOTActive)
+        internal static void Initialize(string xllPath, bool isNativeAOTActive, IntPtr hModuleXll)
         {
-            ExcelDnaUtil.Initialize();  // Set up window handle
+            ExcelDnaUtil.Initialize(hModuleXll);  // Set up window handle
             Logging.TraceLogger.Initialize();
             DnaLibrary.InitializeRootLibrary(xllPath, isNativeAOTActive);
         }

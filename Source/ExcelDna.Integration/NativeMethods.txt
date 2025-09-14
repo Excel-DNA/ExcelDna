@@ -1,0 +1,4 @@
+﻿RegisterClassW
+CreateWindowExW
+DestroyWindow
+DefWindowProcW

@@ -21,9 +21,7 @@ namespace ExcelDna.Integration.Rtd
         // This is the most general RTD registration
         public static object ProcessObservable(string functionName, object parameters, ExcelObservableOptions options, ExcelObservableSource getObservable)
         {
-#if USE_WINDOWS_FORMS
             if (!SynchronizationManager.IsInstalled)
-#endif
             {
                 throw new InvalidOperationException("ExcelAsyncUtil has not been initialized. This is an unexpected error.");
             }
@@ -821,9 +819,7 @@ namespace ExcelDna.Integration.Rtd
             if (refreshRTDCall)
             {
                 // NOTE: At this point the SynchronizationManager must be registered!
-#if USE_WINDOWS_FORMS
                 if (!SynchronizationManager.IsInstalled)
-#endif
                 {
                     Debug.Print("SynchronizationManager not registered!");
                     throw new InvalidOperationException("SynchronizationManager must be registered for async and observable support. Call ExcelAsyncUtil.Initialize() in an IExcelAddIn.AutoOpen() handler.");
