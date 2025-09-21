@@ -37,7 +37,7 @@ namespace ExcelDna.Integration.Win32
 
                 registeredWndProc[wnd] = InstanceWndProc;
 
-                editWnd = PInvoke.CreateWindowEx(0, "EDIT", text, WINDOW_STYLE.WS_CHILD | WINDOW_STYLE.WS_VISIBLE | WINDOW_STYLE.WS_VSCROLL | WINDOW_STYLE.WS_HSCROLL | (WINDOW_STYLE)ES_MULTILINE, 0, 0, 0, 0, wnd, null, new InstanceHandle(ExcelDnaUtil.ModuleXll), null);
+                editWnd = PInvoke.CreateWindowEx(0, "EDIT", text, WINDOW_STYLE.WS_CHILD | WINDOW_STYLE.WS_VISIBLE | WINDOW_STYLE.WS_VSCROLL | WINDOW_STYLE.WS_HSCROLL | (WINDOW_STYLE)ES_MULTILINE | (WINDOW_STYLE)ES_READONLY, 0, 0, 0, 0, wnd, null, new InstanceHandle(ExcelDnaUtil.ModuleXll), null);
             }
         }
 
