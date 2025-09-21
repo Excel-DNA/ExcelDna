@@ -7,6 +7,10 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 
+#if !USE_WINDOWS_FORMS
+using ExcelDna.Integration.Win32;
+#endif
+
 namespace ExcelDna.Logging
 {
     // CONSIDER: This TraceListener might co-operate with a more structured LogDisplay in future. 
@@ -49,10 +53,8 @@ namespace ExcelDna.Logging
             string header = string.Format(CultureInfo.InvariantCulture, "{0} [{1}] ", idDescription, eventType.ToString());
             base.TraceEvent(eventCache, source, eventType, id, header + format, args);
 
-#if USE_WINDOWS_FORMS
             if (eventType == TraceEventType.Error || eventType == TraceEventType.Critical)
                 LogDisplay.Show();
-#endif
         }
 
         // Normally receives the header information
@@ -67,9 +69,7 @@ namespace ExcelDna.Logging
         {
             try
             {
-#if USE_WINDOWS_FORMS
                 LogDisplay.RecordLine(message);
-#endif
             }
             catch (Exception e)
             {
