@@ -8,9 +8,6 @@
     <PublishAOT>true</PublishAOT>
     <TargetName>ExcelDna.AddIn.RuntimeTestsAOT64</TargetName>
 
-    <UseWindowsForms>true</UseWindowsForms>
-    <SelfContained>true</SelfContained>
-
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
