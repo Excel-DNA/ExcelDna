@@ -6,6 +6,7 @@ namespace ExcelDna.Integration.Win32
     {
         public const int ES_MULTILINE = 4;
         public const int ES_AUTOVSCROLL = 0x40;
+        public const int ES_READONLY = 0x0800;
 
         public const int WM_SIZE = 5;
 
