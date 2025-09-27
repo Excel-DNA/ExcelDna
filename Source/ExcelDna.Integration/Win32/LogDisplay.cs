@@ -14,12 +14,18 @@ namespace ExcelDna.Integration.Win32
             window.Show();
         }
 
-        public static void RecordLine(string s)
+        public static void RecordLine(string s, params object[] args)
         {
             log += s + Environment.NewLine;
 
             if (window != null)
                 window.SetText(log);
+        }
+
+        public static void WriteLine(string format, params object[] args)
+        {
+            Show();
+            RecordLine(format, args);
         }
 
         private static LogDisplayWindow window;

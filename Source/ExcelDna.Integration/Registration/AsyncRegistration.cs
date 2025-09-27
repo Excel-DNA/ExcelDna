@@ -9,6 +9,12 @@ using ExcelDna.Integration;
 using ExcelDna.Integration.ExtendedRegistration;
 using ExcelDna.Integration.ObjectHandles;
 
+#if USE_WINDOWS_FORMS
+using ExcelDna.Logging;
+#else
+using ExcelDna.Integration.Win32;
+#endif
+
 namespace ExcelDna.Registration
 {
     public static class AsyncRegistration
@@ -66,9 +72,7 @@ namespace ExcelDna.Registration
                 }
                 catch (Exception ex)
                 {
-#if USE_WINDOWS_FORMS
-                    Logging.LogDisplay.WriteLine("Exception while registering method {0} - {1}", reg.FunctionAttribute.Name, ex.ToString());
-#endif
+                    LogDisplay.WriteLine("Exception while registering method {0} - {1}", reg.FunctionAttribute.Name, ex.ToString());
                     continue;
                 }
 
