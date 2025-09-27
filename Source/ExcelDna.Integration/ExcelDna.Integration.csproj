@@ -20,6 +20,11 @@
     <DefineConstants>$(DefineConstants);COM_GENERATED</DefineConstants>
   </PropertyGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
+    <Compile Remove="LogDisplay.cs" />
+    <Compile Remove="LogDisplay.Designer.cs" />
+  </ItemGroup>
+
   <PropertyGroup Condition="'$(TargetFramework)' != 'net8.0-windows'">
     <UseWindowsForms>true</UseWindowsForms>
     <DefineConstants>$(DefineConstants);USE_WINDOWS_FORMS</DefineConstants>
