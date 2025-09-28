@@ -463,7 +463,6 @@ namespace ExcelDna.Integration
 
                 // Marshal to .NET, then call .Application
                 object obj = ComInterop.Util.TypeAdapter.GetObject(pUnk);
-                Marshal.Release(pUnk);
 
                 try
                 {

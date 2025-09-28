@@ -23,6 +23,22 @@ namespace ExcelDna.RuntimeTests
             Assert.True(functionRange.Value.ToString().Contains("Hello command."));
         }
 
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void NativeCommand()
+        {
+            CommandBarPopup? menu = FindPopupMenu("ExcelDna.AddIn.RuntimeTestsAOT64");
+            Assert.NotNull(menu);
+
+            CommandBarButton? button = FindButton(menu, "NativeCommandHello");
+            Assert.NotNull(button);
+
+            button.Execute();
+
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+            functionRange.Formula = "=NativeFunctionExecutionLog()";
+            Assert.True(functionRange.Value.ToString().Contains("Native hello command."));
+        }
+
         private static CommandBarPopup? FindPopupMenu(string name)
         {
             var app = (Microsoft.Office.Interop.Excel.Application)ExcelDnaUtil.Application;

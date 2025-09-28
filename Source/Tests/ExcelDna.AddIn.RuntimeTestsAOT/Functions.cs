@@ -7,6 +7,12 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
 {
     public class Functions
     {
+        [ExcelCommand(MenuText = "NativeCommandHello")]
+        public static void NativeCommandHello()
+        {
+            Logger.Log("Native hello command.");
+        }
+
         [ExcelFunction]
         public static string NativeHello(string name)
         {
