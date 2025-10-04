@@ -16,7 +16,8 @@ namespace ExcelDna.Integration.Win32
 
         public static void RecordLine(string s, params object[] args)
         {
-            log += s + Environment.NewLine;
+            string message = args.Length > 0 ? string.Format(s, args) : s;
+            log += message + Environment.NewLine;
 
             if (window != null)
                 window.SetText(log);
