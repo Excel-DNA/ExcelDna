@@ -1,6 +1,5 @@
 ﻿#if !USE_WINDOWS_FORMS
 
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Windows.Win32;
 using Windows.Win32.Foundation;
@@ -11,31 +10,16 @@ namespace ExcelDna.Integration.Win32
 {
     internal class LogDisplayWindow
     {
-        static LogDisplayWindow()
-        {
-            unsafe
-            {
-                fixed (char* pClassName = className)
-                {
-                    wndClass = new();
-                    wndClass.lpfnWndProc = ClassWndProc;
-                    wndClass.hInstance = (HINSTANCE)ExcelDnaUtil.ModuleXll;
-                    wndClass.lpszClassName = new PCWSTR(pClassName);
-                    PInvoke.RegisterClass(wndClass);
-                }
-            }
-        }
-
         public LogDisplayWindow(CreateParams cp, string text)
         {
             unsafe
             {
                 string name = DnaLibrary.CurrentLibraryName + " - Diagnostic Display";
-                wnd = PInvoke.CreateWindowEx(0, className, name, WINDOW_STYLE.WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, new HWND(cp.Parent), null, new InstanceHandle(ExcelDnaUtil.ModuleXll), null);
+                wnd = PInvoke.CreateWindowEx(0, wndClassRegistration.Name, name, WINDOW_STYLE.WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, new HWND(cp.Parent), null, new InstanceHandle(ExcelDnaUtil.ModuleXll), null);
                 if (wnd == 0)
                     throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
 
-                registeredWndProc[wnd] = InstanceWndProc;
+                wndClassRegistration.RegisterWnd(wnd, InstanceWndProc);
 
                 editWnd = PInvoke.CreateWindowEx(0, "EDIT", text, WINDOW_STYLE.WS_CHILD | WINDOW_STYLE.WS_VISIBLE | WINDOW_STYLE.WS_VSCROLL | WINDOW_STYLE.WS_HSCROLL | (WINDOW_STYLE)ES_MULTILINE | (WINDOW_STYLE)ES_READONLY, 0, 0, 0, 0, wnd, null, new InstanceHandle(ExcelDnaUtil.ModuleXll), null);
             }
@@ -69,18 +53,7 @@ namespace ExcelDna.Integration.Win32
             return new LRESULT();
         }
 
-        private static LRESULT ClassWndProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam)
-        {
-            if (registeredWndProc.TryGetValue(hWnd, out WNDPROC wndProc))
-                wndProc(hWnd, msg, wParam, lParam);
-
-            return PInvoke.DefWindowProc(hWnd, msg, wParam, lParam);
-        }
-
-        const string className = "ExcelDna.Integration.Win32.LogDisplayWindow";
-        private static WNDCLASSW wndClass;
-        private static Dictionary<HWND, WNDPROC> registeredWndProc = new();
-
+        private static WndClassRegistration wndClassRegistration = new("ExcelDna.Integration.Win32.LogDisplayWindow");
         private HWND wnd;
         private HWND editWnd;
     }
