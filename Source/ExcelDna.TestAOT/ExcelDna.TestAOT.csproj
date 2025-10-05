@@ -20,6 +20,14 @@
     </PropertyGroup>
   </Target>
   <Target Name="PublishAfterBuild" AfterTargets="AfterBuild" DependsOnTargets="SetNoBuild;Publish" />
+  <ItemGroup>
+    <None Remove="app.ico" />
+    <None Remove="Package.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="app.ico" />
+    <EmbeddedResource Include="Package.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ExcelDna.ManagedHost\ExcelDna.ManagedHost.csproj" />
