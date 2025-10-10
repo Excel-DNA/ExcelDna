@@ -52,8 +52,10 @@ namespace ExcelDna.Integration
 
         private static bool checkForIllegalCrossThreadCalls;
 
-        internal static void Initialize()
+        internal static void Initialize(IntPtr hModuleXll)
         {
+            ModuleXll = hModuleXll;
+
             // NOTE: Sequence here is important - Getting the Window Handle sometimes uses the _mainNativeThreadId
             _mainManagedThreadId = Thread.CurrentThread.ManagedThreadId;
             _mainNativeThreadId = GetCurrentThreadId();
@@ -75,6 +77,8 @@ namespace ExcelDna.Integration
                 return Thread.CurrentThread.ManagedThreadId == _mainManagedThreadId;
             }
         }
+
+        internal static IntPtr ModuleXll { get; private set; }
 
         public static int MainManagedThreadId
         {
@@ -459,7 +463,6 @@ namespace ExcelDna.Integration
 
                 // Marshal to .NET, then call .Application
                 object obj = ComInterop.Util.TypeAdapter.GetObject(pUnk);
-                Marshal.Release(pUnk);
 
                 try
                 {

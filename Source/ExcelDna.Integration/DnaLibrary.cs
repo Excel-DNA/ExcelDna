@@ -60,6 +60,16 @@ namespace ExcelDna.Integration
             }
         }
 
+        private static bool _IsNativeAOTActive;
+        [XmlIgnore]
+        internal static bool IsNativeAOTActive
+        {
+            get
+            {
+                return _IsNativeAOTActive;
+            }
+        }
+
         private string _Name;
         [XmlAttribute]
         public string Name
@@ -236,10 +246,12 @@ namespace ExcelDna.Integration
                         assemblies.AddRange(lib.GetAssemblies(pathResolveRoot, this));
                     }
                 }
+#if USE_WINDOWS_FORMS
                 foreach (Project proj in GetProjects())
                 {
                     assemblies.AddRange(proj.GetAssemblies(pathResolveRoot, this));
                 }
+#endif
             }
             catch (Exception e)
             {
@@ -283,13 +295,13 @@ namespace ExcelDna.Integration
             var excelFunctionExecutionHandlerSelectors = new List<Registration.FunctionExecutionHandlerSelector>();
             var excelFunctionProcessors = new List<ExtendedRegistration.ExcelFunctionProcessor>();
             AssemblyLoader.ProcessAssemblies(_exportedAssemblies, _methods, excelParameterConversions, excelReturnConversions, excelFunctionProcessors, _excelFunctionsExtendedRegistration, excelFunctionExecutionHandlerSelectors, _addIns, rtdServerTypes, comClassTypes);
-            AssemblyLoader.GetExcelParameterConversions(NativeAOT.ExcelParameterConversions, excelParameterConversions);
-            AssemblyLoader.GetExcelReturnConversions(NativeAOT.ExcelReturnConversions, excelReturnConversions);
-            AssemblyLoader.GetExcelFunctionExecutionHandlerSelectors(NativeAOT.ExcelFunctionExecutionHandlerSelectors, excelFunctionExecutionHandlerSelectors);
+            AssemblyLoader.GetExcelParameterConversions(Registration.StaticRegistration.ExcelParameterConversions, excelParameterConversions);
+            AssemblyLoader.GetExcelReturnConversions(Registration.StaticRegistration.ExcelReturnConversions, excelReturnConversions);
+            AssemblyLoader.GetExcelFunctionExecutionHandlerSelectors(Registration.StaticRegistration.ExcelFunctionExecutionHandlerSelectors, excelFunctionExecutionHandlerSelectors);
             _extendedRegistrationConfiguration = new ExtendedRegistration.Registration.Configuration() { ParameterConversions = excelParameterConversions, ReturnConversions = excelReturnConversions, ExcelFunctionProcessors = excelFunctionProcessors, ExcelFunctionExecutionHandlerSelectors = excelFunctionExecutionHandlerSelectors };
 
-            NativeAOT.ExcelAddIns.ForEach(i => AssemblyLoader.GetExcelAddIns(null, i, _addIns));
-            ObjectHandles.ObjectHandleRegistration.ProcessAssemblyAttributes(NativeAOT.AssemblyAttributes);
+            Registration.StaticRegistration.ExcelAddIns.ForEach(i => AssemblyLoader.GetExcelAddIns(null, i, _addIns));
+            ObjectHandles.ObjectHandleRegistration.ProcessAssemblyAttributes(Registration.StaticRegistration.AssemblyAttributes);
 
             // Register RTD Server Types (i.e. remember that these types are available as RTD servers, with relevant ProgId etc.)
             RtdRegistration.RegisterRtdServerTypes(rtdServerTypes.Select(i => new TypeHelperDynamic(i)));
@@ -331,7 +343,7 @@ namespace ExcelDna.Integration
             RegistrationInfo.Register();
             SynchronizationManager.Install(true);
 
-            AssemblyLoader.GetExcelMethods(NativeAOT.MethodsForRegistration, true, _methods, _excelFunctionsExtendedRegistration);
+            AssemblyLoader.GetExcelMethods(Registration.StaticRegistration.MethodsForRegistration, true, _methods, _excelFunctionsExtendedRegistration);
 
             // Register my Methods
             List<MethodInfo> commands = _methods.Where(Registration.ExcelCommandRegistration.IsCommand).ToList();
@@ -451,7 +463,9 @@ namespace ExcelDna.Integration
                 {
                     if (xmlCustomUI.LocalName == "commandBars")
                     {
+#if USE_WINDOWS_FORMS
                         ExcelCommandBarUtil.LoadCommandBars(xmlCustomUI, this.GetImage);
+#endif
                     }
                 }
             }
@@ -476,7 +490,7 @@ namespace ExcelDna.Integration
 
         // Statics
         private static DnaLibrary rootLibrary;
-        internal static void InitializeRootLibrary(string xllPath)
+        internal static void InitializeRootLibrary(string xllPath, bool isNativeAOTActive)
         {
             // Loads the primary .dna library
             // Load sequence is:
@@ -486,7 +500,10 @@ namespace ExcelDna.Integration
             // CAREFUL: Sequence here is fragile - this is the first place where we start logging
             _XllPath = xllPath;
             _xllPathPathInfo = new FileInfo(xllPath);
+            _IsNativeAOTActive = isNativeAOTActive;
+#if USE_WINDOWS_FORMS
             Logging.LogDisplay.CreateInstance();
+#endif
             Logger.Initialization.Verbose("Enter DnaLibrary.InitializeRootLibrary");
             byte[] dnaBytes = ExcelIntegration.GetDnaFileBytes("__MAIN__");
             if (dnaBytes != null)
@@ -508,7 +525,7 @@ namespace ExcelDna.Integration
             // If there have been problems, ensure that there is at lease some current library.
             if (rootLibrary == null)
             {
-                if (!NativeAOT.IsActive)
+                if (!IsNativeAOTActive)
                     Logger.Initialization.Error("No Dna Library found.");
                 rootLibrary = new DnaLibrary();
             }
@@ -551,7 +568,7 @@ namespace ExcelDna.Integration
 
             if (!File.Exists(fileName))
             {
-                if (!NativeAOT.IsActive)
+                if (!IsNativeAOTActive)
                     Logger.Initialization.Error("The required .dna script file {0} does not exist.", fileName);
                 return null;
             }
@@ -724,6 +741,7 @@ namespace ExcelDna.Integration
             return null;
         }
 
+#if USE_WINDOWS_FORMS
         public Bitmap GetImage(string imageId)
         {
             // We expect these to be small images.
@@ -765,6 +783,7 @@ namespace ExcelDna.Integration
             }
             return null;
         }
+#endif
 
     }
 

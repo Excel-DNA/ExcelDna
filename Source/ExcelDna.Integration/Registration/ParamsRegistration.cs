@@ -6,6 +6,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 
+#if USE_WINDOWS_FORMS
+using ExcelDna.Logging;
+#else
+using ExcelDna.Integration.Win32;
+#endif
+
 namespace ExcelDna.Registration
 {
     public static class ParamsRegistration
@@ -74,7 +80,7 @@ namespace ExcelDna.Registration
                 }
                 catch (Exception ex)
                 {
-                    Logging.LogDisplay.WriteLine("Exception while registering method {0} - {1}", reg.FunctionAttribute.Name, ex.ToString());
+                    LogDisplay.WriteLine("Exception while registering method {0} - {1}", reg.FunctionAttribute.Name, ex.ToString());
                     continue;
                 }
 
@@ -144,8 +150,8 @@ namespace ExcelDna.Registration
              * 
              */
 
-            int maxArguments = NativeAOT.IsActive ? 16 : 125; // Constrained by 255 char registration string, take off 3 type chars, use up to 2 chars per param (before we start doing object...) (& also return)
-                                                              // CONSIDER: Might improve this if we generate the delegate based on the max length...
+            int maxArguments = DnaLibrary.IsNativeAOTActive ? 16 : 125; // Constrained by 255 char registration string, take off 3 type chars, use up to 2 chars per param (before we start doing object...) (& also return)
+                                                                        // CONSIDER: Might improve this if we generate the delegate based on the max length...
 
             var normalParams = functionLambda.Parameters.Take(functionLambda.Parameters.Count() - 1).ToList();
             var normalParamCount = normalParams.Count;

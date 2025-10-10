@@ -27,7 +27,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 }
                 """, functions: """
                 List<Type> typeRefs = new List<Type>();
-                ExcelDna.Integration.NativeAOT.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeParamsJoinString")!);
+                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeParamsJoinString")!);
                 typeRefs.Add(typeof(Func<string, string[], string>));
                 typeRefs.Add(typeof(Func<object, string>));
                 typeRefs.Add(typeof(Func<object, string[]>));
@@ -44,7 +44,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
             Verify("""
                 [assembly: ExcelDna.Integration.ExcelHandleExternal(typeof(System.Reflection.Assembly))]
                 """, assemblyAttributes: """
-                ExcelDna.Integration.NativeAOT.AssemblyAttributes.Add(new ExcelDna.Integration.ExcelHandleExternalAttribute(typeof(System.Reflection.Assembly)));
+                ExcelDna.Registration.StaticRegistration.AssemblyAttributes.Add(new ExcelDna.Integration.ExcelHandleExternalAttribute(typeof(System.Reflection.Assembly)));
 
                 """);
         }
@@ -68,7 +68,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                     }
                 }
                 """, parameterConversions: """
-                ExcelDna.Integration.NativeAOT.ExcelParameterConversions.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Conversions).GetMethod("ToVersion")!);
+                ExcelDna.Registration.StaticRegistration.ExcelParameterConversions.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Conversions).GetMethod("ToVersion")!);
 
                 """);
         }
@@ -102,7 +102,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 }
                 """, returnConversions: """
 
-                ExcelDna.Integration.NativeAOT.ExcelReturnConversions.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Conversions).GetMethod("FromTestType1")!);
+                ExcelDna.Registration.StaticRegistration.ExcelReturnConversions.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Conversions).GetMethod("FromTestType1")!);
                 """);
         }
 
@@ -126,7 +126,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 }
                 """, executionHandlers: """
 
-                ExcelDna.Integration.NativeAOT.ExcelFunctionExecutionHandlerSelectors.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.FunctionLoggingHandler).GetMethod("LoggingHandlerSelector")!);
+                ExcelDna.Registration.StaticRegistration.ExcelFunctionExecutionHandlerSelectors.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.FunctionLoggingHandler).GetMethod("LoggingHandlerSelector")!);
                 """);
         }
 
@@ -186,8 +186,6 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 [UnmanagedCallersOnly(EntryPoint = "Initialize", CallConvs = new[] { typeof(CallConvCdecl) })]
                 public static short Initialize(void* xlAddInExportInfoAddress, void* hModuleXll, void* pPathXLL, byte disableAssemblyContextUnload, void* pTempDirPath)
                 {
-                    ExcelDna.Integration.NativeAOT.IsActive = true;
-        
                     
         
         [BODY]

@@ -2,6 +2,7 @@
 
 using ExcelDna.Integration.ComInterop.Generator.Interfaces;
 using ExcelDna.Integration.Extensibility;
+using ExcelDna.Integration.Win32;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -36,7 +37,7 @@ namespace ExcelDna.Integration.ComInterop.Generator
         public int GetIDsOfNames(Guid riid, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr, SizeParamIndex = 2)] string[] rgszNames, uint cNames, uint lcid, [In][Out][MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] int[] rgDispId)
         {
             for (int i = 0; i < cNames; ++i)
-                rgDispId[i] = Array.FindIndex(methods, m => m.Name == rgszNames[i]);
+                rgDispId[i] = (rgszNames[i] == "LoadImage") ? methods.Length : Array.FindIndex(methods, m => m?.Name == rgszNames[i]);
 
             return 0;
         }
@@ -47,6 +48,12 @@ namespace ExcelDna.Integration.ComInterop.Generator
             {
                 CustomUI.RibbonControl ribbonControl = new((pDispParams.rgvarg[0].Value as DispatchObject).ComObject as IRibbonControl);
                 methods[dispIdMember].Invoke(customRibbon, [ribbonControl]);
+            }
+
+            if (dispIdMember == methods.Length && pDispParams.cArgs == 1)
+            {
+                string resourceName = pDispParams.rgvarg[0].Value as string;
+                Dispatcher.SetResult(pVarResult, new DispatchObject(Picture.LoadAsIPictureDisp(LoadCustomRibbonResource(resourceName))));
             }
 
             return 0;
@@ -80,6 +87,18 @@ namespace ExcelDna.Integration.ComInterop.Generator
             return 0;
         }
         #endregion
+
+        private byte[] LoadCustomRibbonResource(string name)
+        {
+            using (var stream = customRibbon.GetType().Assembly.GetManifestResourceStream(name))
+            {
+                using (System.IO.MemoryStream memoryStream = new())
+                {
+                    stream.CopyTo(memoryStream);
+                    return memoryStream.ToArray();
+                }
+            }
+        }
     }
 }
 

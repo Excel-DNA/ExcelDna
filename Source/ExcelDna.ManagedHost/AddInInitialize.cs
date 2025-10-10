@@ -51,7 +51,7 @@ namespace ExcelDna.ManagedHost
                     (Func<string, int, byte[]>)AssemblyManager.GetResourceBytes,
                     (Func<string, Assembly>)_alc.LoadFromAssemblyPath,
                     (Func<byte[], byte[], Assembly>)_alc.LoadFromAssemblyBytes,
-                    (Action<TraceSource>)Logger.SetIntegrationTraceSource });
+                    (Action<TraceSource>)Logger.SetIntegrationTraceSource, false });
 
             return initOK ? (short)1 : (short)0;
         }
@@ -69,7 +69,7 @@ namespace ExcelDna.ManagedHost
                     (Func<string, int, byte[]>)AssemblyManager.GetResourceBytes,
                     (Func<string, Assembly>)_alc.LoadFromAssemblyPath,
                     (Func<byte[], byte[], Assembly>)_alc.LoadFromAssemblyBytes,
-                    (Action<TraceSource>)Logger.SetIntegrationTraceSource);
+                    (Action<TraceSource>)Logger.SetIntegrationTraceSource, true);
 
             return initOK ? (short)1 : (short)0;
         }
@@ -124,7 +124,7 @@ namespace ExcelDna.ManagedHost
                 Func<byte[], byte[], Assembly> loadFromAssemblyBytes,
                 Action<TraceSource> setIntegrationTraceSource)
         {
-            return XlAddIn.Initialize(xlAddInExportInfoAddress, hModuleXll, pathXll, null, getResourceBytes, loadFromAssemblyPath, loadFromAssemblyBytes, setIntegrationTraceSource);
+            return XlAddIn.Initialize(xlAddInExportInfoAddress, hModuleXll, pathXll, null, getResourceBytes, loadFromAssemblyPath, loadFromAssemblyBytes, setIntegrationTraceSource, false);
         }
     }
 #endif

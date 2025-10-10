@@ -29,7 +29,7 @@ namespace ExcelDna.Loader
             //var xlDelegate = GetNativeDelegate(methodInfo);
             var xlDelegate = GetLazyDelegate(methodInfo);
             methodInfo.DelegateHandle = GCHandle.Alloc(xlDelegate);
-            if (NativeAOT.IsActive)
+            if (XlAddIn.IsNativeAOTActive)
                 methodInfo.FunctionPointer = MarshalNativeAOT.GetFunctionPointerForDelegate(xlDelegate, methodInfo);
             else
                 methodInfo.FunctionPointer = Marshal.GetFunctionPointerForDelegate(xlDelegate);

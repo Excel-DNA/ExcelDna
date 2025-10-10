@@ -57,9 +57,11 @@ namespace ExcelDna.Loader
 
         // Passed in from unmanaged code during initialization 
         internal static IntPtr hModuleXll;
+        internal static bool IsNativeAOTActive;
 
         // Consider: When does this become an interface. etc
-        internal static string PathXll { get; private set; }
+        internal static string PathXll
+        { get; private set; }
         internal static string TempDirPath { get; private set; }
         internal static Func<string, int, byte[]> GetResourceBytes;  // Passed in from Loader
         internal static Func<string, Assembly> LoadAssemblyFromPath;  // Passed in from Loader
@@ -83,7 +85,8 @@ namespace ExcelDna.Loader
                                              Func<string, int, byte[]> getResourceBytes,
                                              Func<string, Assembly> loadAssemblyFromPath,
                                              Func<byte[], byte[], Assembly> loadAssemblyFromBytes,
-                                             Action<TraceSource> setIntegrationTraceSource)
+                                             Action<TraceSource> setIntegrationTraceSource,
+                                             bool isNativeAOTActive)
         {
             XlAddIn.hModuleXll = hModuleXll;
             XlAddIn.PathXll = pathXll;
@@ -92,6 +95,7 @@ namespace ExcelDna.Loader
             XlAddIn.LoadAssemblyFromPath = loadAssemblyFromPath;
             XlAddIn.LoadAssemblyFromBytes = loadAssemblyFromBytes;
             XlAddIn.SetIntegrationTraceSource = setIntegrationTraceSource;
+            XlAddIn.IsNativeAOTActive = isNativeAOTActive;
 
             // NOTE: Too early for logging - the TraceSource in ExcelDna.Integration has not been initialized yet.
             Debug.Print("In sandbox AppDomain with Id: {0}, running on thread: {1}", AppDomain.CurrentDomain.Id, Thread.CurrentThread.ManagedThreadId);
@@ -225,7 +229,7 @@ namespace ExcelDna.Loader
         {
             if (!_initialized)
             {
-                ExcelIntegration.Initialize(PathXll);
+                ExcelIntegration.Initialize(PathXll, XlAddIn.IsNativeAOTActive, XlAddIn.hModuleXll);
                 TraceLogger.IntegrationTraceSource = ExcelIntegration.GetIntegrationTraceSource();
                 SetIntegrationTraceSource(TraceLogger.IntegrationTraceSource);
                 _initialized = true;

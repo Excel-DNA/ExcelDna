@@ -7,6 +7,10 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 
+#if !USE_WINDOWS_FORMS
+using ExcelDna.Integration.Win32;
+#endif
+
 namespace ExcelDna.Logging
 {
     // CONSIDER: This TraceListener might co-operate with a more structured LogDisplay in future. 
