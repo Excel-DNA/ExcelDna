@@ -35,6 +35,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 
                 List<MethodInfo> methodRefs = new List<MethodInfo>();
                 methodRefs.Add(typeof(List<string>).GetMethod("ToArray")!);
+                methodRefs.Add(typeof(List<string>).GetMethod("Add")!);
                 """);
         }
 

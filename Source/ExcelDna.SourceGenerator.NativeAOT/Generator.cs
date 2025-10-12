@@ -94,6 +94,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                     if (i.Parameters.Length > 0 && i.Parameters.Last().IsParams && i.Parameters.Last().Type is IArrayTypeSymbol arrayType)
                     {
                         methods += $"methodRefs.Add(typeof(List<{Util.GetFullTypeName(arrayType.ElementType)}>).GetMethod(\"ToArray\")!);\r\n";
+                        methods += $"methodRefs.Add(typeof(List<{Util.GetFullTypeName(arrayType.ElementType)}>).GetMethod(\"Add\")!);\r\n";
                         functions += $"typeRefs.Add(typeof(Func<{Util.CreateFunc16Args(i)}>));\r\n";
                     }
 
