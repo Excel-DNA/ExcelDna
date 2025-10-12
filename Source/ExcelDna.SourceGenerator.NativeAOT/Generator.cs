@@ -67,6 +67,9 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                 string addIns = "";
                 foreach (var i in receiver.AddIns)
                 {
+                    if (string.IsNullOrWhiteSpace(addIns))
+                        addIns = "List<Type> interfaceRefs = new List<Type>();\r\n";
+
                     string actions = "";
                     foreach (var m in i.Methods)
                     {
@@ -76,6 +79,8 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                     }
 
                     addIns += $"{regHost}.ExcelAddIns.Add(new ExcelDna.Integration.TypeHelper<{Util.GetFullTypeName(i.Type)}>([{actions}]));\r\n";
+                    addIns += $"interfaceRefs.Add(typeof({Util.GetFullTypeName(i.Type)}).GetInterface(\"ExcelDna.Integration.IExcelAddIn\"));\r\n";
+                    addIns += $"interfaceRefs.Add(typeof({Util.GetFullTypeName(i.Type)}).GetInterface(\"ExcelDna.Integration.CustomUI.IExcelRibbon\"));\r\n";
                 }
                 source = source.Replace("[ADDINS]", addIns);
             }
@@ -94,6 +99,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                     if (i.Parameters.Length > 0 && i.Parameters.Last().IsParams && i.Parameters.Last().Type is IArrayTypeSymbol arrayType)
                     {
                         methods += $"methodRefs.Add(typeof(List<{Util.GetFullTypeName(arrayType.ElementType)}>).GetMethod(\"ToArray\")!);\r\n";
+                        methods += $"methodRefs.Add(typeof(List<{Util.GetFullTypeName(arrayType.ElementType)}>).GetMethod(\"Add\")!);\r\n";
                         functions += $"typeRefs.Add(typeof(Func<{Util.CreateFunc16Args(i)}>));\r\n";
                     }
 
