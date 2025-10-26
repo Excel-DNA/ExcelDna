@@ -192,6 +192,8 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
         [BODY]
 
 
+                    ExcelDna.Registration.StaticRegistration.DirectMarshalTypeAdapter = new DirectMarshalTypeAdapter();
+        
                     return ExcelDna.ManagedHost.AddInInitialize.InitializeNativeAOT(xlAddInExportInfoAddress, hModuleXll, pPathXLL, disableAssemblyContextUnload, pTempDirPath);
                 }
             }

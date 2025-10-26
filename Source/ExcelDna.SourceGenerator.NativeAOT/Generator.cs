@@ -41,8 +41,6 @@ using System.Runtime.InteropServices;
 
 namespace ExcelDna.SourceGenerator.NativeAOT
 {
-    [DIRECT-MARSHAL-TYPE-ADAPTER]
-
     public unsafe class AddInInitialize
     {
         [UnmanagedCallersOnly(EntryPoint = "Initialize", CallConvs = new[] { typeof(CallConvCdecl) })]
@@ -83,8 +81,8 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                     }
 
                     addIns += $"{regHost}.ExcelAddIns.Add(new ExcelDna.Integration.TypeHelper<{Util.GetFullTypeName(i.Type)}>([{actions}]));\r\n";
-                    addIns += $"interfaceRefs.Add(typeof({Util.GetFullTypeName(i.Type)}).GetInterface(\"ExcelDna.Integration.IExcelAddIn\"));\r\n";
-                    addIns += $"interfaceRefs.Add(typeof({Util.GetFullTypeName(i.Type)}).GetInterface(\"ExcelDna.Integration.CustomUI.IExcelRibbon\"));\r\n";
+                    addIns += $"interfaceRefs.Add(typeof({Util.GetFullTypeName(i.Type)}).GetInterface(\"ExcelDna.Integration.IExcelAddIn\")!);\r\n";
+                    addIns += $"interfaceRefs.Add(typeof({Util.GetFullTypeName(i.Type)}).GetInterface(\"ExcelDna.Integration.CustomUI.IExcelRibbon\")!);\r\n";
                 }
                 source = source.Replace("[ADDINS]", addIns);
             }
@@ -151,9 +149,8 @@ namespace ExcelDna.SourceGenerator.NativeAOT
 
                 source = source.Replace("[EXECUTION-HANDLERS]", executionHandlers);
             }
-            source = source.Replace("[DIRECT-MARSHAL-TYPE-ADAPTER]", CreateDirectMarshalTypeAdapter(receiver.Functions, receiver.Commands));
-
             context.AddSource($"ExcelDna.SG.NAOT.Init.g.cs", source);
+            context.AddSource($"ExcelDna.SG.NAOT.Marshal.g.cs", MarshalGenerator.GenerateFile(receiver.Functions, receiver.Commands));
         }
 
         public void Initialize(GeneratorInitializationContext context)
@@ -164,131 +161,6 @@ namespace ExcelDna.SourceGenerator.NativeAOT
         private static string GetMethod(IMethodSymbol method)
         {
             return $"typeof({Util.GetFullTypeName(method.ContainingType)}).GetMethod(\"{method.Name}\")!";
-        }
-
-        private static string CreateDirectMarshalTypeAdapter(List<IMethodSymbol> functions, List<IMethodSymbol> commands)
-        {
-            return """
-                class DirectMarshalTypeAdapter : ExcelDna.Registration.StaticRegistration.IDirectMarshalTypeAdapter
-                {
-                    private class XlDirectMarshalLazy
-                    {
-                        readonly Lazy<Delegate> _delegate;
-
-                        public XlDirectMarshalLazy(Func<Delegate> delegateFactory)
-                        {
-                            _delegate = new Lazy<Delegate>(delegateFactory, LazyThreadSafetyMode.PublicationOnly);
-                        }
-                    
-                        public void Act0() => ((XlAct0)_delegate.Value)();
-
-                        public IntPtr Func0() => ((XlFunc0)_delegate.Value)();
-                        public IntPtr Func1(IntPtr p1) => ((XlFunc1)_delegate.Value)(p1);
-                        public IntPtr Func2(IntPtr p1, IntPtr p2) => ((XlFunc2)_delegate.Value)(p1, p2);
-                        public IntPtr Func16(IntPtr p1, IntPtr p2, IntPtr p3, IntPtr p4, IntPtr p5, IntPtr p6, IntPtr p7, IntPtr p8, IntPtr p9, IntPtr p10, IntPtr p11, IntPtr p12, IntPtr p13, IntPtr p14, IntPtr p15, IntPtr p16) => ((XlFunc16)_delegate.Value)(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16);
-                    }
-
-                    public nint GetActionPointerForDelegate(Delegate d, int parameters)
-                    {
-                        switch (parameters)
-                        {
-                            case 0:
-                                return Marshal.GetFunctionPointerForDelegate<XlAct0>((XlAct0)d);
-                        }
-                
-                        throw new NotImplementedException($"GetActionPointerForDelegate {parameters}");
-                    }
-
-                    public Type GetActionType(int parameters)
-                    {
-                        switch (parameters)
-                        {
-                            case 0:
-                                return typeof(XlAct0);
-                         }
-                
-                        throw new NotImplementedException($"GetActionType {parameters}");
-                    }
-
-                    public nint GetFunctionPointerForDelegate(Delegate d, int parameters)
-                    {
-                        switch (parameters)
-                        {
-                            case 0:
-                                return Marshal.GetFunctionPointerForDelegate<XlFunc0>((XlFunc0)d);
-                            case 1:
-                                return Marshal.GetFunctionPointerForDelegate<XlFunc1>((XlFunc1)d);
-                            case 2:
-                                return Marshal.GetFunctionPointerForDelegate<XlFunc2>((XlFunc2)d);
-                            case 16:
-                                return Marshal.GetFunctionPointerForDelegate<XlFunc16>((XlFunc16)d);
-                        }
-
-                        throw new NotImplementedException($"GetFunctionPointerForDelegate {parameters}");
-                    }
-
-                    public Type GetFunctionType(int parameters)
-                    {
-                        switch (parameters)
-                        {
-                            case 0:
-                                return typeof(XlFunc0);
-                            case 1:
-                                return typeof(XlFunc1);
-                            case 2:
-                                return typeof(XlFunc2);
-                            case 16:
-                                return typeof(XlFunc16);
-                         }
-
-                        throw new NotImplementedException($"GetFunctionType {parameters}");
-                    }
-
-                    public Delegate CreateActionDelegate(Func<Delegate> delegateFactory, int parameters)
-                    {
-                        var lazyLambda = new XlDirectMarshalLazy(delegateFactory);
-                        var delegateType = GetActionType(parameters);
-                        var method = GetLazyAct(parameters);
-                        return Delegate.CreateDelegate(delegateType, lazyLambda, method);
-                    }
-
-                    public Delegate CreateFunctionDelegate(Func<Delegate> delegateFactory, int parameters)
-                    {
-                        var lazyLambda = new XlDirectMarshalLazy(delegateFactory);
-                        var delegateType = GetFunctionType(parameters);
-                        var method = GetLazyFunc(parameters);
-                        return Delegate.CreateDelegate(delegateType, lazyLambda, method);
-                    }
-
-                    private MethodInfo GetLazyAct(int parameters)
-                    {
-                        return typeof(XlDirectMarshalLazy).GetMethod("Act0");
-                    }
-
-                    private MethodInfo GetLazyFunc(int parameters)
-                    {
-                        switch (parameters)
-                        {
-                            case 0:
-                                return typeof(XlDirectMarshalLazy).GetMethod("Func0");
-                            case 1:
-                                return typeof(XlDirectMarshalLazy).GetMethod("Func1");
-                            case 2:
-                                return typeof(XlDirectMarshalLazy).GetMethod("Func2");
-                            case 16:
-                                return typeof(XlDirectMarshalLazy).GetMethod("Func16");                         }
-
-                        throw new NotImplementedException($"GetLazyFunc {parameters}");
-                    }
-
-                    private delegate void XlAct0();
-
-                    private delegate IntPtr XlFunc0();
-                    private delegate IntPtr XlFunc1(IntPtr p1);
-                    private delegate IntPtr XlFunc2(IntPtr p1, IntPtr p2);
-                    private delegate IntPtr XlFunc16(IntPtr p1, IntPtr p2, IntPtr p3, IntPtr p4, IntPtr p5, IntPtr p6, IntPtr p7, IntPtr p8, IntPtr p9, IntPtr p10, IntPtr p11, IntPtr p12, IntPtr p13, IntPtr p14, IntPtr p15, IntPtr p16);
-                }
-                """;
         }
 
         class SyntaxReceiver : ISyntaxContextReceiver
