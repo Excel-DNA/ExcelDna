@@ -98,8 +98,10 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                         functions += $"typeRefs.Add(typeof(Func<object, {Util.GetFullTypeName(p.Type)}>));\r\n";
                     }
 
-                    if (i.Parameters.Length > 0 && i.Parameters.Last().IsParams && i.Parameters.Last().Type is IArrayTypeSymbol arrayType)
+                    if (Util.IsLastArrayParams(i))
                     {
+                        var arrayType = (IArrayTypeSymbol)i.Parameters.Last().Type;
+
                         methods += $"methodRefs.Add(typeof(List<{Util.GetFullTypeName(arrayType.ElementType)}>).GetMethod(\"ToArray\")!);\r\n";
                         methods += $"methodRefs.Add(typeof(List<{Util.GetFullTypeName(arrayType.ElementType)}>).GetMethod(\"Add\")!);\r\n";
                         functions += $"typeRefs.Add(typeof(Func<{Util.CreateFunc16Args(i)}>));\r\n";

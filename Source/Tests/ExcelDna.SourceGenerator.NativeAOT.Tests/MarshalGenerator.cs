@@ -105,9 +105,27 @@
                         }
 
                         [ExcelFunction]
-                        public static string NativeHello(string name)
+                        public static string NativeHello0()
                         {
-                            return $"Hello {name}!";
+                            return "";
+                        }
+
+                        [ExcelFunction]
+                        public static string NativeHello1(string name)
+                        {
+                            return "";
+                        }
+
+                        [ExcelFunction]
+                        public static string NativeHello2(string name1, string name2)
+                        {
+                            return "";
+                        }
+
+                        [ExcelFunction]
+                        public static string NativeParams(object input, string QtherInpEt, params object[] args)
+                        {
+                            return "";
                         }
                     }
                 }

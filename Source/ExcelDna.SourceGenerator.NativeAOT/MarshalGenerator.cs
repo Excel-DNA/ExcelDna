@@ -26,8 +26,8 @@ namespace ExcelDna.SourceGenerator.NativeAOT
 
         private static string CreateDirectMarshalTypeAdapter(List<IMethodSymbol> functions, List<IMethodSymbol> commands)
         {
-            IEnumerable<int> functionArgs = functions.Count() == 0 ? [] : [0, 1, 2, 16];
-            IEnumerable<int> commandArgs = commands.Count() == 0 ? [] : [0];
+            IEnumerable<int> functionArgs = functions.Select(Parameters).Distinct().OrderBy(i => i);
+            IEnumerable<int> commandArgs = commands.Select(Parameters).Distinct().OrderBy(i => i);
 
             string template = """
                 class DirectMarshalTypeAdapter : ExcelDna.Registration.StaticRegistration.IDirectMarshalTypeAdapter
@@ -184,6 +184,14 @@ $"private delegate IntPtr XlFunc{i}({ArgList(i)});"
                 [body]
                 }
                 """.Replace("[body]", body);
+        }
+
+        private static int Parameters(IMethodSymbol m)
+        {
+            if (Util.IsLastArrayParams(m))
+                return 16;
+
+            return m.Parameters.Count();
         }
     }
 }
