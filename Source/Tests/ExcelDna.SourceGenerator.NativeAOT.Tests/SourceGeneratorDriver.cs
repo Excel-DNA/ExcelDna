@@ -5,7 +5,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
 {
     internal class SourceGeneratorDriver
     {
-        public static void Verify(string sourceCode, string expected)
+        public static void Verify(string sourceCode, string? expected0, string? expected1)
         {
             Compilation inputCompilation = CSharpCompilation.Create("compilation",
                 [CSharpSyntaxTree.ParseText(sourceCode)],
@@ -34,7 +34,10 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
             Assert.Empty(generatorResult.Diagnostics);
             Assert.True(generatorResult.GeneratedSources.Length == 2);
             Assert.True(generatorResult.Exception is null);
-            Assert.Equal(expected, generatorResult.GeneratedSources[0].SourceText.ToString());
+            if (expected0 != null)
+                Assert.Equal(expected0, generatorResult.GeneratedSources[0].SourceText.ToString());
+            if (expected1 != null)
+                Assert.Equal(expected1, generatorResult.GeneratedSources[1].SourceText.ToString());
         }
     }
 }
