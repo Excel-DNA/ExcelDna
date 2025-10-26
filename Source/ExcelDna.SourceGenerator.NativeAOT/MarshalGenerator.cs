@@ -26,8 +26,8 @@ namespace ExcelDna.SourceGenerator.NativeAOT
 
         private static string CreateDirectMarshalTypeAdapter(List<IMethodSymbol> functions, List<IMethodSymbol> commands)
         {
-            IEnumerable<int> functionArgs = functions.Select(Parameters).Distinct().OrderBy(i => i);
-            IEnumerable<int> commandArgs = commands.Select(Parameters).Distinct().OrderBy(i => i);
+            IEnumerable<int> functionArgs = Parameters(functions);
+            IEnumerable<int> commandArgs = Parameters(commands);
 
             string template = """
                 class DirectMarshalTypeAdapter : ExcelDna.Registration.StaticRegistration.IDirectMarshalTypeAdapter
@@ -165,12 +165,17 @@ $"private delegate IntPtr XlFunc{i}({ArgList(i)});"
 
         private static string ArgList(int i)
         {
-            return string.Join(", ", Enumerable.Range(1, i).Select(k => $"IntPtr p{k}"));
+            return RangeList(i, "IntPtr p");
         }
 
         private static string ParamList(int i)
         {
-            return string.Join(", ", Enumerable.Range(1, i).Select(k => $"p{k}"));
+            return RangeList(i, "p");
+        }
+
+        private static string RangeList(int i, string prefix)
+        {
+            return string.Join(", ", Enumerable.Range(1, i).Select(k => $"{prefix}{k}"));
         }
 
         private static string OptionalSwitch(string body)
@@ -192,6 +197,11 @@ $"private delegate IntPtr XlFunc{i}({ArgList(i)});"
                 return 16;
 
             return m.Parameters.Count();
+        }
+
+        private static IEnumerable<int> Parameters(List<IMethodSymbol> m)
+        {
+            return m.Select(Parameters).Distinct().OrderBy(i => i);
         }
     }
 }
