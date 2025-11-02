@@ -7,7 +7,7 @@ namespace AOTRibbon
         [ExcelCommand(MenuText = "MyNativeCommand")]
         public static void NativeCommand()
         {
-            MessageBox.Show("My NativeCommand");
+            ExcelDnaUtil.DynamicApplication.Set("Caption", "My NativeCommand");
         }
     }
 }

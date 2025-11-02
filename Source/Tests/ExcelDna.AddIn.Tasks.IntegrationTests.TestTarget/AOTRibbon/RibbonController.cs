@@ -23,12 +23,12 @@ namespace AOTRibbon
 
         public void OnButtonPressed1(RibbonControl control)
         {
-            MessageBox.Show($"Hello1 from native control id={control.Id} tag={control.Tag}");
+            System.Diagnostics.Trace.WriteLine($"Hello1 from native control id={control.Id} tag={control.Tag}");
         }
 
         public void OnButtonPressed2(RibbonControl control)
         {
-            MessageBox.Show($"Hello2 from native control id={control.Id} tag={control.Tag}");
+            System.Diagnostics.Trace.WriteLine($"Hello2 from native control id={control.Id} tag={control.Tag}");
         }
     }
 }

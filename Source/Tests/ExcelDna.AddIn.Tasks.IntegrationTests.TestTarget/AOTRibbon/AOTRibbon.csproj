@@ -17,7 +17,7 @@
       <HintPath>..\..\.exceldna.addin\tools\net6.0-windows7.0\ExcelDna.ManagedHost.dll</HintPath>
     </Reference>
     <Reference Include="ExcelDna.Loader.dll">
-      <HintPath>..\..\.exceldna.addin\tools\net6.0-windows7.0\ExcelDna.Loader.dll</HintPath>
+      <HintPath>..\..\.exceldna.addin\tools\net8.0-windows7.0\ExcelDna.Loader.dll</HintPath>
     </Reference>
   </ItemGroup>
 
