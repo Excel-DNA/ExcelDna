@@ -1,7 +1,8 @@
-﻿using System;
+﻿using Microsoft.Build.Framework;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Build.Framework;
 
 namespace ExcelDna.AddIn.Tasks
 {
@@ -63,6 +64,23 @@ namespace ExcelDna.AddIn.Tasks
         internal static bool IsNone(string s)
         {
             return string.Equals(s, "%none%", StringComparison.OrdinalIgnoreCase);
+        }
+
+        internal static IEnumerable<string> SplitDlls(string dlls, string outDirectory)
+        {
+            List<string> result = new List<string>();
+            if (!string.IsNullOrWhiteSpace(dlls))
+            {
+                string outFiles = dlls.Replace(outDirectory, "");
+                foreach (string i in outFiles.Split(';'))
+                {
+                    string path = i.Trim();
+                    if (path.Length > 0)
+                        result.Add(path);
+                }
+            }
+
+            return result;
         }
 
         private string GetDnaFileNameAs32Bit(string fileName)
