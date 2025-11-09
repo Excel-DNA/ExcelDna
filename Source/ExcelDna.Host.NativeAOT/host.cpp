@@ -29,6 +29,25 @@ int load_and_run(const std::wstring& basePath, XlAddInExportInfo* pExportInfo, H
 		}
 	}
 
+	if (FindResource(hModuleXll, L"__MAIN__", L"PDB") != NULL)
+	{
+		std::wstring pdbFile(hostFile);
+		RenameExtension(pdbFile, L".pdb");
+		{
+			std::wstring addinSuffix(L"-AddIn64");
+			size_t pos = pdbFile.find(addinSuffix);
+			if (pos != std::wstring::npos)
+				pdbFile.erase(pos, addinSuffix.length());
+		}
+
+		if (!std::filesystem::exists(pdbFile))
+		{
+			int r = WriteResourceToFile(hModuleXll, L"__MAIN__", L"PDB", pdbFile);
+			if (r != EXIT_SUCCESS)
+				return r;
+		}
+	}
+
 	HINSTANCE handle = LoadLibrary(hostFile.c_str());
 
 	if (handle == NULL)

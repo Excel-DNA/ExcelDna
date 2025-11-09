@@ -21,7 +21,7 @@
     <ExcelDnaPackRunMultithreaded Condition="'$(ExcelDnaPackRunMultithreaded)' == ''">true</ExcelDnaPackRunMultithreaded>
   </PropertyGroup>
 
-	<Target Name="ExcelDnaAddInNativeAOTPublish" AfterTargets="Publish">
+	<Target Name="ExcelDnaAddInNativeAOTPublish" AfterTargets="_CopyAotSymbols">
 		<PackExcelAddInNativeAOT
 			Xll64FilePath="$(ExcelDnaToolsPath)ExcelDnaNativeAOT64.xll"
 			ProjectName="$(MSBuildProjectName)"
@@ -30,6 +30,7 @@
 			RunMultithreaded="$(ExcelDnaPackRunMultithreaded)"
 			PackManagedOnWindows="$(ExcelDnaPackManagedResourcePackingOnWindows)"
 			AddInInclude="$(ExcelAddInInclude)"
+			IncludePdb="$(ExcelAddInIncludePdb)"
 		>
 		</PackExcelAddInNativeAOT>
 	</Target>
