@@ -56,7 +56,7 @@ namespace ExcelDna.ManagedHost
             return initOK ? (short)1 : (short)0;
         }
 
-        public static short InitializeNativeAOT(void* xlAddInExportInfoAddress, void* hModuleXll, void* pPathXLL, byte disableAssemblyContextUnload, void* pTempDirPath)
+        public static short InitializeNativeAOT(void* xlAddInExportInfoAddress, void* hModuleXll, void* pPathXLL, byte disableAssemblyContextUnload, void* pTempDirPath, Assembly entryAssembly)
         {
             UnloadALC();
             ProcessStartupHooks();
@@ -65,6 +65,7 @@ namespace ExcelDna.ManagedHost
             string tempDirPath = Marshal.PtrToStringUni((IntPtr)pTempDirPath);
             _alc = new ExcelDnaAssemblyLoadContext(pathXll, disableAssemblyContextUnload == 0);
             AssemblyManager.Initialize((IntPtr)hModuleXll, pathXll, _alc, Path.Combine(tempDirPath, "ExcelDna.ManagedHost.NativeAOT"));
+            SetDllImportResolver(entryAssembly);
             var initOK = (bool)ExcelDna.Loader.XlAddIn.Initialize((IntPtr)xlAddInExportInfoAddress, (IntPtr)hModuleXll, pathXll, tempDirPath,
                     (Func<string, int, byte[]>)AssemblyManager.GetResourceBytes,
                     (Func<string, Assembly>)_alc.LoadFromAssemblyPath,
@@ -111,6 +112,18 @@ namespace ExcelDna.ManagedHost
             catch
             {
             }
+        }
+
+        private static void SetDllImportResolver(Assembly entryAssembly)
+        {
+            NativeLibrary.SetDllImportResolver(entryAssembly, (libraryName, assembly, searchPath) =>
+            {
+                string libraryPath = AssemblyManager.NativeLibraryResolve(libraryName);
+                if (libraryPath != null && NativeLibrary.TryLoad(libraryPath, out IntPtr handle))
+                    return handle;
+
+                return IntPtr.Zero;
+            });
         }
     }
 #endif

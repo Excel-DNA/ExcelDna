@@ -4,10 +4,20 @@
     <TargetFramework>net8.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <UseWindowsForms>True</UseWindowsForms>
+
+    <ExcelDnaPackNativeLibraryDependencies>false</ExcelDnaPackNativeLibraryDependencies>
+    <ExcelAddInInclude>MyNativeLibrary.dll</ExcelAddInInclude>
 
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <PublishAOT>true</PublishAOT>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="MyNativeLibrary.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <Reference Include="ExcelDna.Integration">

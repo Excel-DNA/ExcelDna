@@ -425,17 +425,7 @@ namespace ExcelDna.AddIn.Tasks
 
         private IEnumerable<string> SplitDlls(string dlls)
         {
-            List<string> result = new List<string>();
-
-            string outFiles = dlls.Replace(OutDirectory, "");
-            foreach (string i in outFiles.Split(';'))
-            {
-                string path = i.Trim();
-                if (path.Length > 0)
-                    result.Add(path);
-            }
-
-            return result;
+            return BuildTaskCommon.SplitDlls(dlls, OutDirectory);
         }
 
         private string UpdateExternalLibraries(string dna)
