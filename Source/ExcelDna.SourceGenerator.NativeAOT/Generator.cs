@@ -58,6 +58,8 @@ namespace ExcelDna.SourceGenerator.NativeAOT
 
 [EXECUTION-HANDLERS]
 
+            ExcelDna.Registration.StaticRegistration.DirectMarshalTypeAdapter = new DirectMarshalTypeAdapter();
+
             return ExcelDna.ManagedHost.AddInInitialize.InitializeNativeAOT(xlAddInExportInfoAddress, hModuleXll, pPathXLL, disableAssemblyContextUnload, pTempDirPath);
         }
     }
@@ -79,15 +81,15 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                     }
 
                     addIns += $"{regHost}.ExcelAddIns.Add(new ExcelDna.Integration.TypeHelper<{Util.GetFullTypeName(i.Type)}>([{actions}]));\r\n";
-                    addIns += $"interfaceRefs.Add(typeof({Util.GetFullTypeName(i.Type)}).GetInterface(\"ExcelDna.Integration.IExcelAddIn\"));\r\n";
-                    addIns += $"interfaceRefs.Add(typeof({Util.GetFullTypeName(i.Type)}).GetInterface(\"ExcelDna.Integration.CustomUI.IExcelRibbon\"));\r\n";
+                    addIns += $"interfaceRefs.Add(typeof({Util.GetFullTypeName(i.Type)}).GetInterface(\"ExcelDna.Integration.IExcelAddIn\")!);\r\n";
+                    addIns += $"interfaceRefs.Add(typeof({Util.GetFullTypeName(i.Type)}).GetInterface(\"ExcelDna.Integration.CustomUI.IExcelRibbon\")!);\r\n";
                 }
                 source = source.Replace("[ADDINS]", addIns);
             }
             {
                 string functions = "List<Type> typeRefs = new List<Type>();\r\n";
                 string methods = "List<MethodInfo> methodRefs = new List<MethodInfo>();\r\n";
-                foreach (var i in receiver.Functions)
+                foreach (var i in receiver.Functions.Concat(receiver.Commands))
                 {
                     functions += $"{regHost}.MethodsForRegistration.Add({GetMethod(i)});\r\n";
                     functions += $"typeRefs.Add(typeof({Util.MethodType(i)}));\r\n";
@@ -96,8 +98,10 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                         functions += $"typeRefs.Add(typeof(Func<object, {Util.GetFullTypeName(p.Type)}>));\r\n";
                     }
 
-                    if (i.Parameters.Length > 0 && i.Parameters.Last().IsParams && i.Parameters.Last().Type is IArrayTypeSymbol arrayType)
+                    if (Util.IsLastArrayParams(i))
                     {
+                        var arrayType = (IArrayTypeSymbol)i.Parameters.Last().Type;
+
                         methods += $"methodRefs.Add(typeof(List<{Util.GetFullTypeName(arrayType.ElementType)}>).GetMethod(\"ToArray\")!);\r\n";
                         methods += $"methodRefs.Add(typeof(List<{Util.GetFullTypeName(arrayType.ElementType)}>).GetMethod(\"Add\")!);\r\n";
                         functions += $"typeRefs.Add(typeof(Func<{Util.CreateFunc16Args(i)}>));\r\n";
@@ -147,8 +151,8 @@ namespace ExcelDna.SourceGenerator.NativeAOT
 
                 source = source.Replace("[EXECUTION-HANDLERS]", executionHandlers);
             }
-
             context.AddSource($"ExcelDna.SG.NAOT.Init.g.cs", source);
+            context.AddSource($"ExcelDna.SG.NAOT.Marshal.g.cs", MarshalGenerator.GenerateFile(receiver.Functions, receiver.Commands));
         }
 
         public void Initialize(GeneratorInitializationContext context)
@@ -164,6 +168,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT
         class SyntaxReceiver : ISyntaxContextReceiver
         {
             public List<IMethodSymbol> Functions { get; } = new List<IMethodSymbol>();
+            public List<IMethodSymbol> Commands { get; } = new List<IMethodSymbol>();
             public List<IMethodSymbol> ParameterConversions { get; } = new List<IMethodSymbol>();
             public List<IMethodSymbol> ReturnConversions { get; } = new List<IMethodSymbol>();
             public List<IMethodSymbol> ExecutionHandlers { get; } = new List<IMethodSymbol>();
@@ -176,9 +181,13 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                     IMethodSymbol methodSymbol = (context.SemanticModel.GetDeclaredSymbol(methodSyntax) as IMethodSymbol)!;
                     if (methodSymbol.ContainingType.DeclaredAccessibility == Accessibility.Public && methodSymbol.DeclaredAccessibility == Accessibility.Public && methodSymbol.IsStatic)
                     {
-                        if (HasCustomAttribute(methodSymbol, "ExcelDna.Integration.ExcelFunctionAttribute") || HasCustomAttribute(methodSymbol, "ExcelDna.Integration.ExcelCommandAttribute"))
+                        if (HasCustomAttribute(methodSymbol, "ExcelDna.Integration.ExcelFunctionAttribute"))
                         {
                             Functions.Add(methodSymbol);
+                        }
+                        else if (HasCustomAttribute(methodSymbol, "ExcelDna.Integration.ExcelCommandAttribute"))
+                        {
+                            Commands.Add(methodSymbol);
                         }
                         else if (HasCustomAttribute(methodSymbol, "ExcelDna.Integration.ExcelParameterConversionAttribute"))
                         {

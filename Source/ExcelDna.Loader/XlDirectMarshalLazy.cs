@@ -1,5 +1,6 @@
 ﻿//  Copyright (c) Govert van Drimmelen. All rights reserved.
 //  Excel-DNA is licensed under the zlib license. See LICENSE.txt for details.
+#if !USE_STATIC_REGISTRATION
 
 using System;
 using System.Threading;
@@ -538,3 +539,5 @@ namespace ExcelDna.Loader
         #endregion
     }
 }
+
+#endif

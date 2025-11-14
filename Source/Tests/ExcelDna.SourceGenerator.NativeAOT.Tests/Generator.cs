@@ -192,6 +192,8 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
         [BODY]
 
 
+                    ExcelDna.Registration.StaticRegistration.DirectMarshalTypeAdapter = new DirectMarshalTypeAdapter();
+        
                     return ExcelDna.ManagedHost.AddInInitialize.InitializeNativeAOT(xlAddInExportInfoAddress, hModuleXll, pPathXLL, disableAssemblyContextUnload, pTempDirPath);
                 }
             }
@@ -202,7 +204,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 List<MethodInfo> methodRefs = new List<MethodInfo>();
                 """;
             string body = $"{functions}\r\n\r\n\r\n{assemblyAttributes}\r\n\r\n{parameterConversions}\r\n{returnConversions}\r\n\r\n{executionHandlers}";
-            SourceGeneratorDriver.Verify(sourceCode, template.Replace("[BODY]", body));
+            SourceGeneratorDriver.Verify(sourceCode, template.Replace("[BODY]", body), null);
         }
     }
 }

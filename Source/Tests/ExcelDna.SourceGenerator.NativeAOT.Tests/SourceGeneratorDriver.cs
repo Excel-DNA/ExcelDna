@@ -5,7 +5,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
 {
     internal class SourceGeneratorDriver
     {
-        public static void Verify(string sourceCode, string expected)
+        public static void Verify(string sourceCode, string? expected0, string? expected1)
         {
             Compilation inputCompilation = CSharpCompilation.Create("compilation",
                 [CSharpSyntaxTree.ParseText(sourceCode)],
@@ -21,20 +21,23 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
             GeneratorDriver driver = CSharpGeneratorDriver.Create(generator).RunGeneratorsAndUpdateCompilation(inputCompilation, out var outputCompilation, out var diagnostics);
 
             Assert.Empty(diagnostics);
-            Assert.True(outputCompilation.SyntaxTrees.Count() == 2);
+            Assert.True(outputCompilation.SyntaxTrees.Count() == 3);
             var outputCompilationDiagnostics = outputCompilation.GetDiagnostics();
             Assert.Empty(outputCompilationDiagnostics);
 
             GeneratorDriverRunResult runResult = driver.GetRunResult();
-            Assert.True(runResult.GeneratedTrees.Length == 1);
+            Assert.True(runResult.GeneratedTrees.Length == 2);
             Assert.Empty(runResult.Diagnostics);
 
             GeneratorRunResult generatorResult = runResult.Results[0];
             Assert.True(generatorResult.Generator == generator);
             Assert.Empty(generatorResult.Diagnostics);
-            Assert.True(generatorResult.GeneratedSources.Length == 1);
+            Assert.True(generatorResult.GeneratedSources.Length == 2);
             Assert.True(generatorResult.Exception is null);
-            Assert.Equal(expected, generatorResult.GeneratedSources[0].SourceText.ToString());
+            if (expected0 != null)
+                Assert.Equal(expected0, generatorResult.GeneratedSources[0].SourceText.ToString());
+            if (expected1 != null)
+                Assert.Equal(expected1, generatorResult.GeneratedSources[1].SourceText.ToString());
         }
     }
 }
