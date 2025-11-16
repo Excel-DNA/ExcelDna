@@ -37,7 +37,7 @@ namespace ExcelDna.AddIn.Tasks
                 useManagedResourceResolver = PackManagedOnWindows || !OperatingSystem.IsWindows();
 #endif
 
-                string mainNativeAssembly = Path.Combine(PublishDir, ProjectName + ".dll");
+                string mainNativeAssembly = Path.Combine(NativeOutputPath, ProjectName + ".dll");
                 IEnumerable<string> includeAssemblies = BuildTaskCommon.SplitDlls(AddInInclude, OutDirectory).Select(i => Path.Combine(OutDirectory, i));
                 string xllOutput = Path.Combine(PublishDir, ProjectName + "-AddIn64.xll");
                 File.Copy(Xll64FilePath, xllOutput, true);
@@ -79,6 +79,12 @@ namespace ExcelDna.AddIn.Tasks
         /// </summary>
         [Required]
         public string OutDirectory { get; set; }
+
+        /// <summary>
+        /// The directory in which the native built files were written to
+        /// </summary>
+        [Required]
+        public string NativeOutputPath { get; set; }
 
         /// <summary>
         /// Use multi threading
