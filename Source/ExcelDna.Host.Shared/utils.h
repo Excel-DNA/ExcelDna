@@ -96,3 +96,4 @@ std::wstring GetAddInFullPath();
 BOOL IsBufferUTF8(BYTE* buffer, DWORD bufferLength);
 
 int WriteResourceToFile(HMODULE hModuleXll, const std::wstring& resourceName, const std::wstring& resourceType, const std::wstring& filePath);
+int LoadPropertyFromResource(HMODULE hModuleXll, const std::wstring& name, std::wstring& result);

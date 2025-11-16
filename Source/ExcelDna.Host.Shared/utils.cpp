@@ -236,12 +236,15 @@ HRESULT WriteAllBytes(const std::wstring& filePath, void* buf, DWORD size)
 	if (hFile == INVALID_HANDLE_VALUE)
 		return HResultFromLastError();
 
-	DWORD dwBytesWritten;
-	if (!WriteFile(hFile, buf, size, &dwBytesWritten, NULL))
+	if (size > 0 && buf != NULL)
 	{
-		HRESULT hr = HResultFromLastError();
-		CloseHandle(hFile);
-		return hr;
+		DWORD dwBytesWritten;
+		if (!WriteFile(hFile, buf, size, &dwBytesWritten, NULL))
+		{
+			HRESULT hr = HResultFromLastError();
+			CloseHandle(hFile);
+			return hr;
+		}
 	}
 
 	if (!CloseHandle(hFile))
@@ -418,26 +421,26 @@ BOOL IsBufferUTF8(BYTE* buffer, DWORD bufferLength)
 	return true;
 }
 
-int WriteResourceToFile(HMODULE hModuleXll, const std::wstring& resourceName, const std::wstring& resourceType, const std::wstring& filePath)
+int LoadResourceBytes(HMODULE hModuleXll, const std::wstring& name, const std::wstring& type, std::vector<byte>& result)
 {
-	HRSRC hResManagedHost = FindResource(hModuleXll, resourceName.c_str(), resourceType.c_str());
+	HRSRC hResManagedHost = FindResource(hModuleXll, name.c_str(), type.c_str());
 	if (hResManagedHost == NULL)
 	{
-		ShowHostError(L"Failure to find resource " + resourceName);
+		ShowHostError(L"Failure to find resource " + name);
 		return EXIT_FAILURE;
 	}
 
 	HGLOBAL hManagedHost = LoadResource(hModuleXll, hResManagedHost);
 	if (hManagedHost == NULL)
 	{
-		ShowHostError(L"Failure to load resource " + resourceName);
+		ShowHostError(L"Failure to load resource " + name);
 		return EXIT_FAILURE;
 	}
 
 	void* buf = LockResource(hManagedHost);
 	if (buf == NULL)
 	{
-		ShowHostError(L"Failure to lock resource " + resourceName);
+		ShowHostError(L"Failure to lock resource " + name);
 		return EXIT_FAILURE;
 	}
 
@@ -446,7 +449,19 @@ int WriteResourceToFile(HMODULE hModuleXll, const std::wstring& resourceName, co
 	byte* pData;
 	int nSize = safeBytes.AccessData(&pData);
 
-	HRESULT hr = WriteAllBytes(filePath, pData, nSize);
+	result = std::vector<byte>(pData, pData + resSize);
+
+	return EXIT_SUCCESS;
+}
+
+int WriteResourceToFile(HMODULE hModuleXll, const std::wstring& resourceName, const std::wstring& resourceType, const std::wstring& filePath)
+{
+	std::vector<byte> bytes;
+	int r = LoadResourceBytes(hModuleXll, resourceName, resourceType, bytes);
+	if (r != EXIT_SUCCESS)
+		return r;
+
+	HRESULT hr = WriteAllBytes(filePath, bytes.empty() ? NULL : &bytes[0], bytes.size());
 	if (FAILED(hr))
 	{
 		std::wstringstream stream;
@@ -454,6 +469,18 @@ int WriteResourceToFile(HMODULE hModuleXll, const std::wstring& resourceName, co
 		ShowHostError(stream.str());
 		return EXIT_FAILURE;
 	}
+
+	return EXIT_SUCCESS;
+}
+
+int LoadPropertyFromResource(HMODULE hModuleXll, const std::wstring& name, std::wstring& result)
+{
+	std::vector<byte> bytes;
+	int r = LoadResourceBytes(hModuleXll, name, L"PROPERTY", bytes);
+	if (r != EXIT_SUCCESS)
+		return r;
+
+	result = bytes.empty() ? std::wstring() : std::wstring(reinterpret_cast<const wchar_t*>(&bytes[0]), bytes.size() / 2);
 
 	return EXIT_SUCCESS;
 }

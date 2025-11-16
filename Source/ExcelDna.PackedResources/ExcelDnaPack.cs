@@ -153,11 +153,11 @@ namespace ExcelDna.PackedResources
         public static int PackNativeAOT(string mainNativeAssembly, IEnumerable<string> includeAssemblies, string xllOutput, bool multithreading, bool useManagedResourceResolver, bool includePdb, IBuildLogger buildLogger)
         {
             ResourceHelper.ResourceUpdater ru = new ResourceHelper.ResourceUpdater(xllOutput, useManagedResourceResolver, buildLogger);
-            AddDllAndPdb(ru, mainNativeAssembly, "__MAIN__", ResourceHelper.TypeName.NATIVE_ASSEMBLY, null, false, multithreading, includePdb);  // Name here must exactly match name in host.cpp.
+            AddDllAndPdb(ru, mainNativeAssembly, "__MAIN__", ResourceHelper.TypeName.NATIVE_ASSEMBLY, null, false, multithreading, includePdb, true);  // Name here must exactly match name in host.cpp.
 
 #if PACKEXTENDEDDEPS
             foreach (var a in includeAssemblies.Where(IsNativeLibrary))
-                AddDllAndPdb(ru, a, Path.GetFileName(a), ResourceHelper.TypeName.NATIVE_LIBRARY, null, true, multithreading, includePdb);
+                AddDllAndPdb(ru, a, Path.GetFileName(a), ResourceHelper.TypeName.NATIVE_LIBRARY, null, true, multithreading, includePdb, false);
 #endif
 
             ru.EndUpdate();
@@ -166,9 +166,11 @@ namespace ExcelDna.PackedResources
             return 0;
         }
 
-        private static void AddDllAndPdb(ResourceHelper.ResourceUpdater ru, string dllPath, string name, ResourceHelper.TypeName typeName, string source, bool compress, bool multithreading, bool includePdb)
+        private static void AddDllAndPdb(ResourceHelper.ResourceUpdater ru, string dllPath, string name, ResourceHelper.TypeName typeName, string source, bool compress, bool multithreading, bool includePdb, bool addOriginalFileName)
         {
             ru.AddFile(File.ReadAllBytes(dllPath), name.ToUpperInvariant(), typeName, source, compress, multithreading);
+            if (addOriginalFileName)
+                ru.AddProperty(($"{name}_ORIGINAL_DLL_FILE_NAME").ToUpperInvariant(), Path.GetFileName(dllPath), source);
 
             if (!includePdb)
                 return;
@@ -178,6 +180,8 @@ namespace ExcelDna.PackedResources
                 return;
 
             ru.AddFile(File.ReadAllBytes(pdbPath), name.ToUpperInvariant(), ResourceHelper.TypeName.PDB, source, compress, multithreading);
+            if (addOriginalFileName)
+                ru.AddProperty(($"{name}_ORIGINAL_PDB_FILE_NAME").ToUpperInvariant(), Path.GetFileName(pdbPath), source);
         }
 
         static private byte[] PackDnaLibrary(string dnaPath, byte[] dnaContent, string dnaDirectory, ResourceHelper.ResourceUpdater ru, bool compress, bool multithreading, List<string> filesToPublish, bool packManagedDependencies, string[] dependenciesToExcludeParam, string outputBitness, IBuildLogger buildLogger)

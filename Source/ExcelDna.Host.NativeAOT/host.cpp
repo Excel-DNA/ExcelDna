@@ -12,14 +12,16 @@ TempDir tempDir(L"ExcelDna.Host.NativeAOT");
 
 int load_and_run(const std::wstring& basePath, XlAddInExportInfo* pExportInfo, HMODULE hModuleXll, LPCWSTR pathXll)
 {
-	std::wstring hostFile(GetAddInFullPath());
-	RenameExtension(hostFile, L".dll");
+	std::wstring hostFileName;
+	{
+		int r = LoadPropertyFromResource(hModuleXll, L"__MAIN___ORIGINAL_DLL_FILE_NAME", hostFileName);
+		if (r != EXIT_SUCCESS)
+			return r;
+	}
+	std::wstring hostFile(PathCombine(GetDirectory(GetAddInFullPath()), hostFileName));
 
 	if (!std::filesystem::exists(hostFile))
 	{
-		std::wstring hostFileName = hostFile;
-		StripPath(hostFileName);
-
 		hostFile = PathCombine(tempDir.GetPath(), hostFileName);
 		if (!std::filesystem::exists(hostFile))
 		{
@@ -31,14 +33,13 @@ int load_and_run(const std::wstring& basePath, XlAddInExportInfo* pExportInfo, H
 
 	if (FindResource(hModuleXll, L"__MAIN__", L"PDB") != NULL)
 	{
-		std::wstring pdbFile(hostFile);
-		RenameExtension(pdbFile, L".pdb");
+		std::wstring pdbFileName;
 		{
-			std::wstring addinSuffix(L"-AddIn64");
-			size_t pos = pdbFile.find(addinSuffix);
-			if (pos != std::wstring::npos)
-				pdbFile.erase(pos, addinSuffix.length());
+			int r = LoadPropertyFromResource(hModuleXll, L"__MAIN___ORIGINAL_PDB_FILE_NAME", pdbFileName);
+			if (r != EXIT_SUCCESS)
+				return r;
 		}
+		std::wstring pdbFile(PathCombine(GetDirectory(hostFile), pdbFileName));
 
 		if (!std::filesystem::exists(pdbFile))
 		{
