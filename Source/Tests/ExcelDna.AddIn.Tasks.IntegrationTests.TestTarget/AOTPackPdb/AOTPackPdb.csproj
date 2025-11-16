@@ -6,10 +6,20 @@
     <Nullable>enable</Nullable>
 
     <ExcelAddInIncludePdb>True</ExcelAddInIncludePdb>
+    <ExcelAddInInclude>MyNativeLibrary.dll</ExcelAddInInclude>
 
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <PublishAOT>true</PublishAOT>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="MyNativeLibrary.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="MyNativeLibrary.pdb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <Reference Include="ExcelDna.Integration">
