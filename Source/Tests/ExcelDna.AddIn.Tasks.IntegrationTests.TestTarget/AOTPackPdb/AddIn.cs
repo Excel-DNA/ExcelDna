@@ -10,6 +10,9 @@ namespace AOTPackPdb
         [DllImport("kernel32.dll")]
         static extern void DebugBreak();
 
+        [DllImport("kernel32.dll")]
+        static extern bool IsDebuggerPresent();
+
         [DllImport("MyNativeLibrary.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern int MySum(int a1, int a2);
 
@@ -19,7 +22,10 @@ namespace AOTPackPdb
             var message = string.Format("Excel-DNA Add-In '{0}' loaded!", thisAddInName);
             message += Environment.NewLine + MySum(40, 2);
 
-            DebugBreak();
+            if (IsDebuggerPresent())
+                DebugBreak();
+
+            System.Diagnostics.Trace.WriteLine(message);
         }
 
         public void AutoClose()
