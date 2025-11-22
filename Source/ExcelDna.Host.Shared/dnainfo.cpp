@@ -1,6 +1,7 @@
 //  Copyright (c) Govert van Drimmelen. All rights reserved.
 
 #include "dnainfo.h"
+#include "path.h"
 #include "utils.h"
 #include "resource.h"
 

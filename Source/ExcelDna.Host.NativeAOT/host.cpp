@@ -2,6 +2,7 @@
 
 #include "host.h"
 #include "exports.h"
+#include "path.h"
 #include "TempDir.h"
 #include "utils.h"
 #include "dnainfo.h"
@@ -14,9 +15,12 @@ int load_and_run(const std::wstring& basePath, XlAddInExportInfo* pExportInfo, H
 {
 	std::wstring hostFileName;
 	{
-		int r = LoadPropertyFromResource(hModuleXll, L"__MAIN___ORIGINAL_DLL_FILE_NAME", hostFileName);
+		int r = TryLoadPropertyFromResource(hModuleXll, L"__MAIN___ORIGINAL_DLL_FILE_NAME", hostFileName);
 		if (r != EXIT_SUCCESS)
-			return r;
+		{
+			hostFileName = GetFileName(GetAddInFullPath());
+			RenameExtension(hostFileName, L".dll");
+		}
 	}
 	std::wstring hostFile(PathCombine(GetDirectory(GetAddInFullPath()), hostFileName));
 

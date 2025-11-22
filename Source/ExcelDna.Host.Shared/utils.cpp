@@ -8,6 +8,7 @@
 #include <iostream>
 #include <filesystem>
 #include "dnainfo.h"
+#include "path.h"
 
 extern HMODULE hModuleCurrent;
 
@@ -127,46 +128,6 @@ std::wstring FormatString(std::wstring formatString, ...)
 	return result;
 }
 
-void RemoveFileSpecFromPath(std::wstring& filePath)
-{
-	size_t dirSepInd = filePath.find_last_of(L'\\');
-	if (dirSepInd >= 0)
-		filePath.erase(dirSepInd);
-}
-
-void StripPath(std::wstring& filePath)
-{
-	size_t dirSepInd = filePath.find_last_of(L'\\');
-	if (dirSepInd >= 0)
-		filePath.erase(0, dirSepInd + 1);
-}
-
-std::wstring GetDirectory(const std::wstring& filePath)
-{
-	std::wstring result(filePath);
-	RemoveFileSpecFromPath(result);
-	return result;
-}
-
-std::wstring GetDirectoryName(const std::wstring& filePath)
-{
-	std::wstring result(GetDirectory(filePath));
-	StripPath(result);
-	return result;
-}
-
-void RemoveExtension(std::wstring& filePath)
-{
-	size_t dotInd = filePath.find_last_of(L'.');
-	filePath.erase(dotInd);
-}
-
-void RenameExtension(std::wstring& filePath, std::wstring ext)
-{
-	size_t dotInd = filePath.find_last_of(L'.');
-	filePath.replace(dotInd, std::wstring::npos, ext);
-}
-
 HRESULT HResultFromLastError()
 {
 	return HRESULT_FROM_WIN32(GetLastError());
@@ -251,16 +212,6 @@ HRESULT WriteAllBytes(const std::wstring& filePath, void* buf, DWORD size)
 		return HResultFromLastError();
 
 	return S_OK;
-}
-
-std::wstring PathCombine(const std::wstring& path1, const std::wstring& path2)
-{
-	return path1 + L"\\" + path2;
-}
-
-std::wstring PathCombine(const std::wstring& path1, const std::wstring& path2, const std::wstring& path3)
-{
-	return PathCombine(PathCombine(path1, path2), path3);
 }
 
 BOOL IsRunningOnCluster()
@@ -483,4 +434,12 @@ int LoadPropertyFromResource(HMODULE hModuleXll, const std::wstring& name, std::
 	result = bytes.empty() ? std::wstring() : std::wstring(reinterpret_cast<const wchar_t*>(&bytes[0]), bytes.size() / 2);
 
 	return EXIT_SUCCESS;
+}
+
+int TryLoadPropertyFromResource(HMODULE hModuleXll, const std::wstring& name, std::wstring& result)
+{
+	if (FindResource(hModuleXll, name.c_str(), L"PROPERTY") == NULL)
+		return EXIT_FAILURE;
+
+	return LoadPropertyFromResource(hModuleXll, name, result);
 }
