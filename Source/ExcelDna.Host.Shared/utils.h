@@ -55,17 +55,6 @@ std::wstring LoadStringFromResource(HMODULE hModule, int id);
 
 std::wstring FormatString(std::wstring formatString, ...);
 
-void RemoveFileSpecFromPath(std::wstring& filePath);
-
-void StripPath(std::wstring& filePath);
-
-std::wstring GetDirectory(const std::wstring& filePath);
-std::wstring GetDirectoryName(const std::wstring& filePath);
-
-void RemoveExtension(std::wstring& filePath);
-
-void RenameExtension(std::wstring& filePath, std::wstring ext);
-
 HRESULT HResultFromLastError();
 std::wstring GetLastErrorMessage();
 
@@ -85,9 +74,6 @@ std::string ANSIWStringToString(const std::wstring& ws);
 
 HRESULT WriteAllBytes(const std::wstring& filePath, void* buf, DWORD size);
 
-std::wstring PathCombine(const std::wstring& path1, const std::wstring& path2);
-std::wstring PathCombine(const std::wstring& path1, const std::wstring& path2, const std::wstring& path3);
-
 void ShowMessage(int headerId, int bodyId, int footerId, HRESULT hr);
 void ShowHostError(const std::wstring& msg);
 
@@ -96,3 +82,5 @@ std::wstring GetAddInFullPath();
 BOOL IsBufferUTF8(BYTE* buffer, DWORD bufferLength);
 
 int WriteResourceToFile(HMODULE hModuleXll, const std::wstring& resourceName, const std::wstring& resourceType, const std::wstring& filePath);
+int LoadPropertyFromResource(HMODULE hModuleXll, const std::wstring& name, std::wstring& result);
+int TryLoadPropertyFromResource(HMODULE hModuleXll, const std::wstring& name, std::wstring& result);

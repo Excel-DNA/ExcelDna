@@ -20,6 +20,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)loader.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)LPenHelper.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)main.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)path.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)TempDir.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)utils.cpp" />
   </ItemGroup>
@@ -29,6 +30,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)host.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)loader.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)LPenHelper.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)path.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)resource.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)TempDir.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)utils.h" />

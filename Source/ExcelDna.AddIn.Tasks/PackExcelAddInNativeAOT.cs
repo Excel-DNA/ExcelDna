@@ -37,12 +37,12 @@ namespace ExcelDna.AddIn.Tasks
                 useManagedResourceResolver = PackManagedOnWindows || !OperatingSystem.IsWindows();
 #endif
 
-                string mainNativeAssembly = Path.Combine(PublishDir, ProjectName + ".dll");
+                string mainNativeAssembly = Path.Combine(NativeOutputPath, ProjectName + ".dll");
                 IEnumerable<string> includeAssemblies = BuildTaskCommon.SplitDlls(AddInInclude, OutDirectory).Select(i => Path.Combine(OutDirectory, i));
                 string xllOutput = Path.Combine(PublishDir, ProjectName + "-AddIn64.xll");
                 File.Copy(Xll64FilePath, xllOutput, true);
 
-                int result = ExcelDna.PackedResources.ExcelDnaPack.PackNativeAOT(mainNativeAssembly, includeAssemblies, xllOutput, RunMultithreaded, useManagedResourceResolver, _log);
+                int result = ExcelDna.PackedResources.ExcelDnaPack.PackNativeAOT(mainNativeAssembly, includeAssemblies, xllOutput, RunMultithreaded, useManagedResourceResolver, IncludePdb, _log);
                 if (result != 0)
                     throw new ApplicationException($"Pack failed with exit code {result}.");
 
@@ -81,6 +81,12 @@ namespace ExcelDna.AddIn.Tasks
         public string OutDirectory { get; set; }
 
         /// <summary>
+        /// The directory in which the native built files were written to
+        /// </summary>
+        [Required]
+        public string NativeOutputPath { get; set; }
+
+        /// <summary>
         /// Use multi threading
         /// </summary>
         [Required]
@@ -95,5 +101,10 @@ namespace ExcelDna.AddIn.Tasks
         /// Semicolon separated list of references
         /// </summary>
         public string AddInInclude { get; set; }
+
+        /// <summary>
+        /// Enable/disable including pdb files in packed add-in
+        /// </summary>
+        public bool IncludePdb { get; set; }
     }
 }

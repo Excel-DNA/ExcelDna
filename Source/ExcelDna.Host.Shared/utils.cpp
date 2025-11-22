@@ -8,6 +8,7 @@
 #include <iostream>
 #include <filesystem>
 #include "dnainfo.h"
+#include "path.h"
 
 extern HMODULE hModuleCurrent;
 
@@ -127,46 +128,6 @@ std::wstring FormatString(std::wstring formatString, ...)
 	return result;
 }
 
-void RemoveFileSpecFromPath(std::wstring& filePath)
-{
-	size_t dirSepInd = filePath.find_last_of(L'\\');
-	if (dirSepInd >= 0)
-		filePath.erase(dirSepInd);
-}
-
-void StripPath(std::wstring& filePath)
-{
-	size_t dirSepInd = filePath.find_last_of(L'\\');
-	if (dirSepInd >= 0)
-		filePath.erase(0, dirSepInd + 1);
-}
-
-std::wstring GetDirectory(const std::wstring& filePath)
-{
-	std::wstring result(filePath);
-	RemoveFileSpecFromPath(result);
-	return result;
-}
-
-std::wstring GetDirectoryName(const std::wstring& filePath)
-{
-	std::wstring result(GetDirectory(filePath));
-	StripPath(result);
-	return result;
-}
-
-void RemoveExtension(std::wstring& filePath)
-{
-	size_t dotInd = filePath.find_last_of(L'.');
-	filePath.erase(dotInd);
-}
-
-void RenameExtension(std::wstring& filePath, std::wstring ext)
-{
-	size_t dotInd = filePath.find_last_of(L'.');
-	filePath.replace(dotInd, std::wstring::npos, ext);
-}
-
 HRESULT HResultFromLastError()
 {
 	return HRESULT_FROM_WIN32(GetLastError());
@@ -236,28 +197,21 @@ HRESULT WriteAllBytes(const std::wstring& filePath, void* buf, DWORD size)
 	if (hFile == INVALID_HANDLE_VALUE)
 		return HResultFromLastError();
 
-	DWORD dwBytesWritten;
-	if (!WriteFile(hFile, buf, size, &dwBytesWritten, NULL))
+	if (size > 0 && buf != NULL)
 	{
-		HRESULT hr = HResultFromLastError();
-		CloseHandle(hFile);
-		return hr;
+		DWORD dwBytesWritten;
+		if (!WriteFile(hFile, buf, size, &dwBytesWritten, NULL))
+		{
+			HRESULT hr = HResultFromLastError();
+			CloseHandle(hFile);
+			return hr;
+		}
 	}
 
 	if (!CloseHandle(hFile))
 		return HResultFromLastError();
 
 	return S_OK;
-}
-
-std::wstring PathCombine(const std::wstring& path1, const std::wstring& path2)
-{
-	return path1 + L"\\" + path2;
-}
-
-std::wstring PathCombine(const std::wstring& path1, const std::wstring& path2, const std::wstring& path3)
-{
-	return PathCombine(PathCombine(path1, path2), path3);
 }
 
 BOOL IsRunningOnCluster()
@@ -418,26 +372,26 @@ BOOL IsBufferUTF8(BYTE* buffer, DWORD bufferLength)
 	return true;
 }
 
-int WriteResourceToFile(HMODULE hModuleXll, const std::wstring& resourceName, const std::wstring& resourceType, const std::wstring& filePath)
+int LoadResourceBytes(HMODULE hModuleXll, const std::wstring& name, const std::wstring& type, std::vector<byte>& result)
 {
-	HRSRC hResManagedHost = FindResource(hModuleXll, resourceName.c_str(), resourceType.c_str());
+	HRSRC hResManagedHost = FindResource(hModuleXll, name.c_str(), type.c_str());
 	if (hResManagedHost == NULL)
 	{
-		ShowHostError(L"Failure to find resource " + resourceName);
+		ShowHostError(L"Failure to find resource " + name);
 		return EXIT_FAILURE;
 	}
 
 	HGLOBAL hManagedHost = LoadResource(hModuleXll, hResManagedHost);
 	if (hManagedHost == NULL)
 	{
-		ShowHostError(L"Failure to load resource " + resourceName);
+		ShowHostError(L"Failure to load resource " + name);
 		return EXIT_FAILURE;
 	}
 
 	void* buf = LockResource(hManagedHost);
 	if (buf == NULL)
 	{
-		ShowHostError(L"Failure to lock resource " + resourceName);
+		ShowHostError(L"Failure to lock resource " + name);
 		return EXIT_FAILURE;
 	}
 
@@ -446,7 +400,19 @@ int WriteResourceToFile(HMODULE hModuleXll, const std::wstring& resourceName, co
 	byte* pData;
 	int nSize = safeBytes.AccessData(&pData);
 
-	HRESULT hr = WriteAllBytes(filePath, pData, nSize);
+	result = std::vector<byte>(pData, pData + resSize);
+
+	return EXIT_SUCCESS;
+}
+
+int WriteResourceToFile(HMODULE hModuleXll, const std::wstring& resourceName, const std::wstring& resourceType, const std::wstring& filePath)
+{
+	std::vector<byte> bytes;
+	int r = LoadResourceBytes(hModuleXll, resourceName, resourceType, bytes);
+	if (r != EXIT_SUCCESS)
+		return r;
+
+	HRESULT hr = WriteAllBytes(filePath, bytes.empty() ? NULL : &bytes[0], bytes.size());
 	if (FAILED(hr))
 	{
 		std::wstringstream stream;
@@ -456,4 +422,24 @@ int WriteResourceToFile(HMODULE hModuleXll, const std::wstring& resourceName, co
 	}
 
 	return EXIT_SUCCESS;
+}
+
+int LoadPropertyFromResource(HMODULE hModuleXll, const std::wstring& name, std::wstring& result)
+{
+	std::vector<byte> bytes;
+	int r = LoadResourceBytes(hModuleXll, name, L"PROPERTY", bytes);
+	if (r != EXIT_SUCCESS)
+		return r;
+
+	result = bytes.empty() ? std::wstring() : std::wstring(reinterpret_cast<const wchar_t*>(&bytes[0]), bytes.size() / 2);
+
+	return EXIT_SUCCESS;
+}
+
+int TryLoadPropertyFromResource(HMODULE hModuleXll, const std::wstring& name, std::wstring& result)
+{
+	if (FindResource(hModuleXll, name.c_str(), L"PROPERTY") == NULL)
+		return EXIT_FAILURE;
+
+	return LoadPropertyFromResource(hModuleXll, name, result);
 }

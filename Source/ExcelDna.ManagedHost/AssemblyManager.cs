@@ -146,6 +146,15 @@ namespace ExcelDna.ManagedHost
                 Directory.CreateDirectory(tempDirPath);
                 File.WriteAllBytes(dllPath, dllBytes);
             }
+
+            byte[] pdbBytes = GetResourceBytes(unmanagedDllName.ToUpperInvariant(), 4);
+            if (pdbBytes != null)
+            {
+                string pdbPath = Path.ChangeExtension(dllPath, "pdb");
+                if (!File.Exists(pdbPath))
+                    File.WriteAllBytes(pdbPath, pdbBytes);
+            }
+
             return dllPath;
 #else
             return null;
