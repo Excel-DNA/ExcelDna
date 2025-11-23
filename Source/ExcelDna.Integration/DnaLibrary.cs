@@ -284,7 +284,9 @@ namespace ExcelDna.Integration
         {
             Logger.Initialization.Verbose("{0} - Begin Initialize", Name);
             // Get MethodsInfos and AddIn classes from assemblies
+#if !COM_GENERATED
             List<Type> rtdServerTypes = new List<Type>();
+#endif
             List<ExcelComClassType> comClassTypes = new List<ExcelComClassType>();
 
             // Recursively get assemblies down .dna tree.
@@ -305,13 +307,16 @@ namespace ExcelDna.Integration
             Registration.StaticRegistration.ExcelAddIns.ForEach(i => AssemblyLoader.GetExcelAddIns(null, i, _addIns));
             ObjectHandles.ObjectHandleRegistration.ProcessAssemblyAttributes(Registration.StaticRegistration.AssemblyAttributes);
 
+#if !COM_GENERATED
             // Register RTD Server Types (i.e. remember that these types are available as RTD servers, with relevant ProgId etc.)
             RtdRegistration.RegisterRtdServerTypes(rtdServerTypes.Select(i => new TypeHelperDynamic(i)));
+#endif
 
             // CAREFUL: This interacts with the implementation of ExcelRtdServer to implement the thread-safe synchronization.
             // Check whether we have an ExcelRtdServer type, and need to install the Sync Window
             // Uninstalled in the AutoClose
             bool installSyncManager = false;
+#if !COM_GENERATED
             foreach (Type rtdType in rtdServerTypes)
             {
                 if (rtdType.IsSubclassOf(typeof(ExcelRtdServer)))
@@ -320,6 +325,7 @@ namespace ExcelDna.Integration
                     break;
                 }
             }
+#endif
             if (installSyncManager)
             {
                 try
