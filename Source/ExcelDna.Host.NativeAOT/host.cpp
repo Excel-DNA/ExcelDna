@@ -2,6 +2,7 @@
 
 #include "host.h"
 #include "exports.h"
+#include "path.h"
 #include "TempDir.h"
 #include "utils.h"
 #include "dnainfo.h"
@@ -12,18 +13,41 @@ TempDir tempDir(L"ExcelDna.Host.NativeAOT");
 
 int load_and_run(const std::wstring& basePath, XlAddInExportInfo* pExportInfo, HMODULE hModuleXll, LPCWSTR pathXll)
 {
-	std::wstring hostFile(GetAddInFullPath());
-	RenameExtension(hostFile, L".dll");
+	std::wstring hostFileName;
+	{
+		int r = TryLoadPropertyFromResource(hModuleXll, L"__MAIN___ORIGINAL_DLL_FILE_NAME", hostFileName);
+		if (r != EXIT_SUCCESS)
+		{
+			hostFileName = GetFileName(GetAddInFullPath());
+			RenameExtension(hostFileName, L".dll");
+		}
+	}
+	std::wstring hostFile(PathCombine(GetDirectory(GetAddInFullPath()), hostFileName));
 
 	if (!std::filesystem::exists(hostFile))
 	{
-		std::wstring hostFileName = hostFile;
-		StripPath(hostFileName);
-
 		hostFile = PathCombine(tempDir.GetPath(), hostFileName);
 		if (!std::filesystem::exists(hostFile))
 		{
 			int r = WriteResourceToFile(hModuleXll, L"__MAIN__", L"NATIVE_ASSEMBLY", hostFile);
+			if (r != EXIT_SUCCESS)
+				return r;
+		}
+	}
+
+	if (FindResource(hModuleXll, L"__MAIN__", L"PDB") != NULL)
+	{
+		std::wstring pdbFileName;
+		{
+			int r = LoadPropertyFromResource(hModuleXll, L"__MAIN___ORIGINAL_PDB_FILE_NAME", pdbFileName);
+			if (r != EXIT_SUCCESS)
+				return r;
+		}
+		std::wstring pdbFile(PathCombine(GetDirectory(hostFile), pdbFileName));
+
+		if (!std::filesystem::exists(pdbFile))
+		{
+			int r = WriteResourceToFile(hModuleXll, L"__MAIN__", L"PDB", pdbFile);
 			if (r != EXIT_SUCCESS)
 				return r;
 		}

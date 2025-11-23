@@ -27,6 +27,7 @@ internal static class ResourceHelper
         NATIVE_LIBRARY = 5,
         DOC = 6,
         NATIVE_ASSEMBLY = 7,
+        PROPERTY = 8,
     }
 
     // TODO: Learn about locales
@@ -215,6 +216,12 @@ internal static class ResourceHelper
             }
 
             return typelibIndex;
+        }
+
+        public void AddProperty(string name, string value, string source)
+        {
+            Debug.Assert(name == name.ToUpperInvariant());
+            DoUpdateResource(TypeName.PROPERTY.ToString(), name, source, System.Text.Encoding.Unicode.GetBytes(value));
         }
 
         public void DoUpdateResource(string typeName, string name, string source, byte[] data)
