@@ -21,6 +21,7 @@ namespace ExcelDna.Integration
         // For the first version we don't make separate TraceSources for each class, though in future we might specialize under 
         // the ExcelDna.Integration namespace, so listening to ExcelDna.Integration* will be the forward-compatible pattern. 
 
+#if !COM_GENERATED
         // Consolidated processing so we only have a single pass through the types.
         // CONSIDER: This is pretty ugly right now (both the flow and the names.)
         //           Try some fancy visitor pattern?
@@ -116,6 +117,7 @@ namespace ExcelDna.Integration
                 }
             }
         }
+#endif
 
         public static void GetExcelMethods(IEnumerable<MethodInfo> mis, bool explicitExports, List<MethodInfo> excelMethods, List<Registration.ExcelFunctionRegistration> excelFunctionsExtendedRegistration)
         {
@@ -170,6 +172,7 @@ namespace ExcelDna.Integration
             }
         }
 
+#if !COM_GENERATED
         static void GetExcelParameterConversions(Type t, List<ExtendedRegistration.ExcelParameterConversion> excelParameterConversions)
         {
             GetExcelParameterConversions(t.GetMethods(BindingFlags.Public | BindingFlags.Static), excelParameterConversions);
@@ -215,6 +218,7 @@ namespace ExcelDna.Integration
         {
             GetExcelFunctionExecutionHandlerSelectors(type.GetMethods(BindingFlags.Public | BindingFlags.Static), excelFunctionExecutionHandlerSelectors);
         }
+#endif
 
         static bool IsMethodSupported(MethodInfo mi, bool explicitExports)
         {

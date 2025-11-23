@@ -294,7 +294,9 @@ namespace ExcelDna.Integration
             var excelReturnConversions = new List<ExtendedRegistration.ExcelReturnConversion>();
             var excelFunctionExecutionHandlerSelectors = new List<Registration.FunctionExecutionHandlerSelector>();
             var excelFunctionProcessors = new List<ExtendedRegistration.ExcelFunctionProcessor>();
+#if !COM_GENERATED
             AssemblyLoader.ProcessAssemblies(_exportedAssemblies, _methods, excelParameterConversions, excelReturnConversions, excelFunctionProcessors, _excelFunctionsExtendedRegistration, excelFunctionExecutionHandlerSelectors, _addIns, rtdServerTypes, comClassTypes);
+#endif
             AssemblyLoader.GetExcelParameterConversions(Registration.StaticRegistration.ExcelParameterConversions, excelParameterConversions);
             AssemblyLoader.GetExcelReturnConversions(Registration.StaticRegistration.ExcelReturnConversions, excelReturnConversions);
             AssemblyLoader.GetExcelFunctionExecutionHandlerSelectors(Registration.StaticRegistration.ExcelFunctionExecutionHandlerSelectors, excelFunctionExecutionHandlerSelectors);
