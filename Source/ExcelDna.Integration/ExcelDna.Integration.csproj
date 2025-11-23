@@ -18,6 +18,7 @@
   <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);COM_GENERATED</DefineConstants>
+    <IsTrimmable>true</IsTrimmable>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
