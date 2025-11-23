@@ -86,17 +86,17 @@
 		SkipUnchangedFiles="true" />
 
 	<Copy 
-		Condition="Exists('$(ProjectDir)..\ExcelDna.Loader\bin\$(Configuration)\net8.0-windows\ExcelDna.Loader.dll')"
-		SourceFiles="$(ProjectDir)..\ExcelDna.Loader\bin\$(Configuration)\net8.0-windows\ExcelDna.Loader.dll"
-		DestinationFiles="$(ExcelDnaTestPackageDir)tools\net8.0-windows7.0\ExcelDna.Loader.dll"
+		Condition="Exists('$(ProjectDir)..\ExcelDna.Loader\bin\$(Configuration)\net10.0-windows\ExcelDna.Loader.dll')"
+		SourceFiles="$(ProjectDir)..\ExcelDna.Loader\bin\$(Configuration)\net10.0-windows\ExcelDna.Loader.dll"
+		DestinationFiles="$(ExcelDnaTestPackageDir)tools\net10.0-windows7.0\ExcelDna.Loader.dll"
 		ContinueOnError="false"
 		OverwriteReadOnlyFiles="true"
 		SkipUnchangedFiles="true" />
 
 	<Copy 
-		Condition="Exists('$(ProjectDir)..\ExcelDna.Integration\bin\$(Configuration)\net8.0-windows\ExcelDna.Integration.dll')"
-		SourceFiles="$(ProjectDir)..\ExcelDna.Integration\bin\$(Configuration)\net8.0-windows\ExcelDna.Integration.dll"
-		DestinationFiles="$(ExcelDnaTestPackageDir)tools\net8.0-windows7.0\ExcelDna.Integration.dll"
+		Condition="Exists('$(ProjectDir)..\ExcelDna.Integration\bin\$(Configuration)\net10.0-windows\ExcelDna.Integration.dll')"
+		SourceFiles="$(ProjectDir)..\ExcelDna.Integration\bin\$(Configuration)\net10.0-windows\ExcelDna.Integration.dll"
+		DestinationFiles="$(ExcelDnaTestPackageDir)tools\net10.0-windows7.0\ExcelDna.Integration.dll"
 		ContinueOnError="false"
 		OverwriteReadOnlyFiles="true"
 		SkipUnchangedFiles="true" />
