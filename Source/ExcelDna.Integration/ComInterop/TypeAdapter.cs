@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if !COM_GENERATED
+
+using System;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -30,11 +32,7 @@ namespace ExcelDna.Integration.ComInterop
             IntPtr pUnk = Marshal.GetIUnknownForObject(comObject);
 
             IntPtr pObj;
-            Marshal.QueryInterface(pUnk,
-#if !COM_GENERATED
-                ref
-#endif
-                guid, out pObj);
+            Marshal.QueryInterface(pUnk, ref guid, out pObj);
             return (pObj != IntPtr.Zero);
         }
 
@@ -66,11 +64,7 @@ namespace ExcelDna.Integration.ComInterop
         public IntPtr QueryInterface(CLSID guid, object comObject)
         {
             IntPtr punk = Marshal.GetIUnknownForObject(comObject);
-            if (Marshal.QueryInterface(punk,
-#if !COM_GENERATED
-                ref
-#endif
-                guid, out IntPtr result) == 0)
+            if (Marshal.QueryInterface(punk, ref guid, out IntPtr result) == 0)
             {
                 return result;
             }
@@ -79,3 +73,5 @@ namespace ExcelDna.Integration.ComInterop
         }
     }
 }
+
+#endif
