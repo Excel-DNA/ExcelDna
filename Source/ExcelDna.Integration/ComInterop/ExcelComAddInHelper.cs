@@ -68,9 +68,11 @@ namespace ExcelDna.Integration
             string friendlyName;
             if (addIn.FriendlyName != null)
                 friendlyName = addIn.FriendlyName;
-            else if (addIn is ExcelRibbon
+            else if (
 #if COM_GENERATED
-                || addIn is ComInterop.Generator.ExcelRibbon
+                addIn is ComInterop.Generator.ExcelRibbon
+#else
+                addIn is ExcelRibbon
 #endif
                 )
                 friendlyName = addIn.DnaLibrary.Name; // + " (Ribbon Helper)"; (No more - it is displayed in the Ribbon tooltip!)
