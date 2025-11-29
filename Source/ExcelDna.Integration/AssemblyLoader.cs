@@ -368,12 +368,13 @@ namespace ExcelDna.Integration
 
         }
 
+#if !COM_GENERATED
         // DOCUMENT: We register types that implement an interface with the IRtdServer Guid. These include
         //           "Microsoft.Office.Interop.Excel.IRtdServer" and
         //           "ExcelDna.Integration.Rtd.IRtdServer".
         // The RTD server can be accessed using the ExcelDnaUtil.RTD function under the 
         // FullName of the type, or under the ProgId defined in an attribute, if there is one.
-        static public void GetRtdServerTypes(Type t, List<Type> rtdServerTypes, out bool isRtdServer)
+        static private void GetRtdServerTypes(Type t, List<Type> rtdServerTypes, out bool isRtdServer)
         {
             isRtdServer = false;
             Type[] itfs = t.GetInterfaces();
@@ -397,7 +398,7 @@ namespace ExcelDna.Integration
 
         // DOCUMENT: We register ComVisible types that
         //           (implement IRtdServer OR are in ExternalLibraries marked ComServer='true'
-        static public void GetComClassTypes(ExportedAssembly assembly, Type type, object[] attributes, bool isRtdServer, List<ExcelComClassType> comClassTypes)
+        static private void GetComClassTypes(ExportedAssembly assembly, Type type, object[] attributes, bool isRtdServer, List<ExcelComClassType> comClassTypes)
         {
             if (!Marshal.IsTypeVisibleFromCom(type))
             {
@@ -450,6 +451,7 @@ namespace ExcelDna.Integration
                 Logger.Initialization.Verbose("GetComClassTypes - Found type {0}, with ProgId {1}", type.FullName, progId);
             }
         }
+#endif
 
         static bool IsRibbonType(Type type)
         {
