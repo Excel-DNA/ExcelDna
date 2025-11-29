@@ -13,6 +13,7 @@ namespace ExcelDna.Integration
     }
 
     public class TypeHelper<T> : ITypeHelper
+        where T : new()
     {
         public TypeHelper(IEnumerable<MethodInfo> methods)
         {
