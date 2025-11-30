@@ -165,6 +165,7 @@ namespace ExcelDna.ComInterop
             Registry.SetValue(rootKeyName + @"\CLSID\" + clsIdString + @"\InProcServer32", "ThreadingModel", "Both", RegistryValueKind.String);
             Registry.SetValue(rootKeyName + @"\CLSID\" + clsIdString + @"\ProgID", null, ProgId, RegistryValueKind.String);
 
+#if !COM_GENERATED
             if (!string.IsNullOrEmpty(TypeLibPath))
             {
                 Guid? typeLibId = RegisterTypeLibrary(rootKeyName);
@@ -174,6 +175,7 @@ namespace ExcelDna.ComInterop
                         null, typeLibId.Value.ToString("B").ToUpperInvariant(), RegistryValueKind.String);
                 }
             }
+#endif
         }
 
         // Can throw UnauthorizedAccessException if nothing is writeable
@@ -183,6 +185,7 @@ namespace ExcelDna.ComInterop
 
             RegistryKey rootKey = RegistrationUtil.ClassesRootKey;
 
+#if !COM_GENERATED
             if (!string.IsNullOrEmpty(TypeLibPath))
             {
                 try
@@ -194,6 +197,7 @@ namespace ExcelDna.ComInterop
                     Debug.Print("ComServer.UnregisterServer - UnregisterTypeLib error : " + e.ToString());
                 }
             }
+#endif
             try
             {
                 rootKey.DeleteSubKeyTree(ProgId);
@@ -212,6 +216,7 @@ namespace ExcelDna.ComInterop
             }
         }
 
+#if !COM_GENERATED
         private Guid? RegisterTypeLibrary(string rootKeyName)
         {
             ITypeLib typeLib;
@@ -298,6 +303,6 @@ namespace ExcelDna.ComInterop
                 Debug.Print("TypeLibHelper.UnregisterServer error : " + e);
             }
         }
-
+#endif
     }
 }
