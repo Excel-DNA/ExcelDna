@@ -224,7 +224,7 @@ namespace ExcelDna.Integration
             set { _Images = value; }
         }
 
-        private string dnaResolveRoot;
+        private string dnaResolveRoot = null;
 
         // Get projects explicit and implicitly present in the library
         public List<Project> GetProjects()
