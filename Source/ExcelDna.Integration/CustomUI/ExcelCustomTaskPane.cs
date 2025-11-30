@@ -1,4 +1,6 @@
-﻿//  Copyright (c) Govert van Drimmelen. All rights reserved.
+﻿#if !COM_GENERATED
+
+//  Copyright (c) Govert van Drimmelen. All rights reserved.
 //  Excel-DNA is licensed under the zlib license. See LICENSE.txt for details.
 
 using System;
@@ -18,11 +20,11 @@ namespace ExcelDna.Integration.CustomUI
         // So we use WeakReferences to not interfere with lifetime, but have a chance to clean up for live ones.
         private static readonly List<WeakReference> _customTaskPanes = new List<WeakReference>();
 
-        public static CustomTaskPane CreateCustomTaskPane(Type userControlType, string title) 
+        public static CustomTaskPane CreateCustomTaskPane(Type userControlType, string title)
         {
             return CreateCustomTaskPane(userControlType, title, Type.Missing);
         }
-        
+
         public static CustomTaskPane CreateCustomTaskPane(Type userControlType, string title, object parent)
         {
             object userControl = Activator.CreateInstance(userControlType);
@@ -61,7 +63,7 @@ namespace ExcelDna.Integration.CustomUI
             }
             catch (UnauthorizedAccessException secex)
             {
-                Logger.Initialization.Error(secex, 
+                Logger.Initialization.Error(secex,
                     "The CTP Helper could not be registered.\r\nThis may be due to restricted permissions on the user's HKCU\\Software\\Classes key.");
                 return null;
             }
@@ -140,3 +142,4 @@ namespace ExcelDna.Integration.CustomUI
 
 }
 
+#endif
