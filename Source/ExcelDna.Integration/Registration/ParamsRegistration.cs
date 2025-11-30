@@ -185,16 +185,22 @@ namespace ExcelDna.Registration
             // And put the (converted) arguments into the list
             for (int i = normalParamCount + 1; i <= maxArguments; i++)
             {
+#pragma warning disable IL2026
+                // Guaranteed to work by the SourceGenerator adding to methodRefs.
                 var testParam = Expression.IfThen(Expression.GreaterThanOrEqual(lastArgVarExpr, Expression.Constant(i)),
                                     Expression.Call(argsListVarExpr, "Add", null,
                                         TypeConversion.GetConversion(allParamExprs[i - 1], argsType)));
+#pragma warning restore IL2026
 
                 blockExprs.Add(testParam);
             }
             var argArrayVarExpr = Expression.Variable(argsArrayType);
             blockVars.Add(argArrayVarExpr);
 
+#pragma warning disable IL2026
+            // Guaranteed to work by the SourceGenerator adding to methodRefs.
             var argArrayAssignExpr = Expression.Assign(argArrayVarExpr, Expression.Call(argsListVarExpr, "ToArray", null));
+#pragma warning restore IL2026
             blockExprs.Add(argArrayAssignExpr);
 
             var innerParams = new List<Expression>(normalParams) { argArrayVarExpr };
