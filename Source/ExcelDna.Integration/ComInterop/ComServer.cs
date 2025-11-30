@@ -85,8 +85,11 @@ namespace ExcelDna.ComInterop
             }
 
             ComAPI.IClassFactory factory;
-            if (registeredClassFactories.TryGetValue(clsid, out factory) ||
-                TryGetComClassType(clsid, out factory))
+            if (registeredClassFactories.TryGetValue(clsid, out factory)
+#if !COM_GENERATED
+                || TryGetComClassType(clsid, out factory)
+#endif
+                )
             {
 #if COM_GENERATED
                 ComWrappers cw = new System.Runtime.InteropServices.Marshalling.StrategyBasedComWrappers();
@@ -112,6 +115,7 @@ namespace ExcelDna.ComInterop
             return ComAPI.CLASS_E_CLASSNOTAVAILABLE;
         }
 
+#if !COM_GENERATED
         static bool TryGetComClassType(CLSID clsId, out ComAPI.IClassFactory factory)
         {
             // Check among the persistently registered classes
@@ -126,6 +130,7 @@ namespace ExcelDna.ComInterop
             factory = null;
             return false;
         }
+#endif
 
         internal static HRESULT DllCanUnloadNow()
         {
