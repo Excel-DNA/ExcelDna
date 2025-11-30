@@ -24,6 +24,7 @@
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
     <Compile Remove="LogDisplay.cs" />
     <Compile Remove="LogDisplay.Designer.cs" />
+    <Compile Remove="DnaLibrarySerialization.cs" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' != 'net10.0-windows'">

@@ -11,7 +11,10 @@ using System.Xml.Serialization;
 using System.Xml;
 using System.Drawing;
 
+#if USE_WINDOWS_FORMS
 using ExcelDna.Serialization;
+#endif
+
 using ExcelDna.Integration.CustomUI;
 using ExcelDna.Integration.Rtd;
 using ExcelDna.ComInterop;
@@ -551,6 +554,7 @@ namespace ExcelDna.Integration
 
         public static DnaLibrary LoadFrom(byte[] bytes, string pathResolveRoot)
         {
+#if USE_WINDOWS_FORMS
             DnaLibrary dnaLibrary;
             XmlSerializer serializer = new DnaLibrarySerializer();
 
@@ -568,10 +572,14 @@ namespace ExcelDna.Integration
             }
             dnaLibrary.dnaResolveRoot = pathResolveRoot;
             return dnaLibrary;
+#else
+            return null;
+#endif
         }
 
         public static DnaLibrary LoadFrom(string fileName)
         {
+#if USE_WINDOWS_FORMS
             DnaLibrary dnaLibrary;
 
             if (!File.Exists(fileName))
@@ -596,8 +604,12 @@ namespace ExcelDna.Integration
             }
             dnaLibrary.dnaResolveRoot = Path.GetDirectoryName(fileName);
             return dnaLibrary;
+#else
+            return null;
+#endif
         }
 
+#if USE_WINDOWS_FORMS
         public static void Save(string fileName, DnaLibrary dnaLibrary)
         {
             //			XmlSerializer serializer = new XmlSerializer(typeof(DnaLibrary));
@@ -607,9 +619,11 @@ namespace ExcelDna.Integration
                 serializer.Serialize(fileStream, dnaLibrary);
             }
         }
+#endif
 
         public static byte[] Save(DnaLibrary dnaLibrary)
         {
+#if USE_WINDOWS_FORMS
             //			XmlSerializer serializer = new XmlSerializer(typeof(DnaLibrary));
             XmlSerializer serializer = new DnaLibrarySerializer();
             using (MemoryStream ms = new MemoryStream())
@@ -617,6 +631,9 @@ namespace ExcelDna.Integration
                 serializer.Serialize(ms, dnaLibrary);
                 return ms.ToArray();
             }
+#else
+            throw new NotImplementedException("DnaLibrary.Save");
+#endif
         }
 
         public static DnaLibrary CurrentLibrary
