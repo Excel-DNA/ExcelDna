@@ -40,6 +40,34 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
         }
 
         [Fact]
+        public void ReturnsTask()
+        {
+            Verify("""
+                using ExcelDna.Integration;
+                using System.Threading.Tasks;
+
+                namespace ExcelDna.AddIn.RuntimeTestsAOT
+                {
+                    public class Functions
+                    {
+                        [ExcelFunction]
+                        public static Task<bool> NativeTaskBool()
+                        {
+                            return Task.FromResult(true);
+                        }
+                    }
+                }
+                """, functions: """
+                List<Type> typeRefs = new List<Type>();
+                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeTaskBool")!);
+                typeRefs.Add(typeof(Func<System.Threading.Tasks.Task<bool>>));
+                
+                List<MethodInfo> methodRefs = new List<MethodInfo>();
+                methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod("RunTask")!.MakeGenericMethod(typeof(bool)));
+                """);
+        }
+
+        [Fact]
         public void AssemblyAttributes()
         {
             Verify("""

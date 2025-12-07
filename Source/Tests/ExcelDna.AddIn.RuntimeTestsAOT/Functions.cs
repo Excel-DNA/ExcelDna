@@ -46,6 +46,12 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         }
 
         [ExcelFunction]
+        public static Task<bool> NativeTaskBool()
+        {
+            return Task.FromResult(true);
+        }
+
+        [ExcelFunction]
         public static string NativeApplicationName()
         {
             return (string)ExcelDnaUtil.DynamicApplication.Get("Name")!;

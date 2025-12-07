@@ -35,10 +35,18 @@ namespace ExcelDna.RuntimeTests
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
         public void TaskInstant()
         {
-            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
-            functionRange.Formula = "=NativeTaskHello(\"world\")";
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+                functionRange.Formula = "=NativeTaskHello(\"world\")";
 
-            Assert.Equal("Hello native task world", functionRange.Value.ToString());
+                Assert.Equal("Hello native task world", functionRange.Value.ToString());
+            }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
+                functionRange.Formula = "=NativeTaskBool()";
+
+                Assert.Equal("True", functionRange.Value.ToString());
+            }
         }
 
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]

@@ -107,6 +107,11 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                         functions += $"typeRefs.Add(typeof(Func<{Util.CreateFunc16Args(i)}>));\r\n";
                     }
 
+                    if (i.ReturnType is INamedTypeSymbol named && named.IsGenericType && Util.GetFullGenericTypeName(named) == "System.Threading.Tasks.Task")
+                    {
+                        methods += $"methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod(\"RunTask\")!.MakeGenericMethod(typeof({Util.GetFullTypeName(named.TypeArguments.First())})));\r\n";
+                    }
+
                     functions += "\r\n";
                 }
                 source = source.Replace("[FUNCTIONS]", functions + methods);
