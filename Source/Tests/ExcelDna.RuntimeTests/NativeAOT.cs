@@ -50,6 +50,15 @@ namespace ExcelDna.RuntimeTests
         }
 
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void AsyncInstant()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+            functionRange.Formula = "=NativeAsyncBool()";
+
+            Assert.Equal("True", functionRange.Value.ToString());
+        }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
         public void DefaultAsyncReturnValue()
         {
             Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];

@@ -68,6 +68,33 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
         }
 
         [Fact]
+        public void AsyncFunction()
+        {
+            Verify("""
+                using ExcelDna.Registration;
+
+                namespace ExcelDna.AddIn.RuntimeTestsAOT
+                {
+                    public class Functions
+                    {
+                        [ExcelAsyncFunction]
+                        public static bool NativeAsyncBool()
+                        {
+                            return true;
+                        }
+                    }
+                }
+                """, functions: """
+                List<Type> typeRefs = new List<Type>();
+                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeAsyncBool")!);
+                typeRefs.Add(typeof(Func<bool>));
+                
+                List<MethodInfo> methodRefs = new List<MethodInfo>();
+                methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod("RunAsTask")!.MakeGenericMethod(typeof(bool)));
+                """);
+        }
+
+        [Fact]
         public void AssemblyAttributes()
         {
             Verify("""

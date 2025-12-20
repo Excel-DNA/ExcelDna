@@ -51,6 +51,12 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
             return Task.FromResult(true);
         }
 
+        [ExcelAsyncFunction]
+        public static bool NativeAsyncBool()
+        {
+            return true;
+        }
+
         [ExcelFunction]
         public static string NativeApplicationName()
         {

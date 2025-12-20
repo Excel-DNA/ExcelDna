@@ -49,6 +49,13 @@ namespace ExcelDna.SourceGenerator.NativeAOT
             return method.Parameters.Length > 0 && method.Parameters.Last().IsParams && method.Parameters.Last().Type is IArrayTypeSymbol;
         }
 
+
+        public static bool HasCustomAttribute(IMethodSymbol methodSymbol, string attribute)
+        {
+            return methodSymbol.GetAttributes().Any(a => a.AttributeClass != null &&
+                    Util.TypeHasAncestorWithFullName(a.AttributeClass, attribute));
+        }
+
         public static string CreateFunc16Args(IMethodSymbol method)
         {
             List<ITypeSymbol?> allParamTypes = method.Parameters.Take(method.Parameters.Length - 1).Select(p => p.Type).Cast<ITypeSymbol?>().ToList();
