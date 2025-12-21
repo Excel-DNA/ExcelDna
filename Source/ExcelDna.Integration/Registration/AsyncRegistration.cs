@@ -268,6 +268,9 @@ namespace ExcelDna.Registration
 
         static LambdaExpression WrapMethodNativeAsyncTask(LambdaExpression functionLambda)
         {
+#if COM_GENERATED
+            throw new NotImplementedException("WrapMethodNativeAsyncTask is not supported in AOT.");
+#else
             /* Either, from a lambda expression that looks like this:
              * 
              *      static Task<string> myFunc(string name, int msDelay) {...}
@@ -314,10 +317,14 @@ namespace ExcelDna.Registration
             // Wrap with all the parameters
             var allParams = new List<ParameterExpression>(newParams) { asyncHandleParam };
             return Expression.Lambda(callTaskRun, functionLambda.Name, allParams);
+#endif
         }
 
         static LambdaExpression WrapMethodNativeAsyncTaskWithCancellation(LambdaExpression functionLambda)
         {
+#if COM_GENERATED
+            throw new NotImplementedException("WrapMethodNativeAsyncTaskWithCancellation is not supported in AOT.");
+#else
             /* Either, from a lambda expression that looks like this:
              * 
              *      static Task<string> myFunc(string name, int msDelay, CancellationToken ct) {...}
@@ -371,6 +378,7 @@ namespace ExcelDna.Registration
             // Wrap with all the parameters, and Compile to a Delegate
             var allParams = new List<ParameterExpression>(newParams) { asyncHandleParam };
             return Expression.Lambda(callTaskRun, functionLambda.Name, allParams);
+#endif
         }
 
         static LambdaExpression WrapMethodObservable(LambdaExpression functionLambda, List<object> returnCustomAttributes)
