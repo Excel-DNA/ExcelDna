@@ -195,7 +195,7 @@ namespace ExcelDna.Integration
             });
         }
 
-        internal static object RunTaskObjectWithCancellation<TResult>(string callerFunctionName, object callerParameters, Func<CancellationToken, Task<TResult>> taskSource)
+        public static object RunTaskObjectWithCancellation<TResult>(string callerFunctionName, object callerParameters, Func<CancellationToken, Task<TResult>> taskSource)
         {
             return Observe(callerFunctionName, callerParameters, delegate
             {
@@ -210,7 +210,7 @@ namespace ExcelDna.Integration
             return RunTaskObject(callerFunctionName, callerParameters, () => Task.Factory.StartNew(function));
         }
 
-        internal static object RunAsTaskObjectWithCancellation<TResult>(string callerFunctionName, object callerParameters, Func<CancellationToken, TResult> function)
+        public static object RunAsTaskObjectWithCancellation<TResult>(string callerFunctionName, object callerParameters, Func<CancellationToken, TResult> function)
         {
             return RunTaskObjectWithCancellation(callerFunctionName, callerParameters, cancellationToken => Task.Factory.StartNew(() => function(cancellationToken), cancellationToken));
         }

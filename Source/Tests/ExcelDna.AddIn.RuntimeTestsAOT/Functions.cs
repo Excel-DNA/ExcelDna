@@ -57,6 +57,18 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
             return Task.FromResult(new CalcExcelHandle(d1, d2));
         }
 
+        [ExcelFunction]
+        public static Task<CalcExcelHandle> NativeTaskCalcExcelHandleWithCancellation(double d1, double d2, CancellationToken cancellation)
+        {
+            return Task.FromResult(new CalcExcelHandle(d1, d2));
+        }
+
+        [ExcelFunction]
+        public static Task<bool> NativeTaskBoolWithCancellation(CancellationToken cancellation)
+        {
+            return Task.FromResult(true);
+        }
+
         [ExcelAsyncFunction]
         public static bool NativeAsyncBool()
         {
@@ -64,7 +76,19 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         }
 
         [ExcelAsyncFunction]
+        public static bool NativeAsyncBoolWithCancellation(CancellationToken cancellation)
+        {
+            return true;
+        }
+
+        [ExcelAsyncFunction]
         public static CalcExcelHandle NativeAsyncCalcExcelHandle(double d1, double d2)
+        {
+            return new CalcExcelHandle(d1, d2);
+        }
+
+        [ExcelAsyncFunction]
+        public static CalcExcelHandle NativeAsyncCalcExcelHandleWithCancellation(double d1, double d2, CancellationToken cancellation)
         {
             return new CalcExcelHandle(d1, d2);
         }
