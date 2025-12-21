@@ -109,12 +109,14 @@ namespace ExcelDna.SourceGenerator.NativeAOT
 
                     if (i.ReturnType is INamedTypeSymbol named && named.IsGenericType && Util.GetFullGenericTypeName(named) == "System.Threading.Tasks.Task")
                     {
-                        methods += $"methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod(\"RunTask\")!.MakeGenericMethod(typeof({Util.GetFullTypeName(named.TypeArguments.First())})));\r\n";
+                        foreach (string runMethodName in new string[] { "RunTask", "RunTaskObject" })
+                            methods += $"methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod(\"{runMethodName}\")!.MakeGenericMethod(typeof({Util.GetFullTypeName(named.TypeArguments.First())})));\r\n";
                     }
 
                     if (Util.HasCustomAttribute(i, "ExcelDna.Registration.ExcelAsyncFunctionAttribute"))
                     {
-                        methods += $"methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod(\"RunAsTask\")!.MakeGenericMethod(typeof({Util.GetFullTypeName(i.ReturnType)})));\r\n";
+                        foreach (string runMethodName in new string[] { "RunAsTask", "RunAsTaskObject" })
+                            methods += $"methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod(\"{runMethodName}\")!.MakeGenericMethod(typeof({Util.GetFullTypeName(i.ReturnType)})));\r\n";
                     }
 
                     functions += "\r\n";

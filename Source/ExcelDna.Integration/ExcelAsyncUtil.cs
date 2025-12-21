@@ -186,7 +186,7 @@ namespace ExcelDna.Integration
             return Observe(callerFunctionName, callerParameters, () => new ExcelObjectObservable<T>(observableSource()));
         }
 
-        internal static object RunTaskObject<TResult>(string callerFunctionName, object callerParameters, Func<Task<TResult>> taskSource)
+        public static object RunTaskObject<TResult>(string callerFunctionName, object callerParameters, Func<Task<TResult>> taskSource)
         {
             return Observe(callerFunctionName, callerParameters, delegate
             {
@@ -205,7 +205,7 @@ namespace ExcelDna.Integration
             });
         }
 
-        internal static object RunAsTaskObject<TResult>(string callerFunctionName, object callerParameters, Func<TResult> function)
+        public static object RunAsTaskObject<TResult>(string callerFunctionName, object callerParameters, Func<TResult> function)
         {
             return RunTaskObject(callerFunctionName, callerParameters, () => Task.Factory.StartNew(function));
         }

@@ -51,10 +51,22 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
             return Task.FromResult(true);
         }
 
+        [ExcelFunction]
+        public static Task<CalcExcelHandle> NativeTaskCalcExcelHandle(double d1, double d2)
+        {
+            return Task.FromResult(new CalcExcelHandle(d1, d2));
+        }
+
         [ExcelAsyncFunction]
         public static bool NativeAsyncBool()
         {
             return true;
+        }
+
+        [ExcelAsyncFunction]
+        public static CalcExcelHandle NativeAsyncCalcExcelHandle(double d1, double d2)
+        {
+            return new CalcExcelHandle(d1, d2);
         }
 
         [ExcelFunction]

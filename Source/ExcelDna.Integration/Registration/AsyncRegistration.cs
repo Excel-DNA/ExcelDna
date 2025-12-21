@@ -149,10 +149,12 @@ namespace ExcelDna.Registration
                 newReturnType = TaskObjectHandler.ReturnType();
 
             // Build up the RunTaskWithC... method with the right generic type argument
+#pragma warning disable IL2060 // Guaranteed to work by the SourceGenerator adding to methodRefs.
             var runMethod = typeof(ExcelAsyncUtil)
                                 .GetMember(runMethodName, MemberTypes.Method, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
                                 .Cast<MethodInfo>().First()
                                 .MakeGenericMethod(newReturnType);
+#pragma warning restore IL2060
 
             // Get the function name
             var nameExp = Expression.Constant(functionLambda.Name + ":" + Guid.NewGuid().ToString("N"));

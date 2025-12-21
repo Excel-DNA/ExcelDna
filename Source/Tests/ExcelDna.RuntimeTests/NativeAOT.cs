@@ -47,15 +47,35 @@ namespace ExcelDna.RuntimeTests
 
                 Assert.Equal("True", functionRange.Value.ToString());
             }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D1"];
+                functionRange.Formula = "=NativeTaskCalcExcelHandle(0.8, 1.2)";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D2"];
+                functionRange2.Formula = "=NativeCalcExcelHandleMul(D1)";
+
+                Assert.Equal("0.96", functionRange2.Value.ToString());
+            }
         }
 
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
         public void AsyncInstant()
         {
-            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
-            functionRange.Formula = "=NativeAsyncBool()";
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+                functionRange.Formula = "=NativeAsyncBool()";
 
-            Assert.Equal("True", functionRange.Value.ToString());
+                Assert.Equal("True", functionRange.Value.ToString());
+            }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
+                functionRange.Formula = "=NativeAsyncCalcExcelHandle(0.5, 1.5)";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C2"];
+                functionRange2.Formula = "=NativeCalcExcelHandleMul(C1)";
+
+                Assert.Equal("0.75", functionRange2.Value.ToString());
+            }
         }
 
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
