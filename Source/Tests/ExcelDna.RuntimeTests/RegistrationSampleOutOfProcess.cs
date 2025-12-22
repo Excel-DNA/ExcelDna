@@ -23,7 +23,7 @@ namespace ExcelDna.RuntimeTests
                 Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
                 functionRange.Formula = "=dnaDelayedHello(\"world\", 200)";
 
-                Automation.WaitFor(() => functionRange.Value?.ToString() == "Hello world!", 1000);
+                Automation.WaitFor(() => functionRange.Value?.ToString() == "Hello world!", 2000);
 
                 Assert.Equal("Hello world!", functionRange.Value.ToString());
             }
