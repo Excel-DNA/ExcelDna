@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.1.31911.260
+# Visual Studio Version 18
+VisualStudioVersion = 18.3.11312.210 d18.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SingleDnaFileDefaultSuffix", "SingleDnaFileDefaultSuffix\SingleDnaFileDefaultSuffix.csproj", "{69CFC6E4-EAF6-416A-B462-B586DC3E051D}"
 EndProject
@@ -141,6 +141,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NET6PackPdb", "NET6PackPdb\NET6PackPdb.csproj", "{153C8664-D61C-77D7-A300-8CED54D130EA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AOTPackNativeInclude", "AOTPackNativeInclude\AOTPackNativeInclude.csproj", "{A6791642-7A97-025B-2096-C71E92AA55C2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StartupHooks", "StartupHooks\StartupHooks.csproj", "{35B162DF-CC46-D126-0741-39D09EB547CE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -424,6 +426,10 @@ Global
 		{A6791642-7A97-025B-2096-C71E92AA55C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A6791642-7A97-025B-2096-C71E92AA55C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A6791642-7A97-025B-2096-C71E92AA55C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35B162DF-CC46-D126-0741-39D09EB547CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35B162DF-CC46-D126-0741-39D09EB547CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35B162DF-CC46-D126-0741-39D09EB547CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35B162DF-CC46-D126-0741-39D09EB547CE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
