@@ -107,7 +107,7 @@ namespace ExcelDna.ManagedHost
             {
                 Type StartupHookProviderType = Type.GetType($"System.StartupHookProvider, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e");
                 MethodInfo ProcessStartupHooksMethod = StartupHookProviderType.GetMethod("ProcessStartupHooks", BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.InvokeMethod);
-                ProcessStartupHooksMethod.Invoke(null, null);
+                ProcessStartupHooksMethod.Invoke(null, new object[ProcessStartupHooksMethod.GetParameters().Length]);
             }
             catch
             {
