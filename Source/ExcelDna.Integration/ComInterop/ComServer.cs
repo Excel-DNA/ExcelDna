@@ -85,8 +85,11 @@ namespace ExcelDna.ComInterop
             }
 
             ComAPI.IClassFactory factory;
-            if (registeredClassFactories.TryGetValue(clsid, out factory) ||
-                TryGetComClassType(clsid, out factory))
+            if (registeredClassFactories.TryGetValue(clsid, out factory)
+#if !COM_GENERATED
+                || TryGetComClassType(clsid, out factory)
+#endif
+                )
             {
 #if COM_GENERATED
                 ComWrappers cw = new System.Runtime.InteropServices.Marshalling.StrategyBasedComWrappers();
@@ -112,6 +115,7 @@ namespace ExcelDna.ComInterop
             return ComAPI.CLASS_E_CLASSNOTAVAILABLE;
         }
 
+#if !COM_GENERATED
         static bool TryGetComClassType(CLSID clsId, out ComAPI.IClassFactory factory)
         {
             // Check among the persistently registered classes
@@ -126,6 +130,7 @@ namespace ExcelDna.ComInterop
             factory = null;
             return false;
         }
+#endif
 
         internal static HRESULT DllCanUnloadNow()
         {
@@ -165,6 +170,7 @@ namespace ExcelDna.ComInterop
             Registry.SetValue(rootKeyName + @"\CLSID\" + clsIdString + @"\InProcServer32", "ThreadingModel", "Both", RegistryValueKind.String);
             Registry.SetValue(rootKeyName + @"\CLSID\" + clsIdString + @"\ProgID", null, ProgId, RegistryValueKind.String);
 
+#if !COM_GENERATED
             if (!string.IsNullOrEmpty(TypeLibPath))
             {
                 Guid? typeLibId = RegisterTypeLibrary(rootKeyName);
@@ -174,6 +180,7 @@ namespace ExcelDna.ComInterop
                         null, typeLibId.Value.ToString("B").ToUpperInvariant(), RegistryValueKind.String);
                 }
             }
+#endif
         }
 
         // Can throw UnauthorizedAccessException if nothing is writeable
@@ -183,6 +190,7 @@ namespace ExcelDna.ComInterop
 
             RegistryKey rootKey = RegistrationUtil.ClassesRootKey;
 
+#if !COM_GENERATED
             if (!string.IsNullOrEmpty(TypeLibPath))
             {
                 try
@@ -194,6 +202,7 @@ namespace ExcelDna.ComInterop
                     Debug.Print("ComServer.UnregisterServer - UnregisterTypeLib error : " + e.ToString());
                 }
             }
+#endif
             try
             {
                 rootKey.DeleteSubKeyTree(ProgId);
@@ -212,6 +221,7 @@ namespace ExcelDna.ComInterop
             }
         }
 
+#if !COM_GENERATED
         private Guid? RegisterTypeLibrary(string rootKeyName)
         {
             ITypeLib typeLib;
@@ -298,6 +308,6 @@ namespace ExcelDna.ComInterop
                 Debug.Print("TypeLibHelper.UnregisterServer error : " + e);
             }
         }
-
+#endif
     }
 }

@@ -149,10 +149,12 @@ namespace ExcelDna.Registration
                 newReturnType = TaskObjectHandler.ReturnType();
 
             // Build up the RunTaskWithC... method with the right generic type argument
+#pragma warning disable IL2060 // Guaranteed to work by the SourceGenerator adding to methodRefs.
             var runMethod = typeof(ExcelAsyncUtil)
                                 .GetMember(runMethodName, MemberTypes.Method, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
                                 .Cast<MethodInfo>().First()
                                 .MakeGenericMethod(newReturnType);
+#pragma warning restore IL2060
 
             // Get the function name
             var nameExp = Expression.Constant(functionLambda.Name + ":" + Guid.NewGuid().ToString("N"));
@@ -228,10 +230,12 @@ namespace ExcelDna.Registration
                 newReturnType = TaskObjectHandler.ReturnType();
 
             // Build up the RunTaskWithC... method with the right generic type argument
+#pragma warning disable IL2060 // Guaranteed to work by the SourceGenerator adding to methodRefs.
             var runMethod = typeof(ExcelAsyncUtil)
                                 .GetMember(runMethodName, MemberTypes.Method, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
                                 .Cast<MethodInfo>().First()
                                 .MakeGenericMethod(newReturnType);
+#pragma warning restore IL2060
 
             // Get the function name - passed as the first argument to RunTask...
             var nameExp = Expression.Constant(functionLambda.Name + ":" + Guid.NewGuid().ToString("N"));
@@ -264,6 +268,9 @@ namespace ExcelDna.Registration
 
         static LambdaExpression WrapMethodNativeAsyncTask(LambdaExpression functionLambda)
         {
+#if COM_GENERATED
+            throw new NotImplementedException("WrapMethodNativeAsyncTask is not supported in AOT.");
+#else
             /* Either, from a lambda expression that looks like this:
              * 
              *      static Task<string> myFunc(string name, int msDelay) {...}
@@ -310,10 +317,14 @@ namespace ExcelDna.Registration
             // Wrap with all the parameters
             var allParams = new List<ParameterExpression>(newParams) { asyncHandleParam };
             return Expression.Lambda(callTaskRun, functionLambda.Name, allParams);
+#endif
         }
 
         static LambdaExpression WrapMethodNativeAsyncTaskWithCancellation(LambdaExpression functionLambda)
         {
+#if COM_GENERATED
+            throw new NotImplementedException("WrapMethodNativeAsyncTaskWithCancellation is not supported in AOT.");
+#else
             /* Either, from a lambda expression that looks like this:
              * 
              *      static Task<string> myFunc(string name, int msDelay, CancellationToken ct) {...}
@@ -367,6 +378,7 @@ namespace ExcelDna.Registration
             // Wrap with all the parameters, and Compile to a Delegate
             var allParams = new List<ParameterExpression>(newParams) { asyncHandleParam };
             return Expression.Lambda(callTaskRun, functionLambda.Name, allParams);
+#endif
         }
 
         static LambdaExpression WrapMethodObservable(LambdaExpression functionLambda, List<object> returnCustomAttributes)

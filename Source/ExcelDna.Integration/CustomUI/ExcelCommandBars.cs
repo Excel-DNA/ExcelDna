@@ -10,10 +10,10 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Xml;
 using System.Xml.Serialization;
-using ExcelDna.Serialization;
 
 #if USE_WINDOWS_FORMS
 using System.Windows.Forms;
+using ExcelDna.Serialization;
 #endif
 
 namespace ExcelDna.Integration.CustomUI

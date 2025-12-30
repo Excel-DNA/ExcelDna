@@ -137,7 +137,10 @@ namespace ExcelDna.Registration
         {
             if (type.IsValueType)
             {
+#pragma warning disable IL2067
+                // TODO: Add AOT support.
                 return Activator.CreateInstance(type);
+#pragma warning restore IL2067
             }
             return null;
         }

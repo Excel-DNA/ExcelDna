@@ -21,6 +21,7 @@ namespace ExcelDna.Integration
         // For the first version we don't make separate TraceSources for each class, though in future we might specialize under 
         // the ExcelDna.Integration namespace, so listening to ExcelDna.Integration* will be the forward-compatible pattern. 
 
+#if !COM_GENERATED
         // Consolidated processing so we only have a single pass through the types.
         // CONSIDER: This is pretty ugly right now (both the flow and the names.)
         //           Try some fancy visitor pattern?
@@ -116,6 +117,7 @@ namespace ExcelDna.Integration
                 }
             }
         }
+#endif
 
         public static void GetExcelMethods(IEnumerable<MethodInfo> mis, bool explicitExports, List<MethodInfo> excelMethods, List<Registration.ExcelFunctionRegistration> excelFunctionsExtendedRegistration)
         {
@@ -170,6 +172,7 @@ namespace ExcelDna.Integration
             }
         }
 
+#if !COM_GENERATED
         static void GetExcelParameterConversions(Type t, List<ExtendedRegistration.ExcelParameterConversion> excelParameterConversions)
         {
             GetExcelParameterConversions(t.GetMethods(BindingFlags.Public | BindingFlags.Static), excelParameterConversions);
@@ -215,6 +218,7 @@ namespace ExcelDna.Integration
         {
             GetExcelFunctionExecutionHandlerSelectors(type.GetMethods(BindingFlags.Public | BindingFlags.Static), excelFunctionExecutionHandlerSelectors);
         }
+#endif
 
         static bool IsMethodSupported(MethodInfo mi, bool explicitExports)
         {
@@ -336,7 +340,10 @@ namespace ExcelDna.Integration
                     return;
                 }
 
+#pragma warning disable IL2075
+                // Guaranteed to work by the SourceGenerator adding to interfaceRefs.
                 Type addInType = t.Type.GetInterface("ExcelDna.Integration.IExcelAddIn");
+#pragma warning restore IL2075
                 bool isRibbon = IsRibbonType(t.Type);
                 if (addInType != null || (isRibbon && loadRibbons))
                 {
@@ -364,12 +371,13 @@ namespace ExcelDna.Integration
 
         }
 
+#if !COM_GENERATED
         // DOCUMENT: We register types that implement an interface with the IRtdServer Guid. These include
         //           "Microsoft.Office.Interop.Excel.IRtdServer" and
         //           "ExcelDna.Integration.Rtd.IRtdServer".
         // The RTD server can be accessed using the ExcelDnaUtil.RTD function under the 
         // FullName of the type, or under the ProgId defined in an attribute, if there is one.
-        static public void GetRtdServerTypes(Type t, List<Type> rtdServerTypes, out bool isRtdServer)
+        static private void GetRtdServerTypes(Type t, List<Type> rtdServerTypes, out bool isRtdServer)
         {
             isRtdServer = false;
             Type[] itfs = t.GetInterfaces();
@@ -393,7 +401,7 @@ namespace ExcelDna.Integration
 
         // DOCUMENT: We register ComVisible types that
         //           (implement IRtdServer OR are in ExternalLibraries marked ComServer='true'
-        static public void GetComClassTypes(ExportedAssembly assembly, Type type, object[] attributes, bool isRtdServer, List<ExcelComClassType> comClassTypes)
+        static private void GetComClassTypes(ExportedAssembly assembly, Type type, object[] attributes, bool isRtdServer, List<ExcelComClassType> comClassTypes)
         {
             if (!Marshal.IsTypeVisibleFromCom(type))
             {
@@ -446,6 +454,7 @@ namespace ExcelDna.Integration
                 Logger.Initialization.Verbose("GetComClassTypes - Found type {0}, with ProgId {1}", type.FullName, progId);
             }
         }
+#endif
 
         static bool IsRibbonType(Type type)
         {
@@ -468,7 +477,10 @@ namespace ExcelDna.Integration
         static bool IsRibbonInterface(Type type)
         {
 #if COM_GENERATED
+#pragma warning disable IL2070
+            // Guaranteed to work by the SourceGenerator adding to interfaceRefs.
             return type.GetInterface("ExcelDna.Integration.CustomUI.IExcelRibbon") != null;
+#pragma warning restore IL2070
 #else
             return false;
 #endif

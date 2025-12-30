@@ -116,9 +116,13 @@ namespace ExcelDna.Integration.Rtd
                     }
                     else
                     {
+#if !COM_GENERATED
                         // Make a wrapper if we are not an ExcelRtdServer
                         // (ExcelRtdServer implements exception-handling and XLCall supension itself)
                         rtdServer = new RtdServerWrapper(rtdServer, progId);
+#else
+                        throw new NotImplementedException("RtdServerWrapper");
+#endif
                     }
 
                     // We pick a new Guid as ClassId for this add-in...
@@ -245,6 +249,7 @@ namespace ExcelDna.Integration.Rtd
         }
     }
 
+#if !COM_GENERATED
     // This wrapper is not used with servers implemented from ExcelRtdServer 
     [ClassInterface(ClassInterfaceType.None)]
     internal class RtdServerWrapper : IRtdServer
@@ -444,5 +449,5 @@ namespace ExcelDna.Integration.Rtd
             }
         }
     }
-
+#endif
 }

@@ -11,7 +11,10 @@ using System.Xml.Serialization;
 using System.Xml;
 using System.Drawing;
 
+#if USE_WINDOWS_FORMS
 using ExcelDna.Serialization;
+#endif
+
 using ExcelDna.Integration.CustomUI;
 using ExcelDna.Integration.Rtd;
 using ExcelDna.ComInterop;
@@ -221,7 +224,7 @@ namespace ExcelDna.Integration
             set { _Images = value; }
         }
 
-        private string dnaResolveRoot;
+        private string dnaResolveRoot = null;
 
         // Get projects explicit and implicitly present in the library
         public List<Project> GetProjects()
@@ -284,7 +287,9 @@ namespace ExcelDna.Integration
         {
             Logger.Initialization.Verbose("{0} - Begin Initialize", Name);
             // Get MethodsInfos and AddIn classes from assemblies
+#if !COM_GENERATED
             List<Type> rtdServerTypes = new List<Type>();
+#endif
             List<ExcelComClassType> comClassTypes = new List<ExcelComClassType>();
 
             // Recursively get assemblies down .dna tree.
@@ -294,7 +299,9 @@ namespace ExcelDna.Integration
             var excelReturnConversions = new List<ExtendedRegistration.ExcelReturnConversion>();
             var excelFunctionExecutionHandlerSelectors = new List<Registration.FunctionExecutionHandlerSelector>();
             var excelFunctionProcessors = new List<ExtendedRegistration.ExcelFunctionProcessor>();
+#if !COM_GENERATED
             AssemblyLoader.ProcessAssemblies(_exportedAssemblies, _methods, excelParameterConversions, excelReturnConversions, excelFunctionProcessors, _excelFunctionsExtendedRegistration, excelFunctionExecutionHandlerSelectors, _addIns, rtdServerTypes, comClassTypes);
+#endif
             AssemblyLoader.GetExcelParameterConversions(Registration.StaticRegistration.ExcelParameterConversions, excelParameterConversions);
             AssemblyLoader.GetExcelReturnConversions(Registration.StaticRegistration.ExcelReturnConversions, excelReturnConversions);
             AssemblyLoader.GetExcelFunctionExecutionHandlerSelectors(Registration.StaticRegistration.ExcelFunctionExecutionHandlerSelectors, excelFunctionExecutionHandlerSelectors);
@@ -303,13 +310,16 @@ namespace ExcelDna.Integration
             Registration.StaticRegistration.ExcelAddIns.ForEach(i => AssemblyLoader.GetExcelAddIns(null, i, _addIns));
             ObjectHandles.ObjectHandleRegistration.ProcessAssemblyAttributes(Registration.StaticRegistration.AssemblyAttributes);
 
+#if !COM_GENERATED
             // Register RTD Server Types (i.e. remember that these types are available as RTD servers, with relevant ProgId etc.)
             RtdRegistration.RegisterRtdServerTypes(rtdServerTypes.Select(i => new TypeHelperDynamic(i)));
+#endif
 
             // CAREFUL: This interacts with the implementation of ExcelRtdServer to implement the thread-safe synchronization.
             // Check whether we have an ExcelRtdServer type, and need to install the Sync Window
             // Uninstalled in the AutoClose
             bool installSyncManager = false;
+#if !COM_GENERATED
             foreach (Type rtdType in rtdServerTypes)
             {
                 if (rtdType.IsSubclassOf(typeof(ExcelRtdServer)))
@@ -318,6 +328,7 @@ namespace ExcelDna.Integration
                     break;
                 }
             }
+#endif
             if (installSyncManager)
             {
                 try
@@ -543,6 +554,7 @@ namespace ExcelDna.Integration
 
         public static DnaLibrary LoadFrom(byte[] bytes, string pathResolveRoot)
         {
+#if USE_WINDOWS_FORMS
             DnaLibrary dnaLibrary;
             XmlSerializer serializer = new DnaLibrarySerializer();
 
@@ -560,10 +572,14 @@ namespace ExcelDna.Integration
             }
             dnaLibrary.dnaResolveRoot = pathResolveRoot;
             return dnaLibrary;
+#else
+            return null;
+#endif
         }
 
         public static DnaLibrary LoadFrom(string fileName)
         {
+#if USE_WINDOWS_FORMS
             DnaLibrary dnaLibrary;
 
             if (!File.Exists(fileName))
@@ -588,8 +604,12 @@ namespace ExcelDna.Integration
             }
             dnaLibrary.dnaResolveRoot = Path.GetDirectoryName(fileName);
             return dnaLibrary;
+#else
+            return null;
+#endif
         }
 
+#if USE_WINDOWS_FORMS
         public static void Save(string fileName, DnaLibrary dnaLibrary)
         {
             //			XmlSerializer serializer = new XmlSerializer(typeof(DnaLibrary));
@@ -599,9 +619,11 @@ namespace ExcelDna.Integration
                 serializer.Serialize(fileStream, dnaLibrary);
             }
         }
+#endif
 
         public static byte[] Save(DnaLibrary dnaLibrary)
         {
+#if USE_WINDOWS_FORMS
             //			XmlSerializer serializer = new XmlSerializer(typeof(DnaLibrary));
             XmlSerializer serializer = new DnaLibrarySerializer();
             using (MemoryStream ms = new MemoryStream())
@@ -609,6 +631,9 @@ namespace ExcelDna.Integration
                 serializer.Serialize(ms, dnaLibrary);
                 return ms.ToArray();
             }
+#else
+            throw new NotImplementedException("DnaLibrary.Save");
+#endif
         }
 
         public static DnaLibrary CurrentLibrary

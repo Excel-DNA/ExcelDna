@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if !COM_GENERATED
+
+using System;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -71,3 +73,5 @@ namespace ExcelDna.Integration.ComInterop
         }
     }
 }
+
+#endif

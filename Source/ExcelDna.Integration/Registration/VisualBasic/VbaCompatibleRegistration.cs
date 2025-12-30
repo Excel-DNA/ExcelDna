@@ -1,4 +1,6 @@
-﻿using ExcelDna.Integration;
+﻿#if !COM_GENERATED
+
+using ExcelDna.Integration;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -52,3 +54,5 @@ namespace ExcelDna.Registration.VisualBasic
         }
     }
 }
+
+#endif

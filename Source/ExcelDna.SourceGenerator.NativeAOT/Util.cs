@@ -11,6 +11,11 @@ namespace ExcelDna.SourceGenerator.NativeAOT
             return type.ToDisplayString().Replace("[*,*]", "[,]");
         }
 
+        public static string GetFullGenericTypeName(INamedTypeSymbol type)
+        {
+            return type.ToDisplayString(FullGenericNameFormat);
+        }
+
         public static string GetFullMethodName(IMethodSymbol method)
         {
             return $"{GetFullTypeName(method.ContainingType)}.{method.Name}";
@@ -44,6 +49,13 @@ namespace ExcelDna.SourceGenerator.NativeAOT
             return method.Parameters.Length > 0 && method.Parameters.Last().IsParams && method.Parameters.Last().Type is IArrayTypeSymbol;
         }
 
+
+        public static bool HasCustomAttribute(IMethodSymbol methodSymbol, string attribute)
+        {
+            return methodSymbol.GetAttributes().Any(a => a.AttributeClass != null &&
+                    Util.TypeHasAncestorWithFullName(a.AttributeClass, attribute));
+        }
+
         public static string CreateFunc16Args(IMethodSymbol method)
         {
             List<ITypeSymbol?> allParamTypes = method.Parameters.Take(method.Parameters.Length - 1).Select(p => p.Type).Cast<ITypeSymbol?>().ToList();
@@ -58,5 +70,6 @@ namespace ExcelDna.SourceGenerator.NativeAOT
         }
 
         private static SymbolDisplayFormat FullNameFormat = new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
+        private static SymbolDisplayFormat FullGenericNameFormat = new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces, genericsOptions: SymbolDisplayGenericsOptions.None);
     }
 }
