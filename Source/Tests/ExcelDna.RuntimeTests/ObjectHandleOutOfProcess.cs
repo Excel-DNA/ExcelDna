@@ -66,6 +66,7 @@ namespace ExcelDna.RuntimeTests
             {
                 Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
                 functionRange1.Clear();
+                Automation.Wait(2000);
 
                 Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B2"];
                 functionRange2.Formula = "=MyGetDisposableObjectsCount()";
@@ -144,6 +145,7 @@ namespace ExcelDna.RuntimeTests
                 {
                     Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
                     functionRange1.Clear();
+                    Automation.Wait(2000);
 
                     Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B2"];
                     functionRange2.Formula = "=MyGetDisposableObjectsCount()";
