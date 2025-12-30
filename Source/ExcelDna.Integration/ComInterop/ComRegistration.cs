@@ -23,6 +23,7 @@ using IID = System.Guid;
 
 namespace ExcelDna.ComInterop.ComRegistration
 {
+#if !COM_GENERATED
     // This implements a COM class factory for the given type
     // with some customization to allow wrapping of Rtd servers.
     // Does not work with the just-in-time registration into the user's hive, when running under elevated UAC token.
@@ -110,6 +111,7 @@ namespace ExcelDna.ComInterop.ComRegistration
             return ComAPI.S_OK;
         }
     }
+#endif
 
     // This is a class factory that serves as a singleton 'factory' for a given object
     // - it will return exactly that object when CreateInstance is called 

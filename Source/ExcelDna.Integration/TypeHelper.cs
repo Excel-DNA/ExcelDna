@@ -13,6 +13,7 @@ namespace ExcelDna.Integration
     }
 
     public class TypeHelper<T> : ITypeHelper
+        where T : new()
     {
         public TypeHelper(IEnumerable<MethodInfo> methods)
         {
@@ -29,6 +30,7 @@ namespace ExcelDna.Integration
         }
     }
 
+#if !COM_GENERATED
     public class TypeHelperDynamic : ITypeHelper
     {
         public TypeHelperDynamic(Type t)
@@ -46,4 +48,5 @@ namespace ExcelDna.Integration
             return Activator.CreateInstance(Type);
         }
     }
+#endif
 }

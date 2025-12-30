@@ -14,6 +14,7 @@ namespace ExcelDna.Registration
     // A first attempt to allow chaining of the Registration rewrites.
     public static class ExcelRegistration
     {
+#if !COM_GENERATED
         /// <summary>
         /// Retrieve registration wrappers for all (public, static) functions marked with [ExcelFunction] attributes, 
         /// in all exported assemblies.
@@ -29,6 +30,7 @@ namespace ExcelDna.Registration
                    where mi.GetCustomAttribute<ExcelFunctionAttribute>() != null
                    select new ExcelFunctionRegistration(mi);
         }
+#endif
 
         /// <summary>
         /// Prepares the given functions for registration with Excel-DNA.
@@ -48,6 +50,7 @@ namespace ExcelDna.Registration
             Integration.ExtendedRegistration.Registration.Register(registrationEntries);
         }
 
+#if !COM_GENERATED
         /// <summary>
         /// Retrieve registration wrappers for all (public, static) methods marked with [ExcelCommand] attributes, 
         /// in all exported assemblies.
@@ -63,6 +66,7 @@ namespace ExcelDna.Registration
                    where ExcelCommandRegistration.IsCommand(mi)
                    select new ExcelCommandRegistration(mi);
         }
+#endif
 
         /// <summary>
         /// Registers the given macros with Excel-DNA.

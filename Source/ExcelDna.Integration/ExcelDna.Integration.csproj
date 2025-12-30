@@ -18,11 +18,13 @@
   <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);COM_GENERATED</DefineConstants>
+    <IsTrimmable>true</IsTrimmable>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
     <Compile Remove="LogDisplay.cs" />
     <Compile Remove="LogDisplay.Designer.cs" />
+    <Compile Remove="DnaLibrarySerialization.cs" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' != 'net10.0-windows'">

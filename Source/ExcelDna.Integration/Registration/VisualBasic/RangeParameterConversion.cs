@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿#if !COM_GENERATED
+
+using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using Microsoft.Office.Interop.Excel;
@@ -66,3 +68,5 @@ namespace ExcelDna.Registration.VisualBasic
         }
     }
 }
+
+#endif

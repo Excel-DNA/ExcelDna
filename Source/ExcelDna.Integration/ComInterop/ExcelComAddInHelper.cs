@@ -68,14 +68,18 @@ namespace ExcelDna.Integration
             string friendlyName;
             if (addIn.FriendlyName != null)
                 friendlyName = addIn.FriendlyName;
-            else if (addIn is ExcelRibbon
+            else if (
 #if COM_GENERATED
-                || addIn is ComInterop.Generator.ExcelRibbon
+                addIn is ComInterop.Generator.ExcelRibbon
+#else
+                addIn is ExcelRibbon
 #endif
                 )
                 friendlyName = addIn.DnaLibrary.Name; // + " (Ribbon Helper)"; (No more - it is displayed in the Ribbon tooltip!)
+#if !COM_GENERATED
             else if (addIn is ExcelCustomTaskPaneAddIn)
                 friendlyName = addIn.DnaLibrary.Name + " (Custom Task Pane Helper)";
+#endif
             else
                 friendlyName = addIn.DnaLibrary.Name + " (COM Add-in Helper)";
             string description = addIn.Description ?? string.Format("Dynamically created COM Add-in to load custom UI for the Excel Add-in {0}, located at {1}.", addIn.DnaLibrary.Name, DnaLibrary.XllPath);
