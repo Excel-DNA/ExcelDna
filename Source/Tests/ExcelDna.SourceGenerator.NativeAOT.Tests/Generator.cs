@@ -64,6 +64,74 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 
                 List<MethodInfo> methodRefs = new List<MethodInfo>();
                 methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod("RunTask")!.MakeGenericMethod(typeof(bool)));
+                methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod("RunTaskObject")!.MakeGenericMethod(typeof(bool)));
+                methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod("RunTaskWithCancellation")!.MakeGenericMethod(typeof(bool)));
+                methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod("RunTaskObjectWithCancellation")!.MakeGenericMethod(typeof(bool)));
+                """);
+        }
+
+        [Fact]
+        public void ReturnsObservable()
+        {
+            Verify("""
+                using System;
+                using System.Collections.Generic;
+                using ExcelDna.Integration;
+
+                namespace ExcelDna.AddIn.RuntimeTestsAOT
+                {
+                    internal class ObservableString : IObservable<string>
+                    {
+                        private string s;
+                        private List<IObserver<string>> observers;
+
+                        public ObservableString(string s)
+                        {
+                            this.s = s;
+                            observers = new List<IObserver<string>>();
+                        }
+
+                        public IDisposable Subscribe(IObserver<string> observer)
+                        {
+                            observers.Add(observer);
+                            observer.OnNext(s);
+                            return new ActionDisposable(() => observers.Remove(observer));
+                        }
+
+                        private class ActionDisposable : IDisposable
+                        {
+                            private Action disposeAction;
+
+                            public ActionDisposable(Action disposeAction)
+                            {
+                                this.disposeAction = disposeAction;
+                            }
+
+                            public void Dispose()
+                            {
+                                disposeAction();
+                            }
+                        }
+                    }
+
+                    public class Functions
+                    {
+                        [ExcelFunction]
+                        public static IObservable<string> NativeStringObservable(string s)
+                        {
+                            return new ObservableString(s);
+                        }
+                    }
+                }
+                """, functions: """
+                List<Type> typeRefs = new List<Type>();
+                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeStringObservable")!);
+                typeRefs.Add(typeof(Func<string, System.IObservable<string>>));
+                typeRefs.Add(typeof(Func<object, string>));
+                
+                List<MethodInfo> methodRefs = new List<MethodInfo>();
+                methodRefs.Add(System.Linq.Enumerable.First(System.Linq.Enumerable.Cast<MethodInfo>(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMember("Observe", MemberTypes.Method, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)), i => i.IsGenericMethodDefinition).MakeGenericMethod(typeof(string)));
+                methodRefs.Add(System.Linq.Enumerable.First(System.Linq.Enumerable.Cast<MethodInfo>(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMember("ObserveObject", MemberTypes.Method, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)), i => i.IsGenericMethodDefinition).MakeGenericMethod(typeof(string)));
                 """);
         }
 
@@ -91,6 +159,9 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 
                 List<MethodInfo> methodRefs = new List<MethodInfo>();
                 methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod("RunAsTask")!.MakeGenericMethod(typeof(bool)));
+                methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod("RunAsTaskObject")!.MakeGenericMethod(typeof(bool)));
+                methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod("RunAsTaskWithCancellation")!.MakeGenericMethod(typeof(bool)));
+                methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod("RunAsTaskObjectWithCancellation")!.MakeGenericMethod(typeof(bool)));
                 """);
         }
 

@@ -113,6 +113,12 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                             methods += $"methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod(\"{runMethodName}\")!.MakeGenericMethod(typeof({Util.GetFullTypeName(named.TypeArguments.First())})));\r\n";
                     }
 
+                    if (i.ReturnType is INamedTypeSymbol namedObservable && namedObservable.IsGenericType && Util.GetFullGenericTypeName(namedObservable) == "System.IObservable")
+                    {
+                        foreach (string observableMethodName in new string[] { "Observe", "ObserveObject" })
+                            methods += $"methodRefs.Add(System.Linq.Enumerable.First(System.Linq.Enumerable.Cast<MethodInfo>(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMember(\"{observableMethodName}\", MemberTypes.Method, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)), i => i.IsGenericMethodDefinition).MakeGenericMethod(typeof({Util.GetFullTypeName(namedObservable.TypeArguments.First())})));\r\n";
+                    }
+
                     if (Util.HasCustomAttribute(i, "ExcelDna.Registration.ExcelAsyncFunctionAttribute"))
                     {
                         foreach (string runMethodName in new string[] { "RunAsTask", "RunAsTaskObject", "RunAsTaskWithCancellation", "RunAsTaskObjectWithCancellation" })

@@ -374,5 +374,35 @@ namespace ExcelDna.RuntimeTests
             functionRange.Formula = "=NativeWindowHandle()";
             Assert.True(functionRange.Value.ToString().StartsWith("Native WindowHandle is "));
         }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void Observable()
+        {
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+
+                functionRange.Formula = "=NativeStringObservable(\"n1\")";
+                Assert.Equal("n1", functionRange.Value.ToString());
+            }
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
+                functionRange1.Formula = "=NativeCreateCalc(22, 23)";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C2"];
+                functionRange2.Formula = "=NativeCalcSumObservable(C1)";
+
+                Assert.Equal("45", functionRange2.Value.ToString());
+            }
+
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D1"];
+                functionRange1.Formula = "=NativeCalcObservable(24, 25)";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D2"];
+                functionRange2.Formula = "=NativeCalcSum(D1)";
+
+                Assert.Equal("49", functionRange2.Value.ToString());
+            }
+        }
     }
 }

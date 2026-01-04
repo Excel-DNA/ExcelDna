@@ -410,10 +410,12 @@ namespace ExcelDna.Registration
             }
 
             // Build up the Observe method with the right generic type argument
+#pragma warning disable IL2060 // Guaranteed to work by the SourceGenerator adding to methodRefs.
             var obsMethod = typeof(ExcelAsyncUtil)
                                 .GetMember(userType ? "ObserveObject" : "Observe", MemberTypes.Method, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
                                 .Cast<MethodInfo>().First(i => i.IsGenericMethodDefinition)
                                 .MakeGenericMethod(returnType);
+#pragma warning restore IL2060
 
             // Get the function name
             var nameExp = Expression.Constant(functionLambda.Name + ":" + Guid.NewGuid().ToString("N"));
