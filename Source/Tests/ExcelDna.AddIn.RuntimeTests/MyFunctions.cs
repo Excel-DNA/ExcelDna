@@ -420,5 +420,11 @@ namespace ExcelDna.AddIn.RuntimeTests
         {
             return String.Join(separator, values);
         }
+
+        [ExcelFunction]
+        public static string MyWindowHandle()
+        {
+            return $"My WindowHandle is {ExcelDnaUtil.WindowHandle}.";
+        }
     }
 }

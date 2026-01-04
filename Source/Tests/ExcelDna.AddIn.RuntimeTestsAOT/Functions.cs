@@ -306,5 +306,11 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         {
             return $"Native Hello {name}";
         }
+
+        [ExcelFunction]
+        public static string NativeWindowHandle()
+        {
+            return $"Native WindowHandle is {ExcelDnaUtil.WindowHandle}.";
+        }
     }
 }

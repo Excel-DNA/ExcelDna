@@ -365,5 +365,14 @@ namespace ExcelDna.RuntimeTests
             functionRange.Formula = "=NativeFunctionExecutionLog()";
             Assert.True(functionRange.Value.ToString().Contains("ID=7 NativeSayHelloWithLoggingID - OnSuccess - Result: Native Hello NativeFunctionExecutionHandlerWithAttribute"));
         }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void WindowHandle()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+
+            functionRange.Formula = "=NativeWindowHandle()";
+            Assert.True(functionRange.Value.ToString().StartsWith("Native WindowHandle is "));
+        }
     }
 }

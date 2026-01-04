@@ -118,7 +118,7 @@ namespace ExcelDna.Integration
                     // This is the typical case.
                     // Get it from there - probably safest
                     // TODO: Can we turn this into a delegate somehow...(for performance)?
-                    hWnd = (IntPtr)(int)_application.GetType().InvokeMember("Hwnd", BindingFlags.GetProperty, null, _application, null, _enUsCulture);
+                    hWnd = (IntPtr)(int)ComInterop.Util.TypeAdapter.GetProperty("Hwnd", _application);
                     if (IsWindowOfThisExcel(hWnd)) return hWnd;
                 }
 
