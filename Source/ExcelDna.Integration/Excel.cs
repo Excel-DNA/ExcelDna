@@ -681,10 +681,7 @@ namespace ExcelDna.Integration
                             // Maybe we are loading a COM Server or an RTD Server before the add-in is loaded.
                             try
                             {
-                                object xlApp = ExcelDnaUtil.Application;
-                                object result = xlApp.GetType().InvokeMember("Version",
-                                                                             BindingFlags.GetProperty,
-                                                                             null, xlApp, null, new CultureInfo(1033));
+                                object result = ComInterop.Util.TypeAdapter.GetProperty("Version", ApplicationObject);
                                 _xlVersion = double.Parse((string)result, NumberStyles.Any, CultureInfo.InvariantCulture);
                             }
                             catch (Exception ex)
