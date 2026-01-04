@@ -527,7 +527,7 @@ namespace ExcelDna.Integration
                 // TODO: Can we turn this into a delegate somehow - for performance and to avoid the exception.
                 //       I'm not sure how to pull out the Property if it's name might be based on the Culture.
                 //       One way is to get the dispid, and call through IDispatch.Invoke, but that's a lot of work...
-                _application.GetType().InvokeMember("Version", BindingFlags.GetProperty, null, _application, null, _enUsCulture);
+                ComInterop.Util.TypeAdapter.GetProperty("Version", _application);
                 return true;
             }
             catch (Exception)
