@@ -68,8 +68,13 @@ namespace ExcelDna.ManagedHost
             SetDllImportResolver(entryAssembly);
             var initOK = (bool)ExcelDna.Loader.XlAddIn.Initialize((IntPtr)xlAddInExportInfoAddress, (IntPtr)hModuleXll, pathXll, tempDirPath,
                     (Func<string, int, byte[]>)AssemblyManager.GetResourceBytes,
+#if USE_STATIC_REGISTRATION
+                    (_) => null,
+                    (_, _) => null,
+#else
                     (Func<string, Assembly>)_alc.LoadFromAssemblyPath,
                     (Func<byte[], byte[], Assembly>)_alc.LoadFromAssemblyBytes,
+#endif
                     (Action<TraceSource>)Logger.SetIntegrationTraceSource, true);
 
             return initOK ? (short)1 : (short)0;
