@@ -326,6 +326,9 @@ namespace ExcelDna.Integration
             public DnaLibrary ParentDnaLibrary;
         }
 
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "SourceGenerator adds types to interfaceRefs")]
+#endif
         static public void GetExcelAddIns(ExportedAssembly assembly, ITypeHelper t, List<ExcelAddInInfo> addIns)
         {
             bool loadRibbons = (ExcelDnaUtil.ExcelVersion >= 12.0);
@@ -340,10 +343,7 @@ namespace ExcelDna.Integration
                     return;
                 }
 
-#pragma warning disable IL2075
-                // Guaranteed to work by the SourceGenerator adding to interfaceRefs.
                 Type addInType = t.Type.GetInterface("ExcelDna.Integration.IExcelAddIn");
-#pragma warning restore IL2075
                 bool isRibbon = IsRibbonType(t.Type);
                 if (addInType != null || (isRibbon && loadRibbons))
                 {
@@ -474,13 +474,13 @@ namespace ExcelDna.Integration
             return isRibbon;
         }
 
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "SourceGenerator adds types to interfaceRefs")]
+#endif
         static bool IsRibbonInterface(Type type)
         {
 #if COM_GENERATED
-#pragma warning disable IL2070
-            // Guaranteed to work by the SourceGenerator adding to interfaceRefs.
             return type.GetInterface("ExcelDna.Integration.CustomUI.IExcelRibbon") != null;
-#pragma warning restore IL2070
 #else
             return false;
 #endif
