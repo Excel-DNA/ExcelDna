@@ -101,6 +101,9 @@ namespace ExcelDna.Registration
         /// All CustomAttributes on the method and parameters are copies to the respective collections in the ExcelFunctionRegistration.
         /// </summary>
         /// <param name="methodInfo"></param>
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "Passes all tests")]
+#endif
         public ExcelFunctionRegistration(MethodInfo methodInfo)
         {
             CustomAttributes = new List<object>();

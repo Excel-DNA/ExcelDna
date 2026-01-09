@@ -18,6 +18,9 @@ namespace ExcelDna.Integration.ObjectHandles
             return typeof(string);
         }
 
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "Passes all tests")]
+#endif
         public static LambdaExpression ProcessTaskObject(LambdaExpression functionLambda)
         {
             var createHandleMethod = typeof(TaskObjectHandler).GetMethod(nameof(CreateTaskHandle), BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(functionLambda.ReturnType.GetGenericArguments()[0]);
@@ -30,6 +33,9 @@ namespace ExcelDna.Integration.ObjectHandles
             return ProcessMethod(functionLambda, createHandleMethod);
         }
 
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "Passes all tests")]
+#endif
         private static LambdaExpression ProcessMethod(LambdaExpression functionLambda, MethodInfo createHandleMethod)
         {
             var newParams = functionLambda.Parameters.Select(p => Expression.Parameter(p.Type, p.Name)).ToList();

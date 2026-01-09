@@ -98,6 +98,7 @@ namespace ExcelDna.Registration
 
 #if AOT_COMPATIBLE
         [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2060", Justification = "SourceGenerator adds methods to methodRefs")]
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "SourceGenerator adds methods to methodRefs")]
 #endif
         static LambdaExpression WrapMethodRunTask(LambdaExpression functionLambda, List<object> returnCustomAttributes)
         {
@@ -180,6 +181,7 @@ namespace ExcelDna.Registration
 
 #if AOT_COMPATIBLE
         [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2060", Justification = "SourceGenerator adds methods to methodRefs")]
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "SourceGenerator adds methods to methodRefs")]
 #endif
         static LambdaExpression WrapMethodRunTaskWithCancellation(LambdaExpression functionLambda, List<object> returnCustomAttributes)
         {
@@ -385,6 +387,7 @@ namespace ExcelDna.Registration
 
 #if AOT_COMPATIBLE
         [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2060", Justification = "SourceGenerator adds methods to methodRefs")]
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "SourceGenerator adds methods to methodRefs")]
 #endif
         static LambdaExpression WrapMethodObservable(LambdaExpression functionLambda, List<object> returnCustomAttributes)
         {

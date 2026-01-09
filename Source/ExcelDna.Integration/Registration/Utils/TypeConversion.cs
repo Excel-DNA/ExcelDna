@@ -6,6 +6,9 @@ namespace ExcelDna.Registration
 {
     public static class TypeConversion
     {
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "Passes all tests")]
+#endif
         public static LambdaExpression GetConversion(Type inputType, Type targetType)
         {
             var input = Expression.Parameter(typeof(object), "input");

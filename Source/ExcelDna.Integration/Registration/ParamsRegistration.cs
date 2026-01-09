@@ -118,6 +118,7 @@ namespace ExcelDna.Registration
 
 #if AOT_COMPATIBLE
         [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2026:RequiresUnreferencedCode", Justification = "SourceGenerator adds methods to methodRefs")]
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "SourceGenerator adds methods to methodRefs")]
 #endif
         static LambdaExpression WrapMethodParams(LambdaExpression functionLambda)
         {

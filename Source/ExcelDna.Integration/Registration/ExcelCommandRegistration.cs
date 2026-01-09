@@ -46,6 +46,9 @@ namespace ExcelDna.Registration
             CustomAttributes = new List<object>();
         }
 
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "Passes all tests")]
+#endif
         public ExcelCommandRegistration(MethodInfo methodInfo)
         {
             CustomAttributes = new List<object>();
