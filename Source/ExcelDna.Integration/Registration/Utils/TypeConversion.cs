@@ -133,14 +133,14 @@ namespace ExcelDna.Registration
             return checked((long)Math.Round(ConvertToDouble(value), MidpointRounding.ToEven));
         }
 
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2067", Justification = "Passes all tests")]
+#endif
         public static object GetDefault(Type type)
         {
             if (type.IsValueType)
             {
-#pragma warning disable IL2067
-                // TODO: Add AOT support.
                 return Activator.CreateInstance(type);
-#pragma warning restore IL2067
             }
             return null;
         }
