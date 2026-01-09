@@ -68,7 +68,7 @@ namespace ExcelDna.ManagedHost
             SetDllImportResolver(entryAssembly);
             var initOK = (bool)ExcelDna.Loader.XlAddIn.Initialize((IntPtr)xlAddInExportInfoAddress, (IntPtr)hModuleXll, pathXll, tempDirPath,
                     (Func<string, int, byte[]>)AssemblyManager.GetResourceBytes,
-#if USE_STATIC_REGISTRATION
+#if AOT_COMPATIBLE
                     (_) => null,
                     (_, _) => null,
 #else
