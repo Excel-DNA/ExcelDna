@@ -82,6 +82,12 @@ namespace ExcelDna.Integration
             return Observe(callerFunctionName, callerParameters, options, () => new ExcelObservable<T>(observableSource()));
         }
 
+        // A private method with unique method name for getting to Observe<T>(string callerFunctionName, object callerParameters, Func<IObservable<T>> observableSource) via reflection.
+        internal static object Observe3<T>(string callerFunctionName, object callerParameters, Func<IObservable<T>> observableSource)
+        {
+            return Observe(callerFunctionName, callerParameters, observableSource);
+        }
+
         // Async function support
         // ThreadSafe
         public static object Run(string callerFunctionName, object callerParameters, ExcelFunc asyncFunc)

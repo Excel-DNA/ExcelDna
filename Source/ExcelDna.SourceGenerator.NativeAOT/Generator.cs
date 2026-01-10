@@ -44,6 +44,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT
     public unsafe class AddInInitialize
     {
         [UnmanagedCallersOnly(EntryPoint = "Initialize", CallConvs = new[] { typeof(CallConvCdecl) })]
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "SourceGenerator preserves types and methods")]
         public static short Initialize(void* xlAddInExportInfoAddress, void* hModuleXll, void* pPathXLL, byte disableAssemblyContextUnload, void* pTempDirPath)
         {
             [ADDINS]
@@ -115,8 +116,8 @@ namespace ExcelDna.SourceGenerator.NativeAOT
 
                     if (i.ReturnType is INamedTypeSymbol namedObservable && namedObservable.IsGenericType && Util.GetFullGenericTypeName(namedObservable) == "System.IObservable")
                     {
-                        foreach (string observableMethodName in new string[] { "Observe", "ObserveObject" })
-                            methods += $"methodRefs.Add(System.Linq.Enumerable.First(System.Linq.Enumerable.Cast<MethodInfo>(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMember(\"{observableMethodName}\", MemberTypes.Method, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)), i => i.IsGenericMethodDefinition).MakeGenericMethod(typeof({Util.GetFullTypeName(namedObservable.TypeArguments.First())})));\r\n";
+                        foreach (string observableMethodName in new string[] { "Observe3", "ObserveObject" })
+                            methods += $"methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod(\"{observableMethodName}\", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)!.MakeGenericMethod(typeof({Util.GetFullTypeName(namedObservable.TypeArguments.First())})));\r\n";
                     }
 
                     if (Util.HasCustomAttribute(i, "ExcelDna.Registration.ExcelAsyncFunctionAttribute"))

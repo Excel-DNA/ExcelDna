@@ -130,8 +130,8 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 typeRefs.Add(typeof(Func<object, string>));
                 
                 List<MethodInfo> methodRefs = new List<MethodInfo>();
-                methodRefs.Add(System.Linq.Enumerable.First(System.Linq.Enumerable.Cast<MethodInfo>(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMember("Observe", MemberTypes.Method, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)), i => i.IsGenericMethodDefinition).MakeGenericMethod(typeof(string)));
-                methodRefs.Add(System.Linq.Enumerable.First(System.Linq.Enumerable.Cast<MethodInfo>(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMember("ObserveObject", MemberTypes.Method, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)), i => i.IsGenericMethodDefinition).MakeGenericMethod(typeof(string)));
+                methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod("Observe3", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)!.MakeGenericMethod(typeof(string)));
+                methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod("ObserveObject", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)!.MakeGenericMethod(typeof(string)));
                 """);
         }
 
@@ -311,6 +311,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
             public unsafe class AddInInitialize
             {
                 [UnmanagedCallersOnly(EntryPoint = "Initialize", CallConvs = new[] { typeof(CallConvCdecl) })]
+                [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "SourceGenerator preserves types and methods")]
                 public static short Initialize(void* xlAddInExportInfoAddress, void* hModuleXll, void* pPathXLL, byte disableAssemblyContextUnload, void* pTempDirPath)
                 {
                     

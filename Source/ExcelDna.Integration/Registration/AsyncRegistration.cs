@@ -419,8 +419,7 @@ namespace ExcelDna.Registration
 
             // Build up the Observe method with the right generic type argument
             var obsMethod = typeof(ExcelAsyncUtil)
-                                .GetMember(userType ? "ObserveObject" : "Observe", MemberTypes.Method, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-                                .Cast<MethodInfo>().First(i => i.IsGenericMethodDefinition)
+                                .GetMethod(userType ? "ObserveObject" : "Observe3", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
                                 .MakeGenericMethod(returnType);
 
             // Get the function name
