@@ -136,6 +136,8 @@ namespace ExcelDna.Registration
             return checked((long)Math.Round(ConvertToDouble(value), MidpointRounding.ToEven));
         }
 
+        internal static double[] ConvertComplexToDoubles(System.Numerics.Complex value) => new double[2] { value.Real, value.Imaginary };
+
 #if AOT_COMPATIBLE
         [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2067", Justification = "Passes all tests")]
 #endif
