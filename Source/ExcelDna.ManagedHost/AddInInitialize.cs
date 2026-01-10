@@ -34,6 +34,7 @@ namespace ExcelDna.ManagedHost
 #if NETCOREAPP
         static ExcelDnaAssemblyLoadContext _alc;
 
+#if !AOT_COMPATIBLE
         [UnmanagedCallersOnly]
         public static short Initialize(void* xlAddInExportInfoAddress, void* hModuleXll, void* pPathXLL, byte disableAssemblyContextUnload, void* pTempDirPath)
         {
@@ -55,7 +56,7 @@ namespace ExcelDna.ManagedHost
 
             return initOK ? (short)1 : (short)0;
         }
-
+#else
         public static short InitializeNativeAOT(void* xlAddInExportInfoAddress, void* hModuleXll, void* pPathXLL, byte disableAssemblyContextUnload, void* pTempDirPath, Assembly entryAssembly)
         {
             UnloadALC();
@@ -68,17 +69,13 @@ namespace ExcelDna.ManagedHost
             SetDllImportResolver(entryAssembly);
             var initOK = (bool)ExcelDna.Loader.XlAddIn.Initialize((IntPtr)xlAddInExportInfoAddress, (IntPtr)hModuleXll, pathXll, tempDirPath,
                     (Func<string, int, byte[]>)AssemblyManager.GetResourceBytes,
-#if AOT_COMPATIBLE
                     (_) => null,
                     (_, _) => null,
-#else
-                    (Func<string, Assembly>)_alc.LoadFromAssemblyPath,
-                    (Func<byte[], byte[], Assembly>)_alc.LoadFromAssemblyBytes,
-#endif
                     (Action<TraceSource>)Logger.SetIntegrationTraceSource, true);
 
             return initOK ? (short)1 : (short)0;
         }
+#endif
 
         private static void UnloadALC()
         {
