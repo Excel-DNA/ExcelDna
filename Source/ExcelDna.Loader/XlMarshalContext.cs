@@ -41,18 +41,18 @@ namespace ExcelDna.Loader
         {
             int size;
             // StringReturn
-            size = Marshal.SizeOf(typeof(XlString12)) + ((XlString12.MaxLength - 1) /* 1 char is in Data[1] */ * 2 /* 2 bytes per char */);
+            size = Marshal.SizeOf<XlString12>() + ((XlString12.MaxLength - 1) /* 1 char is in Data[1] */ * 2 /* 2 bytes per char */);
             _pStringBufferReturn = (XlString12*)Marshal.AllocCoTaskMem(size);
 
             // DateTimeReturn
-            size = Marshal.SizeOf(typeof(double));
+            size = Marshal.SizeOf<double>();
             _pDoubleReturn = (double*)Marshal.AllocCoTaskMem(size);
 
-            size = Marshal.SizeOf(typeof(short));
+            size = Marshal.SizeOf<short>();
             _pBoolReturn = (short*)Marshal.AllocCoTaskMem(size);
 
             // XloperReturn
-            size = Marshal.SizeOf(typeof(XlOper12));
+            size = Marshal.SizeOf<XlOper12>();
             _pXloperReturn = (XlOper12*)Marshal.AllocCoTaskMem(size);
 
             _rank1DoubleArrayContext = new XlMarshalDoubleArrayContext(1);
@@ -683,8 +683,8 @@ namespace ExcelDna.Loader
             // CONSIDER: https://connect.microsoft.com/VisualStudio/feedback/details/766977/il-bytecode-method-cpblk-badly-implemented-by-x86-clr
             XlFP12* pFP;
 
-            int size = Marshal.SizeOf(typeof(XlFP12)) +
-                Marshal.SizeOf(typeof(double)) * (rows * columns - 1); // room for one double is already in FP12 struct
+            int size = Marshal.SizeOf<XlFP12>() +
+                Marshal.SizeOf<double>() * (rows * columns - 1); // room for one double is already in FP12 struct
             _pNative = Marshal.AllocCoTaskMem(size);
 
             pFP = (XlFP12*)_pNative;
@@ -880,8 +880,8 @@ namespace ExcelDna.Loader
             int numReferences = 0;
 
             // Allocate native space
-            int cbNative = Marshal.SizeOf(typeof(XlOper12)) +               // OPER that is returned
-                           Marshal.SizeOf(typeof(XlOper12)) * (rows * columns);    // Array of OPER inside the result
+            int cbNative = Marshal.SizeOf<XlOper12>() +               // OPER that is returned
+                           Marshal.SizeOf<XlOper12>() * (rows * columns);    // Array of OPER inside the result
             _pNative = Marshal.AllocCoTaskMem(cbNative);
 
             // Set up returned OPER
@@ -928,7 +928,7 @@ namespace ExcelDna.Loader
                 else if (obj is string str)
                 {
                     // We count all of the string lengths, 
-                    cbNativeStrings += (Marshal.SizeOf(typeof(XlString12)) + ((Math.Min(str.Length, XlString12.MaxLength) - 1) /* 1 char already in XlString */) * 2 /* 2 bytes per char */);
+                    cbNativeStrings += (Marshal.SizeOf<XlString12>() + ((Math.Min(str.Length, XlString12.MaxLength) - 1) /* 1 char already in XlString */) * 2 /* 2 bytes per char */);
                     // mark the Oper as a string, and
                     // later allocate memory and return to fix pointers
                     pOper->xlType = XlType12.XlTypeString;
@@ -1189,7 +1189,7 @@ namespace ExcelDna.Loader
             {
                 // Allocate room for all the references
                 int cbNativeReferences = numReferenceOpers * 4 /* sizeof ushort + packing to get to field offset */
-                                         + numReferences * Marshal.SizeOf(typeof(XlOper12.XlRectangle12));
+                                         + numReferences * Marshal.SizeOf<XlOper12.XlRectangle12>();
                 _pNativeReferences = Marshal.AllocCoTaskMem(cbNativeReferences);
                 IntPtr pCurrent = _pNativeReferences;
                 // Go through the Opers and set each reference
@@ -1215,7 +1215,7 @@ namespace ExcelDna.Loader
 
                         int refCount = r.GetRectangleCount();
                         int numBytes = 4 /* sizeof ushort + packing to get to field offset */
-                                       + refCount * Marshal.SizeOf(typeof(XlOper12.XlRectangle12));
+                                       + refCount * Marshal.SizeOf<XlOper12.XlRectangle12>();
 
 
                         IntPtr sheetId = r.SheetId;
@@ -1262,7 +1262,7 @@ namespace ExcelDna.Loader
             {
                 // For the Excel12v call, we need to return an array
                 // which will contain the pointers to the Opers.
-                int cbOperPointers = columns * Marshal.SizeOf(typeof(XlOper12*));
+                int cbOperPointers = columns * IntPtr.Size;
                 _pOperPointers = Marshal.AllocCoTaskMem(cbOperPointers);
                 XlOper12** pOpers = (XlOper12**)_pOperPointers;
                 for (int i = 0; i < columns; i++)
@@ -1312,8 +1312,8 @@ namespace ExcelDna.Loader
             }
 
             // Allocate native space
-            int cbNative = Marshal.SizeOf(typeof(XlOper12)) +               // OPER that is returned
-                           Marshal.SizeOf(typeof(XlOper12)) * (rows * columns);    // Array of OPER inside the result
+            int cbNative = Marshal.SizeOf<XlOper12>() +               // OPER that is returned
+                           Marshal.SizeOf<XlOper12>() * (rows * columns);    // Array of OPER inside the result
             _pNative = Marshal.AllocCoTaskMem(cbNative);
 
             // Set up returned OPER
@@ -1365,7 +1365,7 @@ namespace ExcelDna.Loader
             {
                 // For the Excel12v call, we need to return an array
                 // which will contain the pointers to the Opers.
-                int cbOperPointers = columns * Marshal.SizeOf(typeof(XlOper12*));
+                int cbOperPointers = columns * IntPtr.Size;
                 _pOperPointers = Marshal.AllocCoTaskMem(cbOperPointers);
                 XlOper12** pOpers = (XlOper12**)_pOperPointers;
                 for (int i = 0; i < columns; i++)
