@@ -1,4 +1,6 @@
-﻿namespace ExcelDna.AddIn.RegistrationSampleFS
+﻿#nowarn "FS0044"
+
+namespace ExcelDna.AddIn.RegistrationSampleFS
 
 open System
 open System.Threading
@@ -13,9 +15,7 @@ module TestFunctions =
     let dnaFsDownloadString url = 
         try
             let uri = new System.Uri(url)
-            #nowarn "FS0044"
             let webClient = new WebClient()
-            #warnon "FS0044"
             let html = webClient.DownloadString(uri)
             html
         with
@@ -40,9 +40,7 @@ module TestFunctions =
             // let! ct = Async.CancellationToken
             // if ct.IsCancellationRequested then ...
             let uri = new System.Uri(url)
-            #nowarn "FS0044"
             let webClient = new WebClient()
-            #warnon "FS0044"
             let! html = webClient.AsyncDownloadString(uri)
             return html
         with
