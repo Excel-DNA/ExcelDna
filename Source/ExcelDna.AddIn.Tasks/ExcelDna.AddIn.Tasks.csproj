@@ -23,6 +23,7 @@
   
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net6.0-windows' ">
     <DefineConstants>$(DefineConstants);ASMRESOLVER;PACKEXTENDEDDEPS</DefineConstants>
+    <NoWarn>$(NoWarn);CS8002</NoWarn> <!-- ASMRESOLVER does not have a strong name. -->
   </PropertyGroup>
 
   <ItemGroup>

@@ -28,6 +28,9 @@ namespace ExcelDna.Registration
             }
         }
 
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "Passes all tests")]
+#endif
         public static LambdaExpression ApplyMethodHandler(string functionName, LambdaExpression functionLambda, IFunctionExecutionHandler handler)
         {
             // public static int MyMethod(object arg0, int arg1) { ... }

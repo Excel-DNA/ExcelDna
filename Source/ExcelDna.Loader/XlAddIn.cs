@@ -162,7 +162,7 @@ namespace ExcelDna.Loader
             fnHandles.Add(GCHandle.Alloc(fnCalculationEnded));
             pXlAddInExportInfo->pCalculationEnded = Marshal.GetFunctionPointerForDelegate(fnCalculationEnded);
 
-            LPenHelper = (LPenHelperDelegate)Marshal.GetDelegateForFunctionPointer(pXlAddInExportInfo->pLPenHelper, typeof(LPenHelperDelegate));
+            LPenHelper = Marshal.GetDelegateForFunctionPointer<LPenHelperDelegate>(pXlAddInExportInfo->pLPenHelper);
 
             // Thunk table for registered functions
             thunkTableLength = pXlAddInExportInfo->ThunkTableLength;

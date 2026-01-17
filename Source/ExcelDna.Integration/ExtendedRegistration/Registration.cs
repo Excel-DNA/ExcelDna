@@ -87,7 +87,7 @@ namespace ExcelDna.Integration.ExtendedRegistration
                 .AddReturnConversions(ParameterConversions.GetUserReturnConversions(returnConversions))
 
                 // This is a conversion applied to the return value of the function
-                .AddReturnConversion((Complex value) => new double[2] { value.Real, value.Imaginary })
+                .AddReturnConversion((Complex value) => TypeConversion.ConvertComplexToDoubles(value))
 
                 // This parameter conversion adds support for string[] parameters (by accepting object[] instead).
                 // It uses the TypeConversion utility class to get an object->string

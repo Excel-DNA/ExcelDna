@@ -89,6 +89,9 @@ namespace ExcelDna.Integration.ObjectHandles
             return (type, paramReg) => HandleStringConversion(type, paramReg);
         }
 
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "Passes all tests")]
+#endif
         static LambdaExpression HandleStringConversion(Type type, IExcelFunctionParameter paramReg)
         {
             // Decide whether to return a conversion function for this parameter

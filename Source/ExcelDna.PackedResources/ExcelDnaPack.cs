@@ -362,6 +362,7 @@ namespace ExcelDna.PackedResources
                         path = dna.ResolvePath(rf.Path);
                         buildLogger.Information("  ~~> Assembly path {0} resolved to {1}.", rf.Path, path);
                     }
+#if !AOT_COMPATIBLE
                     if (path == null && rf.Name != null)
                     {
                         // Try Load as as last resort (and opportunity to load by FullName)
@@ -381,6 +382,7 @@ namespace ExcelDna.PackedResources
                             buildLogger.Error(e, "  ~~> Assembly {0} not 'Load'ed. Exception: {1}", rf.Name, e);
                         }
                     }
+#endif
                     if (path == null)
                     {
                         var format = "  ~~> ERROR: Reference with Path: {0} and Name: {1} NOT FOUND.";

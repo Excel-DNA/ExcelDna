@@ -11,7 +11,9 @@ namespace ExcelDna.ManagedHost
     public class ExcelDnaAssemblyLoadContext : AssemblyLoadContext
     {
         readonly string _basePath;
+#if !AOT_COMPATIBLE
         readonly AssemblyDependencyResolver _resolver;
+#endif
         private Dictionary<string, string> unmanagedDllsResolutionCache = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         public ExcelDnaAssemblyLoadContext(string basePath, bool isCollectible)
@@ -19,8 +21,9 @@ namespace ExcelDna.ManagedHost
         {
             _basePath = basePath;
 
-            if (System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported)
-                _resolver = new AssemblyDependencyResolver(basePath);
+#if !AOT_COMPATIBLE
+            _resolver = new AssemblyDependencyResolver(basePath);
+#endif
 
 #if DEBUG
             this.Resolving += ExcelDnaAssemblyLoadContext_Resolving;
@@ -32,12 +35,14 @@ namespace ExcelDna.ManagedHost
         {
             // CONSIDER: Should we consider priorities for packed vs local files?
 
+#if !AOT_COMPATIBLE
             // First try the regular load path
             string assemblyPath = _resolver?.ResolveAssemblyToPath(assemblyName);
             if (assemblyPath != null)
             {
                 return LoadFromAssemblyPath(assemblyPath);
             }
+#endif
 
             // Finally we try the AssemblyManager
             return AssemblyManager.AssemblyResolve(assemblyName, false);
@@ -49,8 +54,10 @@ namespace ExcelDna.ManagedHost
             if (unmanagedDllsResolutionCache.TryGetValue(unmanagedDllName, out string cachedValue))
                 libraryPath = cachedValue;
 
+#if !AOT_COMPATIBLE
             if (libraryPath == null)
                 libraryPath = _resolver?.ResolveUnmanagedDllToPath(unmanagedDllName);
+#endif
 
             if (libraryPath == null)
                 libraryPath = ResolveDllFromBaseDirectory(unmanagedDllName);
@@ -83,6 +90,7 @@ namespace ExcelDna.ManagedHost
         }
 #endif
 
+#if !AOT_COMPATIBLE
         internal Assembly LoadFromAssemblyBytes(byte[] assemblyBytes, byte[] pdbBytes)
         {
             if (pdbBytes == null)
@@ -94,6 +102,7 @@ namespace ExcelDna.ManagedHost
                 return LoadFromStream(new MemoryStream(assemblyBytes), new MemoryStream(pdbBytes));
             }
         }
+#endif
 
         private string ResolveDllFromBaseDirectory(string dllName)
         {

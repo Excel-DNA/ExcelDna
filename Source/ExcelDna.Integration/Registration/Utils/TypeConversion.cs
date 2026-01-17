@@ -6,6 +6,9 @@ namespace ExcelDna.Registration
 {
     public static class TypeConversion
     {
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "Passes all tests")]
+#endif
         public static LambdaExpression GetConversion(Type inputType, Type targetType)
         {
             var input = Expression.Parameter(typeof(object), "input");
@@ -133,14 +136,16 @@ namespace ExcelDna.Registration
             return checked((long)Math.Round(ConvertToDouble(value), MidpointRounding.ToEven));
         }
 
+        internal static double[] ConvertComplexToDoubles(System.Numerics.Complex value) => new double[2] { value.Real, value.Imaginary };
+
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2067", Justification = "Passes all tests")]
+#endif
         public static object GetDefault(Type type)
         {
             if (type.IsValueType)
             {
-#pragma warning disable IL2067
-                // TODO: Add AOT support.
                 return Activator.CreateInstance(type);
-#pragma warning restore IL2067
             }
             return null;
         }

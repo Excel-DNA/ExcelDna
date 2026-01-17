@@ -43,6 +43,9 @@ namespace ExcelDna.Registration
         }
 
         // returnsConversion and the entries in paramsConversions may be null.
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "Passes all tests")]
+#endif
         public static void ApplyConversions(ExcelDna.Registration.ExcelFunctionRegistration reg, List<List<LambdaExpression>> paramsConversions, List<LambdaExpression> returnConversions)
         {
             // CAREFUL: The parameter transformations are applied in reverse order to how they're identified.
@@ -116,6 +119,9 @@ namespace ExcelDna.Registration
             reg.FunctionLambda = Expr.Lambda(wrappingCall, reg.FunctionLambda.Name, wrappingParameters);
         }
 
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "Passes all tests")]
+#endif
         static LambdaExpression ComposeLambdas(IEnumerable<LambdaExpression> lambdas)
         {
             LambdaExpression result = null;

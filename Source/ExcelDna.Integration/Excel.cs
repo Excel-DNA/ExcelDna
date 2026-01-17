@@ -118,7 +118,7 @@ namespace ExcelDna.Integration
                     // This is the typical case.
                     // Get it from there - probably safest
                     // TODO: Can we turn this into a delegate somehow...(for performance)?
-                    hWnd = (IntPtr)(int)_application.GetType().InvokeMember("Hwnd", BindingFlags.GetProperty, null, _application, null, _enUsCulture);
+                    hWnd = (IntPtr)(int)ComInterop.Util.TypeAdapter.GetProperty("Hwnd", _application);
                     if (IsWindowOfThisExcel(hWnd)) return hWnd;
                 }
 
@@ -527,7 +527,7 @@ namespace ExcelDna.Integration
                 // TODO: Can we turn this into a delegate somehow - for performance and to avoid the exception.
                 //       I'm not sure how to pull out the Property if it's name might be based on the Culture.
                 //       One way is to get the dispid, and call through IDispatch.Invoke, but that's a lot of work...
-                _application.GetType().InvokeMember("Version", BindingFlags.GetProperty, null, _application, null, _enUsCulture);
+                ComInterop.Util.TypeAdapter.GetProperty("Version", _application);
                 return true;
             }
             catch (Exception)
@@ -681,10 +681,7 @@ namespace ExcelDna.Integration
                             // Maybe we are loading a COM Server or an RTD Server before the add-in is loaded.
                             try
                             {
-                                object xlApp = ExcelDnaUtil.Application;
-                                object result = xlApp.GetType().InvokeMember("Version",
-                                                                             BindingFlags.GetProperty,
-                                                                             null, xlApp, null, new CultureInfo(1033));
+                                object result = ComInterop.Util.TypeAdapter.GetProperty("Version", ApplicationObject);
                                 _xlVersion = double.Parse((string)result, NumberStyles.Any, CultureInfo.InvariantCulture);
                             }
                             catch (Exception ex)

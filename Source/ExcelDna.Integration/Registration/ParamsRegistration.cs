@@ -116,6 +116,10 @@ namespace ExcelDna.Registration
         public delegate TResult CustomFunc125<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24, T25, T26, T27, T28, T29, T30, T31, T32, T33, T34, T35, T36, T37, T38, T39, T40, T41, T42, T43, T44, T45, T46, T47, T48, T49, T50, T51, T52, T53, T54, T55, T56, T57, T58, T59, T60, T61, T62, T63, T64, T65, T66, T67, T68, T69, T70, T71, T72, T73, T74, T75, T76, T77, T78, T79, T80, T81, T82, T83, T84, T85, T86, T87, T88, T89, T90, T91, T92, T93, T94, T95, T96, T97, T98, T99, T100, T101, T102, T103, T104, T105, T106, T107, T108, T109, T110, T111, T112, T113, T114, T115, T116, T117, T118, T119, T120, T121, T122, T123, T124, T125, TResult>
                                      (T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14, T15 arg15, T16 arg16, T17 arg17, T18 arg18, T19 arg19, T20 arg20, T21 arg21, T22 arg22, T23 arg23, T24 arg24, T25 arg25, T26 arg26, T27 arg27, T28 arg28, T29 arg29, T30 arg30, T31 arg31, T32 arg32, T33 arg33, T34 arg34, T35 arg35, T36 arg36, T37 arg37, T38 arg38, T39 arg39, T40 arg40, T41 arg41, T42 arg42, T43 arg43, T44 arg44, T45 arg45, T46 arg46, T47 arg47, T48 arg48, T49 arg49, T50 arg50, T51 arg51, T52 arg52, T53 arg53, T54 arg54, T55 arg55, T56 arg56, T57 arg57, T58 arg58, T59 arg59, T60 arg60, T61 arg61, T62 arg62, T63 arg63, T64 arg64, T65 arg65, T66 arg66, T67 arg67, T68 arg68, T69 arg69, T70 arg70, T71 arg71, T72 arg72, T73 arg73, T74 arg74, T75 arg75, T76 arg76, T77 arg77, T78 arg78, T79 arg79, T80 arg80, T81 arg81, T82 arg82, T83 arg83, T84 arg84, T85 arg85, T86 arg86, T87 arg87, T88 arg88, T89 arg89, T90 arg90, T91 arg91, T92 arg92, T93 arg93, T94 arg94, T95 arg95, T96 arg96, T97 arg97, T98 arg98, T99 arg99, T100 arg100, T101 arg101, T102 arg102, T103 arg103, T104 arg104, T105 arg105, T106 arg106, T107 arg107, T108 arg108, T109 arg109, T110 arg110, T111 arg111, T112 arg112, T113 arg113, T114 arg114, T115 arg115, T116 arg116, T117 arg117, T118 arg118, T119 arg119, T120 arg120, T121 arg121, T122 arg122, T123 arg123, T124 arg124, T125 arg125);
 
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2026:RequiresUnreferencedCode", Justification = "SourceGenerator adds methods to methodRefs")]
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "SourceGenerator adds methods to methodRefs")]
+#endif
         static LambdaExpression WrapMethodParams(LambdaExpression functionLambda)
         {
             /* We are converting:
@@ -185,22 +189,16 @@ namespace ExcelDna.Registration
             // And put the (converted) arguments into the list
             for (int i = normalParamCount + 1; i <= maxArguments; i++)
             {
-#pragma warning disable IL2026
-                // Guaranteed to work by the SourceGenerator adding to methodRefs.
                 var testParam = Expression.IfThen(Expression.GreaterThanOrEqual(lastArgVarExpr, Expression.Constant(i)),
                                     Expression.Call(argsListVarExpr, "Add", null,
                                         TypeConversion.GetConversion(allParamExprs[i - 1], argsType)));
-#pragma warning restore IL2026
 
                 blockExprs.Add(testParam);
             }
             var argArrayVarExpr = Expression.Variable(argsArrayType);
             blockVars.Add(argArrayVarExpr);
 
-#pragma warning disable IL2026
-            // Guaranteed to work by the SourceGenerator adding to methodRefs.
             var argArrayAssignExpr = Expression.Assign(argArrayVarExpr, Expression.Call(argsListVarExpr, "ToArray", null));
-#pragma warning restore IL2026
             blockExprs.Add(argArrayAssignExpr);
 
             var innerParams = new List<Expression>(normalParams) { argArrayVarExpr };

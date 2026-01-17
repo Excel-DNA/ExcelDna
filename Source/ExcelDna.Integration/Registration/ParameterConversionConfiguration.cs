@@ -72,6 +72,9 @@ namespace ExcelDna.Registration
                 HandleSubTypes = handleSubTypes;
             }
 
+#if AOT_COMPATIBLE
+            [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "Passes all tests")]
+#endif
             internal LambdaExpression Convert(Type returnType, IExcelFunctionReturn returnRegistration)
             {
                 if (TypeFilter != null && returnType != TypeFilter && (!HandleSubTypes || !returnType.IsSubclassOf(TypeFilter)))

@@ -19,6 +19,9 @@ namespace ExcelDna.Integration.ExtendedRegistration
             return (type, paramReg) => CreateConversion(type, paramReg);
         }
 
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "Passes all tests")]
+#endif
         private LambdaExpression CreateConversion(Type type, IExcelFunctionParameter paramReg)
         {
             if (type != MethodInfo.ReturnType)

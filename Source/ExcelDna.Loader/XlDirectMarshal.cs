@@ -34,11 +34,14 @@ namespace ExcelDna.Loader
                 Registration.StaticRegistration.DirectMarshalTypeAdapter.GetFunctionPointerForDelegate(xlDelegate, methodInfo.Parameters.Length) :
                 Registration.StaticRegistration.DirectMarshalTypeAdapter.GetActionPointerForDelegate(xlDelegate, methodInfo.Parameters.Length);
 #else
-                methodInfo.FunctionPointer = Marshal.GetFunctionPointerForDelegate(xlDelegate);
+            methodInfo.FunctionPointer = Marshal.GetFunctionPointerForDelegate(xlDelegate);
 #endif
         }
 
         // NOTE: This is called in parallel, from a ThreadPool thread
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "Passes all tests")]
+#endif
         static Delegate GetNativeDelegate(XlMethodInfo methodInfo)
         {
             // We convert

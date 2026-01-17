@@ -1,4 +1,6 @@
-﻿namespace ExcelDna.AddIn.RegistrationSampleFS
+﻿#nowarn "FS0044"
+
+namespace ExcelDna.AddIn.RegistrationSampleFS
 
 open System
 open System.Threading

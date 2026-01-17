@@ -14,7 +14,8 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
-    <DefineConstants>$(DefineConstants);USE_STATIC_REGISTRATION</DefineConstants>
+    <IsAotCompatible>true</IsAotCompatible>
+    <DefineConstants>$(DefineConstants);USE_STATIC_REGISTRATION;AOT_COMPATIBLE</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

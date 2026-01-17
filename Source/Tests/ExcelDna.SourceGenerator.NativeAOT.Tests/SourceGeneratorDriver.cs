@@ -13,6 +13,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
                 MetadataReference.CreateFromFile(System.Reflection.Assembly.Load("System.Runtime").Location),
                 MetadataReference.CreateFromFile(System.Reflection.Assembly.Load("System.Collections").Location),
+                MetadataReference.CreateFromFile(System.Reflection.Assembly.Load("System.Linq").Location),
                 MetadataReference.CreateFromFile(typeof(ExcelDna.Registration.StaticRegistration).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(ExcelDna.ManagedHost.AddInInitialize).Assembly.Location),
                 ],

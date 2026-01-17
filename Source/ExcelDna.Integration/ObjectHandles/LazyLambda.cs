@@ -9,6 +9,9 @@ namespace ExcelDna.Integration.ObjectHandles
         private LambdaExpression exp;
         private object[] args;
 
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "Passes all tests")]
+#endif
         public static LambdaExpression Create(LambdaExpression source)
         {
             var wrappingParameters = source.Parameters.Select(p => Expression.Parameter(p.Type, p.Name)).ToList();

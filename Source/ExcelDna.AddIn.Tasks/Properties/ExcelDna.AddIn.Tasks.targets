@@ -78,6 +78,14 @@
 		SkipUnchangedFiles="true" />
 
 	<Copy 
+		Condition="Exists('$(ProjectDir)..\ExcelDna.ManagedHost\bin\$(Configuration)\net10.0-windows\ExcelDna.ManagedHost.dll')"
+		SourceFiles="$(ProjectDir)..\ExcelDna.ManagedHost\bin\$(Configuration)\net10.0-windows\ExcelDna.ManagedHost.dll"
+		DestinationFiles="$(ExcelDnaTestPackageDir)tools\net10.0-windows7.0\ExcelDna.ManagedHost.dll"
+		ContinueOnError="false"
+		OverwriteReadOnlyFiles="true"
+		SkipUnchangedFiles="true" />
+
+	<Copy 
 		Condition="Exists('$(ProjectDir)..\ExcelDna.Loader\bin\$(Configuration)\net6.0-windows\ExcelDna.Loader.dll')"
 		SourceFiles="$(ProjectDir)..\ExcelDna.Loader\bin\$(Configuration)\net6.0-windows\ExcelDna.Loader.dll"
 		DestinationFiles="$(ExcelDnaTestPackageDir)tools\net6.0-windows\ExcelDna.Loader.dll"

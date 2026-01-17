@@ -14,5 +14,11 @@ namespace ExcelDna.Test
         {
             System.Diagnostics.Trace.WriteLine("ExcelDna.Test MyTestCommand");
         }
+
+        [ExcelCommand(MenuText = "MyQueueMacro")]
+        public static void MyQueueMacro()
+        {
+            ExcelAsyncUtil.QueueMacro("MyTestCommand");
+        }
     }
 }

@@ -96,6 +96,10 @@ namespace ExcelDna.Registration
             return pis.Any() && pis.Last().Type == typeof(CancellationToken);
         }
 
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2060", Justification = "SourceGenerator adds methods to methodRefs")]
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "SourceGenerator adds methods to methodRefs")]
+#endif
         static LambdaExpression WrapMethodRunTask(LambdaExpression functionLambda, List<object> returnCustomAttributes)
         {
             /* Either, from a lambda expression wrapping a method that looks like this:
@@ -149,12 +153,10 @@ namespace ExcelDna.Registration
                 newReturnType = TaskObjectHandler.ReturnType();
 
             // Build up the RunTaskWithC... method with the right generic type argument
-#pragma warning disable IL2060 // Guaranteed to work by the SourceGenerator adding to methodRefs.
             var runMethod = typeof(ExcelAsyncUtil)
                                 .GetMember(runMethodName, MemberTypes.Method, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
                                 .Cast<MethodInfo>().First()
                                 .MakeGenericMethod(newReturnType);
-#pragma warning restore IL2060
 
             // Get the function name
             var nameExp = Expression.Constant(functionLambda.Name + ":" + Guid.NewGuid().ToString("N"));
@@ -177,6 +179,10 @@ namespace ExcelDna.Registration
             return Expression.Lambda(callTaskRun, functionLambda.Name, newParams);
         }
 
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2060", Justification = "SourceGenerator adds methods to methodRefs")]
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "SourceGenerator adds methods to methodRefs")]
+#endif
         static LambdaExpression WrapMethodRunTaskWithCancellation(LambdaExpression functionLambda, List<object> returnCustomAttributes)
         {
             /* Either, from a lambda expression that looks like this:
@@ -230,12 +236,10 @@ namespace ExcelDna.Registration
                 newReturnType = TaskObjectHandler.ReturnType();
 
             // Build up the RunTaskWithC... method with the right generic type argument
-#pragma warning disable IL2060 // Guaranteed to work by the SourceGenerator adding to methodRefs.
             var runMethod = typeof(ExcelAsyncUtil)
                                 .GetMember(runMethodName, MemberTypes.Method, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
                                 .Cast<MethodInfo>().First()
                                 .MakeGenericMethod(newReturnType);
-#pragma warning restore IL2060
 
             // Get the function name - passed as the first argument to RunTask...
             var nameExp = Expression.Constant(functionLambda.Name + ":" + Guid.NewGuid().ToString("N"));
@@ -381,6 +385,10 @@ namespace ExcelDna.Registration
 #endif
         }
 
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2060", Justification = "SourceGenerator adds methods to methodRefs")]
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "SourceGenerator adds methods to methodRefs")]
+#endif
         static LambdaExpression WrapMethodObservable(LambdaExpression functionLambda, List<object> returnCustomAttributes)
         {
             /* Either, from a lambda expression that looks like this:
@@ -411,8 +419,7 @@ namespace ExcelDna.Registration
 
             // Build up the Observe method with the right generic type argument
             var obsMethod = typeof(ExcelAsyncUtil)
-                                .GetMember(userType ? "ObserveObject" : "Observe", MemberTypes.Method, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-                                .Cast<MethodInfo>().First(i => i.IsGenericMethodDefinition)
+                                .GetMethod(userType ? "ObserveObject" : "Observe3", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
                                 .MakeGenericMethod(returnType);
 
             // Get the function name

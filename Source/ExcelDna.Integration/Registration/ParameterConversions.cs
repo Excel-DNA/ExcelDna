@@ -49,6 +49,9 @@ namespace ExcelDna.Registration
             return returnConversions.OrderBy(i => i.MethodInfo.Name).Select(i => i.GetConversion());
         }
 
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "Passes all tests")]
+#endif
         internal static LambdaExpression NullableConversion(
             ParameterConversionConfiguration config, Type type,
             ExcelParameterRegistration paramReg, bool treatEmptyAsMissing,
@@ -76,6 +79,9 @@ namespace ExcelDna.Registration
             return result;
         }
 
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "Passes all tests")]
+#endif
         static LambdaExpression OptionalConversion(Type type, ExcelParameterRegistration paramReg, bool treatEmptyAsMissing, bool treatNAErrorAsMissing)
         {
             // Decide whether to return a conversion function for this parameter
@@ -148,6 +154,9 @@ namespace ExcelDna.Registration
             return result;
         }
 
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "Passes all tests")]
+#endif
         static LambdaExpression EnumStringConversion(Type type, ExcelParameterRegistration paramReg)
         {
             // Decide whether to return a conversion function for this parameter

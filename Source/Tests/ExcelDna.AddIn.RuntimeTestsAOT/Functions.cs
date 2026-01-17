@@ -306,5 +306,30 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         {
             return $"Native Hello {name}";
         }
+
+        [ExcelFunction]
+        public static string NativeWindowHandle()
+        {
+            return $"Native WindowHandle is {ExcelDnaUtil.WindowHandle}.";
+        }
+
+        [ExcelFunction]
+        public static IObservable<string> NativeStringObservable(string s)
+        {
+            return new ObservableString(s);
+        }
+
+        [ExcelFunction]
+        [return: ExcelHandle]
+        public static IObservable<Calc> NativeCalcObservable(double d1, double d2)
+        {
+            return new ObservableCalc(d1, d2);
+        }
+
+        [ExcelFunction]
+        public static IObservable<string> NativeCalcSumObservable([ExcelHandle] Calc c)
+        {
+            return new ObservableString(c.Sum().ToString());
+        }
     }
 }

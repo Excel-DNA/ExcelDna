@@ -405,10 +405,8 @@ namespace ExcelDna.Integration
                     return false;
                 }
 
-                Type appType = xlApp.GetType();
-
                 // Now try Application.Run(macroName) if we are still alive.
-                object result = appType.InvokeMember("Run", BindingFlags.InvokeMethod, null, xlApp, new object[] { macroName, 0.0 }, _enUsCulture);
+                object result = ComInterop.Util.TypeAdapter.Invoke("Run", new object[] { macroName, 0.0 }, xlApp);
                 // Sometimes (e.g. when the paste live preview feature is active) Application.Run returns the integer value for E_FAIL, 
                 // and not a COM Error that is converted to an exception.
                 if (!result.Equals(0.0))    // We expect our "void" macro to just return 0.0.

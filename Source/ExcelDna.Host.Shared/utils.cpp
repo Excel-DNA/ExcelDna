@@ -412,7 +412,7 @@ int WriteResourceToFile(HMODULE hModuleXll, const std::wstring& resourceName, co
 	if (r != EXIT_SUCCESS)
 		return r;
 
-	HRESULT hr = WriteAllBytes(filePath, bytes.empty() ? NULL : &bytes[0], bytes.size());
+	HRESULT hr = WriteAllBytes(filePath, bytes.empty() ? NULL : &bytes[0], static_cast<DWORD>(bytes.size()));
 	if (FAILED(hr))
 	{
 		std::wstringstream stream;

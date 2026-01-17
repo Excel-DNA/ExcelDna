@@ -10,20 +10,20 @@ using ExcelDna.Integration;
 namespace ExcelDna.Loader
 {
     internal class XlCallImpl
-	{
+    {
         [DllImport("XLCALL32.DLL")]
         internal static extern int XLCallVer();
 
-		[DllImport("kernel32.dll")]
+        [DllImport("kernel32.dll")]
         public static extern IntPtr GetModuleHandle(string moduleName);
 
-		[DllImport("kernel32.dll")]
+        [DllImport("kernel32.dll")]
         public static extern IntPtr GetProcAddress(IntPtr hModule, string procedureName);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         [SuppressUnmanagedCodeSecurity]
         internal unsafe delegate int Excel12vDelegate(int xlfn, int count, XlOper12** ppOpers, XlOper12* pOperRes);
-		internal static Excel12vDelegate Excel12v;
+        internal static Excel12vDelegate Excel12v;
 
         /*
         ** Function number bits
@@ -62,7 +62,7 @@ namespace ExcelDna.Loader
 
         public static XlCall.XlReturn TryExcelImpl(int xlFunction, out object result, params object[] parameters)
         {
-            if (Excel12v == null )
+            if (Excel12v == null)
             {
                 FetchExcel12EntryPt();
                 if (Excel12v == null)
@@ -85,7 +85,7 @@ namespace ExcelDna.Loader
                     IntPtr pfnExcel12v = GetProcAddress(hModuleProcess, "MdCallBack12");
                     if (pfnExcel12v != IntPtr.Zero)
                     {
-                        Excel12v = (Excel12vDelegate)Marshal.GetDelegateForFunctionPointer(pfnExcel12v, typeof(Excel12vDelegate));
+                        Excel12v = Marshal.GetDelegateForFunctionPointer<Excel12vDelegate>(pfnExcel12v);
                     }
                 }
                 catch
@@ -101,7 +101,7 @@ namespace ExcelDna.Loader
             if (Excel12v == null && pfnExcel12v != IntPtr.Zero)
             {
                 Debug.Print("SetExcel12EntryPt - setting delegate.");
-                Excel12v = (Excel12vDelegate)Marshal.GetDelegateForFunctionPointer(pfnExcel12v, typeof(Excel12vDelegate));
+                Excel12v = Marshal.GetDelegateForFunctionPointer<Excel12vDelegate>(pfnExcel12v);
                 Debug.Print("SetExcel12EntryPt - setting delegate OK? -  " + (Excel12v != null).ToString());
             }
         }
@@ -198,5 +198,5 @@ namespace ExcelDna.Loader
             return retval;
         }
 
-	}
+    }
 }
