@@ -650,5 +650,20 @@ namespace ExcelDna.RuntimeTests
                 Assert.Equal("Dynamic Optional VAL: 0", functionRange.Value.ToString());
             }
         }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTests)]
+        public void CollectableEnum()
+        {
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+                functionRange.Formula = "=MyEnum16(1,0,0,0,0,0,0,0,0,10,0,0,0,0,15,\"Value16\")";
+                Assert.Equal("Value16 26", functionRange.Value.ToString());
+            }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
+                functionRange.Formula = "=MyEnum17(1,0,0,0,0,0,0,0,0,10,0,0,0,0,0,16,\"Value17\")";
+                Assert.Equal("Value17 27", functionRange.Value.ToString());
+            }
+        }
     }
 }
