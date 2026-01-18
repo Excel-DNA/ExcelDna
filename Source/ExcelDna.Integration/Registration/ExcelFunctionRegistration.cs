@@ -111,8 +111,11 @@ namespace ExcelDna.Registration
             var paramExprs = methodInfo.GetParameters()
                              .Select(pi => Expression.Parameter(pi.ParameterType, pi.Name))
                              .ToList();
-            FunctionLambda = (paramExprs.Count > 16) ?
+            FunctionLambda =
+#if !AOT_COMPATIBLE
+                (paramExprs.Count > 16) ?
                 Expression.Lambda(GetExtendedDelegateType(methodInfo), Expression.Call(methodInfo, paramExprs), methodInfo.Name, paramExprs) :
+#endif
                 Expression.Lambda(Expression.Call(methodInfo, paramExprs), methodInfo.Name, paramExprs);
 
             var allMethodAttributes = methodInfo.GetCustomAttributes(true);
@@ -150,6 +153,7 @@ namespace ExcelDna.Registration
             Debug.Assert(IsValid());
         }
 
+#if !AOT_COMPATIBLE
         private static Type GetExtendedDelegateType(MethodInfo methodInfo)
         {
             if (methodInfo.ReturnType != typeof(void))
@@ -171,5 +175,6 @@ namespace ExcelDna.Registration
                 return genericBase.MakeGenericType(args);
             }
         }
+#endif
     }
 }

@@ -5,6 +5,8 @@
 <#@ import namespace="System.Collections.Generic" #>
 <#@ output extension=".cs" #>
 <# int maxArguments = 255; #>
+#if !AOT_COMPATIBLE
+
 using System;
 
 namespace ExcelDna.Registration
@@ -51,3 +53,5 @@ namespace ExcelDna.Registration
         (<# Write(args);#>);
 <# } #>
 }
+
+#endif
