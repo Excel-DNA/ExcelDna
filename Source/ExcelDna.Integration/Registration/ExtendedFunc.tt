@@ -1,0 +1,53 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+<# int maxArguments = 255; #>
+using System;
+
+namespace ExcelDna.Registration
+{
+    internal class ExtendedFuncUtil
+    {
+        public static Type GetFuncType(int i)
+        {
+            switch(i)
+            {
+<# for (int i = 0; i <= maxArguments; ++i) {#>
+                case <# Write(i.ToString());#>:
+                    return typeof(ExtendedFunc<# Write(i.ToString());#><<# Write(new string(',', i));#>>);
+<# } #>
+                default:
+                    throw new NotImplementedException($"GetFuncType({i})");
+            }
+        }
+
+        public static Type GetActionType(int i)
+        {
+            switch(i)
+            {
+<# for (int i = 0; i <= maxArguments; ++i) {#>
+                case <# Write(i.ToString());#>:
+                    return typeof(ExtendedAction<# Write(i.ToString());#><# Write((i > 0 ? "<" + new string(',', i-1) + ">":""));#>);
+<# } #>
+                default:
+                    throw new NotImplementedException($"GetActionType({i})");
+            }
+        }
+    }
+
+<# for (int i = 0; i <= maxArguments; ++i) {#>
+<# string types=""; #>
+<# string args=""; #>
+<# for (int k = 1; k <= i; ++k) {#>
+<# types +=$"T{k}{(k != i ? "," : "")}"; #>
+<# args += $"T{k} arg{k}{(k !=i ?"," : "")}"; #>
+<# } #>
+    internal delegate TResult ExtendedFunc<# Write(i.ToString());#><<# Write(types + (i > 0 ? "," : ""));#>TResult>
+        (<# Write(args);#>);
+    internal delegate void ExtendedAction<# Write(i.ToString());#><# Write((i > 0 ? "<" : "") + types + (i > 0 ? ">" : ""));#> 
+        (<# Write(args);#>);
+<# } #>
+}
