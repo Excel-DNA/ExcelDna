@@ -5,12 +5,14 @@
 #if DEBUG
         public const string RuntimeTestsAOT = @"..\..\..\..\ExcelDna.AddIn.RuntimeTestsAOT\bin\Debug\net10.0-windows\win-x64\publish\ExcelDna.AddIn.RuntimeTestsAOT";
         public const string RuntimeTests = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Debug\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn";
+        public const string RuntimeTestsNET4 = @"..\..\..\..\ExcelDna.AddIn.RuntimeTestsNET4\bin\Debug\net48\ExcelDna.AddIn.RuntimeTestsNET4-AddIn";
         public const string RegistrationSample = @"..\..\..\..\ExcelDna.AddIn.RegistrationSample\bin\Debug\net6.0-windows\ExcelDna.AddIn.RegistrationSample-AddIn";
         public const string RegistrationSampleFS = @"..\..\..\..\ExcelDna.AddIn.RegistrationSampleFS\bin\Debug\net6.0-windows\ExcelDna.AddIn.RegistrationSampleFS-AddIn";
         public const string RegistrationSampleVB = @"..\..\..\..\ExcelDna.AddIn.RegistrationSampleVB\bin\Debug\net6.0-windows\ExcelDna.AddIn.RegistrationSampleVB-AddIn";
 #else
         public const string RuntimeTestsAOT = @"..\..\..\..\ExcelDna.AddIn.RuntimeTestsAOT\bin\Release\net10.0-windows\win-x64\publish\ExcelDna.AddIn.RuntimeTestsAOT";
         public const string RuntimeTests = @"..\..\..\..\ExcelDna.AddIn.RuntimeTests\bin\Release\net6.0-windows\ExcelDna.AddIn.RuntimeTests-AddIn";
+        public const string RuntimeTestsNET4 = @"..\..\..\..\ExcelDna.AddIn.RuntimeTestsNET4\bin\Release\net48\ExcelDna.AddIn.RuntimeTestsNET4-AddIn";
         public const string RegistrationSample = @"..\..\..\..\ExcelDna.AddIn.RegistrationSample\bin\Release\net6.0-windows\ExcelDna.AddIn.RegistrationSample-AddIn";
         public const string RegistrationSampleFS = @"..\..\..\..\ExcelDna.AddIn.RegistrationSampleFS\bin\Release\net6.0-windows\ExcelDna.AddIn.RegistrationSampleFS-AddIn";
         public const string RegistrationSampleVB = @"..\..\..\..\ExcelDna.AddIn.RegistrationSampleVB\bin\Release\net6.0-windows\ExcelDna.AddIn.RegistrationSampleVB-AddIn";
