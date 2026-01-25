@@ -25,6 +25,8 @@ namespace ExcelDna.Registration
                 return Expression.Call(((Func<Object, String>)ConvertToString).Method, input);
             if (type == typeof(DateTime))
                 return Expression.Call(((Func<Object, DateTime>)ConvertToDateTime).Method, input);
+            if (type == typeof(Nullable<DateTime>))
+                return Expression.Call(((Func<Object, Nullable<DateTime>>)ConvertToNullableDateTime).Method, input);
             if (type == typeof(Boolean))
                 return Expression.Call(((Func<Object, Boolean>)ConvertToBoolean).Method, input);
             if (type == typeof(Int64))
@@ -93,6 +95,11 @@ namespace ExcelDna.Registration
                 // Might exceed range of DateTime
                 throw new InvalidCastException("Value " + value.ToString() + " could not be converted to DateTime.");
             }
+        }
+
+        public static DateTime? ConvertToNullableDateTime(object value)
+        {
+            return ConvertToDateTime(value);
         }
 
         public static bool ConvertToBoolean(object value)

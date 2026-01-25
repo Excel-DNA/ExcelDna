@@ -97,8 +97,8 @@ namespace ExcelDna.RuntimeTests
             functionRange.Formula = "=MyDateTimeNullable()";
             Assert.Equal<double>(42, functionRange.Value2);
 
-            //functionRange.Formula = "=MyDateTimeNullable(\"2025-10-13\")";
-            //Assert.Equal<double>(42, functionRange.Value2);
+            functionRange.Formula = "=MyDateTimeNullable(\"2025-10-13\")";
+            Assert.Equal<double>(45943, functionRange.Value2);
 
             functionRange.Formula = "=MyDateTimeDefault()";
             Assert.Equal<double>(0, functionRange.Value2);
