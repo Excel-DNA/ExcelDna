@@ -56,13 +56,14 @@ namespace ExcelDna.Registration
                 ArgumentAttribute = new ExcelArgumentAttribute { Name = parameterInfo.Name };
             }
 
+            object parameterDefaultValue = ParameterDefaultValue(parameterInfo);
             // Extra processing for Optional / Default values
             // TODO: Also consider DefaultValueAttribute (which is wrong, but might be used...)
-            if (parameterInfo.IsOptional && parameterInfo.DefaultValue != DBNull.Value)
+            if (parameterInfo.IsOptional && parameterDefaultValue != DBNull.Value)
             {
                 Debug.Assert(CustomAttributes.OfType<OptionalAttribute>().Any());
                 Debug.Assert(!CustomAttributes.OfType<DefaultParameterValueAttribute>().Any());
-                CustomAttributes.Add(new DefaultParameterValueAttribute(parameterInfo.DefaultValue));
+                CustomAttributes.Add(new DefaultParameterValueAttribute(parameterDefaultValue));
             }
         }
 
@@ -70,6 +71,26 @@ namespace ExcelDna.Registration
         internal bool IsValid()
         {
             return ArgumentAttribute != null && CustomAttributes != null && CustomAttributes.All(att => att != null);
+        }
+
+        private static object ParameterDefaultValue(ParameterInfo parameterInfo)
+        {
+#if NETFRAMEWORK
+            // A workaround for optional DateTime parameter's default value exception https://github.com/dotnet/runtime/issues/24574
+            if (parameterInfo.ParameterType == typeof(DateTime) && parameterInfo.Attributes == (ParameterAttributes.Optional | ParameterAttributes.HasDefault))
+            {
+                try
+                {
+                    return parameterInfo.DefaultValue;
+                }
+                catch (FormatException)
+                {
+                    return null;
+                }
+            }
+#endif
+
+            return parameterInfo.DefaultValue;
         }
     }
 }
