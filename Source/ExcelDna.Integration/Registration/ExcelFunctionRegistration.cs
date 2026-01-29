@@ -111,7 +111,12 @@ namespace ExcelDna.Registration
             var paramExprs = methodInfo.GetParameters()
                              .Select(pi => Expression.Parameter(pi.ParameterType, pi.Name))
                              .ToList();
-            FunctionLambda = Expression.Lambda(Expression.Call(methodInfo, paramExprs), methodInfo.Name, paramExprs);
+            FunctionLambda =
+#if !AOT_COMPATIBLE
+                (paramExprs.Count > 16) ?
+                Expression.Lambda(GetExtendedDelegateType(methodInfo), Expression.Call(methodInfo, paramExprs), methodInfo.Name, paramExprs) :
+#endif
+                Expression.Lambda(Expression.Call(methodInfo, paramExprs), methodInfo.Name, paramExprs);
 
             var allMethodAttributes = methodInfo.GetCustomAttributes(true);
             foreach (var att in allMethodAttributes)
@@ -147,5 +152,29 @@ namespace ExcelDna.Registration
             // Check that we haven't made a mistake
             Debug.Assert(IsValid());
         }
+
+#if !AOT_COMPATIBLE
+        private static Type GetExtendedDelegateType(MethodInfo methodInfo)
+        {
+            if (methodInfo.ReturnType != typeof(void))
+            {
+                Type genericBase = ExtendedFuncUtil.GetFuncType(methodInfo.GetParameters().Length);
+                var args = methodInfo.GetParameters().Select(p => p.ParameterType)
+                    .Concat(new[] { methodInfo.ReturnType })
+                    .ToArray();
+                return genericBase.MakeGenericType(args);
+            }
+            else
+            {
+                Type genericBase = ExtendedFuncUtil.GetActionType(methodInfo.GetParameters().Length);
+                if (!genericBase.IsGenericType)
+                    return genericBase;
+
+                var args = methodInfo.GetParameters().Select(p => p.ParameterType)
+                    .ToArray();
+                return genericBase.MakeGenericType(args);
+            }
+        }
+#endif
     }
 }
