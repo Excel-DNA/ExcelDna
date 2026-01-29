@@ -85,6 +85,64 @@ namespace ExcelDna.RuntimeTests
         }
 
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTests)]
+        public void OptionalAndDefaultParametersDateTime()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+            functionRange.Formula = "=MyDateTimeRequired()";
+            Assert.Equal<double>(0, functionRange.Value2);
+
+            functionRange.Formula = "=MyDateTimeRequired(\"2025-10-13\")";
+            Assert.Equal<double>(45943, functionRange.Value2);
+
+            functionRange.Formula = "=MyDateTimeNullable()";
+            Assert.Equal<double>(42, functionRange.Value2);
+
+            functionRange.Formula = "=MyDateTimeNullable(\"2025-10-13\")";
+            Assert.Equal<double>(45943, functionRange.Value2);
+
+            functionRange.Formula = "=MyDateTimeDefault()";
+            Assert.Equal<double>(0, functionRange.Value2);
+
+            functionRange.Formula = "=MyDateTimeDefault(\"2025-10-13\")";
+            Assert.Equal<double>(45943, functionRange.Value2);
+
+            functionRange.Formula = "=MyDateTimeNullableWithoutDefault()";
+            Assert.Equal<double>(42, functionRange.Value2);
+
+            functionRange.Formula = "=MyDateTimeNullableWithoutDefault(\"2025-10-13\")";
+            Assert.Equal<double>(45943, functionRange.Value2);
+        }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTests)]
+        public void OptionalAndDefaultParametersDouble()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+            functionRange.Formula = "=MyDoubleRequired()";
+            Assert.Equal<double>(0, functionRange.Value2);
+
+            functionRange.Formula = "=MyDoubleRequired(1.2)";
+            Assert.Equal<double>(1.2, functionRange.Value2);
+
+            functionRange.Formula = "=MyDoubleDefault()";
+            Assert.Equal<double>(23.4, functionRange.Value2);
+
+            functionRange.Formula = "=MyDoubleDefault(2.3)";
+            Assert.Equal<double>(2.3, functionRange.Value2);
+
+            functionRange.Formula = "=MyDoubleNullableWithoutDefault()";
+            Assert.Equal<double>(7.89, functionRange.Value2);
+
+            functionRange.Formula = "=MyDoubleNullableWithoutDefault(3.4)";
+            Assert.Equal<double>(3.4, functionRange.Value2);
+
+            functionRange.Formula = "=MyDoubleNullable()";
+            Assert.Equal<double>(12.3, functionRange.Value2);
+
+            functionRange.Formula = "=MyDoubleNullable(5.6)";
+            Assert.Equal<double>(5.6, functionRange.Value2);
+        }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTests)]
         public void Enum()
         {
             Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];

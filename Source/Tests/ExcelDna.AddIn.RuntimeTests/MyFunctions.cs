@@ -68,6 +68,30 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
+        public static double MyDateTimeRequired(DateTime value) => value.ToOADate();
+
+        [ExcelFunction]
+        public static double MyDateTimeNullable(DateTime? value = null) => value?.ToOADate() ?? 42;
+
+        [ExcelFunction]
+        public static double MyDateTimeDefault(DateTime value = default) => value.ToOADate();
+
+        [ExcelFunction]
+        public static double MyDateTimeNullableWithoutDefault(DateTime? value) => value?.ToOADate() ?? 42;
+
+        [ExcelFunction]
+        public static double MyDoubleRequired(double value) => value;
+
+        [ExcelFunction]
+        public static double MyDoubleNullableWithoutDefault(double? value) => value ?? 7.89;
+
+        [ExcelFunction]
+        public static double MyDoubleNullable(double? value = 12.3) => value ?? 42.0;
+
+        [ExcelFunction]
+        public static double MyDoubleDefault(double value = 23.4) => value;
+
+        [ExcelFunction]
         public static string MyEnum(DateTimeKind e)
         {
             return "Enum VAL: " + e.ToString();
