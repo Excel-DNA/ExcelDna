@@ -13,6 +13,11 @@ namespace ExcelDna.AddIn.RuntimeTests
             Logger.Log("Hello command.");
         }
 
+        public static void MyMacro()
+        {
+            Logger.Log("My macro.");
+        }
+
         [ExcelFunction]
         public static string SayHello(string name)
         {

@@ -83,7 +83,7 @@ namespace ExcelDna.Registration
 
         internal static bool IsCommand(MethodInfo methodInfo)
         {
-            return methodInfo.GetCustomAttribute<ExcelCommandAttribute>() != null;
+            return methodInfo.GetCustomAttribute<ExcelCommandAttribute>() != null || methodInfo.ReturnType == typeof(void);
         }
     }
 }
