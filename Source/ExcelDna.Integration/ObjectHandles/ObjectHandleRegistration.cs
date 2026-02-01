@@ -25,7 +25,8 @@ namespace ExcelDna.Integration.ObjectHandles
 
                     reg.FunctionLambda = Registration.FunctionExecutionRegistration.ApplyMethodHandler(reg.FunctionAttribute.Name, reg.FunctionLambda, entryFunctionExecutionHandler);
 
-                    var returnConversion = CreateReturnConversion((object value) => GetReturnConversion(value, reg.FunctionAttribute.Name, entryFunctionExecutionHandler));
+                    string displayName = GetExcelHandle(reg.Return.CustomAttributes).DisplayName ?? reg.FunctionAttribute.Name;
+                    var returnConversion = CreateReturnConversion((object value) => GetReturnConversion(value, displayName, entryFunctionExecutionHandler));
 
                     ParameterConversionRegistration.ApplyConversions(reg, null, ParameterConversionRegistration.GetReturnConversions(new List<ParameterConversionConfiguration.ReturnConversion> { returnConversion }, reg.FunctionLambda.ReturnType, reg.ReturnRegistration));
                 }
@@ -70,6 +71,11 @@ namespace ExcelDna.Integration.ObjectHandles
             }
 
             return result;
+        }
+
+        private static ExcelHandleAttribute GetExcelHandle(List<object> customAttributes)
+        {
+            return customAttributes.OfType<ExcelHandleAttribute>().First();
         }
 
         static ParameterConversionConfiguration.ReturnConversion CreateReturnConversion<TFrom, TTo>(Expression<Func<TFrom, TTo>> convert)
