@@ -14,6 +14,18 @@ namespace ExcelDna.RuntimeTests
         }
 
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTests)]
+        public void Macro()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+            functionRange.Formula = "=MyMacro()";
+
+            // While Excel doesn't allow to enter "=MyMacro()" interactively with UI, it allows to use it programmatically as a formula. So, the following line fails if uncommented.
+            // Assert.Equal(((System.Runtime.InteropServices.ErrorWrapper)ExcelErrorUtil.ToComError(ExcelError.ExcelErrorName)).ErrorCode, functionRange.Value2);
+
+            Assert.Equal(false, functionRange.Value2);
+        }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTests)]
         public void ExclamationFunctionProcessor()
         {
             Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
