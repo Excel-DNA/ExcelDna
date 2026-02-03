@@ -496,6 +496,23 @@ namespace ExcelDna.RuntimeTests
         }
 
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTests)]
+        public void ObjectHandleDisplayName()
+        {
+            string b1;
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+                functionRange1.Formula = "=MyCreateCalcDisplayName(46, 1)";
+                Assert.StartsWith("MyCalcHandle", (string)functionRange1.Value);
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B2"];
+                functionRange2.Formula = "=MyCalcSum(B1)";
+
+                b1 = functionRange1.Value.ToString();
+                Assert.Equal("47", functionRange2.Value.ToString());
+            }
+        }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTests)]
         public void TaskObjectHandles()
         {
             {

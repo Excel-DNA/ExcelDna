@@ -204,6 +204,13 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
+        [return: ExcelHandle(DisplayName = "MyCalcHandle")]
+        public static Calc MyCreateCalcDisplayName(double d1, double d2)
+        {
+            return new Calc(d1, d2);
+        }
+
+        [ExcelFunction]
         [return: ExcelHandle]
         public static Calc MyCreateCalc2(double d1, double d2)
         {
