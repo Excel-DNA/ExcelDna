@@ -8,6 +8,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace ExcelDna.Loader
 {
@@ -40,6 +41,18 @@ namespace ExcelDna.Loader
             get
             {
                 return IsRunningOnCluster || (ProcessMajorVersion >= 14);
+            }
+        }
+
+        public static void CollectComObjects()
+        {
+            for (int i = 0; i < 10; ++i)
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+
+                if (!Marshal.AreComObjectsAvailableForCleanup())
+                    break;
             }
         }
 

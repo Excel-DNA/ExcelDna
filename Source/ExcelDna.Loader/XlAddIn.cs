@@ -311,6 +311,8 @@ namespace ExcelDna.Loader
                 Logger.Initialization.Error(e, "XlAddIn.XlAutoClose error");
             }
 
+            ProcessHelper.CollectComObjects();
+
             return result;
         }
 
