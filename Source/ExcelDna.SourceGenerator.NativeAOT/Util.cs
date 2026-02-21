@@ -46,7 +46,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT
 
         public static string MethodExpressionType(IMethodSymbol method)
         {
-            return $"Expression<{MethodType(method)}>";
+            return $"System.Linq.Expressions.Expression<{MethodType(method)}>";
         }
 
         public static bool IsLastArrayParams(IMethodSymbol method)
