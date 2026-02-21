@@ -11,6 +11,9 @@ nuget.exe push "%rootPath%\ExcelDna\Package\nupkg\ExcelDna.Integration._VERSION_
 nuget.exe push "%rootPath%\ExcelDna\Package\nupkg\ExcelDna.AddIn._VERSION_.nupkg" -Source  https://api.nuget.org/v3/index.json -Verbosity detailed -NonInteractive
 @if errorlevel 1 goto end
 
+nuget.exe push "%rootPath%\ExcelDna\Package\nupkg\ExcelDna.AddIn.NativeAOT._VERSION_.nupkg" -Source  https://api.nuget.org/v3/index.json -Verbosity detailed -NonInteractive
+@if errorlevel 1 goto end
+
 nuget.exe push "%rootPath%\ExcelDna\Package\nupkg\Excel-DNA.Lib._VERSION_.nupkg" -Source  https://api.nuget.org/v3/index.json -Verbosity detailed -NonInteractive
 @if errorlevel 1 goto end
 

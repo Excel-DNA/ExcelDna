@@ -1,11 +1,11 @@
 setlocal
 
-set PackageNativeAOTVersion=0.1.0-alpha1
-set PackageVersion=1.9.0-rc2
-set PackageReferenceVersion=1.9.0-rc2
-set DllVersion=1.9.0.8
+set PackageNativeAOTVersion=1.10.0-preview1
+set PackageVersion=1.10.0-preview1
+set PackageReferenceVersion=1.10.0-preview1
+set DllVersion=1.10.0.1
 
-set MSBuildPath="c:\Program Files\Microsoft Visual Studio\2022\Professional\Msbuild\Current\Bin\amd64\MSBuild.exe"
+set MSBuildPath="c:\Program Files\Microsoft Visual Studio\18\Insiders\Msbuild\Current\Bin\amd64\MSBuild.exe"
 
 set rootPath=%~dp0..\..
 
