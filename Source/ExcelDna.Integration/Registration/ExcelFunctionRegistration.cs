@@ -101,9 +101,6 @@ namespace ExcelDna.Registration
         /// All CustomAttributes on the method and parameters are copies to the respective collections in the ExcelFunctionRegistration.
         /// </summary>
         /// <param name="methodInfo"></param>
-#if AOT_COMPATIBLE
-        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "Passes all tests")]
-#endif
         public ExcelFunctionRegistration(MethodInfo methodInfo)
         {
             CustomAttributes = new List<object>();
@@ -111,12 +108,7 @@ namespace ExcelDna.Registration
             var paramExprs = methodInfo.GetParameters()
                              .Select(pi => Expression.Parameter(pi.ParameterType, pi.Name))
                              .ToList();
-            FunctionLambda =
-#if !AOT_COMPATIBLE
-                (paramExprs.Count > 16) ?
-                Expression.Lambda(GetExtendedDelegateType(methodInfo), Expression.Call(methodInfo, paramExprs), methodInfo.Name, paramExprs) :
-#endif
-                Expression.Lambda(Expression.Call(methodInfo, paramExprs), methodInfo.Name, paramExprs);
+            FunctionLambda = CreateMethodLambda(methodInfo, paramExprs);
 
             var allMethodAttributes = methodInfo.GetCustomAttributes(true);
             foreach (var att in allMethodAttributes)
@@ -151,6 +143,33 @@ namespace ExcelDna.Registration
 
             // Check that we haven't made a mistake
             Debug.Assert(IsValid());
+        }
+
+        private static LambdaExpression CreateMethodLambda(MethodInfo methodInfo, IReadOnlyList<ParameterExpression> paramExprs)
+        {
+            try
+            {
+#if !AOT_COMPATIBLE
+                if (paramExprs.Count > 16)
+                {
+                    return Expression.Lambda(GetExtendedDelegateType(methodInfo), Expression.Call(methodInfo, paramExprs), methodInfo.Name, paramExprs);
+                }
+#endif
+                return Expression.Lambda(Expression.Call(methodInfo, paramExprs), methodInfo.Name, paramExprs);
+            }
+            catch (NotSupportedException ex) when (IsMissingNativeMetadata(ex))
+            {
+                throw new InvalidOperationException(
+                    $"NativeAOT could not build a registration expression for '{methodInfo.DeclaringType?.FullName}.{methodInfo.Name}'. " +
+                    "The required Expression<TDelegate> shape is missing native metadata. " +
+                    "Ensure the NativeAOT source generator roots Expression<Func<...>> / Expression<Action<...>> for this signature.",
+                    ex);
+            }
+        }
+
+        static bool IsMissingNativeMetadata(NotSupportedException ex)
+        {
+            return ex.Message?.IndexOf("missing native code or metadata", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
 #if !AOT_COMPATIBLE
