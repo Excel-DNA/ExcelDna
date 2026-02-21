@@ -88,6 +88,7 @@ namespace ExcelDna.Integration
     [MeansImplicitUse]
     public class ExcelHandleAttribute : Attribute
     {
+        public string DisplayName = null;
     }
 
     /// <summary>

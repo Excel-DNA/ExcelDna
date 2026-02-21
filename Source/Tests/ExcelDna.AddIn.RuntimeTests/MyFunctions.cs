@@ -13,6 +13,11 @@ namespace ExcelDna.AddIn.RuntimeTests
             Logger.Log("Hello command.");
         }
 
+        public static void MyMacro()
+        {
+            Logger.Log("My macro.");
+        }
+
         [ExcelFunction]
         public static string SayHello(string name)
         {
@@ -194,6 +199,13 @@ namespace ExcelDna.AddIn.RuntimeTests
         [ExcelFunction]
         [return: ExcelHandle]
         public static Calc MyCreateCalc(double d1, double d2)
+        {
+            return new Calc(d1, d2);
+        }
+
+        [ExcelFunction]
+        [return: ExcelHandle(DisplayName = "MyCalcHandle")]
+        public static Calc MyCreateCalcDisplayName(double d1, double d2)
         {
             return new Calc(d1, d2);
         }
