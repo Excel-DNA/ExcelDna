@@ -44,6 +44,11 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                 $"Func<{(string.IsNullOrWhiteSpace(parameters) ? null : $"{parameters}, ")}{GetFullTypeName(method.ReturnType)}>";
         }
 
+        public static string MethodExpressionType(IMethodSymbol method)
+        {
+            return $"System.Linq.Expressions.Expression<{MethodType(method)}>";
+        }
+
         public static bool IsLastArrayParams(IMethodSymbol method)
         {
             return method.Parameters.Length > 0 && method.Parameters.Last().IsParams && method.Parameters.Last().Type is IArrayTypeSymbol;

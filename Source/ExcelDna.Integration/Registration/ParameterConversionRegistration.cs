@@ -43,9 +43,6 @@ namespace ExcelDna.Registration
         }
 
         // returnsConversion and the entries in paramsConversions may be null.
-#if AOT_COMPATIBLE
-        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "Passes all tests")]
-#endif
         public static void ApplyConversions(ExcelDna.Registration.ExcelFunctionRegistration reg, List<List<LambdaExpression>> paramsConversions, List<LambdaExpression> returnConversions)
         {
             // CAREFUL: The parameter transformations are applied in reverse order to how they're identified.
@@ -116,12 +113,13 @@ namespace ExcelDna.Registration
                     wrappingCall = Expr.Invoke(conversion, wrappingCall);
             }
 
-            reg.FunctionLambda = Expr.Lambda(wrappingCall, reg.FunctionLambda.Name, wrappingParameters);
+            reg.FunctionLambda = CreateLambdaWithAotContext(
+                wrappingCall,
+                reg.FunctionLambda.Name ?? "<lambda>",
+                wrappingParameters,
+                "ApplyConversions");
         }
 
-#if AOT_COMPATIBLE
-        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "Passes all tests")]
-#endif
         static LambdaExpression ComposeLambdas(IEnumerable<LambdaExpression> lambdas)
         {
             LambdaExpression result = null;
@@ -133,12 +131,36 @@ namespace ExcelDna.Registration
                     result = convsIter.Current;
                     while (convsIter.MoveNext())
                     {
-                        result = Expression.Lambda(Expression.Invoke(result, convsIter.Current),
-                            convsIter.Current.Parameters);
+                        result = CreateLambdaWithAotContext(
+                            Expression.Invoke(result, convsIter.Current),
+                            convsIter.Current.Name ?? "<lambda>",
+                            convsIter.Current.Parameters,
+                            "ComposeLambdas");
                     }
                 }
             }
             return result;
+        }
+
+        static LambdaExpression CreateLambdaWithAotContext(Expression body, string lambdaName, IEnumerable<ParameterExpression> parameters, string operation)
+        {
+            try
+            {
+                return Expr.Lambda(body, lambdaName, parameters);
+            }
+            catch (NotSupportedException ex) when (IsMissingNativeMetadata(ex))
+            {
+                throw new InvalidOperationException(
+                    $"NativeAOT could not build an expression during '{operation}' for '{lambdaName}'. " +
+                    "The required Expression<TDelegate> shape is missing native metadata. " +
+                    "Ensure the NativeAOT source generator roots expression delegate shapes for rewritten registrations.",
+                    ex);
+            }
+        }
+
+        static bool IsMissingNativeMetadata(NotSupportedException ex)
+        {
+            return ex.Message?.IndexOf("missing native code or metadata", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         public static LambdaExpression GetParameterConversion(ParameterConversionConfiguration conversionConfig,

@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
@@ -94,9 +94,11 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                 {
                     functions += $"{regHost}.MethodsForRegistration.Add({GetMethod(i)});\r\n";
                     functions += $"typeRefs.Add(typeof({Util.MethodType(i)}));\r\n";
+                    functions += $"typeRefs.Add(typeof({Util.MethodExpressionType(i)}));\r\n";
                     foreach (var p in i.Parameters)
                     {
                         functions += $"typeRefs.Add(typeof(Func<object, {Util.GetFullTypeName(p.Type)}>));\r\n";
+                        functions += $"typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, {Util.GetFullTypeName(p.Type)}>>));\r\n";
                     }
 
                     if (Util.IsLastArrayParams(i))
@@ -106,6 +108,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                         methods += $"methodRefs.Add(typeof(List<{Util.GetFullTypeName(arrayType.ElementType)}>).GetMethod(\"ToArray\")!);\r\n";
                         methods += $"methodRefs.Add(typeof(List<{Util.GetFullTypeName(arrayType.ElementType)}>).GetMethod(\"Add\")!);\r\n";
                         functions += $"typeRefs.Add(typeof(Func<{Util.CreateFunc16Args(i)}>));\r\n";
+                        functions += $"typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<{Util.CreateFunc16Args(i)}>>));\r\n";
                     }
 
                     if (i.ReturnType is INamedTypeSymbol named && named.IsGenericType && Util.GetFullGenericTypeName(named) == "System.Threading.Tasks.Task")
