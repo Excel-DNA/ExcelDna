@@ -313,7 +313,7 @@ namespace ExcelDna.RuntimeTests
 
                 Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E2"];
                 functionRange2.Formula = "=dnaNullableDateTime(12.3)";
-                Assert.Equal("VAL: 1/11/1900 7:12:00 AM", functionRange2.Value.ToString());
+                DateAssertions.EqualPrefixed(functionRange2.Value, "VAL: ", DateTime.FromOADate(12.3));
             }
             {
                 Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["F1"];

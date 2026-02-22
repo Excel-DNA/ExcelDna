@@ -10,10 +10,10 @@ namespace ExcelDna.RuntimeTests
         {
             Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
             functionRange.Formula = "=Net4OptionalDateTime(\"2024/11/21\")";
-            Assert.Equal(".NET 4 Optional DateTime: 11/21/2024 12:00:00 AM", functionRange.Value.ToString());
+            DateAssertions.EqualPrefixed(functionRange.Value, ".NET 4 Optional DateTime: ", new DateTime(2024, 11, 21));
 
             functionRange.Formula = "=Net4OptionalDateTime()";
-            Assert.Equal(".NET 4 Optional DateTime: 1/1/0001 12:00:00 AM", functionRange.Value.ToString());
+            DateAssertions.EqualPrefixed(functionRange.Value, ".NET 4 Optional DateTime: ", DateTime.MinValue);
         }
 
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsNET4)]

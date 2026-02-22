@@ -49,7 +49,7 @@ namespace ExcelDna.RuntimeTests
         {
             Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
             functionRange.Formula = "=MyDateTime(\"2024/10/20\")";
-            Assert.Equal("10/20/2024 12:00:00 AM", functionRange.Value.ToString());
+            DateAssertions.Equal(functionRange.Value, new System.DateTime(2024, 10, 20));
         }
 
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTests)]
@@ -68,7 +68,7 @@ namespace ExcelDna.RuntimeTests
         {
             Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
             functionRange.Formula = "=MyNullableDateTime(\"2024/11/21\")";
-            Assert.Equal("Nullable DateTime: 11/21/2024 12:00:00 AM", functionRange.Value.ToString());
+            DateAssertions.EqualPrefixed(functionRange.Value, "Nullable DateTime: ", new System.DateTime(2024, 11, 21));
 
             functionRange.Formula = "=MyNullableDateTime()";
             Assert.Equal("Nullable DateTime: NULL", functionRange.Value.ToString());
@@ -90,10 +90,10 @@ namespace ExcelDna.RuntimeTests
         {
             Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1:B1"];
             functionRange.Formula = "=MyOptionalDateTime(\"2024/11/21\")";
-            Assert.Equal("Optional DateTime: 11/21/2024 12:00:00 AM", functionRange.Value.ToString());
+            DateAssertions.EqualPrefixed(functionRange.Value, "Optional DateTime: ", new System.DateTime(2024, 11, 21));
 
             functionRange.Formula = "=MyOptionalDateTime()";
-            Assert.Equal("Optional DateTime: 1/1/0001 12:00:00 AM", functionRange.Value.ToString());
+            DateAssertions.EqualPrefixed(functionRange.Value, "Optional DateTime: ", System.DateTime.MinValue);
         }
 
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTests)]
