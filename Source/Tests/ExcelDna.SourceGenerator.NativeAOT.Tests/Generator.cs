@@ -30,6 +30,8 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeParamsJoinString")!);
                 typeRefs.Add(typeof(Func<string, string[], string>));
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<string, string[], string>>));
+                typeRefs.Add(typeof(Func<string, object[], string>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<string, object[], string>>));
                 typeRefs.Add(typeof(Func<object, string>));
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, string>>));
                 typeRefs.Add(typeof(Func<object, string[]>));
@@ -40,6 +42,43 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 List<MethodInfo> methodRefs = new List<MethodInfo>();
                 methodRefs.Add(typeof(List<string>).GetMethod("ToArray")!);
                 methodRefs.Add(typeof(List<string>).GetMethod("Add")!);
+                """);
+        }
+
+        [Fact]
+        public void OptionalParameters()
+        {
+            Verify("""
+                using ExcelDna.Integration;
+
+                namespace ExcelDna.AddIn.RuntimeTestsAOT
+                {
+                    public class Functions
+                    {
+                        [ExcelFunction]
+                        public static string NativeOptional(object refRange, double targetValue, int maxCombinations = 1, bool isCache = true)
+                        {
+                            return "";
+                        }
+                    }
+                }
+                """, functions: """
+                List<Type> typeRefs = new List<Type>();
+                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeOptional")!);
+                typeRefs.Add(typeof(Func<object, double, int, bool, string>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, double, int, bool, string>>));
+                typeRefs.Add(typeof(Func<object, double, object, object, string>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, double, object, object, string>>));
+                typeRefs.Add(typeof(Func<object, object>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, object>>));
+                typeRefs.Add(typeof(Func<object, double>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, double>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, bool>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, bool>>));
+                
+                List<MethodInfo> methodRefs = new List<MethodInfo>();
                 """);
         }
 

@@ -142,6 +142,9 @@ namespace ExcelDna.Registration
             return result;
         }
 
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "SourceGenerator roots required Expression<TDelegate> shapes")]
+#endif
         static LambdaExpression CreateLambdaWithAotContext(Expression body, string lambdaName, IEnumerable<ParameterExpression> parameters, string operation)
         {
             try
