@@ -1,0 +1,16 @@
+<Project>
+  <!--
+    NativeAOT's findvcvarsall helper can occasionally emit an extra diagnostic line
+    that gets prefixed to CppLinker/CppLibCreator (for example, "The input line is too long.;").
+    If that happens, sanitize the tool paths just before LinkNative executes.
+  -->
+  <Target Name="SanitizeNativeAotToolPaths"
+          AfterTargets="SetupOSSpecificProps"
+          BeforeTargets="LinkNative"
+          Condition="'$(PublishAOT)' == 'true' and $([System.String]::Copy('$(CppLinker)').Contains(';'))">
+    <PropertyGroup>
+      <CppLinker Condition="$([System.String]::Copy('$(CppLinker)').EndsWith('link.exe', System.StringComparison.OrdinalIgnoreCase))">$([System.Text.RegularExpressions.Regex]::Replace('$(CppLinker)', '^.*;', ''))</CppLinker>
+      <CppLibCreator Condition="$([System.String]::Copy('$(CppLibCreator)').EndsWith('lib.exe', System.StringComparison.OrdinalIgnoreCase))">$([System.Text.RegularExpressions.Regex]::Replace('$(CppLibCreator)', '^.*;', ''))</CppLibCreator>
+    </PropertyGroup>
+  </Target>
+</Project>
