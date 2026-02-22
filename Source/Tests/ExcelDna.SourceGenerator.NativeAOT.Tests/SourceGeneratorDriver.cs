@@ -36,10 +36,12 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
             Assert.Empty(generatorResult.Diagnostics);
             Assert.True(generatorResult.GeneratedSources.Length == 2);
             Assert.True(generatorResult.Exception is null);
+
+            static string NormalizeLineEndings(string s) => s.Replace("\r\n", "\n");
             if (expected0 != null)
-                Assert.Equal(expected0, generatorResult.GeneratedSources[0].SourceText.ToString());
+                Assert.Equal(NormalizeLineEndings(expected0), NormalizeLineEndings(generatorResult.GeneratedSources[0].SourceText.ToString()));
             if (expected1 != null)
-                Assert.Equal(expected1, generatorResult.GeneratedSources[1].SourceText.ToString());
+                Assert.Equal(NormalizeLineEndings(expected1), NormalizeLineEndings(generatorResult.GeneratedSources[1].SourceText.ToString()));
         }
     }
 }

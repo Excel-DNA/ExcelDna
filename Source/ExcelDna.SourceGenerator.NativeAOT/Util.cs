@@ -38,15 +38,22 @@ namespace ExcelDna.SourceGenerator.NativeAOT
 
         public static string MethodType(IMethodSymbol method)
         {
-            string parameters = string.Join(", ", method.Parameters.Select(p => GetFullTypeName(p.Type)));
-            return method.ReturnsVoid ?
-                $"Action{(string.IsNullOrWhiteSpace(parameters) ? null : $"<{parameters}>")}" :
-                $"Func<{(string.IsNullOrWhiteSpace(parameters) ? null : $"{parameters}, ")}{GetFullTypeName(method.ReturnType)}>";
+            return BuildMethodType(method.Parameters.Select(p => GetFullTypeName(p.Type)), method.ReturnType, method.ReturnsVoid);
         }
 
         public static string MethodExpressionType(IMethodSymbol method)
         {
             return $"System.Linq.Expressions.Expression<{MethodType(method)}>";
+        }
+
+        public static string MethodPostParameterConversionType(IMethodSymbol method)
+        {
+            return BuildMethodType(method.Parameters.Select(GetPostParameterConversionInputTypeName), method.ReturnType, method.ReturnsVoid);
+        }
+
+        public static bool HasPostParameterConversionShape(IMethodSymbol method)
+        {
+            return MethodPostParameterConversionType(method) != MethodType(method);
         }
 
         public static bool IsLastArrayParams(IMethodSymbol method)
@@ -72,6 +79,61 @@ namespace ExcelDna.SourceGenerator.NativeAOT
             allParamTypes.Add(method.ReturnType);
 
             return string.Join(",", allParamTypes.Select(i => i == null ? "object" : GetFullTypeName(i)));
+        }
+
+        static string BuildMethodType(IEnumerable<string> parameterTypeNames, ITypeSymbol returnType, bool returnsVoid)
+        {
+            string parameters = string.Join(", ", parameterTypeNames);
+            return returnsVoid
+                ? $"Action{(string.IsNullOrWhiteSpace(parameters) ? null : $"<{parameters}>")}"
+                : $"Func<{(string.IsNullOrWhiteSpace(parameters) ? null : $"{parameters}, ")}{GetFullTypeName(returnType)}>";
+        }
+
+        static string GetPostParameterConversionInputTypeName(IParameterSymbol parameter)
+        {
+            // These conversions are part of the default registration processing pipeline and
+            // change the lambda input shape seen by ParameterConversionRegistration.ApplyConversions.
+            if (parameter.IsOptional || parameter.Type.TypeKind == TypeKind.Enum || IsNullableType(parameter.Type) || IsRangeType(parameter.Type))
+                return "object";
+
+            if (IsStringArray(parameter.Type) || IsComplex(parameter.Type))
+                return "object[]";
+
+            if (IsString2DArray(parameter.Type))
+                return "object[,]";
+
+            return GetFullTypeName(parameter.Type);
+        }
+
+        static bool IsNullableType(ITypeSymbol type)
+        {
+            return type is INamedTypeSymbol namedType &&
+                   namedType.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
+        }
+
+        static bool IsRangeType(ITypeSymbol type)
+        {
+            return TypeHasAncestorWithFullName(type, "Microsoft.Office.Interop.Excel.Range") ||
+                   TypeHasAncestorWithFullName(type, "ExcelDna.Integration.IRange");
+        }
+
+        static bool IsComplex(ITypeSymbol type)
+        {
+            return type.ToDisplayString(FullNameFormat) == "System.Numerics.Complex";
+        }
+
+        static bool IsStringArray(ITypeSymbol type)
+        {
+            return type is IArrayTypeSymbol arrayType &&
+                   arrayType.Rank == 1 &&
+                   arrayType.ElementType.SpecialType == SpecialType.System_String;
+        }
+
+        static bool IsString2DArray(ITypeSymbol type)
+        {
+            return type is IArrayTypeSymbol arrayType &&
+                   arrayType.Rank == 2 &&
+                   arrayType.ElementType.SpecialType == SpecialType.System_String;
         }
 
         private static SymbolDisplayFormat FullNameFormat = new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);

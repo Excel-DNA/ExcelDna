@@ -145,6 +145,9 @@ namespace ExcelDna.Registration
             Debug.Assert(IsValid());
         }
 
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "SourceGenerator roots required Expression<TDelegate> shapes")]
+#endif
         private static LambdaExpression CreateMethodLambda(MethodInfo methodInfo, IReadOnlyList<ParameterExpression> paramExprs)
         {
             try

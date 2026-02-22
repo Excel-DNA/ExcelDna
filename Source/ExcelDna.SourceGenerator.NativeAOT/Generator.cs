@@ -95,6 +95,12 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                     functions += $"{regHost}.MethodsForRegistration.Add({GetMethod(i)});\r\n";
                     functions += $"typeRefs.Add(typeof({Util.MethodType(i)}));\r\n";
                     functions += $"typeRefs.Add(typeof({Util.MethodExpressionType(i)}));\r\n";
+                    if (Util.HasPostParameterConversionShape(i))
+                    {
+                        string convertedMethodType = Util.MethodPostParameterConversionType(i);
+                        functions += $"typeRefs.Add(typeof({convertedMethodType}));\r\n";
+                        functions += $"typeRefs.Add(typeof(System.Linq.Expressions.Expression<{convertedMethodType}>));\r\n";
+                    }
                     foreach (var p in i.Parameters)
                     {
                         functions += $"typeRefs.Add(typeof(Func<object, {Util.GetFullTypeName(p.Type)}>));\r\n";
