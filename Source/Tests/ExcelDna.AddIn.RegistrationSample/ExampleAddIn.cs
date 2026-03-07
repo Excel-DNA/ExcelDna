@@ -35,6 +35,8 @@ namespace ExcelDna.AddIn.RegistrationSample
 
             // First example if Instance -> Static conversion
             InstanceMemberRegistration.TestInstanceRegistration();
+
+            ExcelRegistration.GetExcelCommands().RegisterCommands();
         }
 
         public void AutoClose()

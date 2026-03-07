@@ -27,7 +27,7 @@ namespace ExcelDna.Registration
             return from ass in ExcelIntegration.GetExportedAssemblies()
                    from typ in ass.GetTypes()
                    from mi in typ.GetMethods(BindingFlags.Public | BindingFlags.Static)
-                   where mi.GetCustomAttribute<ExcelFunctionAttribute>() != null
+                   where IsMethodSupported(mi) && mi.GetCustomAttribute<ExcelFunctionAttribute>() != null
                    select new ExcelFunctionRegistration(mi);
         }
 #endif
@@ -63,7 +63,7 @@ namespace ExcelDna.Registration
             return from ass in ExcelIntegration.GetExportedAssemblies()
                    from typ in ass.GetTypes()
                    from mi in typ.GetMethods(BindingFlags.Public | BindingFlags.Static)
-                   where ExcelCommandRegistration.IsCommand(mi)
+                   where IsMethodSupported(mi) && ExcelCommandRegistration.IsCommand(mi)
                    select new ExcelCommandRegistration(mi);
         }
 #endif
@@ -78,6 +78,11 @@ namespace ExcelDna.Registration
             var attribs = registrationEntries.Select(reg => reg.CommandAttribute).ToList<object>();
 
             ExcelIntegration.RegisterLambdaExpressions(lambdas, attribs, null);
+        }
+
+        private static bool IsMethodSupported(MethodInfo mi)
+        {
+            return !mi.IsAbstract && !mi.IsGenericMethod;
         }
     }
 }
