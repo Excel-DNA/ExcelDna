@@ -13,6 +13,9 @@ namespace ExcelDna.Integration.CustomUI
 {
     public static class CustomTaskPaneFactory
     {
+        public const string AddInGuid = "8b752d6a-a78f-422f-907a-8905d54930be";
+        public const string AddInProgId = "ExcelDna.CustomTaskPaneAddIn";
+
         private static ExcelCustomTaskPaneAddIn _addin;
 
         // We keep a list of CustomTaksPanes, so that we can clean up when the add-in is removed or reopened.
@@ -114,6 +117,8 @@ namespace ExcelDna.Integration.CustomUI
         }
     }
 
+    [ProgId(CustomTaskPaneFactory.AddInProgId)]
+    [Guid(CustomTaskPaneFactory.AddInGuid)]
     internal class ExcelCustomTaskPaneAddIn : ExcelComAddIn, ICustomTaskPaneConsumer
     {
         public ICTPFactory Factory;
