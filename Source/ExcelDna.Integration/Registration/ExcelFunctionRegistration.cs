@@ -43,7 +43,7 @@ namespace ExcelDna.Registration
         /// <summary>
         /// Creates a new ExcelFunctionRegistration with the given LambdaExpression.
         /// Uses the passes in attributes for registration.
-        /// 
+        ///
         /// The number of ExcelParameterRegistrations passed in must match the number of parameters in the LambdaExpression.
         /// </summary>
         /// <param name="functionLambda"></param>
@@ -152,7 +152,12 @@ namespace ExcelDna.Registration
         {
             try
             {
-#if !AOT_COMPATIBLE
+#if AOT_COMPATIBLE
+                if (paramExprs.Count > 16)
+                {
+                    return Expression.Lambda(GetAotExtendedDelegateType(methodInfo), Expression.Call(methodInfo, paramExprs), methodInfo.Name, paramExprs);
+                }
+#else
                 if (paramExprs.Count > 16)
                 {
                     return Expression.Lambda(GetExtendedDelegateType(methodInfo), Expression.Call(methodInfo, paramExprs), methodInfo.Name, paramExprs);
@@ -174,6 +179,45 @@ namespace ExcelDna.Registration
         {
             return ex.Message?.IndexOf("missing native code or metadata", StringComparison.OrdinalIgnoreCase) >= 0;
         }
+
+#if AOT_COMPATIBLE
+        private static Type GetAotExtendedDelegateType(MethodInfo methodInfo)
+        {
+            try
+            {
+                if (methodInfo.ReturnType != typeof(void))
+                {
+                    if (methodInfo.GetParameters().Length >= 17 && methodInfo.GetParameters().Length <= 29)
+                    {
+                       Type genericBase = AotExtendedFuncUtil.GetFuncType(methodInfo.GetParameters().Length);
+
+                        var args = methodInfo.GetParameters().Select(p => p.ParameterType)
+                            .Concat(new[] { methodInfo.ReturnType })
+                            .ToArray();
+
+                        var result = genericBase.MakeGenericType(args);
+                        return result;
+                    }
+                    else
+                    {
+                        throw new NotSupportedException(
+                            $"NativeAOT does not support functions with {methodInfo.GetParameters().Length} parameters. Maximum is 29."
+                        );
+                    }
+                }
+                else
+                {
+                    throw new NotSupportedException(
+                        $"NativeAOT does not support command functions (void return) with {methodInfo.GetParameters().Length} parameters (>16)."
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+#endif
 
 #if !AOT_COMPATIBLE
         private static Type GetExtendedDelegateType(MethodInfo methodInfo)

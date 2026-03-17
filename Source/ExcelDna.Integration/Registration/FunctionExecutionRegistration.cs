@@ -70,7 +70,7 @@ namespace ExcelDna.Registration
             //        //     // So Default value will be returned....?????
             //        //     fhArgs.Exception = null;
             //        // }
-            //        // else 
+            //        // else
             //        if (fhArgs.FlowBehavior == FlowBehavior.Return)
             //        {
             //            // Clear the Exception and return the ReturnValue instead
@@ -92,7 +92,7 @@ namespace ExcelDna.Registration
             //        fh.OnExit(fhArgs);
             //        // NOTE: fhArgs.ReturnValue is not used again here...!
             //    }
-            //    
+            //
             //    return result;
             //  }
             // }
@@ -103,7 +103,7 @@ namespace ExcelDna.Registration
             var mh = Expression.Constant(handler);
             var funcName = Expression.Constant(functionName);
 
-            // Prepare the functionHandlerArgs that will be threaded through the handler, 
+            // Prepare the functionHandlerArgs that will be threaded through the handler,
             // and a bunch of expressions that access various properties on it.
             var fhArgs = Expr.Variable(typeof(FunctionExecutionArgs), "fhArgs");
             var fhArgsReturnValue = SymbolExtensions.GetProperty(fhArgs, (ExcelDna.Registration.FunctionExecutionArgs mea) => mea.ReturnValue);
@@ -137,7 +137,41 @@ namespace ExcelDna.Registration
             // : result = function(arg0, arg1)
             var resultFromInnerCall = Expr.Assign(result, Expr.Invoke(functionLambda, outerParams));
 
-            // Build the Lambda wrapper, with the original parameters
+#if AOT_COMPATIBLE
+            var lambda = CreateLambdaForFunctionExecution(
+                Expr.Block(new[] { fhArgs, result },
+                     Expr.Assign(fhArgs, newfhArgs),
+                     Expr.Assign(result, Expr.Default(result.Type)),
+                     Expr.TryCatchFinally(
+                        Expr.Block(
+                            onEntry,
+                            Expr.IfThenElse(
+                                Expr.Equal(fhArgsFlowBehaviour, Expr.Constant(FlowBehavior.Return)),
+                                resultFromReturnValue,
+                                Expr.Block(
+                                    resultFromInnerCall,
+                                    returnValueFromResult,
+                                    onSuccess,
+                                    resultFromReturnValue))),
+                        onExit,
+                        Expr.Catch(ex,
+                            Expr.Block(
+                                Expr.Assign(fhArgsException, ex),
+                                onException,
+                                Expr.IfThenElse(
+                                    Expr.Equal(fhArgsFlowBehaviour, Expr.Constant(FlowBehavior.Return)),
+                                    Expr.Block(
+                                        Expr.Assign(fhArgsException, Expr.Constant(null, typeof(Exception))),
+                                        resultFromReturnValue),
+                                    Expr.IfThenElse(
+                                        Expr.Equal(fhArgsFlowBehaviour, Expr.Constant(FlowBehavior.ThrowException)),
+                                        Expr.Throw(fhArgsException),
+                                        Expr.Rethrow()))))
+                        ),
+                    result),
+                functionName,
+                outerParams);
+#else
             var lambda = Expr.Lambda(
                 Expr.Block(new[] { fhArgs, result },
                      Expr.Assign(fhArgs, newfhArgs),
@@ -171,8 +205,28 @@ namespace ExcelDna.Registration
                     result),
                 functionName,
                 outerParams);
+#endif
             return lambda;
         }
+
+#if AOT_COMPATIBLE
+        static LambdaExpression CreateLambdaForFunctionExecution(Expression body, string lambdaName, IEnumerable<ParameterExpression> parameters)
+        {
+            var paramList = parameters.ToList();
+            var paramTypes = paramList.Select(p => p.Type).ToList();
+            paramTypes.Add(body.Type);
+
+            int paramCount = paramList.Count;
+            if (paramCount > 29)
+            {
+                throw new NotSupportedException($"CreateLambdaForFunctionExecution: Functions with more than 29 parameters not supported. Function '{lambdaName}' has {paramCount} parameters.");
+            }
+
+            Type delegateType = AotExtendedFuncUtil.GetFuncType(paramCount);
+            delegateType = delegateType.MakeGenericType(paramTypes.ToArray());
+            return Expr.Lambda(delegateType, body, lambdaName, parameters);
+        }
+#endif
 
         static void ApplyMethodHandlers(ExcelFunctionRegistration reg, IEnumerable<IFunctionExecutionHandler> handlers)
         {

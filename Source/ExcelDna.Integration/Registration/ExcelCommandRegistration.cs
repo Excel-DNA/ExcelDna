@@ -14,7 +14,7 @@ namespace ExcelDna.Registration
     // Maybe one day we'll do Command/Function unification
     // For now we mirror core Excel-DNA approach
     // Note that Excel-DNA does support ExcelCommands that take parameters and return values.
-    // However, these are not available as worksheet functions, and are unusual - 
+    // However, these are not available as worksheet functions, and are unusual -
     // so the ExcelCommandRegistration here doesn't support attributes on such parameters or return values.
     public class ExcelCommandRegistration
     {
@@ -56,7 +56,31 @@ namespace ExcelDna.Registration
             var paramExprs = methodInfo.GetParameters()
                              .Select(pi => Expression.Parameter(pi.ParameterType, pi.Name))
                              .ToList();
+
+#if AOT_COMPATIBLE
+            // Commands typically have 0-2 parameters, but use explicit delegate type for AOT safety
+            int paramCount = paramExprs.Count;
+            if (paramCount > 16)
+            {
+                throw new NotSupportedException(
+                    $"ExcelCommandRegistration: Commands with more than 16 parameters are not supported. Command '{methodInfo.Name}' has {paramCount} parameters."
+                );
+            }
+
+            Type delegateType = AotExtendedFuncUtil.GetStandardActionType(paramCount);
+
+            // MakeGenericType only if we have parameters (Action itself is not generic)
+            if (paramCount > 0)
+            {
+                delegateType = delegateType.MakeGenericType(
+                    paramExprs.Select(p => p.Type).ToArray()
+                );
+            }
+
+            CommandLambda = Expression.Lambda(delegateType, Expression.Call(methodInfo, paramExprs), methodInfo.Name, paramExprs);
+#else
             CommandLambda = Expression.Lambda(Expression.Call(methodInfo, paramExprs), methodInfo.Name, paramExprs);
+#endif
 
             var allMethodAttributes = methodInfo.GetCustomAttributes(true);
             foreach (var att in allMethodAttributes)

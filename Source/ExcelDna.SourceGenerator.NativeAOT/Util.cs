@@ -83,10 +83,31 @@ namespace ExcelDna.SourceGenerator.NativeAOT
 
         static string BuildMethodType(IEnumerable<string> parameterTypeNames, ITypeSymbol returnType, bool returnsVoid)
         {
-            string parameters = string.Join(", ", parameterTypeNames);
-            return returnsVoid
-                ? $"Action{(string.IsNullOrWhiteSpace(parameters) ? null : $"<{parameters}>")}"
-                : $"Func<{(string.IsNullOrWhiteSpace(parameters) ? null : $"{parameters}, ")}{GetFullTypeName(returnType)}>";
+            var paramList = parameterTypeNames.ToList();
+            int paramCount = paramList.Count;
+
+            string parameters = string.Join(", ", paramList);
+
+            if (returnsVoid)
+            {
+                if (paramCount > 16)
+                {
+                    throw new NotSupportedException($"NativeAOT does not support command functions (void return) with {paramCount} parameters (>16).");
+                }
+                return $"Action{(string.IsNullOrWhiteSpace(parameters) ? null : $"<{parameters}>")}";
+            }
+            else
+            {
+                if (paramCount > 16)
+                {
+                    if (paramCount > 29)
+                    {
+                        throw new NotSupportedException($"NativeAOT does not support functions with {paramCount} parameters. Maximum is 29.");
+                    }
+                    return $"ExcelDna.Registration.AotFunc{paramCount}<{parameters}, {GetFullTypeName(returnType)}>";
+                }
+                return $"Func<{(string.IsNullOrWhiteSpace(parameters) ? null : $"{parameters}, ")}{GetFullTypeName(returnType)}>";
+            }
         }
 
         static string GetPostParameterConversionInputTypeName(IParameterSymbol parameter)

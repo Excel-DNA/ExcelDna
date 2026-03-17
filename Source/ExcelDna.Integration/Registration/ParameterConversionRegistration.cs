@@ -50,20 +50,20 @@ namespace ExcelDna.Registration
             //      public static string dnaParameterConvertTest(double? optTest) {   };
             //
             // with conversions convert1 and convert2 taking us from Type1 to double?
-            // 
+            //
             // to
-            //      public static string dnaParameterConvertTest(Type1 optTest) 
-            //      {   
+            //      public static string dnaParameterConvertTest(Type1 optTest)
+            //      {
             //          return convertRet2(convertRet1(
             //                      dnaParameterConvertTest(
             //                          paramConvert1(optTest)
             //                            )));
             //      };
-            // 
+            //
             // and then with a conversion from object to Type1, resulting in
             //
-            //      public static string dnaParameterConvertTest(object optTest) 
-            //      {   
+            //      public static string dnaParameterConvertTest(object optTest)
+            //      {
             //          return convertRet2(convertRet1(
             //                      dnaParameterConvertTest(
             //                          paramConvert1(paramConvert2(optTest))
@@ -149,7 +149,26 @@ namespace ExcelDna.Registration
         {
             try
             {
+#if AOT_COMPATIBLE
+                var paramList = parameters.ToList();
+                var paramTypes = paramList.Select(p => p.Type).ToList();
+                paramTypes.Add(body.Type);
+
+                int paramCount = paramList.Count;
+                if (paramCount > 29)
+                {
+                    throw new NotSupportedException(
+                        $"CreateLambdaWithAotContext: Functions with more than 29 parameters are not supported in NativeAOT. Function '{lambdaName}' has {paramCount} parameters."
+                    );
+                }
+
+                Type delegateType = AotExtendedFuncUtil.GetFuncType(paramCount);
+                delegateType = delegateType.MakeGenericType(paramTypes.ToArray());
+
+                return Expr.Lambda(delegateType, body, lambdaName, parameters);
+#else
                 return Expr.Lambda(body, lambdaName, parameters);
+#endif
             }
             catch (NotSupportedException ex) when (IsMissingNativeMetadata(ex))
             {
