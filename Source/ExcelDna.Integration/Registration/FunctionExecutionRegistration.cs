@@ -136,6 +136,7 @@ namespace ExcelDna.Registration
             var returnValueFromResult = Expr.Assign(fhArgsReturnValue, Expr.Convert(result, typeof(object)));
             // : result = function(arg0, arg1)
             var resultFromInnerCall = Expr.Assign(result, Expr.Invoke(functionLambda, outerParams));
+            
             // Build the Lambda wrapper, with the original parameters
 #if AOT_COMPATIBLE
             var lambda = CreateLambdaForFunctionExecution(

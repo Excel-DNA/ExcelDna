@@ -134,30 +134,30 @@ namespace ExcelDna.Registration
         static LambdaExpression WrapMethodRunTask(LambdaExpression functionLambda, List<object> returnCustomAttributes)
         {
             /* Either, from a lambda expression wrapping a method that looks like this:
-             *
+             * 
              *      static Task<string> myFunc(string name, int msDelay) {...}
-             *
+             * 
              *   we create a lambda expression that looks like this:
-             *
+             * 
              *      static object myFunc(string name, int msDelay)
              *      {
              *          return AsyncTaskUtil.RunTask<string>(
-             *              "myFunc:XXX",
-             *              new object[] {(object)name, (object)msDelay},
+             *              "myFunc:XXX", 
+             *              new object[] {(object)name, (object)msDelay}, 
              *              () => myFunc(name, msDelay));
              *      }
-             *
+             * 
              * Or, from a lambda expression wrapping a method that looks like this (not returning a Task):
-             *
+             * 
              *      static string myFunc(string name, int msDelay) {...}
-             *
+             * 
              *   we create a lambda expression that looks like this (with RunAsTaskXXX):
-             *
+             * 
              *      static object myFunc(string name, int msDelay)
              *      {
              *          return AsyncTaskUtil.RunAsTask<string>(
-             *              "myFunc:XXX",
-             *              new object[] {(object)name, (object)msDelay},
+             *              "myFunc:XXX", 
+             *              new object[] {(object)name, (object)msDelay}, 
              *              () => myFunc(name, msDelay));
              *      }
              */
@@ -178,7 +178,7 @@ namespace ExcelDna.Registration
             if (userType)
                 runMethodName = runMethodName.Replace("Task", "TaskObject");
 
-            // mi returns some kind of Task<T>. What is T?
+            // mi returns some kind of Task<T>. What is T? 
             var newReturnType = returnsTask ? functionLambda.ReturnType.GetGenericArguments()[0] : functionLambda.ReturnType;
             if (userType)
                 newReturnType = TaskObjectHandler.ReturnType();
@@ -217,30 +217,30 @@ namespace ExcelDna.Registration
         static LambdaExpression WrapMethodRunTaskWithCancellation(LambdaExpression functionLambda, List<object> returnCustomAttributes)
         {
             /* Either, from a lambda expression that looks like this:
-             *
+             * 
              *      static Task<string> myFuncWithCancel(string name, int msDelay, CancellationToken ct) {...}
-             *
+             * 
              *   we create a lambda expression that looks like this:
-             *
+             * 
              *      static object crDelayedHello(string name, int msDelay)
              *      {
              *          return AsyncTaskUtil.RunTaskWithCancellation<string>(
-             *              "myFuncWithCancel:XXX",
-             *              new object[] {(object)name, (object)msDelay},
+             *              "myFuncWithCancel:XXX", 
+             *              new object[] {(object)name, (object)msDelay}, 
              *              (ct) => myFuncWithCancel(name, msDelay, ct));
              *      }
-             *
+             * 
              * Or, from a lambda expression that looks like this (not returning a Task):
-             *
+             * 
              *      static string myFuncWithCancel(string name, int msDelay, CancellationToken ct) {...}
-             *
+             * 
              *   we create a lambda expression that looks like this (with RunAsTaskXXX):
-             *
+             * 
              *      object crDelayedHello(string name, int msDelay)
              *      {
              *          return AsyncTaskUtil.RunAsTaskWithCancellation<string>(
-             *              "myFuncWithCancel:XXX",
-             *              new object[] {(object)name, (object)msDelay},
+             *              "myFuncWithCancel:XXX", 
+             *              new object[] {(object)name, (object)msDelay}, 
              *              (ct) => myFuncWithCancel(name, msDelay, ct));
              *      }
              */
@@ -261,7 +261,7 @@ namespace ExcelDna.Registration
             if (userType)
                 runMethodName = runMethodName.Replace("Task", "TaskObject");
 
-            // mi returns some kind of Task<T>. What is T?
+            // mi returns some kind of Task<T>. What is T? 
             var newReturnType = returnsTask ? functionLambda.ReturnType.GetGenericArguments()[0] : functionLambda.ReturnType;
             if (userType)
                 newReturnType = TaskObjectHandler.ReturnType();
@@ -307,22 +307,22 @@ namespace ExcelDna.Registration
             throw new NotImplementedException("WrapMethodNativeAsyncTask is not supported in AOT.");
 #else
             /* Either, from a lambda expression that looks like this:
-             *
+             * 
              *      static Task<string> myFunc(string name, int msDelay) {...}
-             *
+             * 
              *   we create a lambda expression that looks like this:
-             *
+             * 
              *      static void myFunc(string name, int msDelay, ExcelAsyncHandle asyncHandle)
              *       {
              *           NativeAsyncTaskUtil.RunTask(() => myFunc(name, msDelay), asyncHandle);
              *       }
              *
              * Or, from a lambda expression that looks like this (not returning a Task):
-             *
+             * 
              *      static string myFunc(string name, int msDelay) {...}
-             *
+             * 
              *   we create a lambda expression that looks like this (with RunAsTaskXXX):
-             *
+             * 
              *      static void myFunc(string name, int msDelay, ExcelAsyncHandle asyncHandle)
              *       {
              *           NativeAsyncTaskUtil.RunAsTask(() => myFunc(name, msDelay), asyncHandle);
@@ -331,7 +331,7 @@ namespace ExcelDna.Registration
 
             // Either RunTask or RunAsTask, depending on whether the method returns Task<string> or string
             string runMethodName = ReturnsTask(functionLambda) ? "RunTask" : "RunAsTask";
-            // mi returns some kind of Task<T>. What is T?
+            // mi returns some kind of Task<T>. What is T? 
             var newReturnType = ReturnsTask(functionLambda) ? functionLambda.ReturnType.GetGenericArguments()[0] : functionLambda.ReturnType;
 
             // Make the new params for the wrapper - they look exactly like the functionLambda's parameters
@@ -361,22 +361,22 @@ namespace ExcelDna.Registration
             throw new NotImplementedException("WrapMethodNativeAsyncTaskWithCancellation is not supported in AOT.");
 #else
             /* Either, from a lambda expression that looks like this:
-             *
+             * 
              *      static Task<string> myFunc(string name, int msDelay, CancellationToken ct) {...}
-             *
+             * 
              *   we create a lambda expression that looks like this:
-             *
+             * 
              *      static void myFunc(string name, int msDelay, ExcelAsyncHandle asyncHandle)
              *       {
              *           NativeAsyncTaskUtil.RunTaskWithCancellation((ct) => myFunc(name, msDelay, ct), asyncHandle);
              *       }
              *
              * Or, from a lambda expression that looks like this (not returning a Task):
-             *
+             * 
              *      static string myFunc(string name, int msDelay, CancellationToken ct) {...}
-             *
+             * 
              *   we create a lambda expression that looks like this (with RunAsTaskXXX):
-             *
+             * 
              *      static void myFunc(string name, int msDelay, ExcelAsyncHandle asyncHandle)
              *       {
              *           NativeAsyncTaskUtil.RunAsTaskWithCancellation((ct) => myFunc(name, msDelay, ct), asyncHandle);
@@ -385,7 +385,7 @@ namespace ExcelDna.Registration
 
             // Either RunTask or RunAsTask, depending on whether the method returns Task<string> or string
             string runMethodName = ReturnsTask(functionLambda) ? "RunTaskWithCancellation" : "RunAsTaskWithCancellation";
-            // mi returns some kind of Task<T>. What is T?
+            // mi returns some kind of Task<T>. What is T? 
             var newReturnType = ReturnsTask(functionLambda) ? functionLambda.ReturnType.GetGenericArguments()[0] : functionLambda.ReturnType;
             // Build up the RunTaskWithC... method with the right generic type argument
             var runMethod = typeof(NativeAsyncTaskUtil)
@@ -423,11 +423,11 @@ namespace ExcelDna.Registration
         static LambdaExpression WrapMethodObservable(LambdaExpression functionLambda, List<object> returnCustomAttributes)
         {
             /* Either, from a lambda expression that looks like this:
-             *
+             * 
              *      static IObservable<string> myFunc(string name, int msDelay) {...}
-             *
+             * 
              *   we create a lambda expression that looks like this:
-             *
+             * 
              *      static object myFunc(string name, int msDelay)
              *      {
              *          return ObservableRtdUtil.Observer<string>(          // obsMethod
@@ -437,7 +437,7 @@ namespace ExcelDna.Registration
              *      }
              */
 
-            // mi returns some kind of IObservable<T>. What is T?
+            // mi returns some kind of IObservable<T>. What is T? 
             Type returnType = functionLambda.ReturnType.GetGenericArguments()[0];
             bool userType = TaskObjectHandler.IsUserType(returnType);
             if (userType)
