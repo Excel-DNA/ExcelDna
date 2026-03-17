@@ -14,7 +14,7 @@ namespace ExcelDna.Registration
     // Maybe one day we'll do Command/Function unification
     // For now we mirror core Excel-DNA approach
     // Note that Excel-DNA does support ExcelCommands that take parameters and return values.
-    // However, these are not available as worksheet functions, and are unusual -
+    // However, these are not available as worksheet functions, and are unusual - 
     // so the ExcelCommandRegistration here doesn't support attributes on such parameters or return values.
     public class ExcelCommandRegistration
     {

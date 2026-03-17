@@ -43,7 +43,7 @@ namespace ExcelDna.Registration
         /// <summary>
         /// Creates a new ExcelFunctionRegistration with the given LambdaExpression.
         /// Uses the passes in attributes for registration.
-        ///
+        /// 
         /// The number of ExcelParameterRegistrations passed in must match the number of parameters in the LambdaExpression.
         /// </summary>
         /// <param name="functionLambda"></param>

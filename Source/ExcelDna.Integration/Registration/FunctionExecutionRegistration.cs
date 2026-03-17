@@ -70,7 +70,7 @@ namespace ExcelDna.Registration
             //        //     // So Default value will be returned....?????
             //        //     fhArgs.Exception = null;
             //        // }
-            //        // else
+            //        // else 
             //        if (fhArgs.FlowBehavior == FlowBehavior.Return)
             //        {
             //            // Clear the Exception and return the ReturnValue instead
@@ -92,7 +92,7 @@ namespace ExcelDna.Registration
             //        fh.OnExit(fhArgs);
             //        // NOTE: fhArgs.ReturnValue is not used again here...!
             //    }
-            //
+            //    
             //    return result;
             //  }
             // }
@@ -103,7 +103,7 @@ namespace ExcelDna.Registration
             var mh = Expression.Constant(handler);
             var funcName = Expression.Constant(functionName);
 
-            // Prepare the functionHandlerArgs that will be threaded through the handler,
+            // Prepare the functionHandlerArgs that will be threaded through the handler, 
             // and a bunch of expressions that access various properties on it.
             var fhArgs = Expr.Variable(typeof(FunctionExecutionArgs), "fhArgs");
             var fhArgsReturnValue = SymbolExtensions.GetProperty(fhArgs, (ExcelDna.Registration.FunctionExecutionArgs mea) => mea.ReturnValue);
@@ -136,7 +136,7 @@ namespace ExcelDna.Registration
             var returnValueFromResult = Expr.Assign(fhArgsReturnValue, Expr.Convert(result, typeof(object)));
             // : result = function(arg0, arg1)
             var resultFromInnerCall = Expr.Assign(result, Expr.Invoke(functionLambda, outerParams));
-
+            // Build the Lambda wrapper, with the original parameters
 #if AOT_COMPATIBLE
             var lambda = CreateLambdaForFunctionExecution(
                 Expr.Block(new[] { fhArgs, result },

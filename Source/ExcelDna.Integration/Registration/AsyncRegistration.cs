@@ -22,9 +22,9 @@ namespace ExcelDna.Registration
         /// <summary>
         /// Wraps methods that are marked with [ExcelFunction] and:
         /// * Return IObservable, or
-        /// * Return Task or
+        /// * Return Task or 
         /// * Are marked with [ExcelAsyncFunction] attribute.
-        ///
+        /// 
         /// If the function takes as last parameter a CancellationToken, this will be hooked up to the async function cancellation.
         /// </summary>
         /// <remarks>NOTE: Currently supports functions with no more than sixteen parameters (fifteen for the native async),

@@ -50,20 +50,20 @@ namespace ExcelDna.Registration
             //      public static string dnaParameterConvertTest(double? optTest) {   };
             //
             // with conversions convert1 and convert2 taking us from Type1 to double?
-            //
+            // 
             // to
-            //      public static string dnaParameterConvertTest(Type1 optTest)
-            //      {
+            //      public static string dnaParameterConvertTest(Type1 optTest) 
+            //      {   
             //          return convertRet2(convertRet1(
             //                      dnaParameterConvertTest(
             //                          paramConvert1(optTest)
             //                            )));
             //      };
-            //
+            // 
             // and then with a conversion from object to Type1, resulting in
             //
-            //      public static string dnaParameterConvertTest(object optTest)
-            //      {
+            //      public static string dnaParameterConvertTest(object optTest) 
+            //      {   
             //          return convertRet2(convertRet1(
             //                      dnaParameterConvertTest(
             //                          paramConvert1(paramConvert2(optTest))
