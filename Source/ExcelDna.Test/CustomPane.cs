@@ -10,7 +10,8 @@ namespace ExcelDna.Test
         public static void Show()
         {
             var myControl = new MyUserControl();
-            var customPane = CustomTaskPaneFactory.CreateCustomTaskPane(myControl, nameof(myControl));
+            var customPane = CustomTaskPaneFactory.CreateCustomTaskPane(myControl, nameof(myControl),
+                new Guid("dfdd066f-a8ce-4be0-ac13-20a185333473"), "1a7ad958-f8f5-43d4-9161-5bbab6ecda62");
 
             customPane.Visible = true;
         }
