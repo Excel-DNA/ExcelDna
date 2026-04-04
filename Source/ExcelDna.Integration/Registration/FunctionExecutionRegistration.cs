@@ -17,7 +17,11 @@ namespace ExcelDna.Registration
 
                 // Exclude the functions created for native async, with no return values.
                 // Can't deal with these yet.
-                if (reg.FunctionLambda.ReturnType != typeof(void))
+                if (reg.FunctionLambda.ReturnType != typeof(void)
+#if AOT_COMPATIBLE
+                     && reg.FunctionLambda.Parameters.Count() <= 16
+#endif
+                    )
                 {
                     var handlers = functionHandlerConfig.FunctionHandlerSelectors
                                                       .Select(fhSelector => fhSelector(reg))

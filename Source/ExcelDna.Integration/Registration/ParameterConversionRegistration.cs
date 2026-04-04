@@ -15,7 +15,12 @@ namespace ExcelDna.Registration
         {
             foreach (var reg in registrations)
             {
-                ApplyParameterConversions(reg, conversionConfig);
+#if AOT_COMPATIBLE
+                if (reg.FunctionLambda.Parameters.Count() <= 16)
+#endif
+                {
+                    ApplyParameterConversions(reg, conversionConfig);
+                }
                 yield return reg;
             }
         }
