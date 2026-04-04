@@ -38,7 +38,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Registration\ExtendedFunc.cs">
+    <None Include="ExtendedFunc.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>ExtendedFunc.tt</DependentUpon>
@@ -57,7 +57,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Registration\ExtendedFunc.tt">
+    <None Update="ExtendedFunc.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ExtendedFunc.cs</LastGenOutput>
     </None>
@@ -68,7 +68,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Registration\ExtendedFunc.cs">
+    <Compile Update="ExtendedFunc.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>ExtendedFunc.tt</DependentUpon>

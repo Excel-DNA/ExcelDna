@@ -93,9 +93,12 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                 foreach (var i in receiver.Functions.Concat(receiver.Commands))
                 {
                     functions += $"{regHost}.MethodsForRegistration.Add({GetMethod(i)});\r\n";
-                    functions += $"typeRefs.Add(typeof({Util.MethodType(i)}));\r\n";
-                    functions += $"typeRefs.Add(typeof({Util.MethodExpressionType(i)}));\r\n";
-                    if (Util.HasPostParameterConversionShape(i))
+                    if (i.Parameters.Length <= 16)
+                    {
+                        functions += $"typeRefs.Add(typeof({Util.MethodType(i)}));\r\n";
+                        functions += $"typeRefs.Add(typeof({Util.MethodExpressionType(i)}));\r\n";
+                    }
+                    if (Util.HasPostParameterConversionShape(i) && i.Parameters.Length <= 16)
                     {
                         string convertedMethodType = Util.MethodPostParameterConversionType(i);
                         functions += $"typeRefs.Add(typeof({convertedMethodType}));\r\n";
@@ -137,6 +140,12 @@ namespace ExcelDna.SourceGenerator.NativeAOT
 
                     functions += "\r\n";
                 }
+
+                foreach (var i in receiver.Functions)
+                {
+                    functions += $"typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc{i.Parameters.Length}<{Util.CreateExtendedFuncArgs(i)}>));\r\n";
+                }
+
                 source = source.Replace("[FUNCTIONS]", functions + methods);
             }
             {

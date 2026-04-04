@@ -81,6 +81,13 @@ namespace ExcelDna.SourceGenerator.NativeAOT
             return string.Join(",", allParamTypes.Select(i => i == null ? "object" : GetFullTypeName(i)));
         }
 
+        public static string CreateExtendedFuncArgs(IMethodSymbol method)
+        {
+            List<ITypeSymbol?> allParamTypes = method.Parameters.Select(p => p.Type).Cast<ITypeSymbol?>().ToList();
+            allParamTypes.Add(method.ReturnType);
+            return string.Join(",", allParamTypes.Select(i => i == null ? "object" : GetFullTypeName(i)));
+        }
+
         static string BuildMethodType(IEnumerable<string> parameterTypeNames, ITypeSymbol returnType, bool returnsVoid)
         {
             string parameters = string.Join(", ", parameterTypeNames);

@@ -145,20 +145,11 @@ namespace ExcelDna.Registration
             Debug.Assert(IsValid());
         }
 
-#if AOT_COMPATIBLE
-        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "SourceGenerator roots required Expression<TDelegate> shapes")]
-#endif
         private static LambdaExpression CreateMethodLambda(MethodInfo methodInfo, IReadOnlyList<ParameterExpression> paramExprs)
         {
             try
             {
-#if !AOT_COMPATIBLE
-                if (paramExprs.Count > 16)
-                {
-                    return Expression.Lambda(GetExtendedDelegateType(methodInfo), Expression.Call(methodInfo, paramExprs), methodInfo.Name, paramExprs);
-                }
-#endif
-                return Expression.Lambda(Expression.Call(methodInfo, paramExprs), methodInfo.Name, paramExprs);
+                return Expression.Lambda(GetExtendedDelegateType(methodInfo), Expression.Call(methodInfo, paramExprs), methodInfo.Name, paramExprs);
             }
             catch (NotSupportedException ex) when (IsMissingNativeMetadata(ex))
             {
@@ -175,7 +166,10 @@ namespace ExcelDna.Registration
             return ex.Message?.IndexOf("missing native code or metadata", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
-#if !AOT_COMPATIBLE
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2055:RequiresUnreferencedCode", Justification = "SourceGenerator roots required Expression<TDelegate> shapes")]
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "SourceGenerator roots required Expression<TDelegate> shapes")]
+#endif
         private static Type GetExtendedDelegateType(MethodInfo methodInfo)
         {
             if (methodInfo.ReturnType != typeof(void))
@@ -197,6 +191,5 @@ namespace ExcelDna.Registration
                 return genericBase.MakeGenericType(args);
             }
         }
-#endif
     }
 }
