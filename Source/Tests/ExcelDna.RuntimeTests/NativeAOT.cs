@@ -404,5 +404,20 @@ namespace ExcelDna.RuntimeTests
                 Assert.Equal("49", functionRange2.Value.ToString());
             }
         }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void Args()
+        {
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+                functionRange.Formula = "=NativeArgs16(1,0,0,0,0,0,0,0,0,10,0,0,0,0,0,16)";
+                Assert.Equal("27", functionRange.Value.ToString());
+            }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+                functionRange.Formula = "=NativeArgs17(1,0,0,0,0,0,0,0,0,10,0,0,0,0,0,0,17)";
+                Assert.Equal("28", functionRange.Value.ToString());
+            }
+        }
     }
 }
