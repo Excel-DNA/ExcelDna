@@ -38,6 +38,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, string[]>>));
                 typeRefs.Add(typeof(Func<string,object,object,object,object,object,object,object,object,object,object,object,object,object,object,object,string>));
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<string,object,object,object,object,object,object,object,object,object,object,object,object,object,object,object,string>>));
+                typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc2<string, string[], string>));
                 
                 List<MethodInfo> methodRefs = new List<MethodInfo>();
                 methodRefs.Add(typeof(List<string>).GetMethod("ToArray")!);
@@ -77,6 +78,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
                 typeRefs.Add(typeof(Func<object, bool>));
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, bool>>));
+                typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc4<object, double, int, bool, string>));
                 
                 List<MethodInfo> methodRefs = new List<MethodInfo>();
                 """);
@@ -105,6 +107,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeTaskBool")!);
                 typeRefs.Add(typeof(Func<System.Threading.Tasks.Task<bool>>));
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<System.Threading.Tasks.Task<bool>>>));
+                typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc0<System.Threading.Tasks.Task<bool>>));
                 
                 List<MethodInfo> methodRefs = new List<MethodInfo>();
                 methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod("RunTask")!.MakeGenericMethod(typeof(bool)));
@@ -174,6 +177,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<string, System.IObservable<string>>>));
                 typeRefs.Add(typeof(Func<object, string>));
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, string>>));
+                typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc1<string, System.IObservable<string>>));
                 
                 List<MethodInfo> methodRefs = new List<MethodInfo>();
                 methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod("Observe3", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)!.MakeGenericMethod(typeof(string)));
@@ -203,7 +207,8 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeAsyncBool")!);
                 typeRefs.Add(typeof(Func<bool>));
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<bool>>));
-                
+                typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc0<bool>));
+
                 List<MethodInfo> methodRefs = new List<MethodInfo>();
                 methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod("RunAsTask")!.MakeGenericMethod(typeof(bool)));
                 methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod("RunAsTaskObject")!.MakeGenericMethod(typeof(bool)));

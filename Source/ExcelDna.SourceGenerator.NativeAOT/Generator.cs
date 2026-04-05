@@ -138,12 +138,12 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                             methods += $"methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod(\"{runMethodName}\")!.MakeGenericMethod(typeof({Util.GetFullTypeName(i.ReturnType)})));\r\n";
                     }
 
-                    functions += "\r\n";
-                }
+                    if (receiver.Functions.Contains(i))
+                    {
+                        functions += $"typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc{i.Parameters.Length}<{Util.CreateExtendedFuncArgs(i)}>));\r\n";
+                    }
 
-                foreach (var i in receiver.Functions)
-                {
-                    functions += $"typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc{i.Parameters.Length}<{Util.CreateExtendedFuncArgs(i)}>));\r\n";
+                    functions += "\r\n";
                 }
 
                 source = source.Replace("[FUNCTIONS]", functions + methods);
