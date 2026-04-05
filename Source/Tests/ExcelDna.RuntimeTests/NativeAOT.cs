@@ -414,9 +414,14 @@ namespace ExcelDna.RuntimeTests
                 Assert.Equal("27", functionRange.Value.ToString());
             }
             {
-                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
                 functionRange.Formula = "=NativeArgs17(1,0,0,0,0,0,0,0,0,10,0,0,0,0,0,0,17)";
                 Assert.Equal("28", functionRange.Value.ToString());
+            }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D1"];
+                functionRange.Formula = "=NativeVersion17(1,0,0,0,0,0,0,0,0,10,0,0,0,0,0,0,\"2.3.4.5\")";
+                Assert.Equal("The Native Version 17 value with field count 2 is 2.3", functionRange.Value.ToString());
             }
         }
     }

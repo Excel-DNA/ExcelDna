@@ -345,5 +345,11 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
             int sum = i1 + i2 + i3 + i4 + i5 + i6 + i7 + i8 + i9 + i10 + i11 + i12 + i13 + i14 + i15 + i16 + i17;
             return $"{sum}";
         }
+
+        [ExcelFunction]
+        public static string NativeVersion17(int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8, int i9, int i10, int i11, int i12, int i13, int i14, int i15, int i16, Version v)
+        {
+            return "The Native Version 17 value with field count 2 is " + v.ToString(2);
+        }
     }
 }

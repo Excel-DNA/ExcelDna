@@ -15,12 +15,7 @@ namespace ExcelDna.Registration
         {
             foreach (var reg in registrations)
             {
-#if AOT_COMPATIBLE
-                if (reg.FunctionLambda.Parameters.Count() <= 16)
-#endif
-                {
-                    ApplyParameterConversions(reg, conversionConfig);
-                }
+                ApplyParameterConversions(reg, conversionConfig);
                 yield return reg;
             }
         }
@@ -154,6 +149,10 @@ namespace ExcelDna.Registration
         {
             try
             {
+#if AOT_COMPATIBLE
+                if (parameters.Count() > 16)
+                    return Expr.Lambda(GetExtendedDelegateType(parameters, body.Type), body, lambdaName, parameters);
+#endif
                 return Expr.Lambda(body, lambdaName, parameters);
             }
             catch (NotSupportedException ex) when (IsMissingNativeMetadata(ex))
@@ -169,6 +168,19 @@ namespace ExcelDna.Registration
         static bool IsMissingNativeMetadata(NotSupportedException ex)
         {
             return ex.Message?.IndexOf("missing native code or metadata", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2055:RequiresUnreferencedCode", Justification = "SourceGenerator roots required Expression<TDelegate> shapes")]
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "SourceGenerator roots required Expression<TDelegate> shapes")]
+#endif
+        private static Type GetExtendedDelegateType(IEnumerable<ParameterExpression> parameters, Type returnType)
+        {
+            Type genericBase = ExtendedFuncUtil.GetFuncType(parameters.Count());
+            var args = parameters.Select(p => p.Type)
+                .Concat(new[] { returnType })
+                .ToArray();
+            return genericBase.MakeGenericType(args);
         }
 
         public static LambdaExpression GetParameterConversion(ParameterConversionConfiguration conversionConfig,
