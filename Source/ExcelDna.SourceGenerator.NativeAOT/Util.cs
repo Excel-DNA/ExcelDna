@@ -41,14 +41,24 @@ namespace ExcelDna.SourceGenerator.NativeAOT
             return BuildMethodType(method.Parameters.Select(p => GetFullTypeName(p.Type)), method.ReturnType, method.ReturnsVoid);
         }
 
-        public static string MethodExpressionType(IMethodSymbol method)
+        public static string ExtendedMethodType(IMethodSymbol method)
         {
-            return $"System.Linq.Expressions.Expression<{MethodType(method)}>";
+            return BuildExtendedMethodType(method.Parameters.Select(p => GetFullTypeName(p.Type)), method.ReturnType, method.ReturnsVoid);
         }
 
         public static string MethodPostParameterConversionType(IMethodSymbol method)
         {
             return BuildMethodType(method.Parameters.Select(GetPostParameterConversionInputTypeName), method.ReturnType, method.ReturnsVoid);
+        }
+
+        public static string ExtendedMethodPostParameterConversionType(IMethodSymbol method)
+        {
+            return BuildExtendedMethodType(method.Parameters.Select(GetPostParameterConversionInputTypeName), method.ReturnType, method.ReturnsVoid);
+        }
+
+        public static string MethodExpression(string method)
+        {
+            return $"System.Linq.Expressions.Expression<{method}>";
         }
 
         public static bool HasPostParameterConversionShape(IMethodSymbol method)
@@ -81,19 +91,22 @@ namespace ExcelDna.SourceGenerator.NativeAOT
             return string.Join(",", allParamTypes.Select(i => i == null ? "object" : GetFullTypeName(i)));
         }
 
-        public static string CreateExtendedFuncArgs(IMethodSymbol method)
+        static string BuildMethodType(IEnumerable<string> parameterTypeNames, ITypeSymbol returnType, bool returnsVoid)
         {
-            List<ITypeSymbol?> allParamTypes = method.Parameters.Select(p => p.Type).Cast<ITypeSymbol?>().ToList();
-            allParamTypes.Add(method.ReturnType);
-            return string.Join(", ", allParamTypes.Select(i => i == null ? "object" : GetFullTypeName(i)));
+            return BuildMethodType("Action", "Func", parameterTypeNames, returnType, returnsVoid);
         }
 
-        static string BuildMethodType(IEnumerable<string> parameterTypeNames, ITypeSymbol returnType, bool returnsVoid)
+        static string BuildExtendedMethodType(IEnumerable<string> parameterTypeNames, ITypeSymbol returnType, bool returnsVoid)
+        {
+            return BuildMethodType($"ExcelDna.Integration.ExtendedAction{parameterTypeNames.Count()}", $"ExcelDna.Integration.ExtendedFunc{parameterTypeNames.Count()}", parameterTypeNames, returnType, returnsVoid);
+        }
+
+        static string BuildMethodType(string action, string func, IEnumerable<string> parameterTypeNames, ITypeSymbol returnType, bool returnsVoid)
         {
             string parameters = string.Join(", ", parameterTypeNames);
             return returnsVoid
-                ? $"Action{(string.IsNullOrWhiteSpace(parameters) ? null : $"<{parameters}>")}"
-                : $"Func<{(string.IsNullOrWhiteSpace(parameters) ? null : $"{parameters}, ")}{GetFullTypeName(returnType)}>";
+                ? $"{action}{(string.IsNullOrWhiteSpace(parameters) ? null : $"<{parameters}>")}"
+                : $"{func}<{(string.IsNullOrWhiteSpace(parameters) ? null : $"{parameters}, ")}{GetFullTypeName(returnType)}>";
         }
 
         static string GetPostParameterConversionInputTypeName(IParameterSymbol parameter)

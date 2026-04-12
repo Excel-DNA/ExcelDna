@@ -96,18 +96,29 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                     if (i.Parameters.Length <= 16)
                     {
                         functions += $"typeRefs.Add(typeof({Util.MethodType(i)}));\r\n";
-                        functions += $"typeRefs.Add(typeof({Util.MethodExpressionType(i)}));\r\n";
+                        functions += $"typeRefs.Add(typeof({Util.MethodExpression(Util.MethodType(i))}));\r\n";
                     }
-                    if (Util.HasPostParameterConversionShape(i) && i.Parameters.Length <= 16)
                     {
-                        string convertedMethodType = Util.MethodPostParameterConversionType(i);
-                        functions += $"typeRefs.Add(typeof({convertedMethodType}));\r\n";
-                        functions += $"typeRefs.Add(typeof(System.Linq.Expressions.Expression<{convertedMethodType}>));\r\n";
+                        functions += $"typeRefs.Add(typeof({Util.ExtendedMethodType(i)}));\r\n";
+                        functions += $"typeRefs.Add(typeof({Util.MethodExpression(Util.ExtendedMethodType(i))}));\r\n";
+                    }
+                    if (Util.HasPostParameterConversionShape(i))
+                    {
+                        if (i.Parameters.Length <= 16)
+                        {
+                            functions += $"typeRefs.Add(typeof({Util.MethodPostParameterConversionType(i)}));\r\n";
+                            functions += $"typeRefs.Add(typeof({Util.MethodExpression(Util.MethodPostParameterConversionType(i))}));\r\n";
+                        }
+                        {
+                            functions += $"typeRefs.Add(typeof({Util.ExtendedMethodPostParameterConversionType(i)}));\r\n";
+                            functions += $"typeRefs.Add(typeof({Util.MethodExpression(Util.ExtendedMethodPostParameterConversionType(i))}));\r\n";
+                        }
                     }
                     foreach (var p in i.Parameters)
                     {
-                        functions += $"typeRefs.Add(typeof(Func<object, {Util.GetFullTypeName(p.Type)}>));\r\n";
-                        functions += $"typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, {Util.GetFullTypeName(p.Type)}>>));\r\n";
+                        string func = $"Func<object, {Util.GetFullTypeName(p.Type)}>";
+                        functions += $"typeRefs.Add(typeof({func}));\r\n";
+                        functions += $"typeRefs.Add(typeof({Util.MethodExpression(func)}));\r\n";
                     }
 
                     if (Util.IsLastArrayParams(i))
@@ -116,8 +127,10 @@ namespace ExcelDna.SourceGenerator.NativeAOT
 
                         methods += $"methodRefs.Add(typeof(List<{Util.GetFullTypeName(arrayType.ElementType)}>).GetMethod(\"ToArray\")!);\r\n";
                         methods += $"methodRefs.Add(typeof(List<{Util.GetFullTypeName(arrayType.ElementType)}>).GetMethod(\"Add\")!);\r\n";
-                        functions += $"typeRefs.Add(typeof(Func<{Util.CreateFunc16Args(i)}>));\r\n";
-                        functions += $"typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<{Util.CreateFunc16Args(i)}>>));\r\n";
+
+                        string func = $"Func<{Util.CreateFunc16Args(i)}>";
+                        functions += $"typeRefs.Add(typeof({func}));\r\n";
+                        functions += $"typeRefs.Add(typeof({Util.MethodExpression(func)}));\r\n";
                     }
 
                     if (i.ReturnType is INamedTypeSymbol named && named.IsGenericType && Util.GetFullGenericTypeName(named) == "System.Threading.Tasks.Task")
@@ -136,11 +149,6 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                     {
                         foreach (string runMethodName in new string[] { "RunAsTask", "RunAsTaskObject", "RunAsTaskWithCancellation", "RunAsTaskObjectWithCancellation" })
                             methods += $"methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod(\"{runMethodName}\")!.MakeGenericMethod(typeof({Util.GetFullTypeName(i.ReturnType)})));\r\n";
-                    }
-
-                    if (receiver.Functions.Contains(i))
-                    {
-                        functions += $"typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc{i.Parameters.Length}<{Util.CreateExtendedFuncArgs(i)}>));\r\n";
                     }
 
                     functions += "\r\n";

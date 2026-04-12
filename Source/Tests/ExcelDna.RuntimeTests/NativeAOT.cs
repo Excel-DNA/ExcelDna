@@ -423,6 +423,11 @@ namespace ExcelDna.RuntimeTests
                 functionRange.Formula = "=NativeVersion17(1,0,0,0,0,0,0,0,0,10,0,0,0,0,0,0,\"2.3.4.5\")";
                 Assert.Equal("The Native Version 17 value with field count 2 is 2.3", functionRange.Value.ToString());
             }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E1"];
+                functionRange.Formula = "=NativeParameterConversion19(\"1\",\"\",\"\",\"\",\"\", \"OptionA\",\"\",\"\",9,\"10\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"19\")";
+                Assert.Equal("Arg1: 1 Enum value: OptionA Arg19: 19", functionRange.Value.ToString());
+            }
         }
     }
 }
