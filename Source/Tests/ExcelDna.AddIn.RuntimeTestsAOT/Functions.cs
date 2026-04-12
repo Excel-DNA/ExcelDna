@@ -357,5 +357,11 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         {
             return new object[,] { { $"Arg1: {arg1} Enum value: {arg6} Arg19: {arg19}" } };
         }
+
+        [ExcelAsyncFunction]
+        public static async Task<object[,]> NativeAsync19(string arg1, string arg2, string arg3, string arg4, string arg5, TestEnum1 arg6, string arg7, string arg8, double arg9, object? arg10, object? arg11, object? arg12, object[,]? arg13, object[,]? arg14, object? arg15, string? arg16 = null, string? arg17 = null, object? arg18 = null, object? arg19 = null)
+        {
+            return new object[,] { { $"Async Arg1: {arg1} Enum value: {arg6} Arg19: {arg19}" } };
+        }
     }
 }

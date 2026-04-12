@@ -428,6 +428,11 @@ namespace ExcelDna.RuntimeTests
                 functionRange.Formula = "=NativeParameterConversion19(\"1\",\"\",\"\",\"\",\"\", \"OptionA\",\"\",\"\",9,\"10\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"19\")";
                 Assert.Equal("Arg1: 1 Enum value: OptionA Arg19: 19", functionRange.Value.ToString());
             }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["F1"];
+                functionRange.Formula = "=NativeAsync19(\"11\",\"\",\"\",\"\",\"\", \"OptionB\",\"\",\"\",9,\"10\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"119\")";
+                Assert.Equal("Async Arg1: 11 Enum value: OptionB Arg19: 119", functionRange.Value.ToString());
+            }
         }
     }
 }

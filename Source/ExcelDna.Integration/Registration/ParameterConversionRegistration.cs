@@ -113,7 +113,7 @@ namespace ExcelDna.Registration
                     wrappingCall = Expr.Invoke(conversion, wrappingCall);
             }
 
-            reg.FunctionLambda = CreateLambdaWithAotContext(
+            reg.FunctionLambda = ExcelFunctionRegistration.CreateLambdaWithAotContext(
                 wrappingCall,
                 reg.FunctionLambda.Name ?? "<lambda>",
                 wrappingParameters,
@@ -131,7 +131,7 @@ namespace ExcelDna.Registration
                     result = convsIter.Current;
                     while (convsIter.MoveNext())
                     {
-                        result = CreateLambdaWithAotContext(
+                        result = ExcelFunctionRegistration.CreateLambdaWithAotContext(
                             Expression.Invoke(result, convsIter.Current),
                             convsIter.Current.Name ?? "<lambda>",
                             convsIter.Current.Parameters,
@@ -140,47 +140,6 @@ namespace ExcelDna.Registration
                 }
             }
             return result;
-        }
-
-#if AOT_COMPATIBLE
-        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "SourceGenerator roots required Expression<TDelegate> shapes")]
-#endif
-        static LambdaExpression CreateLambdaWithAotContext(Expression body, string lambdaName, IEnumerable<ParameterExpression> parameters, string operation)
-        {
-            try
-            {
-#if AOT_COMPATIBLE
-                if (parameters.Count() > 16)
-                    return Expr.Lambda(GetExtendedDelegateType(parameters, body.Type), body, lambdaName, parameters);
-#endif
-                return Expr.Lambda(body, lambdaName, parameters);
-            }
-            catch (NotSupportedException ex) when (IsMissingNativeMetadata(ex))
-            {
-                throw new InvalidOperationException(
-                    $"NativeAOT could not build an expression during '{operation}' for '{lambdaName}'. " +
-                    "The required Expression<TDelegate> shape is missing native metadata. " +
-                    "Ensure the NativeAOT source generator roots expression delegate shapes for rewritten registrations.",
-                    ex);
-            }
-        }
-
-        static bool IsMissingNativeMetadata(NotSupportedException ex)
-        {
-            return ex.Message?.IndexOf("missing native code or metadata", StringComparison.OrdinalIgnoreCase) >= 0;
-        }
-
-#if AOT_COMPATIBLE
-        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2055:RequiresUnreferencedCode", Justification = "SourceGenerator roots required Expression<TDelegate> shapes")]
-        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "SourceGenerator roots required Expression<TDelegate> shapes")]
-#endif
-        private static Type GetExtendedDelegateType(IEnumerable<ParameterExpression> parameters, Type returnType)
-        {
-            Type genericBase = ExtendedFuncUtil.GetFuncType(parameters.Count());
-            var args = parameters.Select(p => p.Type)
-                .Concat(new[] { returnType })
-                .ToArray();
-            return genericBase.MakeGenericType(args);
         }
 
         public static LambdaExpression GetParameterConversion(ParameterConversionConfiguration conversionConfig,
