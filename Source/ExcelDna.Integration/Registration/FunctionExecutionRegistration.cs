@@ -17,11 +17,7 @@ namespace ExcelDna.Registration
 
                 // Exclude the functions created for native async, with no return values.
                 // Can't deal with these yet.
-                if (reg.FunctionLambda.ReturnType != typeof(void)
-#if AOT_COMPATIBLE
-                     && reg.FunctionLambda.Parameters.Count() <= 16
-#endif
-                    )
+                if (reg.FunctionLambda.ReturnType != typeof(void))
                 {
                     var handlers = functionHandlerConfig.FunctionHandlerSelectors
                                                       .Select(fhSelector => fhSelector(reg))
@@ -142,7 +138,7 @@ namespace ExcelDna.Registration
             var resultFromInnerCall = Expr.Assign(result, Expr.Invoke(functionLambda, outerParams));
 
             // Build the Lambda wrapper, with the original parameters
-            var lambda = Expr.Lambda(
+            var lambda = ExcelFunctionRegistration.CreateLambdaWithAotContext(
                 Expr.Block(new[] { fhArgs, result },
                      Expr.Assign(fhArgs, newfhArgs),
                      Expr.Assign(result, Expr.Default(result.Type)),
@@ -174,7 +170,8 @@ namespace ExcelDna.Registration
                         ),
                     result),
                 functionName,
-                outerParams);
+                outerParams,
+                "FunctionExecutionRegistration");
             return lambda;
         }
 

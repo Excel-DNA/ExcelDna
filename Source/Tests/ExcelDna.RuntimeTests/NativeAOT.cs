@@ -367,6 +367,16 @@ namespace ExcelDna.RuntimeTests
         }
 
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void FunctionExecutionHandlerArgs()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+
+            functionRange.Formula = "=NativeSayHelloWithLogging19(1,0,0,0,0,0,0,0,0,10,0,0,0,0,0,0,0,0,19)";
+            functionRange.Formula = "=NativeFunctionExecutionLog()";
+            Assert.True(functionRange.Value.ToString().Contains("NativeSayHelloWithLogging19 - OnSuccess - Result: Native Logging19 19"));
+        }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
         public void WindowHandle()
         {
             Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];

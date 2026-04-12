@@ -308,6 +308,12 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         }
 
         [ExcelFunction]
+        public static string NativeSayHelloWithLogging19(int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8, int i9, int i10, int i11, int i12, int i13, int i14, int i15, int i16, int i17, int i18, int i19)
+        {
+            return $"Native Logging19 {i19}";
+        }
+
+        [ExcelFunction]
         public static string NativeWindowHandle()
         {
             return $"Native WindowHandle is {ExcelDnaUtil.WindowHandle}.";
