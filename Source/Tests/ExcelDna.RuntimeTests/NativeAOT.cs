@@ -336,6 +336,15 @@ namespace ExcelDna.RuntimeTests
 
                 Assert.Equal("ExcelDna.AddIn.RuntimeTestsAOT64", functionRange2.Value.ToString());
             }
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E1"];
+                functionRange1.Formula = "=NativeCreateCalc17(1,0,0,0,0,0,0,0,0,10,0,0,0,0,0,0,17)";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E2"];
+                functionRange2.Formula = "=NativeCalcSum(E1)";
+
+                Assert.Equal("18", functionRange2.Value.ToString());
+            }
         }
 
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]

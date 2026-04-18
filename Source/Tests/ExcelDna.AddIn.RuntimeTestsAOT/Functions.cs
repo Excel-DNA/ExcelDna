@@ -369,5 +369,12 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         {
             return new object[,] { { $"Async Arg1: {arg1} Enum value: {arg6} Arg19: {arg19}" } };
         }
+
+        [ExcelFunction]
+        [return: ExcelHandle]
+        public static Calc NativeCreateCalc17(int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8, int i9, int i10, int i11, int i12, int i13, int i14, int i15, int i16, int i17)
+        {
+            return new Calc(i1, i17);
+        }
     }
 }

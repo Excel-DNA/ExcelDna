@@ -17,11 +17,7 @@ namespace ExcelDna.Integration.ObjectHandles
 
             foreach (var reg in registrations)
             {
-                if (HasExcelHandle(reg.Return.CustomAttributes)
-#if AOT_COMPATIBLE
-                     && reg.FunctionLambda.Parameters.Count() <= 16
-#endif
-                    )
+                if (HasExcelHandle(reg.Return.CustomAttributes))
                 {
                     reg.FunctionLambda = LazyLambda.Create(reg.FunctionLambda);
 
