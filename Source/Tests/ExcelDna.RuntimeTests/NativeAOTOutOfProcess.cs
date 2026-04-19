@@ -11,7 +11,7 @@ namespace ExcelDna.RuntimeTests
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
         public void AsyncTask()
         {
-            Retry.WhenBusy(() =>
+            Runner.ExecuteWithRetryWhenExcelBusy(() =>
             {
                 Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
                 functionRange.Formula = "=NativeAsyncTaskHello(\"world\", 200)";
@@ -25,7 +25,7 @@ namespace ExcelDna.RuntimeTests
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
         public void AsyncSleep()
         {
-            Retry.WhenBusy(() =>
+            Runner.ExecuteWithRetryWhenExcelBusy(() =>
             {
                 Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
                 functionRange.Formula = "=NativeAsyncHello(\"world\", 0)";
@@ -35,7 +35,7 @@ namespace ExcelDna.RuntimeTests
                 Assert.Equal("Hello native async world", functionRange.Value.ToString());
             });
 
-            Retry.WhenBusy(() =>
+            Runner.ExecuteWithRetryWhenExcelBusy(() =>
             {
                 Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
                 functionRange.Formula = "=NativeAsyncHello(\"world\", 200)";
@@ -49,7 +49,7 @@ namespace ExcelDna.RuntimeTests
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
         public void DynamicApplication()
         {
-            Retry.WhenBusy(() =>
+            Runner.ExecuteWithRetryWhenExcelBusy(() =>
             {
                 Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E1"];
 

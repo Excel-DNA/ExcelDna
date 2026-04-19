@@ -11,7 +11,7 @@ namespace ExcelDna.RuntimeTests
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTests)]
         public void ThreadSafe()
         {
-            Retry.WhenBusy(() =>
+            Runner.ExecuteWithRetryWhenExcelBusy(() =>
             {
                 for (int i = 1; i <= 5; ++i)
                 {
@@ -36,7 +36,7 @@ namespace ExcelDna.RuntimeTests
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTests)]
         public void Disposable()
         {
-            Retry.WhenBusy(() =>
+            Runner.ExecuteWithRetryWhenExcelBusy(() =>
             {
                 Range functionRangeC1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
                 functionRangeC1.Formula = "=MyGetCreatedDisposableObjectsCount()";
@@ -57,7 +57,7 @@ namespace ExcelDna.RuntimeTests
                 Assert.Equal("1", functionRange2.Value.ToString());
             });
 
-            Retry.WhenBusy(() =>
+            Runner.ExecuteWithRetryWhenExcelBusy(() =>
             {
                 Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
                 functionRange1.Formula = "=MyCreateDisposableObject(5)";
@@ -68,7 +68,7 @@ namespace ExcelDna.RuntimeTests
                 Assert.Equal("2", functionRange2.Value.ToString());
             });
 
-            Retry.WhenBusy(() =>
+            Runner.ExecuteWithRetryWhenExcelBusy(() =>
             {
                 Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
                 functionRange1.Clear();
@@ -84,7 +84,7 @@ namespace ExcelDna.RuntimeTests
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTests)]
         public void TaskObjectStableCreate()
         {
-            Retry.WhenBusy(() =>
+            Runner.ExecuteWithRetryWhenExcelBusy(() =>
             {
                 string v1;
                 {
@@ -119,7 +119,7 @@ namespace ExcelDna.RuntimeTests
         {
             foreach (int delay in new[] { 0, 500 })
             {
-                Retry.WhenBusy(() =>
+                Runner.ExecuteWithRetryWhenExcelBusy(() =>
                 {
                     {
                         Range functionRangeC1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
@@ -172,7 +172,7 @@ namespace ExcelDna.RuntimeTests
         {
             foreach (int delay in new[] { 0, 500 })
             {
-                Retry.WhenBusy(() =>
+                Runner.ExecuteWithRetryWhenExcelBusy(() =>
                 {
                     {
                         Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E1"];

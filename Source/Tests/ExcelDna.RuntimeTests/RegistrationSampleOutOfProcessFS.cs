@@ -11,7 +11,7 @@ namespace ExcelDna.RuntimeTests
         [ExcelFact(Workbook = "", AddIn = AddInPath.RegistrationSampleFS)]
         public void AsyncSleep()
         {
-            Retry.WhenBusy(() =>
+            Runner.ExecuteWithRetryWhenExcelBusy(() =>
             {
                 Range functionRangeA = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A3"];
                 functionRangeA.Value = "alice";
@@ -28,7 +28,7 @@ namespace ExcelDna.RuntimeTests
                 Assert.Equal("Hello alice", functionRange.Value.ToString());
             });
 
-            Retry.WhenBusy(() =>
+            Runner.ExecuteWithRetryWhenExcelBusy(() =>
             {
                 Range functionRangeA = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A4"];
                 functionRangeA.Value = "bob";
@@ -49,7 +49,7 @@ namespace ExcelDna.RuntimeTests
         [ExcelFact(Workbook = "", AddIn = AddInPath.RegistrationSampleFS)]
         public void Timer()
         {
-            Retry.WhenBusy(() =>
+            Runner.ExecuteWithRetryWhenExcelBusy(() =>
             {
                 Range functionRangeE = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E3"];
                 functionRangeE.Value = "2000";
@@ -68,7 +68,7 @@ namespace ExcelDna.RuntimeTests
                 Assert.True(functionRange.Value != v1);
             });
 
-            Retry.WhenBusy(() =>
+            Runner.ExecuteWithRetryWhenExcelBusy(() =>
             {
                 Range functionRangeE = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E4"];
                 functionRangeE.Value = "666";

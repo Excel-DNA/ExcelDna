@@ -11,7 +11,7 @@ namespace ExcelDna.RuntimeTests
         [ExcelFact(Workbook = "", AddIn = AddInPath.RegistrationSample)]
         public void AsyncSleep()
         {
-            Retry.WhenBusy(() =>
+            Runner.ExecuteWithRetryWhenExcelBusy(() =>
             {
                 Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
                 functionRange.Formula = "=dnaDelayedHello(\"world\", 0)";
@@ -21,7 +21,7 @@ namespace ExcelDna.RuntimeTests
                 Assert.Equal("Hello world!", functionRange.Value.ToString());
             });
 
-            Retry.WhenBusy(() =>
+            Runner.ExecuteWithRetryWhenExcelBusy(() =>
             {
                 Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
                 functionRange.Formula = "=dnaDelayedHello(\"world\", 200)";
@@ -35,7 +35,7 @@ namespace ExcelDna.RuntimeTests
         [ExcelFact(Workbook = "", AddIn = AddInPath.RegistrationSample)]
         public void GettingData()
         {
-            Retry.WhenBusy(() =>
+            Runner.ExecuteWithRetryWhenExcelBusy(() =>
             {
                 Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
                 functionRange.Formula = "=dnaDelayedHelloAsync(\"a\", 2000)";

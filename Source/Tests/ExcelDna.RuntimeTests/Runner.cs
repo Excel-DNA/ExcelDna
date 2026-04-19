@@ -2,9 +2,9 @@
 
 namespace ExcelDna.RuntimeTests
 {
-    internal class Retry
+    internal class Runner
     {
-        public static void WhenBusy(Action action)
+        public static void ExecuteWithRetryWhenExcelBusy(Action action)
         {
             for (int i = 0; i < 3; ++i)
             {
