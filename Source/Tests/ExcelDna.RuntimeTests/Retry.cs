@@ -1,0 +1,22 @@
+﻿using System.Runtime.InteropServices;
+
+namespace ExcelDna.RuntimeTests
+{
+    internal class Retry
+    {
+        public static void WhenBusy(Action action)
+        {
+            for (int i = 0; i < 3; ++i)
+            {
+                try
+                {
+                    action();
+                    return;
+                }
+                catch (COMException e) when (e.ErrorCode == -2147417846) // 0x8001010A (RPC_E_SERVERCALL_RETRYLATER)
+                {
+                }
+            }
+        }
+    }
+}

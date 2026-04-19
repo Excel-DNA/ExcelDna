@@ -11,6 +11,7 @@ namespace ExcelDna.RuntimeTests
         [ExcelFact(Workbook = "", AddIn = AddInPath.RegistrationSampleFS)]
         public void AsyncSleep()
         {
+            Retry.WhenBusy(() =>
             {
                 Range functionRangeA = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A3"];
                 functionRangeA.Value = "alice";
@@ -25,7 +26,9 @@ namespace ExcelDna.RuntimeTests
                 Automation.WaitFor(() => functionRange.Value?.ToString() == "Hello alice", 3000);
 
                 Assert.Equal("Hello alice", functionRange.Value.ToString());
-            }
+            });
+
+            Retry.WhenBusy(() =>
             {
                 Range functionRangeA = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A4"];
                 functionRangeA.Value = "bob";
@@ -40,12 +43,13 @@ namespace ExcelDna.RuntimeTests
                 Automation.WaitFor(() => functionRange.Value?.ToString() == "Hello bob", 3000);
 
                 Assert.Equal("Hello bob", functionRange.Value.ToString());
-            }
+            });
         }
 
         [ExcelFact(Workbook = "", AddIn = AddInPath.RegistrationSampleFS)]
         public void Timer()
         {
+            Retry.WhenBusy(() =>
             {
                 Range functionRangeE = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E3"];
                 functionRangeE.Value = "2000";
@@ -62,7 +66,9 @@ namespace ExcelDna.RuntimeTests
 
                 Automation.WaitFor(() => functionRange.Value != v1, 3000);
                 Assert.True(functionRange.Value != v1);
-            }
+            });
+
+            Retry.WhenBusy(() =>
             {
                 Range functionRangeE = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E4"];
                 functionRangeE.Value = "666";
@@ -79,7 +85,7 @@ namespace ExcelDna.RuntimeTests
 
                 Automation.WaitFor(() => functionRange.Value != v1, 3000);
                 Assert.True(functionRange.Value != v1);
-            }
+            });
         }
     }
 }

@@ -11,6 +11,7 @@ namespace ExcelDna.RuntimeTests
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
         public void AsyncTask()
         {
+            Retry.WhenBusy(() =>
             {
                 Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
                 functionRange.Formula = "=NativeAsyncTaskHello(\"world\", 200)";
@@ -18,12 +19,13 @@ namespace ExcelDna.RuntimeTests
                 Automation.WaitFor(() => functionRange.Value?.ToString() == "Hello native async task world", 1000);
 
                 Assert.Equal("Hello native async task world", functionRange.Value.ToString());
-            }
+            });
         }
 
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
         public void AsyncSleep()
         {
+            Retry.WhenBusy(() =>
             {
                 Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
                 functionRange.Formula = "=NativeAsyncHello(\"world\", 0)";
@@ -31,7 +33,9 @@ namespace ExcelDna.RuntimeTests
                 Automation.WaitFor(() => functionRange.Value?.ToString() == "Hello native async world", 1000);
 
                 Assert.Equal("Hello native async world", functionRange.Value.ToString());
-            }
+            });
+
+            Retry.WhenBusy(() =>
             {
                 Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
                 functionRange.Formula = "=NativeAsyncHello(\"world\", 200)";
@@ -39,12 +43,13 @@ namespace ExcelDna.RuntimeTests
                 Automation.WaitFor(() => functionRange.Value?.ToString() == "Hello native async world", 2000);
 
                 Assert.Equal("Hello native async world", functionRange.Value.ToString());
-            }
+            });
         }
 
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
         public void DynamicApplication()
         {
+            Retry.WhenBusy(() =>
             {
                 Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E1"];
 
@@ -53,7 +58,7 @@ namespace ExcelDna.RuntimeTests
 
                 Assert.Equal(-4152, functionRange2.Value);
                 Assert.Equal(-4152, (int)functionRange1.HorizontalAlignment);
-            }
+            });
         }
     }
 }
