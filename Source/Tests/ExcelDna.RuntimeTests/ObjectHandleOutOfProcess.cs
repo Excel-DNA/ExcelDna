@@ -119,6 +119,7 @@ namespace ExcelDna.RuntimeTests
         {
             foreach (int delay in new[] { 0, 500 })
             {
+                int x = 0;
                 Runner.ExecuteWithRetryWhenExcelBusy(() =>
                 {
                     {
@@ -127,7 +128,7 @@ namespace ExcelDna.RuntimeTests
                         int initialCreatedObjectsCount = (int)functionRangeC1.Value;
 
                         Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
-                        functionRange1.Formula = $"=MyTaskCreateDisposableObject({delay}, 1)";
+                        functionRange1.Formula = $"=MyTaskCreateDisposableObject({delay}, {++x})";
                         Automation.WaitFor(() => functionRange1.Value.ToString().Contains("DisposableObject"), 3000);
 
                         Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B2"];
@@ -144,7 +145,7 @@ namespace ExcelDna.RuntimeTests
 
                     {
                         Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
-                        functionRange1.Formula = $"=MyTaskCreateDisposableObject({delay}, 5)";
+                        functionRange1.Formula = $"=MyTaskCreateDisposableObject({delay}, {++x})";
                         Automation.WaitFor(() => functionRange1.Value.ToString().Contains("DisposableObject"), 3000);
 
                         Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C2"];
