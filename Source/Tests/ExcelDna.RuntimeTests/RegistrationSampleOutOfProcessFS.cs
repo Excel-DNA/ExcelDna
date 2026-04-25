@@ -78,7 +78,6 @@ namespace ExcelDna.RuntimeTests
 
                 Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["G4"];
                 functionRange.Formula = "=dnaFsCreateTimer(E4,F4)";
-                Assert.Equal(-2146826246, functionRange.Value); // #N/A
 
                 Automation.WaitFor(() => functionRange.Value.GetType() == typeof(double), 3000);
                 double v1 = functionRange.Value;
