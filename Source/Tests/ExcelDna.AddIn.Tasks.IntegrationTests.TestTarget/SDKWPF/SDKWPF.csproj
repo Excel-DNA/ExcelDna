@@ -4,6 +4,17 @@
     <TargetFrameworks>net472;net8.0-windows</TargetFrameworks>
     <UseWindowsForms>True</UseWindowsForms>
     <UseWPF>True</UseWPF>
+
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ExcelAddInInclude>
+         WPFControl.dll;
+         ControlzEx.dll;
+         MahApps.Metro.dll;
+         Microsoft.Xaml.Behaviors.dll
+    </ExcelAddInInclude>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
