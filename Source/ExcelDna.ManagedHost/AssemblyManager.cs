@@ -161,6 +161,21 @@ namespace ExcelDna.ManagedHost
 #endif
         }
 
+#if NETCOREAPP && !AOT_COMPATIBLE
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        internal static Assembly AppDomainAssemblyResolve(string assemblyName)
+        {
+            string dllFileName = new AssemblyName(assemblyName).Name + ".dll";
+            {
+                string dllPath = Path.Combine(Path.GetDirectoryName(pathXll), dllFileName);
+                if (File.Exists(dllPath))
+                    return Assembly.LoadFrom(dllPath);
+            }
+
+            return null;
+        }
+#endif
+
         internal static Assembly LoadFromAssemblyPath(string assemblyPath)
         {
 #if NETCOREAPP
