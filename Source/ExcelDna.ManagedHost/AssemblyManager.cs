@@ -136,26 +136,7 @@ namespace ExcelDna.ManagedHost
         internal static string NativeLibraryResolve(string unmanagedDllName)
         {
 #if NETCOREAPP
-            byte[] dllBytes = GetResourceBytes(unmanagedDllName.ToUpperInvariant(), 5);
-            if (dllBytes == null)
-                return null;
-
-            string dllPath = Path.Combine(tempDirPath, unmanagedDllName);
-            if (!File.Exists(dllPath))
-            {
-                Directory.CreateDirectory(tempDirPath);
-                File.WriteAllBytes(dllPath, dllBytes);
-            }
-
-            byte[] pdbBytes = GetResourceBytes(unmanagedDllName.ToUpperInvariant(), 4);
-            if (pdbBytes != null)
-            {
-                string pdbPath = Path.ChangeExtension(dllPath, "pdb");
-                if (!File.Exists(pdbPath))
-                    File.WriteAllBytes(pdbPath, pdbBytes);
-            }
-
-            return dllPath;
+            return ExtractDllResource(unmanagedDllName, unmanagedDllName, 5);
 #else
             return null;
 #endif
@@ -165,14 +146,47 @@ namespace ExcelDna.ManagedHost
         [MethodImpl(MethodImplOptions.Synchronized)]
         internal static Assembly AppDomainAssemblyResolve(string assemblyName)
         {
-            string dllFileName = new AssemblyName(assemblyName).Name + ".dll";
+            string dllFileNameWithoutExtension = new AssemblyName(assemblyName).Name;
+            string dllFileName = dllFileNameWithoutExtension + ".dll";
             {
                 string dllPath = Path.Combine(Path.GetDirectoryName(pathXll), dllFileName);
                 if (File.Exists(dllPath))
                     return Assembly.LoadFrom(dllPath);
             }
+            {
+                string dllPath = ExtractDllResource(dllFileNameWithoutExtension, dllFileName, 0);
+                if (File.Exists(dllPath))
+                    return Assembly.LoadFrom(dllPath);
+            }
 
             return null;
+        }
+#endif
+
+#if NETCOREAPP
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        private static string ExtractDllResource(string resourceName, string dllName, int type)
+        {
+            byte[] dllBytes = GetResourceBytes(resourceName.ToUpperInvariant(), type);
+            if (dllBytes == null)
+                return null;
+
+            string dllPath = Path.Combine(tempDirPath, dllName);
+            if (!File.Exists(dllPath))
+            {
+                Directory.CreateDirectory(tempDirPath);
+                File.WriteAllBytes(dllPath, dllBytes);
+            }
+
+            byte[] pdbBytes = GetResourceBytes(resourceName.ToUpperInvariant(), 4);
+            if (pdbBytes != null)
+            {
+                string pdbPath = Path.ChangeExtension(dllPath, "pdb");
+                if (!File.Exists(pdbPath))
+                    File.WriteAllBytes(pdbPath, pdbBytes);
+            }
+
+            return dllPath;
         }
 #endif
 
