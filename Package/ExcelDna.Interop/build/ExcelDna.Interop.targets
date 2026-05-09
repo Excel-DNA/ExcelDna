@@ -5,7 +5,7 @@
       <ReferencePath Condition="
               '%(FileName)' == 'Microsoft.Office.Interop.Excel'
            or '%(FileName)' == 'Microsoft.Vbe.Interop'
-           or '%(FileName)' == 'Office'
+           or '%(FileName)' == 'office'
               ">
         <EmbedInteropTypes>true</EmbedInteropTypes>
       </ReferencePath>
