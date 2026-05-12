@@ -20,5 +20,11 @@ namespace ExcelDna.Test
         {
             ExcelAsyncUtil.QueueMacro("MyTestCommand");
         }
+
+        [ExcelCommand(MenuText = "MyShowCustomPane")]
+        public static void MyShowCustomPane()
+        {
+            CustomPane.Show();
+        }
     }
 }
