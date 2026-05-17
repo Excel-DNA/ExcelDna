@@ -13,5 +13,8 @@ namespace ExcelDna.AddIn.RuntimeTestsNET4
 
         [ExcelFunction]
         public static double Net4DateTimeDefault(DateTime value = default) => value.ToOADate();
+
+        [ExcelFunction]
+        public static string Net4BaseDirectory() => AppContext.BaseDirectory;
     }
 }

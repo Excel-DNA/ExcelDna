@@ -34,11 +34,12 @@ const std::wstring requiredBitness = L"x86";
 hostfxr_initialize_for_runtime_config_fn init_fptr;
 hostfxr_get_runtime_delegate_fn get_delegate_fptr;
 hostfxr_get_runtime_property_value_fn get_property_fptr;
+hostfxr_set_runtime_property_value_fn set_property_fptr;
 hostfxr_close_fn close_fptr;
 
 // Forward declarations
 bool load_hostfxr(int& rc, std::wstring& loadError);
-load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(HMODULE hModuleXll, int majorRuntimeVersion, const std::wstring& rollForward, const std::wstring& runtimeFrameworkVersion);
+load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(HMODULE hModuleXll, LPCWSTR pathXll, int majorRuntimeVersion, const std::wstring& rollForward, const std::wstring& runtimeFrameworkVersion);
 
 // Provide a callback for any catastrophic failures.
 // The provided callback will be the last call prior to a rude-abort of the process.
@@ -95,7 +96,7 @@ int load_and_run(const std::wstring& basePath, XlAddInExportInfo* pExportInfo, H
 	if (FAILED(hr))
 		runtimeFrameworkVersion = L"";
 
-	load_assembly_and_get_function_pointer_fn load_assembly_and_get_function_pointer = get_dotnet_load_assembly(hModuleXll, majorRuntimeVersion, rollForward, runtimeFrameworkVersion);
+	load_assembly_and_get_function_pointer_fn load_assembly_and_get_function_pointer = get_dotnet_load_assembly(hModuleXll, pathXll, majorRuntimeVersion, rollForward, runtimeFrameworkVersion);
 	if (load_assembly_and_get_function_pointer == nullptr)
 		return EXIT_FAILURE;
 
@@ -211,6 +212,13 @@ bool load_hostfxr(int& rc, std::wstring& loadError)
 		return false;
 	}
 
+	set_property_fptr = (hostfxr_set_runtime_property_value_fn)get_export(lib, "hostfxr_set_runtime_property_value");
+	if (set_property_fptr == nullptr)
+	{
+		loadError = L"Retrieving the address of the exported function hostfxr_set_runtime_property_value failed.";
+		return false;
+	}
+
 	close_fptr = (hostfxr_close_fn)get_export(lib, "hostfxr_close");
 	if (close_fptr == nullptr)
 	{
@@ -239,7 +247,7 @@ std::wstring get_loaded_runtime_version()
 }
 
 // Load and initialize .NET Core and get desired function pointer for scenario
-load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(HMODULE hModuleXll, int majorRuntimeVersion, const std::wstring& rollForward, const std::wstring& runtimeFrameworkVersion)
+load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(HMODULE hModuleXll, LPCWSTR pathXll, int majorRuntimeVersion, const std::wstring& rollForward, const std::wstring& runtimeFrameworkVersion)
 {
 	std::wstring configFile = PathCombine(tempDir.GetPath(), L"ExcelDna.Host.runtimeconfig.json");
 	std::string version(runtimeFrameworkVersion.length() > 0 ? ANSIWStringToString(runtimeFrameworkVersion) :
@@ -313,6 +321,8 @@ load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(HMODULE hModu
 		close_fptr(cxt);
 		return nullptr;
 	}
+
+	set_property_fptr(cxt, L"APP_CONTEXT_BASE_DIRECTORY", GetDirectory(pathXll).c_str());
 
 	// Get the load assembly function pointer
 	rc = get_delegate_fptr(

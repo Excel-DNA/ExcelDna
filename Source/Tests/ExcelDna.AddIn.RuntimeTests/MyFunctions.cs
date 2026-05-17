@@ -476,5 +476,8 @@ namespace ExcelDna.AddIn.RuntimeTests
         {
             return $"My WindowHandle is {ExcelDnaUtil.WindowHandle}.";
         }
+
+        [ExcelFunction]
+        public static string MyBaseDirectory() => AppContext.BaseDirectory;
     }
 }
