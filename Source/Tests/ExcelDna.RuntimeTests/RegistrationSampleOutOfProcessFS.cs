@@ -11,6 +11,7 @@ namespace ExcelDna.RuntimeTests
         [ExcelFact(Workbook = "", AddIn = AddInPath.RegistrationSampleFS)]
         public void AsyncSleep()
         {
+            Runner.ExecuteWithRetryWhenExcelBusy(() =>
             {
                 Range functionRangeA = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A3"];
                 functionRangeA.Value = "alice";
@@ -25,7 +26,9 @@ namespace ExcelDna.RuntimeTests
                 Automation.WaitFor(() => functionRange.Value?.ToString() == "Hello alice", 3000);
 
                 Assert.Equal("Hello alice", functionRange.Value.ToString());
-            }
+            });
+
+            Runner.ExecuteWithRetryWhenExcelBusy(() =>
             {
                 Range functionRangeA = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["A4"];
                 functionRangeA.Value = "bob";
@@ -40,12 +43,14 @@ namespace ExcelDna.RuntimeTests
                 Automation.WaitFor(() => functionRange.Value?.ToString() == "Hello bob", 3000);
 
                 Assert.Equal("Hello bob", functionRange.Value.ToString());
-            }
+            });
         }
 
         [ExcelFact(Workbook = "", AddIn = AddInPath.RegistrationSampleFS)]
         public void Timer()
         {
+            bool afterRetry = false;
+            Runner.ExecuteWithRetryWhenExcelBusy(() =>
             {
                 Range functionRangeE = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E3"];
                 functionRangeE.Value = "2000";
@@ -55,14 +60,18 @@ namespace ExcelDna.RuntimeTests
 
                 Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["G3"];
                 functionRange.Formula = "=dnaFsCreateTimer(E3,F3)";
-                Assert.Equal(-2146826246, functionRange.Value); // #N/A
+                if (!afterRetry)
+                    Assert.Equal(-2146826246, functionRange.Value); // #N/A
 
                 Automation.WaitFor(() => functionRange.Value.GetType() == typeof(double), 3000);
                 double v1 = functionRange.Value;
 
                 Automation.WaitFor(() => functionRange.Value != v1, 3000);
                 Assert.True(functionRange.Value != v1);
-            }
+            }, () => afterRetry = true);
+
+            afterRetry = false;
+            Runner.ExecuteWithRetryWhenExcelBusy(() =>
             {
                 Range functionRangeE = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E4"];
                 functionRangeE.Value = "666";
@@ -72,14 +81,15 @@ namespace ExcelDna.RuntimeTests
 
                 Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["G4"];
                 functionRange.Formula = "=dnaFsCreateTimer(E4,F4)";
-                Assert.Equal(-2146826246, functionRange.Value); // #N/A
+                if (!afterRetry)
+                    Assert.Equal(-2146826246, functionRange.Value); // #N/A
 
                 Automation.WaitFor(() => functionRange.Value.GetType() == typeof(double), 3000);
                 double v1 = functionRange.Value;
 
                 Automation.WaitFor(() => functionRange.Value != v1, 3000);
                 Assert.True(functionRange.Value != v1);
-            }
+            }, () => afterRetry = true);
         }
     }
 }

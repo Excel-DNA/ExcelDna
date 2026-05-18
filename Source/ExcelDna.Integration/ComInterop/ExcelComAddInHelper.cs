@@ -35,10 +35,6 @@ namespace ExcelDna.Integration
 
         public static void LoadComAddIn(ExcelComAddIn addIn)
         {
-            // If we are called without the addIn's DnaLibrary being set, default to the current library
-            if (addIn.DnaLibrary == null)
-                addIn.DnaLibrary = DnaLibrary.CurrentLibrary;
-
             Guid clsId;
             string progId;
 
@@ -62,6 +58,16 @@ namespace ExcelDna.Integration
                 // Change from Dna.xxx.n to Dna_xxx_n to avoid McAfee bug that blocks registry writes with a "." anywhere
                 progId = "Dna_" + clsId.ToString("N") + "_" + loadedComAddIns.Count;
             }
+
+            LoadComAddIn(addIn, clsId, progId);
+        }
+
+        internal static void LoadComAddIn(ExcelComAddIn addIn, Guid clsId, string progId)
+        {
+            // If we are called without the addIn's DnaLibrary being set, default to the current library
+            if (addIn.DnaLibrary == null)
+                addIn.DnaLibrary = DnaLibrary.CurrentLibrary;
+
             addIn.SetProgId(progId);
 
             // Put together some nicer descriptions for the Add-ins dialog.
