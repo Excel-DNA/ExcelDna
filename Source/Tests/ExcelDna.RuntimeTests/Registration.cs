@@ -493,6 +493,16 @@ namespace ExcelDna.RuntimeTests
 
                 Assert.Equal("ExcelDna.AddIn.RuntimeTests", functionRange2.Value.ToString());
             }
+
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E10"];
+                functionRange1.Formula = "=MyCreateCalcParams(2, 3, 4)";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E11"];
+                functionRange2.Formula = "=MyCalcSum(E10)";
+
+                Assert.Equal("14", functionRange2.Value.ToString());
+            }
         }
 
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTests)]

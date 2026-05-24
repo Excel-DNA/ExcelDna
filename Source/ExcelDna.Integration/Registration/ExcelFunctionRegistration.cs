@@ -169,10 +169,9 @@ namespace ExcelDna.Registration
         {
             try
             {
-#if AOT_COMPATIBLE
                 if (parameters.Count() > 16)
                     return Expr.Lambda(GetExtendedDelegateType(parameters, body.Type), body, lambdaName, parameters);
-#endif
+
                 return Expr.Lambda(body, lambdaName, parameters);
             }
             catch (NotSupportedException ex) when (IsMissingNativeMetadata(ex))

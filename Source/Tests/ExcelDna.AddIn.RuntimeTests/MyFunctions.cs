@@ -218,6 +218,13 @@ namespace ExcelDna.AddIn.RuntimeTests
         }
 
         [ExcelFunction]
+        [return: ExcelHandle]
+        public static Calc MyCreateCalcParams(double mult, params object[] values)
+        {
+            return new Calc((double)values[0] * mult, (double)values[1] * mult);
+        }
+
+        [ExcelFunction]
         public static CalcExcelHandle MyCreateCalcExcelHandle(double d1, double d2)
         {
             return new CalcExcelHandle(d1, d2);
