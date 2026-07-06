@@ -49,6 +49,7 @@
       <file src="build\ExcelDna.AddIn.NativeAOT.props" target="build" />
       <file src="build\ExcelDna.AddIn.NativeAOT.targets" target="build" />
       <file src="tools\ExcelDnaNativeAOT64.xll" target="tools" />
+      <file src="tools\ExcelDnaNativeAOT32.xll" target="tools" />
       <file src="..\images\ExcelDna-nu.png" target="images\" />
     </files>
 </package>

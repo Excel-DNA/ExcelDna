@@ -53,10 +53,18 @@
 		OverwriteReadOnlyFiles="true"
 		SkipUnchangedFiles="true" />
 
-	<Copy 
+	<Copy
         Condition="Exists('$(ProjectDir)..\ExcelDna.Host.NativeAOT\bin\$(Configuration)\x64\ExcelDna.Host.NativeAOT.x64.xll')"
         SourceFiles="$(ProjectDir)..\ExcelDna.Host.NativeAOT\bin\$(Configuration)\x64\ExcelDna.Host.NativeAOT.x64.xll"
         DestinationFiles="$(ExcelDnaTestPackageDir)tools\ExcelDnaNativeAOT64.xll"
+        ContinueOnError="false"
+        OverwriteReadOnlyFiles="true"
+        SkipUnchangedFiles="true" />
+
+	<Copy
+        Condition="Exists('$(ProjectDir)..\ExcelDna.Host.NativeAOT\bin\$(Configuration)\x86\ExcelDna.Host.NativeAOT.x86.xll')"
+        SourceFiles="$(ProjectDir)..\ExcelDna.Host.NativeAOT\bin\$(Configuration)\x86\ExcelDna.Host.NativeAOT.x86.xll"
+        DestinationFiles="$(ExcelDnaTestPackageDir)tools\ExcelDnaNativeAOT32.xll"
         ContinueOnError="false"
         OverwriteReadOnlyFiles="true"
         SkipUnchangedFiles="true" />

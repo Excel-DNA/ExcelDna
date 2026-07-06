@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
+using Expr = System.Linq.Expressions.Expression;
 
 namespace ExcelDna.Registration
 {
@@ -145,20 +146,11 @@ namespace ExcelDna.Registration
             Debug.Assert(IsValid());
         }
 
-#if AOT_COMPATIBLE
-        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "SourceGenerator roots required Expression<TDelegate> shapes")]
-#endif
         private static LambdaExpression CreateMethodLambda(MethodInfo methodInfo, IReadOnlyList<ParameterExpression> paramExprs)
         {
             try
             {
-#if !AOT_COMPATIBLE
-                if (paramExprs.Count > 16)
-                {
-                    return Expression.Lambda(GetExtendedDelegateType(methodInfo), Expression.Call(methodInfo, paramExprs), methodInfo.Name, paramExprs);
-                }
-#endif
-                return Expression.Lambda(Expression.Call(methodInfo, paramExprs), methodInfo.Name, paramExprs);
+                return Expression.Lambda(GetExtendedDelegateType(methodInfo), Expression.Call(methodInfo, paramExprs), methodInfo.Name, paramExprs);
             }
             catch (NotSupportedException ex) when (IsMissingNativeMetadata(ex))
             {
@@ -170,12 +162,38 @@ namespace ExcelDna.Registration
             }
         }
 
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "SourceGenerator roots required Expression<TDelegate> shapes")]
+#endif
+        internal static LambdaExpression CreateLambdaWithAotContext(Expression body, string lambdaName, IEnumerable<ParameterExpression> parameters, string operation)
+        {
+            IReadOnlyList<ParameterExpression> parameterList = parameters as IReadOnlyList<ParameterExpression> ?? parameters.ToList();
+            try
+            {
+                if (parameterList.Count > 16)
+                    return Expr.Lambda(GetExtendedDelegateType(parameterList, body.Type), body, lambdaName, parameterList);
+
+                return Expr.Lambda(body, lambdaName, parameterList);
+            }
+            catch (NotSupportedException ex) when (IsMissingNativeMetadata(ex))
+            {
+                throw new InvalidOperationException(
+                    $"NativeAOT could not build an expression during '{operation}' for '{lambdaName}'. " +
+                    "The required Expression<TDelegate> shape is missing native metadata. " +
+                    "Ensure the NativeAOT source generator roots expression delegate shapes for rewritten registrations.",
+                    ex);
+            }
+        }
+
         static bool IsMissingNativeMetadata(NotSupportedException ex)
         {
             return ex.Message?.IndexOf("missing native code or metadata", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
-#if !AOT_COMPATIBLE
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2055:RequiresUnreferencedCode", Justification = "SourceGenerator roots required Expression<TDelegate> shapes")]
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "SourceGenerator roots required Expression<TDelegate> shapes")]
+#endif
         private static Type GetExtendedDelegateType(MethodInfo methodInfo)
         {
             if (methodInfo.ReturnType != typeof(void))
@@ -197,6 +215,31 @@ namespace ExcelDna.Registration
                 return genericBase.MakeGenericType(args);
             }
         }
+
+#if AOT_COMPATIBLE
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2055:RequiresUnreferencedCode", Justification = "SourceGenerator roots required Expression<TDelegate> shapes")]
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "SourceGenerator roots required Expression<TDelegate> shapes")]
 #endif
+        private static Type GetExtendedDelegateType(IReadOnlyList<ParameterExpression> parameters, Type returnType)
+        {
+            if (returnType != typeof(void))
+            {
+                Type genericBase = ExtendedFuncUtil.GetFuncType(parameters.Count);
+                var args = parameters.Select(p => p.Type)
+                    .Concat(new[] { returnType })
+                    .ToArray();
+                return genericBase.MakeGenericType(args);
+            }
+            else
+            {
+                Type genericBase = ExtendedFuncUtil.GetActionType(parameters.Count);
+                if (!genericBase.IsGenericType)
+                    return genericBase;
+
+                var args = parameters.Select(p => p.Type)
+                    .ToArray();
+                return genericBase.MakeGenericType(args);
+            }
+        }
     }
 }

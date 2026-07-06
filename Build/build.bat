@@ -39,6 +39,7 @@ copy /Y "..\Source\ExcelDna.ManagedHost\bin\Release\net10.0-windows\ExcelDna.Man
 copy /Y "..\Source\ExcelDna.Loader\bin\Release\net10.0-windows\ExcelDna.Loader.dll" "..\Package\ExcelDna.AddIn.NativeAOT\lib\net10.0-windows\"
 copy /Y "..\Source\ExcelDna.SourceGenerator.NativeAOT\bin\Release\netstandard2.0\ExcelDna.SourceGenerator.NativeAOT.dll" "..\Package\ExcelDna.AddIn.NativeAOT\analyzers\dotnet\cs\"
 copy /Y "..\Source\ExcelDna.Host.NativeAOT\bin\Release\x64\ExcelDna.Host.NativeAOT.x64.xll" "..\Package\ExcelDna.AddIn.NativeAOT\tools\ExcelDnaNativeAOT64.xll"
+copy /Y "..\Source\ExcelDna.Host.NativeAOT\bin\Release\x86\ExcelDna.Host.NativeAOT.x86.xll" "..\Package\ExcelDna.AddIn.NativeAOT\tools\ExcelDnaNativeAOT32.xll"
 
 copy /Y ..\Distribution\net462\ ..\Distribution\
 

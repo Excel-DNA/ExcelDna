@@ -336,6 +336,15 @@ namespace ExcelDna.RuntimeTests
 
                 Assert.Equal("ExcelDna.AddIn.RuntimeTestsAOT64", functionRange2.Value.ToString());
             }
+            {
+                Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E1"];
+                functionRange1.Formula = "=NativeCreateCalc17(1,0,0,0,0,0,0,0,0,10,0,0,0,0,0,0,17)";
+
+                Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E2"];
+                functionRange2.Formula = "=NativeCalcSum(E1)";
+
+                Assert.Equal("18", functionRange2.Value.ToString());
+            }
         }
 
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
@@ -364,6 +373,16 @@ namespace ExcelDna.RuntimeTests
             functionRange.Formula = "=NativeSayHelloWithLoggingID(\"NativeFunctionExecutionHandlerWithAttribute\")";
             functionRange.Formula = "=NativeFunctionExecutionLog()";
             Assert.True(functionRange.Value.ToString().Contains("ID=7 NativeSayHelloWithLoggingID - OnSuccess - Result: Native Hello NativeFunctionExecutionHandlerWithAttribute"));
+        }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void FunctionExecutionHandlerArgs()
+        {
+            Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+
+            functionRange.Formula = "=NativeSayHelloWithLogging19(1,0,0,0,0,0,0,0,0,10,0,0,0,0,0,0,0,0,19)";
+            functionRange.Formula = "=NativeFunctionExecutionLog()";
+            Assert.True(functionRange.Value.ToString().Contains("NativeSayHelloWithLogging19 - OnSuccess - Result: Native Logging19 19"));
         }
 
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
@@ -402,6 +421,36 @@ namespace ExcelDna.RuntimeTests
                 functionRange2.Formula = "=NativeCalcSum(D1)";
 
                 Assert.Equal("49", functionRange2.Value.ToString());
+            }
+        }
+
+        [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
+        public void Args()
+        {
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["B1"];
+                functionRange.Formula = "=NativeArgs16(1,0,0,0,0,0,0,0,0,10,0,0,0,0,0,16)";
+                Assert.Equal("27", functionRange.Value.ToString());
+            }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["C1"];
+                functionRange.Formula = "=NativeArgs17(1,0,0,0,0,0,0,0,0,10,0,0,0,0,0,0,17)";
+                Assert.Equal("28", functionRange.Value.ToString());
+            }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D1"];
+                functionRange.Formula = "=NativeVersion17(1,0,0,0,0,0,0,0,0,10,0,0,0,0,0,0,\"2.3.4.5\")";
+                Assert.Equal("The Native Version 17 value with field count 2 is 2.3", functionRange.Value.ToString());
+            }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E1"];
+                functionRange.Formula = "=NativeParameterConversion19(\"1\",\"\",\"\",\"\",\"\", \"OptionA\",\"\",\"\",9,\"10\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"19\")";
+                Assert.Equal("Arg1: 1 Enum value: OptionA Arg19: 19", functionRange.Value.ToString());
+            }
+            {
+                Range functionRange = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["F1"];
+                functionRange.Formula = "=NativeAsync19(\"11\",\"\",\"\",\"\",\"\", \"OptionB\",\"\",\"\",9,\"10\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"119\")";
+                Assert.Equal("Async Arg1: 11 Enum value: OptionB Arg19: 119", functionRange.Value.ToString());
             }
         }
     }

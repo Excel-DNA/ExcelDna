@@ -138,7 +138,7 @@ namespace ExcelDna.Registration
             var resultFromInnerCall = Expr.Assign(result, Expr.Invoke(functionLambda, outerParams));
 
             // Build the Lambda wrapper, with the original parameters
-            var lambda = Expr.Lambda(
+            var lambda = ExcelFunctionRegistration.CreateLambdaWithAotContext(
                 Expr.Block(new[] { fhArgs, result },
                      Expr.Assign(fhArgs, newfhArgs),
                      Expr.Assign(result, Expr.Default(result.Type)),
@@ -170,7 +170,8 @@ namespace ExcelDna.Registration
                         ),
                     result),
                 functionName,
-                outerParams);
+                outerParams,
+                "FunctionExecutionRegistration");
             return lambda;
         }
 

@@ -39,8 +39,19 @@ namespace ExcelDna.AddIn.Tasks
 
                 string mainNativeAssembly = Path.Combine(NativeOutputPath, ProjectName + ".dll");
                 IEnumerable<string> includeAssemblies = BuildTaskCommon.SplitDlls(AddInInclude, OutDirectory).Select(i => Path.Combine(OutDirectory, i));
-                string xllOutput = Path.Combine(PublishDir, ProjectName + "-AddIn64.xll");
-                File.Copy(Xll64FilePath, xllOutput, true);
+
+                // NativeAOT output is RID-specific - pick the matching loader (.xll stub) and the conventional add-in suffix.
+                // 32-bit (win-x86) -> "<name>-AddIn.xll",  64-bit (win-x64) -> "<name>-AddIn64.xll".
+                bool is32Bit = string.Equals(Platform, "x86", StringComparison.OrdinalIgnoreCase);
+                string loaderXll = is32Bit ? Xll32FilePath : Xll64FilePath;
+                string addInSuffix = is32Bit ? "-AddIn" : "-AddIn64";
+
+                if (string.IsNullOrEmpty(loaderXll) || !File.Exists(loaderXll))
+                    throw new FileNotFoundException($"The Excel-DNA NativeAOT loader for platform '{Platform}' was not found: '{loaderXll}'. " +
+                        (is32Bit ? "32-bit (win-x86) NativeAOT requires the ExcelDnaNativeAOT32.xll loader." : "64-bit (win-x64) NativeAOT requires the ExcelDnaNativeAOT64.xll loader."), loaderXll);
+
+                string xllOutput = Path.Combine(PublishDir, ProjectName + addInSuffix + ".xll");
+                File.Copy(loaderXll, xllOutput, true);
 
                 int result = ExcelDna.PackedResources.ExcelDnaPack.PackNativeAOT(mainNativeAssembly, includeAssemblies, xllOutput, RunMultithreaded, useManagedResourceResolver, IncludePdb, _log);
                 if (result != 0)
@@ -57,10 +68,19 @@ namespace ExcelDna.AddIn.Tasks
         }
 
         /// <summary>
-        /// The 64-bit .xll file path
+        /// The 64-bit .xll loader file path (used when Platform is x64)
         /// </summary>
-        [Required]
         public string Xll64FilePath { get; set; }
+
+        /// <summary>
+        /// The 32-bit .xll loader file path (used when Platform is x86)
+        /// </summary>
+        public string Xll32FilePath { get; set; }
+
+        /// <summary>
+        /// The target platform of the NativeAOT publish - "x86" or "x64". Defaults to x64.
+        /// </summary>
+        public string Platform { get; set; }
 
         /// <summary>
         /// The name of the project being compiled

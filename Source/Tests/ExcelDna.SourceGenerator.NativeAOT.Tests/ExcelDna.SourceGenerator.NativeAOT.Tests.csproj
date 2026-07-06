@@ -7,6 +7,10 @@
 
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+
+    <!-- Signed with the Excel-DNA key so the test assembly can be a friend of the strong-named ExcelDna.Integration (for the ribbon dispatch tests) -->
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\..\assets\exceldna.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>

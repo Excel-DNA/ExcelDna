@@ -5,11 +5,10 @@
 <#@ import namespace="System.Collections.Generic" #>
 <#@ output extension=".cs" #>
 <# int maxArguments = 255; #>
-#if !AOT_COMPATIBLE
 
 using System;
 
-namespace ExcelDna.Registration
+namespace ExcelDna.Integration
 {
     internal class ExtendedFuncUtil
     {
@@ -47,11 +46,10 @@ namespace ExcelDna.Registration
 <# types +=$"T{k}{(k != i ? "," : "")}"; #>
 <# args += $"T{k} arg{k}{(k !=i ?"," : "")}"; #>
 <# } #>
-    internal delegate TResult ExtendedFunc<# Write(i.ToString());#><<# Write(types + (i > 0 ? "," : ""));#>TResult>
+    public delegate TResult ExtendedFunc<# Write(i.ToString());#><<# Write(types + (i > 0 ? "," : ""));#>TResult>
         (<# Write(args);#>);
-    internal delegate void ExtendedAction<# Write(i.ToString());#><# Write((i > 0 ? "<" : "") + types + (i > 0 ? ">" : ""));#> 
+    public delegate void ExtendedAction<# Write(i.ToString());#><# Write((i > 0 ? "<" : "") + types + (i > 0 ? ">" : ""));#>
         (<# Write(args);#>);
 <# } #>
 }
 
-#endif

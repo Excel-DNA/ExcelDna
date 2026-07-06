@@ -308,6 +308,12 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         }
 
         [ExcelFunction]
+        public static string NativeSayHelloWithLogging19(int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8, int i9, int i10, int i11, int i12, int i13, int i14, int i15, int i16, int i17, int i18, int i19)
+        {
+            return $"Native Logging19 {i19}";
+        }
+
+        [ExcelFunction]
         public static string NativeWindowHandle()
         {
             return $"Native WindowHandle is {ExcelDnaUtil.WindowHandle}.";
@@ -330,6 +336,45 @@ namespace ExcelDna.AddIn.RuntimeTestsAOT
         public static IObservable<string> NativeCalcSumObservable([ExcelHandle] Calc c)
         {
             return new ObservableString(c.Sum().ToString());
+        }
+
+        [ExcelFunction]
+        public static string NativeArgs16(int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8, int i9, int i10, int i11, int i12, int i13, int i14, int i15, int i16)
+        {
+            int sum = i1 + i2 + i3 + i4 + i5 + i6 + i7 + i8 + i9 + i10 + i11 + i12 + i13 + i14 + i15 + i16;
+            return $"{sum}";
+        }
+
+        [ExcelFunction]
+        public static string NativeArgs17(int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8, int i9, int i10, int i11, int i12, int i13, int i14, int i15, int i16, int i17)
+        {
+            int sum = i1 + i2 + i3 + i4 + i5 + i6 + i7 + i8 + i9 + i10 + i11 + i12 + i13 + i14 + i15 + i16 + i17;
+            return $"{sum}";
+        }
+
+        [ExcelFunction]
+        public static string NativeVersion17(int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8, int i9, int i10, int i11, int i12, int i13, int i14, int i15, int i16, Version v)
+        {
+            return "The Native Version 17 value with field count 2 is " + v.ToString(2);
+        }
+
+        [ExcelFunction]
+        public static object[,] NativeParameterConversion19(string arg1, string arg2, string arg3, string arg4, string arg5, TestEnum1 arg6, string arg7, string arg8, double arg9, object? arg10, object? arg11, object? arg12, object[,]? arg13, object[,]? arg14, object? arg15, string? arg16 = null, string? arg17 = null, object? arg18 = null, object? arg19 = null)
+        {
+            return new object[,] { { $"Arg1: {arg1} Enum value: {arg6} Arg19: {arg19}" } };
+        }
+
+        [ExcelAsyncFunction]
+        public static async Task<object[,]> NativeAsync19(string arg1, string arg2, string arg3, string arg4, string arg5, TestEnum1 arg6, string arg7, string arg8, double arg9, object? arg10, object? arg11, object? arg12, object[,]? arg13, object[,]? arg14, object? arg15, string? arg16 = null, string? arg17 = null, object? arg18 = null, object? arg19 = null)
+        {
+            return new object[,] { { $"Async Arg1: {arg1} Enum value: {arg6} Arg19: {arg19}" } };
+        }
+
+        [ExcelFunction]
+        [return: ExcelHandle]
+        public static Calc NativeCreateCalc17(int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8, int i9, int i10, int i11, int i12, int i13, int i14, int i15, int i16, int i17)
+        {
+            return new Calc(i1, i17);
         }
     }
 }

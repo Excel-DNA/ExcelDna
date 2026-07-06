@@ -21,9 +21,39 @@
     <ExcelDnaPackRunMultithreaded Condition="'$(ExcelDnaPackRunMultithreaded)' == ''">true</ExcelDnaPackRunMultithreaded>
   </PropertyGroup>
 
+  <!--
+    NativeAOT output is RID-specific, so the matching .xll loader (32-bit or 64-bit) must be selected from the RuntimeIdentifier.
+    win-x86 -> 32-bit loader, "<name>-AddIn.xll" ; win-x64 -> 64-bit loader, "<name>-AddIn64.xll".
+  -->
+  <PropertyGroup>
+    <ExcelDnaNativeAOTPlatform Condition="'$(ExcelDnaNativeAOTPlatform)' == '' And $(RuntimeIdentifier.EndsWith('-x86'))">x86</ExcelDnaNativeAOTPlatform>
+    <ExcelDnaNativeAOTPlatform Condition="'$(ExcelDnaNativeAOTPlatform)' == ''">x64</ExcelDnaNativeAOTPlatform>
+  </PropertyGroup>
+
+	<!--
+	  The ExcelDna.IntelliSense *package* must not be referenced into a NativeAOT add-in: it is not AOT-compatible
+	  (WinForms / UI Automation) and it brings in the standard (non-NativeAOT) ExcelDna.Integration assembly, which
+	  replaces the NativeAOT build and removes types such as IExcelRibbon / RibbonControl / RibbonUI.
+	  IntelliSense still works for a NativeAOT add-in: deploy the standalone ExcelDna.IntelliSense.xll loader alongside
+	  it - it discovers the add-in's functions through the normal registration channel. See Documentation/NativeAOT.md.
+	-->
+	<!-- Run before CoreCompile: when IntelliSense removes IExcelRibbon etc. the compile itself fails, so the warning must be emitted before that, not after Build. -->
+	<Target Name="ExcelDnaAddInNativeAOTCheckReferences" BeforeTargets="CoreCompile">
+		<ItemGroup>
+			<_ExcelDnaIntelliSenseReference Include="@(PackageReference)" Condition="'%(Identity)' == 'ExcelDna.IntelliSense'" />
+		</ItemGroup>
+		<Warning Condition="'@(_ExcelDnaIntelliSenseReference)' != ''"
+		         Code="EXCELDNA001"
+		         Text="The ExcelDna.IntelliSense package cannot be referenced into a NativeAOT add-in (it is not AOT-compatible and it replaces the NativeAOT ExcelDna.Integration assembly, removing types such as IExcelRibbon). To get IntelliSense for a NativeAOT add-in, remove this package reference and instead deploy the standalone ExcelDna.IntelliSense.xll / ExcelDna.IntelliSense64.xll alongside the add-in - it discovers the add-in's functions automatically. See Documentation/NativeAOT.md." />
+	</Target>
+
 	<Target Name="ExcelDnaAddInNativeAOTPublish" AfterTargets="Publish">
+		<Error Condition="!$(RuntimeIdentifier.EndsWith('-x86')) And !$(RuntimeIdentifier.EndsWith('-x64'))"
+		       Text="Excel-DNA NativeAOT supports the win-x64 and win-x86 runtime identifiers. RuntimeIdentifier '$(RuntimeIdentifier)' is not supported." />
 		<PackExcelAddInNativeAOT
 			Xll64FilePath="$(ExcelDnaToolsPath)ExcelDnaNativeAOT64.xll"
+			Xll32FilePath="$(ExcelDnaToolsPath)ExcelDnaNativeAOT32.xll"
+			Platform="$(ExcelDnaNativeAOTPlatform)"
 			ProjectName="$(MSBuildProjectName)"
 			PublishDir="$(PublishDir)"
 			OutDirectory="$(OutDir)"

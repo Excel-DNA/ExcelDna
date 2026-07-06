@@ -90,21 +90,49 @@ namespace ExcelDna.SourceGenerator.NativeAOT
             {
                 string functions = "List<Type> typeRefs = new List<Type>();\r\n";
                 string methods = "List<MethodInfo> methodRefs = new List<MethodInfo>();\r\n";
+                List<string> excelHandleExternalTypeNames = GetExcelHandleExternalTypeNames(context.Compilation);
                 foreach (var i in receiver.Functions.Concat(receiver.Commands))
                 {
                     functions += $"{regHost}.MethodsForRegistration.Add({GetMethod(i)});\r\n";
-                    functions += $"typeRefs.Add(typeof({Util.MethodType(i)}));\r\n";
-                    functions += $"typeRefs.Add(typeof({Util.MethodExpressionType(i)}));\r\n";
-                    if (Util.HasPostParameterConversionShape(i))
-                    {
-                        string convertedMethodType = Util.MethodPostParameterConversionType(i);
-                        functions += $"typeRefs.Add(typeof({convertedMethodType}));\r\n";
-                        functions += $"typeRefs.Add(typeof(System.Linq.Expressions.Expression<{convertedMethodType}>));\r\n";
-                    }
+                    functions += GetTypeRefs(Util.MethodType(i), Util.ExtendedMethodType(i), i.Parameters.Length);
+
+                    if (Util.HasPostParameterConversionShape(i, receiver.ParameterConversions, excelHandleExternalTypeNames))
+                        functions += GetTypeRefs(
+                            Util.MethodPostParameterConversionType(i, receiver.ParameterConversions, excelHandleExternalTypeNames),
+                            Util.ExtendedMethodPostParameterConversionType(i, receiver.ParameterConversions, excelHandleExternalTypeNames),
+                            i.Parameters.Length);
+
+                    if (Util.HasPostReturnConversionShape(i, receiver.ParameterConversions, receiver.ReturnConversions, excelHandleExternalTypeNames))
+                        functions += GetTypeRefs(
+                            Util.MethodPostReturnConversionType(i, receiver.ParameterConversions, receiver.ReturnConversions, excelHandleExternalTypeNames),
+                            Util.ExtendedMethodPostReturnConversionType(i, receiver.ParameterConversions, receiver.ReturnConversions, excelHandleExternalTypeNames),
+                            i.Parameters.Length);
+
+                    if (Util.HasExcelHandleReturn(i, excelHandleExternalTypeNames) &&
+                        !Util.IsAsyncRegistration(i) &&
+                        !Util.IsObservableRegistration(i))
+                        functions += GetTypeRefs(
+                            Util.MethodPostParameterConversionType(i, "object", receiver.ParameterConversions, excelHandleExternalTypeNames),
+                            Util.ExtendedMethodPostParameterConversionType(i, "object", receiver.ParameterConversions, excelHandleExternalTypeNames),
+                            i.Parameters.Length);
+
+                    if (Util.IsAsyncRegistration(i) || Util.IsObservableRegistration(i))
+                        functions += GetTypeRefs(
+                            Util.AsyncWrapperMethodType(i, receiver.ParameterConversions, excelHandleExternalTypeNames),
+                            Util.ExtendedAsyncWrapperMethodType(i, receiver.ParameterConversions, excelHandleExternalTypeNames),
+                            Util.AsyncWrapperParameterCount(i));
+
+                    if (Util.HasAsyncObjectHandleAdapter(i, excelHandleExternalTypeNames))
+                        functions += GetTypeRefs(
+                            Util.AsyncObjectHandleAdapterMethodType(i, receiver.ParameterConversions, excelHandleExternalTypeNames),
+                            Util.ExtendedAsyncObjectHandleAdapterMethodType(i, receiver.ParameterConversions, excelHandleExternalTypeNames),
+                            i.Parameters.Length);
+
                     foreach (var p in i.Parameters)
                     {
-                        functions += $"typeRefs.Add(typeof(Func<object, {Util.GetFullTypeName(p.Type)}>));\r\n";
-                        functions += $"typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, {Util.GetFullTypeName(p.Type)}>>));\r\n";
+                        string func = $"Func<object, {Util.GetFullTypeName(p.Type)}>";
+                        functions += $"typeRefs.Add(typeof({func}));\r\n";
+                        functions += $"typeRefs.Add(typeof({Util.MethodExpression(func)}));\r\n";
                     }
 
                     if (Util.IsLastArrayParams(i))
@@ -113,8 +141,10 @@ namespace ExcelDna.SourceGenerator.NativeAOT
 
                         methods += $"methodRefs.Add(typeof(List<{Util.GetFullTypeName(arrayType.ElementType)}>).GetMethod(\"ToArray\")!);\r\n";
                         methods += $"methodRefs.Add(typeof(List<{Util.GetFullTypeName(arrayType.ElementType)}>).GetMethod(\"Add\")!);\r\n";
-                        functions += $"typeRefs.Add(typeof(Func<{Util.CreateFunc16Args(i)}>));\r\n";
-                        functions += $"typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<{Util.CreateFunc16Args(i)}>>));\r\n";
+
+                        string func = $"Func<{Util.CreateFunc16Args(i)}>";
+                        functions += $"typeRefs.Add(typeof({func}));\r\n";
+                        functions += $"typeRefs.Add(typeof({Util.MethodExpression(func)}));\r\n";
                     }
 
                     if (i.ReturnType is INamedTypeSymbol named && named.IsGenericType && Util.GetFullGenericTypeName(named) == "System.Threading.Tasks.Task")
@@ -137,6 +167,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT
 
                     functions += "\r\n";
                 }
+
                 source = source.Replace("[FUNCTIONS]", functions + methods);
             }
             {
@@ -191,6 +222,37 @@ namespace ExcelDna.SourceGenerator.NativeAOT
         private static string GetMethod(IMethodSymbol method)
         {
             return $"typeof({Util.GetFullTypeName(method.ContainingType)}).GetMethod(\"{method.Name}\")!";
+        }
+
+        private static string GetTypeRefs(string methodType, string extendedMethodType, int parameterCount)
+        {
+            string functions = "";
+            if (parameterCount <= 16)
+            {
+                functions += $"typeRefs.Add(typeof({methodType}));\r\n";
+                functions += $"typeRefs.Add(typeof({Util.MethodExpression(methodType)}));\r\n";
+            }
+
+            functions += $"typeRefs.Add(typeof({extendedMethodType}));\r\n";
+            functions += $"typeRefs.Add(typeof({Util.MethodExpression(extendedMethodType)}));\r\n";
+            return functions;
+        }
+
+        private static List<string> GetExcelHandleExternalTypeNames(Compilation compilation)
+        {
+            List<string> result = new List<string>();
+            foreach (AttributeData attribute in compilation.Assembly.GetAttributes())
+            {
+                if (attribute.AttributeClass == null ||
+                    attribute.ConstructorArguments.Length != 1 ||
+                    !Util.TypeHasAncestorWithFullName(attribute.AttributeClass, "ExcelDna.Integration.ExcelHandleExternalAttribute"))
+                    continue;
+
+                if (attribute.ConstructorArguments[0].Value is ITypeSymbol type)
+                    result.Add(Util.GetFullTypeName(type));
+            }
+
+            return result;
         }
 
         class SyntaxReceiver : ISyntaxContextReceiver

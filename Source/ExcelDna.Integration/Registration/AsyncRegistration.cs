@@ -176,7 +176,7 @@ namespace ExcelDna.Registration
             var callTaskRun = Expression.Call(runMethod, nameExp, paramsArrayExp, innerLambda);
 
             // Wrap with all the parameters
-            return Expression.Lambda(callTaskRun, functionLambda.Name, newParams);
+            return ExcelFunctionRegistration.CreateLambdaWithAotContext(callTaskRun, functionLambda.Name, newParams, "AsyncRegistration");
         }
 
 #if AOT_COMPATIBLE
@@ -267,7 +267,7 @@ namespace ExcelDna.Registration
             var callTaskRun = Expression.Call(runMethod, nameExp, paramsArrayExp, innerLambda);
 
             // Wrap with all the parameters, and Compile to a Delegate
-            return Expression.Lambda(callTaskRun, functionLambda.Name, newParams);
+            return ExcelFunctionRegistration.CreateLambdaWithAotContext(callTaskRun, functionLambda.Name, newParams, "AsyncRegistration");
         }
 
         static LambdaExpression WrapMethodNativeAsyncTask(LambdaExpression functionLambda)
@@ -320,7 +320,7 @@ namespace ExcelDna.Registration
 
             // Wrap with all the parameters
             var allParams = new List<ParameterExpression>(newParams) { asyncHandleParam };
-            return Expression.Lambda(callTaskRun, functionLambda.Name, allParams);
+            return ExcelFunctionRegistration.CreateLambdaWithAotContext(callTaskRun, functionLambda.Name, allParams, "AsyncRegistration");
 #endif
         }
 
@@ -381,7 +381,7 @@ namespace ExcelDna.Registration
 
             // Wrap with all the parameters, and Compile to a Delegate
             var allParams = new List<ParameterExpression>(newParams) { asyncHandleParam };
-            return Expression.Lambda(callTaskRun, functionLambda.Name, allParams);
+            return ExcelFunctionRegistration.CreateLambdaWithAotContext(callTaskRun, functionLambda.Name, allParams, "AsyncRegistration");
 #endif
         }
 
@@ -438,7 +438,7 @@ namespace ExcelDna.Registration
             var callTaskRun = Expression.Call(obsMethod, nameExp, paramsArrayExp, innerLambda);
 
             // Wrap with all the parameters, and Compile to a Delegate
-            return Expression.Lambda(callTaskRun, functionLambda.Name, newParams);
+            return ExcelFunctionRegistration.CreateLambdaWithAotContext(callTaskRun, functionLambda.Name, newParams, "AsyncRegistration");
         }
     }
 }
