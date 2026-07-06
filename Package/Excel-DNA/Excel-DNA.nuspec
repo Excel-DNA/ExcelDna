@@ -10,6 +10,7 @@
         <repository type="git" url="https://github.com/Excel-DNA/ExcelDna" />
         <icon>images\ExcelDna-nu.png</icon>
         <license type="expression">Zlib</license>
+        <readme>README.md</readme>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>This NuGet package is deprecated, and used for compatibility only. The basic Excel-DNA NuGet package is now called ExcelDna.AddIn.</description>
         <summary>Excel-DNA is an independent project to integrate .NET into Excel.</summary>
@@ -20,5 +21,6 @@
     </metadata>
     <files>
         <file src="..\images\ExcelDna-nu.png" target="images\" />
+        <file src="README.md" target="README.md" />
     </files>
 </package>

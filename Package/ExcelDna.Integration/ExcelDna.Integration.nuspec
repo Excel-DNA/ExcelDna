@@ -10,6 +10,7 @@
         <repository type="git" url="https://github.com/Excel-DNA/ExcelDna" />
         <icon>images\ExcelDna-nu.png</icon>
         <license type="expression">Zlib</license>
+        <readme>README.md</readme>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>Reference library package for Excel-DNA. Use the package "ExcelDna.AddIn" to create a new add-in.</description>
         <summary>Reference library package for Excel-DNA.</summary>
@@ -27,5 +28,6 @@
         <file src="..\..\Distribution\net6.0-windows\ExcelDna.Integration.xml" target="lib\net6.0-windows7.0\ExcelDna.Integration.xml" />
         <file src="..\..\Distribution\net6.0-windows\ExcelDna.Integration.pdb" target="lib\net6.0-windows7.0\ExcelDna.Integration.pdb" />
       <file src="..\images\ExcelDna-nu.png" target="images\" />
+      <file src="README.md" target="README.md" />
     </files>
 </package>

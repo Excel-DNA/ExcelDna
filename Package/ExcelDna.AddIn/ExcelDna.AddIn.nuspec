@@ -10,6 +10,7 @@
         <repository type="git" url="https://github.com/Excel-DNA/ExcelDna" />
         <icon>images\ExcelDna-nu.png</icon>
         <license type="expression">Zlib</license>
+        <readme>README.md</readme>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>
           Excel-DNA eases the development of Excel add-ins using .NET.
@@ -52,5 +53,6 @@
         <file src="tools\net6.0-windows\AsmResolver.PE.File.dll" target="tools\net6.0-windows7.0\AsmResolver.PE.File.dll" />
         <file src="readme.txt" target="readme.txt" />
         <file src="..\images\ExcelDna-nu.png" target="images\" />
+        <file src="README.md" target="README.md" />
     </files>
 </package>
