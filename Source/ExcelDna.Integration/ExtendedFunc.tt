@@ -14,7 +14,7 @@ namespace ExcelDna.Integration
     {
         public static Type GetFuncType(int i)
         {
-            switch(i)
+            switch (i)
             {
 <# for (int i = 0; i <= maxArguments; ++i) {#>
                 case <# Write(i.ToString());#>:
@@ -27,7 +27,7 @@ namespace ExcelDna.Integration
 
         public static Type GetActionType(int i)
         {
-            switch(i)
+            switch (i)
             {
 <# for (int i = 0; i <= maxArguments; ++i) {#>
                 case <# Write(i.ToString());#>:
@@ -39,17 +39,17 @@ namespace ExcelDna.Integration
         }
     }
 
-<# for (int i = 0; i <= maxArguments; ++i) {#>
-<# string types=""; #>
-<# string args=""; #>
-<# for (int k = 1; k <= i; ++k) {#>
-<# types +=$"T{k}{(k != i ? "," : "")}"; #>
-<# args += $"T{k} arg{k}{(k !=i ?"," : "")}"; #>
-<# } #>
-    public delegate TResult ExtendedFunc<# Write(i.ToString());#><<# Write(types + (i > 0 ? "," : ""));#>TResult>
-        (<# Write(args);#>);
-    public delegate void ExtendedAction<# Write(i.ToString());#><# Write((i > 0 ? "<" : "") + types + (i > 0 ? ">" : ""));#>
-        (<# Write(args);#>);
-<# } #>
-}
+<#
+for (int i = 0; i <= maxArguments; ++i)
+{
+    string types = string.Join(", ", Enumerable.Range(1, i).Select(k => $"T{k}"));
+    string args = string.Join(", ", Enumerable.Range(1, i).Select(k => $"T{k} arg{k}"));
+    string funcTypes = types + (i > 0 ? ", " : "") + "TResult";
+    string actionTypes = i > 0 ? $"<{types}>" : "";
 
+    WriteLine($"    public delegate TResult ExtendedFunc{i}<{funcTypes}>");
+    WriteLine($"        ({args});");
+    WriteLine($"    public delegate void ExtendedAction{i}{actionTypes}");
+    WriteLine($"        ({args});");
+}
+#>}
