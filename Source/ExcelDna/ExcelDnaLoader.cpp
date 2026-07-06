@@ -706,11 +706,25 @@ void LoaderUnload()
 	tempConfig.destroy();
 }
 
+BOOL IsAssumeExcelProcessEnabled()
+{
+	TCHAR value[16];
+	DWORD count = GetEnvironmentVariable(_T("EXCELDNA_ASSUME_EXCEL_PROCESS"), value, sizeof(value) / sizeof(value[0]));
+
+	return count > 0 && count < sizeof(value) / sizeof(value[0]) &&
+		(_tcsicmp(value, _T("1")) == 0 ||
+		 _tcsicmp(value, _T("true")) == 0 ||
+		 _tcsicmp(value, _T("yes")) == 0);
+}
+
 BOOL IsRunningOnCluster()
 {
-	// Our check is to see if the current process is called Excel.exe.
-	// Hopefully this doesn't change soon.
-	// (Also added support for WPS Spreadsheets  - et.exe)
+	// Our check is to see if the current process is called Excel.exe or WPS Spreadsheets et.exe.
+	// EXCELDNA_ASSUME_EXCEL_PROCESS allows custom hosts to opt into the normal Excel host path.
+	if (IsAssumeExcelProcessEnabled())
+	{
+		return false;
+	}
 	
 	TCHAR hostPathName[MAX_PATH];
 	DWORD count = GetModuleFileName(NULL, hostPathName, MAX_PATH);

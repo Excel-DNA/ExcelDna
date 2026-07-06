@@ -14,6 +14,8 @@ namespace ExcelDna.Loader
 {
     internal static class ProcessHelper
     {
+        private const string AssumeExcelProcessEnvironmentVariable = "EXCELDNA_ASSUME_EXCEL_PROCESS";
+
         private static bool _isInitialized = false;
         private static bool _isRunningOnCluster;
         private static int _processMajorVersion;
@@ -61,11 +63,27 @@ namespace ExcelDna.Loader
             if (!_isInitialized)
             {
                 Process hostProcess = Process.GetCurrentProcess();
-                _isRunningOnCluster = !(hostProcess.ProcessName.Equals("EXCEL", StringComparison.InvariantCultureIgnoreCase));
+                _isRunningOnCluster = !IsExcelHostProcess(hostProcess.ProcessName);
                 _processMajorVersion = hostProcess.MainModule.FileVersionInfo.FileMajorPart;
 
                 _isInitialized = true;
             }
+        }
+
+        private static bool IsExcelHostProcess(string processName)
+        {
+            return IsAssumeExcelProcessEnabled() ||
+                   processName.Equals("EXCEL", StringComparison.InvariantCultureIgnoreCase) ||
+                   processName.Equals("ET", StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        private static bool IsAssumeExcelProcessEnabled()
+        {
+            string value = Environment.GetEnvironmentVariable(AssumeExcelProcessEnvironmentVariable);
+            return value != null &&
+                   (value.Equals("1", StringComparison.OrdinalIgnoreCase) ||
+                    value.Equals("true", StringComparison.OrdinalIgnoreCase) ||
+                    value.Equals("yes", StringComparison.OrdinalIgnoreCase));
         }
     }
 }
