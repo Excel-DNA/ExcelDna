@@ -5,6 +5,8 @@ using ExcelDna.Integration.CustomUI;
 namespace Ribbon
 {
     [ComVisible(true)]
+    [ProgId("175c15e3-4dd8-49d0-94cf-f95800017594")]
+    [Guid("6242439e-ecc6-46eb-a666-edd3d93414a4")]
     public class RibbonController : ExcelRibbon
     {
         public override string GetCustomUI(string RibbonID)

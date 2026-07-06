@@ -25,10 +25,21 @@ namespace ExcelDna.Integration.CustomUI
             return CreateCustomTaskPane(userControlType, title, Type.Missing);
         }
 
+        public static CustomTaskPane CreateCustomTaskPane(Type userControlType, string title, Guid clsIdCTPAddIn, string progIdCTPAddIn)
+        {
+            return CreateCustomTaskPane(userControlType, title, Type.Missing, clsIdCTPAddIn, progIdCTPAddIn);
+        }
+
         public static CustomTaskPane CreateCustomTaskPane(Type userControlType, string title, object parent)
         {
             object userControl = Activator.CreateInstance(userControlType);
             return CreateCustomTaskPane(userControl, title, parent);
+        }
+
+        public static CustomTaskPane CreateCustomTaskPane(Type userControlType, string title, object parent, Guid clsIdCTPAddIn, string progIdCTPAddIn)
+        {
+            object userControl = Activator.CreateInstance(userControlType);
+            return CreateCustomTaskPane(userControl, title, parent, clsIdCTPAddIn, progIdCTPAddIn);
         }
 
         public static CustomTaskPane CreateCustomTaskPane(object userControl, string title)
@@ -36,7 +47,51 @@ namespace ExcelDna.Integration.CustomUI
             return CreateCustomTaskPane(userControl, title, Type.Missing);
         }
 
+        public static CustomTaskPane CreateCustomTaskPane(object userControl, string title, Guid clsIdCTPAddIn, string progIdCTPAddIn)
+        {
+            return CreateCustomTaskPane(userControl, title, Type.Missing, clsIdCTPAddIn, progIdCTPAddIn);
+        }
+
         public static CustomTaskPane CreateCustomTaskPane(object userControl, string title, object parent)
+        {
+            return CreateCustomTaskPane((progId) => CreateCustomTaskPane(progId, title, parent), userControl);
+        }
+
+        public static CustomTaskPane CreateCustomTaskPane(object userControl, string title, object parent, Guid clsIdCTPAddIn, string progIdCTPAddIn)
+        {
+            return CreateCustomTaskPane((progId) => CreateCustomTaskPane(progId, title, parent, clsIdCTPAddIn, progIdCTPAddIn), userControl);
+        }
+
+        // UserControl as already registered. Just create via factory and add-in.
+        public static CustomTaskPane CreateCustomTaskPane(string controlProgId, string title)
+        {
+            return CreateCustomTaskPane(controlProgId, title, Type.Missing);
+        }
+
+        // UserControl as already registered. Just create via factory and add-in.
+        public static CustomTaskPane CreateCustomTaskPane(string controlProgId, string title, Guid clsIdCTPAddIn, string progIdCTPAddIn)
+        {
+            return CreateCustomTaskPane(controlProgId, title, Type.Missing, clsIdCTPAddIn, progIdCTPAddIn);
+        }
+
+        public static CustomTaskPane CreateCustomTaskPane(string controlProgId, string title, object parent)
+        {
+            return CreateCustomTaskPane(GetCTPFactory(null, null), controlProgId, title, parent);
+        }
+
+        public static CustomTaskPane CreateCustomTaskPane(string controlProgId, string title, object parent, Guid clsIdCTPAddIn, string progIdCTPAddIn)
+        {
+            return CreateCustomTaskPane(GetCTPFactory(clsIdCTPAddIn, progIdCTPAddIn), controlProgId, title, parent);
+        }
+
+        private static CustomTaskPane CreateCustomTaskPane(ICTPFactory factory, string controlProgId, string title, object parent)
+        {
+            CustomTaskPane newCTP = factory.CreateCTP(controlProgId, title, parent);
+            _customTaskPanes.Add(new WeakReference(newCTP));   // TODO: Only removed when add-in is unloaded...???
+            return newCTP;
+        }
+
+        private static CustomTaskPane CreateCustomTaskPane(Func<string, CustomTaskPane> ctpActivator, object userControl)
         {
             // I could use the ProgId and ClsId of the UserControl type here.
             // But then the registration has to be persistent or coordinated, which I dislike.
@@ -58,7 +113,7 @@ namespace ExcelDna.Integration.CustomUI
                 using (new ProgIdRegistration(progId, clsId))
                 using (new ClsIdRegistration(clsId, progId))
                 {
-                    return CreateCustomTaskPane(progId, title, parent);
+                    return ctpActivator(progId);
                 }
             }
             catch (UnauthorizedAccessException secex)
@@ -69,27 +124,16 @@ namespace ExcelDna.Integration.CustomUI
             }
         }
 
-        // UserControl as already registered. Just create via factory and add-in.
-        public static CustomTaskPane CreateCustomTaskPane(string controlProgId, string title)
-        {
-            return CreateCustomTaskPane(controlProgId, title, Type.Missing);
-        }
-
-        public static CustomTaskPane CreateCustomTaskPane(string controlProgId, string title, object parent)
-        {
-            ICTPFactory factory = GetCTPFactory();
-            CustomTaskPane newCTP = factory.CreateCTP(controlProgId, title, parent);
-            _customTaskPanes.Add(new WeakReference(newCTP));   // TODO: Only removed when add-in is unloaded...???
-            return newCTP;
-        }
-
-        private static ICTPFactory GetCTPFactory()
+        private static ICTPFactory GetCTPFactory(Guid? clsIdCTPAddIn, string progIdCTPAddIn)
         {
             if (_addin == null)
             {
                 // Register and create addin
                 _addin = new ExcelCustomTaskPaneAddIn { DnaLibrary = DnaLibrary.CurrentLibrary };
-                ExcelComAddInHelper.LoadComAddIn(_addin);
+                if (clsIdCTPAddIn.HasValue && !string.IsNullOrWhiteSpace(progIdCTPAddIn))
+                    ExcelComAddInHelper.LoadComAddIn(_addin, clsIdCTPAddIn.Value, progIdCTPAddIn);
+                else
+                    ExcelComAddInHelper.LoadComAddIn(_addin);
             }
             return _addin.Factory;
         }
