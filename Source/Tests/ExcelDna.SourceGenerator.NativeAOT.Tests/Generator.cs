@@ -227,6 +227,71 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
         }
 
         [Fact]
+        public void AsyncFunctionWithMoreThan16ArgumentsRootsWrapperExpressionShape()
+        {
+            Verify("""
+                using ExcelDna.Registration;
+
+                namespace ExcelDna.AddIn.RuntimeTestsAOT
+                {
+                    public class Functions
+                    {
+                        [ExcelAsyncFunction]
+                        public static bool NativeAsyncArgs17(int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8, int i9, int i10, int i11, int i12, int i13, int i14, int i15, int i16, int i17)
+                        {
+                            return true;
+                        }
+                    }
+                }
+                """, functions: """
+                List<Type> typeRefs = new List<Type>();
+                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeAsyncArgs17")!);
+                typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc17<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, bool>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<ExcelDna.Integration.ExtendedFunc17<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, bool>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+
+                List<MethodInfo> methodRefs = new List<MethodInfo>();
+                methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod("RunAsTask")!.MakeGenericMethod(typeof(bool)));
+                methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod("RunAsTaskObject")!.MakeGenericMethod(typeof(bool)));
+                methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod("RunAsTaskWithCancellation")!.MakeGenericMethod(typeof(bool)));
+                methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod("RunAsTaskObjectWithCancellation")!.MakeGenericMethod(typeof(bool)));
+                """);
+        }
+
+        [Fact]
         public void AssemblyAttributes()
         {
             Verify("""
