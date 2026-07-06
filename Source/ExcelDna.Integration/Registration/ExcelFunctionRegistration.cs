@@ -167,12 +167,13 @@ namespace ExcelDna.Registration
 #endif
         internal static LambdaExpression CreateLambdaWithAotContext(Expression body, string lambdaName, IEnumerable<ParameterExpression> parameters, string operation)
         {
+            IReadOnlyList<ParameterExpression> parameterList = parameters as IReadOnlyList<ParameterExpression> ?? parameters.ToList();
             try
             {
-                if (parameters.Count() > 16)
-                    return Expr.Lambda(GetExtendedDelegateType(parameters, body.Type), body, lambdaName, parameters);
+                if (parameterList.Count > 16)
+                    return Expr.Lambda(GetExtendedDelegateType(parameterList, body.Type), body, lambdaName, parameterList);
 
-                return Expr.Lambda(body, lambdaName, parameters);
+                return Expr.Lambda(body, lambdaName, parameterList);
             }
             catch (NotSupportedException ex) when (IsMissingNativeMetadata(ex))
             {
@@ -219,13 +220,26 @@ namespace ExcelDna.Registration
         [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2055:RequiresUnreferencedCode", Justification = "SourceGenerator roots required Expression<TDelegate> shapes")]
         [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "SourceGenerator roots required Expression<TDelegate> shapes")]
 #endif
-        private static Type GetExtendedDelegateType(IEnumerable<ParameterExpression> parameters, Type returnType)
+        private static Type GetExtendedDelegateType(IReadOnlyList<ParameterExpression> parameters, Type returnType)
         {
-            Type genericBase = ExtendedFuncUtil.GetFuncType(parameters.Count());
-            var args = parameters.Select(p => p.Type)
-                .Concat(new[] { returnType })
-                .ToArray();
-            return genericBase.MakeGenericType(args);
+            if (returnType != typeof(void))
+            {
+                Type genericBase = ExtendedFuncUtil.GetFuncType(parameters.Count);
+                var args = parameters.Select(p => p.Type)
+                    .Concat(new[] { returnType })
+                    .ToArray();
+                return genericBase.MakeGenericType(args);
+            }
+            else
+            {
+                Type genericBase = ExtendedFuncUtil.GetActionType(parameters.Count);
+                if (!genericBase.IsGenericType)
+                    return genericBase;
+
+                var args = parameters.Select(p => p.Type)
+                    .ToArray();
+                return genericBase.MakeGenericType(args);
+            }
         }
     }
 }

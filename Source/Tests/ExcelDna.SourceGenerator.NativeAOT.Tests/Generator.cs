@@ -115,7 +115,11 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<System.Threading.Tasks.Task<bool>>>));
                 typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc0<System.Threading.Tasks.Task<bool>>));
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<ExcelDna.Integration.ExtendedFunc0<System.Threading.Tasks.Task<bool>>>));
-                
+                typeRefs.Add(typeof(Func<object>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object>>));
+                typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc0<object>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<ExcelDna.Integration.ExtendedFunc0<object>>));
+
                 List<MethodInfo> methodRefs = new List<MethodInfo>();
                 methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod("RunTask")!.MakeGenericMethod(typeof(bool)));
                 methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod("RunTaskObject")!.MakeGenericMethod(typeof(bool)));
@@ -184,9 +188,13 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<string, System.IObservable<string>>>));
                 typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc1<string, System.IObservable<string>>));
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<ExcelDna.Integration.ExtendedFunc1<string, System.IObservable<string>>>));
+                typeRefs.Add(typeof(Func<string, object>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<string, object>>));
+                typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc1<string, object>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<ExcelDna.Integration.ExtendedFunc1<string, object>>));
                 typeRefs.Add(typeof(Func<object, string>));
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, string>>));
-                
+
                 List<MethodInfo> methodRefs = new List<MethodInfo>();
                 methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod("Observe3", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)!.MakeGenericMethod(typeof(string)));
                 methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod("ObserveObject", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)!.MakeGenericMethod(typeof(string)));
@@ -217,6 +225,10 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<bool>>));
                 typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc0<bool>));
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<ExcelDna.Integration.ExtendedFunc0<bool>>));
+                typeRefs.Add(typeof(Func<object>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object>>));
+                typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc0<object>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<ExcelDna.Integration.ExtendedFunc0<object>>));
 
                 List<MethodInfo> methodRefs = new List<MethodInfo>();
                 methodRefs.Add(typeof(ExcelDna.Integration.ExcelAsyncUtil).GetMethod("RunAsTask")!.MakeGenericMethod(typeof(bool)));
@@ -248,6 +260,8 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeAsyncArgs17")!);
                 typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc17<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, bool>));
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<ExcelDna.Integration.ExtendedFunc17<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, bool>>));
+                typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc17<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, object>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<ExcelDna.Integration.ExtendedFunc17<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, object>>));
                 typeRefs.Add(typeof(Func<object, int>));
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
                 typeRefs.Add(typeof(Func<object, int>));
@@ -327,6 +341,82 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
         }
 
         [Fact]
+        public void UserParameterConversionWithMoreThan16ArgumentsRootsConvertedExpressionShape()
+        {
+            Verify("""
+                using System;
+                using ExcelDna.Integration;
+
+                namespace ExcelDna.AddIn.RuntimeTestsAOT
+                {
+                    public class Conversions
+                    {
+                        [ExcelParameterConversion]
+                        public static Version ToVersion(string s)
+                        {
+                            return new Version(s);
+                        }
+                    }
+
+                    public class Functions
+                    {
+                        [ExcelFunction]
+                        public static string NativeVersion17(int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8, int i9, int i10, int i11, int i12, int i13, int i14, int i15, int i16, Version v)
+                        {
+                            return v.ToString();
+                        }
+                    }
+                }
+                """, functions: """
+                List<Type> typeRefs = new List<Type>();
+                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeVersion17")!);
+                typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc17<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, System.Version, string>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<ExcelDna.Integration.ExtendedFunc17<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, System.Version, string>>));
+                typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc17<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, string, string>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<ExcelDna.Integration.ExtendedFunc17<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, string, string>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, int>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, int>>));
+                typeRefs.Add(typeof(Func<object, System.Version>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, System.Version>>));
+
+                List<MethodInfo> methodRefs = new List<MethodInfo>();
+                """, parameterConversions: """
+                ExcelDna.Registration.StaticRegistration.ExcelParameterConversions.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Conversions).GetMethod("ToVersion")!);
+
+                """);
+        }
+
+        [Fact]
         public void ExcelReturnConversions()
         {
             Verify("""
@@ -356,6 +446,124 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 """, returnConversions: """
 
                 ExcelDna.Registration.StaticRegistration.ExcelReturnConversions.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Conversions).GetMethod("FromTestType1")!);
+                """);
+        }
+
+        [Fact]
+        public void UserReturnConversionRootsConvertedExpressionShape()
+        {
+            Verify("""
+                using ExcelDna.Integration;
+
+                namespace ExcelDna.AddIn.RuntimeTestsAOT
+                {
+                    public class TestType1
+                    {
+                        public string Value;
+
+                        public TestType1(string value)
+                        {
+                            Value = value;
+                        }
+                    }
+
+                    public class Conversions
+                    {
+                        [ExcelReturnConversion]
+                        public static string FromTestType1(TestType1 value)
+                        {
+                            return value.Value;
+                        }
+                    }
+
+                    public class Functions
+                    {
+                        [ExcelFunction]
+                        public static TestType1 NativeReturnTestType1(string s)
+                        {
+                            return new TestType1(s);
+                        }
+                    }
+                }
+                """, functions: """
+                List<Type> typeRefs = new List<Type>();
+                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeReturnTestType1")!);
+                typeRefs.Add(typeof(Func<string, ExcelDna.AddIn.RuntimeTestsAOT.TestType1>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<string, ExcelDna.AddIn.RuntimeTestsAOT.TestType1>>));
+                typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc1<string, ExcelDna.AddIn.RuntimeTestsAOT.TestType1>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<ExcelDna.Integration.ExtendedFunc1<string, ExcelDna.AddIn.RuntimeTestsAOT.TestType1>>));
+                typeRefs.Add(typeof(Func<string, string>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<string, string>>));
+                typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc1<string, string>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<ExcelDna.Integration.ExtendedFunc1<string, string>>));
+                typeRefs.Add(typeof(Func<object, string>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, string>>));
+
+                List<MethodInfo> methodRefs = new List<MethodInfo>();
+                """, returnConversions: """
+
+                ExcelDna.Registration.StaticRegistration.ExcelReturnConversions.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Conversions).GetMethod("FromTestType1")!);
+                """);
+        }
+
+        [Fact]
+        public void ExcelHandleConversionsRootObjectExpressionShapes()
+        {
+            Verify("""
+                using ExcelDna.Integration;
+
+                namespace ExcelDna.AddIn.RuntimeTestsAOT
+                {
+                    public class Calc
+                    {
+                        public double Sum() => 0;
+                    }
+
+                    public class Functions
+                    {
+                        [ExcelFunction]
+                        [return: ExcelHandle]
+                        public static Calc NativeCreateCalc(double d1, double d2)
+                        {
+                            return new Calc();
+                        }
+
+                        [ExcelFunction]
+                        public static double NativeCalcSum([ExcelHandle] Calc c)
+                        {
+                            return c.Sum();
+                        }
+                    }
+                }
+                """, functions: """
+                List<Type> typeRefs = new List<Type>();
+                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeCreateCalc")!);
+                typeRefs.Add(typeof(Func<double, double, ExcelDna.AddIn.RuntimeTestsAOT.Calc>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<double, double, ExcelDna.AddIn.RuntimeTestsAOT.Calc>>));
+                typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc2<double, double, ExcelDna.AddIn.RuntimeTestsAOT.Calc>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<ExcelDna.Integration.ExtendedFunc2<double, double, ExcelDna.AddIn.RuntimeTestsAOT.Calc>>));
+                typeRefs.Add(typeof(Func<double, double, object>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<double, double, object>>));
+                typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc2<double, double, object>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<ExcelDna.Integration.ExtendedFunc2<double, double, object>>));
+                typeRefs.Add(typeof(Func<object, double>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, double>>));
+                typeRefs.Add(typeof(Func<object, double>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, double>>));
+
+                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeCalcSum")!);
+                typeRefs.Add(typeof(Func<ExcelDna.AddIn.RuntimeTestsAOT.Calc, double>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<ExcelDna.AddIn.RuntimeTestsAOT.Calc, double>>));
+                typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc1<ExcelDna.AddIn.RuntimeTestsAOT.Calc, double>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<ExcelDna.Integration.ExtendedFunc1<ExcelDna.AddIn.RuntimeTestsAOT.Calc, double>>));
+                typeRefs.Add(typeof(Func<object, double>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, double>>));
+                typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc1<object, double>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<ExcelDna.Integration.ExtendedFunc1<object, double>>));
+                typeRefs.Add(typeof(Func<object, ExcelDna.AddIn.RuntimeTestsAOT.Calc>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, ExcelDna.AddIn.RuntimeTestsAOT.Calc>>));
+
+                List<MethodInfo> methodRefs = new List<MethodInfo>();
                 """);
         }
 

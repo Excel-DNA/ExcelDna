@@ -56,7 +56,7 @@ namespace ExcelDna.Registration
             var paramExprs = methodInfo.GetParameters()
                              .Select(pi => Expression.Parameter(pi.ParameterType, pi.Name))
                              .ToList();
-            CommandLambda = Expression.Lambda(Expression.Call(methodInfo, paramExprs), methodInfo.Name, paramExprs);
+            CommandLambda = ExcelFunctionRegistration.CreateLambdaWithAotContext(Expression.Call(methodInfo, paramExprs), methodInfo.Name, paramExprs, "ExcelCommandRegistration");
 
             var allMethodAttributes = methodInfo.GetCustomAttributes(true);
             foreach (var att in allMethodAttributes)

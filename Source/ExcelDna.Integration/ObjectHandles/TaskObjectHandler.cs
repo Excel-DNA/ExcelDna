@@ -44,7 +44,7 @@ namespace ExcelDna.Integration.ObjectHandles
 
             var innerLambda = Expression.Invoke(functionLambda, newParams);
             var callCreateHandle = Expression.Call(createHandleMethod, innerLambda);
-            return Expression.Lambda(callCreateHandle, newParams);
+            return Registration.ExcelFunctionRegistration.CreateLambdaWithAotContext(callCreateHandle, functionLambda.Name, newParams, "TaskObjectHandler");
         }
 
         private static async Task<string> CreateTaskHandle<T>(Task<T> data)

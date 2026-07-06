@@ -18,7 +18,7 @@ namespace ExcelDna.Integration.ObjectHandles
             var lazyLambdaConstructor = typeof(LazyLambda).GetConstructor(new Type[] { typeof(LambdaExpression), typeof(object[]) });
             var parametersArray = Expression.NewArrayInit(typeof(object), wrappingParameters.Select(p => Expression.Convert(p, typeof(object))));
             var wrappingCall = Expression.New(lazyLambdaConstructor, new Expression[] { Expression.Constant(source), parametersArray });
-            return Registration.ExcelFunctionRegistration.CreateLambdaWithAotContext(wrappingCall, "LazyLambda", wrappingParameters, "ObjectHandles");
+            return Registration.ExcelFunctionRegistration.CreateLambdaWithAotContext(Expression.Convert(wrappingCall, typeof(object)), "LazyLambda", wrappingParameters, "ObjectHandles");
         }
 
         public LazyLambda(LambdaExpression exp, params object[] args)

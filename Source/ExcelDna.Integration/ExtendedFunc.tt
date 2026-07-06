@@ -48,7 +48,7 @@ namespace ExcelDna.Integration
 <# } #>
     public delegate TResult ExtendedFunc<# Write(i.ToString());#><<# Write(types + (i > 0 ? "," : ""));#>TResult>
         (<# Write(args);#>);
-    public delegate void ExtendedAction<# Write(i.ToString());#><# Write((i > 0 ? "<" : "") + types + (i > 0 ? ">" : ""));#> 
+    public delegate void ExtendedAction<# Write(i.ToString());#><# Write((i > 0 ? "<" : "") + types + (i > 0 ? ">" : ""));#>
         (<# Write(args);#>);
 <# } #>
 }
