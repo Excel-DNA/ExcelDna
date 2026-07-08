@@ -8,15 +8,21 @@
     
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
     <PublishAOT>true</PublishAOT>
     <SelfContained>true</SelfContained>
-    <TargetName>ExcelDna.TestAOT64</TargetName>
 
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ExcelDnaNativeAOTPlatform Condition="'$(ExcelDnaNativeAOTPlatform)' == '' And $(RuntimeIdentifier.EndsWith('-x86'))">x86</ExcelDnaNativeAOTPlatform>
+    <ExcelDnaNativeAOTPlatform Condition="'$(ExcelDnaNativeAOTPlatform)' == ''">x64</ExcelDnaNativeAOTPlatform>
+    <ExcelDnaNativeAOTBitnessSuffix Condition="'$(ExcelDnaNativeAOTPlatform)' == 'x64'">64</ExcelDnaNativeAOTBitnessSuffix>
+    <TargetName Condition="'$(TargetName)' == ''">ExcelDna.TestAOT$(ExcelDnaNativeAOTBitnessSuffix)</TargetName>
+    <ExcelDnaNativeAOTLoaderPath>$(MSBuildProjectDirectory)\..\ExcelDna.Host.NativeAOT\bin\$(Configuration)\$(ExcelDnaNativeAOTPlatform)\ExcelDna.Host.NativeAOT.$(ExcelDnaNativeAOTPlatform).xll</ExcelDnaNativeAOTLoaderPath>
   </PropertyGroup>
 
   <Target Name="SetNoBuild">
@@ -24,7 +30,7 @@
       <NoBuild>true</NoBuild>
     </PropertyGroup>
   </Target>
-  <Target Name="PublishAfterBuild" AfterTargets="AfterBuild" DependsOnTargets="SetNoBuild;Publish" />
+  <Target Name="PublishAfterBuild" AfterTargets="AfterBuild" DependsOnTargets="SetNoBuild;Publish" Condition="'$(_IsPublishing)' != 'true'" />
   <ItemGroup>
     <None Remove="app.ico" />
     <None Remove="Package.ico" />
@@ -39,8 +45,12 @@
     <ProjectReference Include="..\ExcelDna.SourceGenerator.NativeAOT\ExcelDna.SourceGenerator.NativeAOT.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
-  <Target Name="PostBuildAOT" AfterTargets="PublishAfterBuild">
-    <Exec Command="xcopy /y &quot;$(SolutionDir)ExcelDna.Host.NativeAOT\bin\$(ConfigurationName)\x64\ExcelDna.Host.NativeAOT.x64.xll&quot; &quot;$(TargetDir)publish\ExcelDna.TestAOT64.xll*&quot;&#xD;&#xA;" />
+  <Target Name="PostBuildAOT" AfterTargets="Publish">
+    <Copy SourceFiles="$(ExcelDnaNativeAOTLoaderPath)"
+          DestinationFiles="$(PublishDir)$(TargetName).xll"
+          Condition="Exists('$(ExcelDnaNativeAOTLoaderPath)')" />
+    <Warning Condition="!Exists('$(ExcelDnaNativeAOTLoaderPath)')"
+             Text="NativeAOT loader was not found at '$(ExcelDnaNativeAOTLoaderPath)'; build ExcelDna.Host.NativeAOT for $(ExcelDnaNativeAOTPlatform) to produce the .xll loader." />
   </Target>
 
 </Project>

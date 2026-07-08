@@ -11,11 +11,18 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
     {
         public static unsafe DispParamsNative ConvertToUnmanaged(DispParams managed)
         {
+            int* rgdispidNamedArgs = null;
+            if (managed.rgdispidNamedArgs != 0)
+            {
+                rgdispidNamedArgs = (int*)Marshal.AllocHGlobal(sizeof(int));
+                *rgdispidNamedArgs = managed.rgdispidNamedArgs;
+            }
+
             return new DispParamsNative
             {
                 cArgs = managed.cArgs,
                 cNamedArgs = managed.cNamedArgs,
-                rgdispidNamedArgs = managed.rgdispidNamedArgs != 0 ? &managed.rgdispidNamedArgs : null,
+                rgdispidNamedArgs = rgdispidNamedArgs,
                 rgvarg =
                     managed.rgvarg != null
                         ? ArrayMarshaller.ArrayToPtr(managed.rgvarg.Reverse().Select(VariantMarshaller.ConvertToUnmanaged).ToArray())
@@ -37,6 +44,22 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
                     .ToArray(),
                 rgvargNative = unmanaged.rgvarg,
             };
+        }
+
+        public static unsafe void Free(DispParamsNative unmanaged)
+        {
+            if (unmanaged.rgvarg != 0)
+            {
+                int size = Marshal.SizeOf<VariantNative>();
+                for (int i = 0; i < unmanaged.cArgs; ++i)
+                {
+                    VariantMarshaller.Free(Marshal.PtrToStructure<VariantNative>(unmanaged.rgvarg + i * size));
+                }
+                ArrayMarshaller.FreePtr(unmanaged.rgvarg);
+            }
+
+            if (unmanaged.rgdispidNamedArgs != null)
+                Marshal.FreeHGlobal((nint)unmanaged.rgdispidNamedArgs);
         }
 
         public static void UpdateArg(DispParams dp, Variant v, int i)

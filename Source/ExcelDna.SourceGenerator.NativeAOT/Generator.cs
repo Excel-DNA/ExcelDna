@@ -78,7 +78,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT
                     {
                         if (actions.Length > 0)
                             actions += ",\r\n";
-                        actions += $"typeof({Util.GetFullTypeName(m.ContainingType)}).GetMethod(\"{m.Name}\")!";
+                        actions += GetMethod(m);
                     }
 
                     addIns += $"{regHost}.ExcelAddIns.Add(new ExcelDna.Integration.TypeHelper<{Util.GetFullTypeName(i.Type)}>([{actions}]));\r\n";
@@ -221,7 +221,18 @@ namespace ExcelDna.SourceGenerator.NativeAOT
 
         private static string GetMethod(IMethodSymbol method)
         {
-            return $"typeof({Util.GetFullTypeName(method.ContainingType)}).GetMethod(\"{method.Name}\")!";
+            return $"typeof({Util.GetFullTypeName(method.ContainingType)}).GetMethod(\"{method.Name}\", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance, null, new Type[] {{ {GetParameterTypes(method)} }}, null)!";
+        }
+
+        private static string GetParameterTypes(IMethodSymbol method)
+        {
+            return string.Join(", ", method.Parameters.Select(GetParameterType));
+        }
+
+        private static string GetParameterType(IParameterSymbol parameter)
+        {
+            string type = $"typeof({Util.GetFullTypeOfTypeName(parameter.Type)})";
+            return parameter.RefKind == RefKind.None ? type : $"{type}.MakeByRefType()";
         }
 
         private static string GetTypeRefs(string methodType, string extendedMethodType, int parameterCount)

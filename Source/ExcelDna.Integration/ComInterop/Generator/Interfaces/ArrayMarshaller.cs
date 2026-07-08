@@ -1,16 +1,30 @@
 ﻿#if COM_GENERATED
 
+using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
 {
     internal static class ArrayMarshaller
     {
-        public unsafe static nint ArrayToPtr<T>(T[] str)
+        public static nint ArrayToPtr<T>(T[] values)
         {
-            return (nint)Unsafe.AsPointer(ref MemoryMarshal.GetArrayDataReference(str));
+            if (values == null || values.Length == 0)
+                return nint.Zero;
+
+            int size = Marshal.SizeOf<T>();
+            nint result = Marshal.AllocHGlobal(size * values.Length);
+            for (int i = 0; i < values.Length; ++i)
+                Marshal.StructureToPtr(values[i], result + i * size, false);
+
+            return result;
+        }
+
+        public static void FreePtr(nint ptr)
+        {
+            if (ptr != nint.Zero)
+                Marshal.FreeHGlobal(ptr);
         }
 
         public static T[] PtrToArray<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(nint str, int len)

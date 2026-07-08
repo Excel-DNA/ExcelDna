@@ -30,12 +30,20 @@ namespace ExcelDna.Integration.ComInterop
         public static int QueryInterfaceForObject(object o, Guid guid, out IntPtr ppv)
         {
             Guid iid = guid;
+            IntPtr pUnk = GetIUnknownForObject(o);
 
-            return Marshal.QueryInterface(GetIUnknownForObject(o),
+            try
+            {
+                return Marshal.QueryInterface(pUnk,
 #if !COM_GENERATED
-            ref
+                ref
 #endif
-            iid, out ppv);
+                iid, out ppv);
+            }
+            finally
+            {
+                Marshal.Release(pUnk);
+            }
         }
 
         private static IntPtr GetIUnknownForObject(object o)
