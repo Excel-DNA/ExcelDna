@@ -12,6 +12,9 @@ namespace ExcelDna.Integration.ComInterop.Generator
     [GeneratedComClass]
     internal partial class ExcelObserverRtdServer : Rtd.ExcelObserverRtdServer, IRtdServer
     {
+        private const int S_OK = 0;
+        private const int E_NOTIMPL = unchecked((int)0x80004001);
+
         private Dispatcher dispatcher;
 
         public ExcelObserverRtdServer()
@@ -29,12 +32,14 @@ namespace ExcelDna.Integration.ComInterop.Generator
         // IDispatch:
         public int GetTypeInfoCount(out uint pctinfo)
         {
-            throw new NotImplementedException();
+            pctinfo = 0;
+            return S_OK;
         }
 
         public int GetTypeInfo(uint iTInfo, uint lcid, out nint ppTInfo)
         {
-            throw new NotImplementedException();
+            ppTInfo = 0;
+            return E_NOTIMPL;
         }
 
         public int GetIDsOfNames(in Guid riid, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr, SizeParamIndex = 2)] string[] rgszNames, uint cNames, uint lcid, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2), Out] int[] rgDispId)

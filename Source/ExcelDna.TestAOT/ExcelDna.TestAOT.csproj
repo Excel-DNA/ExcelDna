@@ -23,6 +23,13 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <TargetName>ExcelDna.TestAOT64</TargetName>
   </PropertyGroup>
+  <PropertyGroup>
+    <ExcelDnaNativeAOTPlatform Condition="'$(ExcelDnaNativeAOTPlatform)' == '' And $(RuntimeIdentifier.EndsWith('-x86'))">x86</ExcelDnaNativeAOTPlatform>
+    <ExcelDnaNativeAOTPlatform Condition="'$(ExcelDnaNativeAOTPlatform)' == ''">x64</ExcelDnaNativeAOTPlatform>
+    <ExcelDnaNativeAOTBitnessSuffix Condition="'$(ExcelDnaNativeAOTPlatform)' == 'x64'">64</ExcelDnaNativeAOTBitnessSuffix>
+    <TargetName Condition="'$(TargetName)' == ''">ExcelDna.TestAOT$(ExcelDnaNativeAOTBitnessSuffix)</TargetName>
+    <ExcelDnaNativeAOTLoaderPath>$(MSBuildProjectDirectory)\..\ExcelDna.Host.NativeAOT\bin\$(Configuration)\$(ExcelDnaNativeAOTPlatform)\ExcelDna.Host.NativeAOT.$(ExcelDnaNativeAOTPlatform).xll</ExcelDnaNativeAOTLoaderPath>
+  </PropertyGroup>
 
   <PropertyGroup Condition="'$(Platform)' == 'x86' Or '$(Platform)' == 'Win32'">
     <RuntimeIdentifier>win-x86</RuntimeIdentifier>
@@ -34,7 +41,7 @@
       <NoBuild>true</NoBuild>
     </PropertyGroup>
   </Target>
-  <Target Name="PublishAfterBuild" AfterTargets="AfterBuild" DependsOnTargets="SetNoBuild;Publish" />
+  <Target Name="PublishAfterBuild" AfterTargets="AfterBuild" DependsOnTargets="SetNoBuild;Publish" Condition="'$(_IsPublishing)' != 'true'" />
   <ItemGroup>
     <None Remove="app.ico" />
     <None Remove="Package.ico" />

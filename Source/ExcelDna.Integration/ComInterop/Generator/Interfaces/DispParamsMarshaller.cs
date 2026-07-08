@@ -48,6 +48,16 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
 
         public static unsafe void Free(DispParamsNative unmanaged)
         {
+            if (unmanaged.rgvarg != 0)
+            {
+                int size = Marshal.SizeOf<VariantNative>();
+                for (int i = 0; i < unmanaged.cArgs; ++i)
+                {
+                    VariantMarshaller.Free(Marshal.PtrToStructure<VariantNative>(unmanaged.rgvarg + i * size));
+                }
+                ArrayMarshaller.FreePtr(unmanaged.rgvarg);
+            }
+
             if (unmanaged.rgdispidNamedArgs != null)
                 Marshal.FreeHGlobal((nint)unmanaged.rgdispidNamedArgs);
         }

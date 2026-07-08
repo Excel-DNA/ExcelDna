@@ -14,6 +14,7 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
         public VariantResultMarshaller()
         {
             Ptr = Marshal.AllocHGlobal(Marshal.SizeOf<VariantNative>());
+            Marshal.StructureToPtr(default(VariantNative), Ptr, false);
         }
 
         public Variant GetResult()
@@ -26,6 +27,7 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
         {
             if (!disposedValue)
             {
+                VariantMarshaller.Free(Marshal.PtrToStructure<VariantNative>(Ptr));
                 Marshal.FreeHGlobal(Ptr);
                 disposedValue = true;
             }

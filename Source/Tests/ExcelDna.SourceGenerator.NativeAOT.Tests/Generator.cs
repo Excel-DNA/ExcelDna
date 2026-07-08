@@ -27,7 +27,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 }
                 """, functions: """
                 List<Type> typeRefs = new List<Type>();
-                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeParamsJoinString")!);
+                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeParamsJoinString", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance, null, new Type[] { typeof(string), typeof(string[]) }, null)!);
                 typeRefs.Add(typeof(Func<string, string[], string>));
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<string, string[], string>>));
                 typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc2<string, string[], string>));
@@ -68,7 +68,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 }
                 """, functions: """
                 List<Type> typeRefs = new List<Type>();
-                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeOptional")!);
+                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeOptional", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance, null, new Type[] { typeof(object), typeof(double), typeof(int), typeof(bool) }, null)!);
                 typeRefs.Add(typeof(Func<object, double, int, bool, string>));
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, double, int, bool, string>>));
                 typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc4<object, double, int, bool, string>));
@@ -110,7 +110,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 }
                 """, functions: """
                 List<Type> typeRefs = new List<Type>();
-                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeTaskBool")!);
+                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeTaskBool", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance, null, new Type[] {  }, null)!);
                 typeRefs.Add(typeof(Func<System.Threading.Tasks.Task<bool>>));
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<System.Threading.Tasks.Task<bool>>>));
                 typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc0<System.Threading.Tasks.Task<bool>>));
@@ -183,7 +183,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 }
                 """, functions: """
                 List<Type> typeRefs = new List<Type>();
-                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeStringObservable")!);
+                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeStringObservable", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance, null, new Type[] { typeof(string) }, null)!);
                 typeRefs.Add(typeof(Func<string, System.IObservable<string>>));
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<string, System.IObservable<string>>>));
                 typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc1<string, System.IObservable<string>>));
@@ -220,7 +220,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 }
                 """, functions: """
                 List<Type> typeRefs = new List<Type>();
-                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeAsyncBool")!);
+                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeAsyncBool", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance, null, new Type[] {  }, null)!);
                 typeRefs.Add(typeof(Func<bool>));
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<bool>>));
                 typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc0<bool>));
@@ -257,7 +257,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 }
                 """, functions: """
                 List<Type> typeRefs = new List<Type>();
-                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeAsyncArgs17")!);
+                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeAsyncArgs17", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance, null, new Type[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int) }, null)!);
                 typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc17<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, bool>));
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<ExcelDna.Integration.ExtendedFunc17<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, bool>>));
                 typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc17<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, object>));
@@ -335,7 +335,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                     }
                 }
                 """, parameterConversions: """
-                ExcelDna.Registration.StaticRegistration.ExcelParameterConversions.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Conversions).GetMethod("ToVersion")!);
+                ExcelDna.Registration.StaticRegistration.ExcelParameterConversions.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Conversions).GetMethod("ToVersion", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance, null, new Type[] { typeof(string) }, null)!);
 
                 """);
         }
@@ -369,7 +369,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 }
                 """, functions: """
                 List<Type> typeRefs = new List<Type>();
-                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeVersion17")!);
+                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeVersion17", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance, null, new Type[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(System.Version) }, null)!);
                 typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc17<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, System.Version, string>));
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<ExcelDna.Integration.ExtendedFunc17<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, System.Version, string>>));
                 typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc17<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, string, string>));
@@ -411,7 +411,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
 
                 List<MethodInfo> methodRefs = new List<MethodInfo>();
                 """, parameterConversions: """
-                ExcelDna.Registration.StaticRegistration.ExcelParameterConversions.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Conversions).GetMethod("ToVersion")!);
+                ExcelDna.Registration.StaticRegistration.ExcelParameterConversions.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Conversions).GetMethod("ToVersion", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance, null, new Type[] { typeof(string) }, null)!);
 
                 """);
         }
@@ -445,7 +445,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 }
                 """, returnConversions: """
 
-                ExcelDna.Registration.StaticRegistration.ExcelReturnConversions.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Conversions).GetMethod("FromTestType1")!);
+                ExcelDna.Registration.StaticRegistration.ExcelReturnConversions.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Conversions).GetMethod("FromTestType1", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance, null, new Type[] { typeof(ExcelDna.AddIn.RuntimeTestsAOT.TestType1) }, null)!);
                 """);
         }
 
@@ -487,7 +487,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 }
                 """, functions: """
                 List<Type> typeRefs = new List<Type>();
-                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeReturnTestType1")!);
+                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeReturnTestType1", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance, null, new Type[] { typeof(string) }, null)!);
                 typeRefs.Add(typeof(Func<string, ExcelDna.AddIn.RuntimeTestsAOT.TestType1>));
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<string, ExcelDna.AddIn.RuntimeTestsAOT.TestType1>>));
                 typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc1<string, ExcelDna.AddIn.RuntimeTestsAOT.TestType1>));
@@ -502,7 +502,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 List<MethodInfo> methodRefs = new List<MethodInfo>();
                 """, returnConversions: """
 
-                ExcelDna.Registration.StaticRegistration.ExcelReturnConversions.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Conversions).GetMethod("FromTestType1")!);
+                ExcelDna.Registration.StaticRegistration.ExcelReturnConversions.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Conversions).GetMethod("FromTestType1", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance, null, new Type[] { typeof(ExcelDna.AddIn.RuntimeTestsAOT.TestType1) }, null)!);
                 """);
         }
 
@@ -537,7 +537,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 }
                 """, functions: """
                 List<Type> typeRefs = new List<Type>();
-                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeCreateCalc")!);
+                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeCreateCalc", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance, null, new Type[] { typeof(double), typeof(double) }, null)!);
                 typeRefs.Add(typeof(Func<double, double, ExcelDna.AddIn.RuntimeTestsAOT.Calc>));
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<double, double, ExcelDna.AddIn.RuntimeTestsAOT.Calc>>));
                 typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc2<double, double, ExcelDna.AddIn.RuntimeTestsAOT.Calc>));
@@ -551,7 +551,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 typeRefs.Add(typeof(Func<object, double>));
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, double>>));
 
-                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeCalcSum")!);
+                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeCalcSum", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance, null, new Type[] { typeof(ExcelDna.AddIn.RuntimeTestsAOT.Calc) }, null)!);
                 typeRefs.Add(typeof(Func<ExcelDna.AddIn.RuntimeTestsAOT.Calc, double>));
                 typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<ExcelDna.AddIn.RuntimeTestsAOT.Calc, double>>));
                 typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc1<ExcelDna.AddIn.RuntimeTestsAOT.Calc, double>));
@@ -587,7 +587,75 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
                 }
                 """, executionHandlers: """
 
-                ExcelDna.Registration.StaticRegistration.ExcelFunctionExecutionHandlerSelectors.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.FunctionLoggingHandler).GetMethod("LoggingHandlerSelector")!);
+                ExcelDna.Registration.StaticRegistration.ExcelFunctionExecutionHandlerSelectors.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.FunctionLoggingHandler).GetMethod("LoggingHandlerSelector", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance, null, new Type[] { typeof(ExcelDna.Integration.IExcelFunctionInfo) }, null)!);
+                """);
+        }
+
+        [Fact]
+        public void OverloadedMethodsUseParameterTypes()
+        {
+            Verify("""
+                using ExcelDna.Integration;
+
+                namespace ExcelDna.AddIn.RuntimeTestsAOT
+                {
+                    public class Functions
+                    {
+                        public static string NativeOverload(string value)
+                        {
+                            return value;
+                        }
+
+                        [ExcelFunction]
+                        public static string NativeOverload(double value)
+                        {
+                            return value.ToString();
+                        }
+                    }
+                }
+                """, functions: """
+                List<Type> typeRefs = new List<Type>();
+                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeOverload", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance, null, new Type[] { typeof(double) }, null)!);
+                typeRefs.Add(typeof(Func<double, string>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<double, string>>));
+                typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc1<double, string>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<ExcelDna.Integration.ExtendedFunc1<double, string>>));
+                typeRefs.Add(typeof(Func<object, double>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, double>>));
+
+                List<MethodInfo> methodRefs = new List<MethodInfo>();
+                """);
+        }
+
+        [Fact]
+        public void NullableReferenceParametersUseRuntimeTypesForMethodLookup()
+        {
+            Verify("""
+                #nullable enable
+                using ExcelDna.Integration;
+
+                namespace ExcelDna.AddIn.RuntimeTestsAOT
+                {
+                    public class Functions
+                    {
+                        [ExcelFunction]
+                        public static string? NativeNullable(string? value)
+                        {
+                            return value;
+                        }
+                    }
+                }
+                """, functions: """
+                List<Type> typeRefs = new List<Type>();
+                ExcelDna.Registration.StaticRegistration.MethodsForRegistration.Add(typeof(ExcelDna.AddIn.RuntimeTestsAOT.Functions).GetMethod("NativeNullable", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance, null, new Type[] { typeof(string) }, null)!);
+                typeRefs.Add(typeof(Func<string?, string?>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<string?, string?>>));
+                typeRefs.Add(typeof(ExcelDna.Integration.ExtendedFunc1<string?, string?>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<ExcelDna.Integration.ExtendedFunc1<string?, string?>>));
+                typeRefs.Add(typeof(Func<object, string?>));
+                typeRefs.Add(typeof(System.Linq.Expressions.Expression<Func<object, string?>>));
+
+                List<MethodInfo> methodRefs = new List<MethodInfo>();
                 """);
         }
 
@@ -669,4 +737,3 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
         }
     }
 }
-

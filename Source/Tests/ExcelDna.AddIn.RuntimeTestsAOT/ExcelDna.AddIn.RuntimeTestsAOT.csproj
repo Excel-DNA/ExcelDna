@@ -33,7 +33,7 @@
       <NoBuild>true</NoBuild>
     </PropertyGroup>
   </Target>
-  <Target Name="PublishAfterBuild" AfterTargets="AfterBuild" DependsOnTargets="SetNoBuild;Publish" />
+  <Target Name="PublishAfterBuild" AfterTargets="AfterBuild" DependsOnTargets="SetNoBuild;Publish" Condition="'$(_IsPublishing)' != 'true'" />
 
   <ItemGroup>
     <ProjectReference Include="..\..\ExcelDna.ManagedHost\ExcelDna.ManagedHost.csproj" />

@@ -13,7 +13,7 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
         int get_Id([MarshalAs(UnmanagedType.BStr)] out string result);
 
         [PreserveSig]
-        int get_Context(nint result);
+        int get_Context(out nint result);
 
         [PreserveSig]
         int get_Tag([MarshalAs(UnmanagedType.BStr)] out string result);
