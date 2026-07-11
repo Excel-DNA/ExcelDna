@@ -12,13 +12,13 @@ if not exist "%outputPath%" mkdir "%outputPath%"
 
 echo on
 
-nuget.exe pack "%basePath%\Excel-DNA.Interop\Excel-DNA.Interop.nuspec" -BasePath "%basePath%\Excel-DNA.Interop" -OutputDirectory "%outputPath%" -Verbosity detailed -NonInteractive -Prop ExcelDnaVersion="%ExcelDnaVersion%"
+"%basePath%\nuget.exe" pack "%basePath%\Excel-DNA.Interop\Excel-DNA.Interop.nuspec" -BasePath "%basePath%\Excel-DNA.Interop" -OutputDirectory "%outputPath%" -Verbosity detailed -NonInteractive -Prop ExcelDnaVersion="%ExcelDnaVersion%"
 @if errorlevel 1 goto end
 
-nuget.exe pack "%basePath%\ExcelDna.Interop\ExcelDna.Interop.nuspec" -BasePath "%basePath%\ExcelDna.Interop" -OutputDirectory "%outputPath%" -Verbosity detailed -NonInteractive
+"%basePath%\nuget.exe" pack "%basePath%\ExcelDna.Interop\ExcelDna.Interop.nuspec" -BasePath "%basePath%\ExcelDna.Interop" -OutputDirectory "%outputPath%" -Verbosity detailed -NonInteractive
 @if errorlevel 1 goto end
 
-nuget.exe pack "%basePath%\ExcelDna.Interop.Dao\ExcelDna.Interop.Dao.nuspec" -BasePath "%basePath%\ExcelDna.Interop.Dao" -OutputDirectory "%outputPath%" -Verbosity detailed -NonInteractive
+"%basePath%\nuget.exe" pack "%basePath%\ExcelDna.Interop.Dao\ExcelDna.Interop.Dao.nuspec" -BasePath "%basePath%\ExcelDna.Interop.Dao" -OutputDirectory "%outputPath%" -Verbosity detailed -NonInteractive
 @if errorlevel 1 goto end
 
 :end

@@ -8,6 +8,7 @@
         <projectUrl>http://excel-dna.net</projectUrl>
         <icon>images\ExcelDna-nu.png</icon>
         <license type="expression">MIT</license>
+        <readme>README.md</readme>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>Provides a local copy of the Microsoft.Office.Interop.Access.Dao.dll primary interop assembly from Microsoft Office.</description>
         <summary>Provides the Primary Interop Assembly for the Access DAO library.</summary>
@@ -24,5 +25,6 @@
       <file src="lib\Microsoft.Office.Interop.Access.Dao.dll" target="lib\net6.0-windows7.0\" />
       <file src="build\ExcelDna.Interop.Dao.targets" target="build" />
       <file src="..\images\ExcelDna-nu.png" target="images\" />
+      <file src="README.md" target="" />
     </files>
 </package>
