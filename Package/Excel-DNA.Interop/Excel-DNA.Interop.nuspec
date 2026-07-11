@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Excel-DNA.Interop</id>
-    <version>15.0.1</version>
+    <version>16.0.0</version>
     <title>Excel-DNA - Primary Interop Assemblies for Excel</title>
     <authors>Excel-DNA Contributors</authors>
     <owners>excel-dna</owners>
@@ -10,15 +10,17 @@
     <repository type="git" url="https://github.com/Excel-DNA/ExcelDna" />
     <icon>images\ExcelDna-nu.png</icon>
     <license type="expression">MIT</license>
+    <readme>README.md</readme>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>This package is deprecated, and has been replaced by ExcelDna.Interop - https://www.nuget.org/packages/ExcelDna.Interop/.</description>
     <summary>Provides a selection of Excel Primary Interop Assemblies</summary>
     <tags>Excel Interop PIA ExcelDna</tags>
     <dependencies>
-      <dependency id="ExcelDna.Interop" version="[15.0.1]" />
+      <dependency id="ExcelDna.Interop" version="[16.0.0]" />
     </dependencies>
   </metadata>
   <files>
       <file src="..\images\ExcelDna-nu.png" target="images\" />
+      <file src="README.md" target="" />
     </files>
 </package>
