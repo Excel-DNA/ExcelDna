@@ -1,6 +1,7 @@
 ﻿#if COM_GENERATED
 
 using System;
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 
 namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
@@ -17,7 +18,11 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
         public unsafe bool HasInterface(ref Guid guid)
         {
             StrategyBasedComWrappers.DefaultIUnknownStrategy.QueryInterface(P.ToPointer(), in guid, out void* ppObj);
-            return ppObj != null;
+            if (ppObj == null)
+                return false;
+
+            Marshal.Release((IntPtr)ppObj);
+            return true;
         }
 
         public unsafe int QueryInterface(ref Guid guid, out IntPtr ppv)

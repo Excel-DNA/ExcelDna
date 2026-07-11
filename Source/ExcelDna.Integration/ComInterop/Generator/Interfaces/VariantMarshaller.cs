@@ -111,6 +111,7 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
             Marshal.StructureToPtr(new SAFEARRAYBOUND { cElements = (uint)array.GetLength(1), lLbound = 0 }, pBounds + Marshal.SizeOf<SAFEARRAYBOUND>(), false);
 
             nint psa = SafeArray.SafeArrayCreate((ushort)VariantTypeNative.VT_VARIANT, (uint)array.Rank, pBounds);
+            Marshal.FreeHGlobal(pBounds);
             SafeArray sa = Marshal.PtrToStructure<SafeArray>(psa);
 
             for (int col = 0; col < array.GetLength(1); ++col)
@@ -145,6 +146,21 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
         {
             short boolVal = v ? (short)VariantBoolNative.VARIANT_TRUE : (short)VariantBoolNative.VARIANT_FALSE;
             Marshal.StructureToPtr(boolVal, unmanaged.pboolVal, false);
+        }
+
+        public static void Free(VariantNative unmanaged)
+        {
+            switch ((VariantTypeNative)unmanaged.vt)
+            {
+                case VariantTypeNative.VT_BSTR:
+                    if (unmanaged.bstrVal != 0)
+                        Marshal.FreeBSTR(unmanaged.bstrVal);
+                    break;
+                case VT_VARIANT_ARRAY:
+                    if (unmanaged.parray != 0)
+                        SafeArray.SafeArrayDestroy(unmanaged.parray);
+                    break;
+            }
         }
     }
 }

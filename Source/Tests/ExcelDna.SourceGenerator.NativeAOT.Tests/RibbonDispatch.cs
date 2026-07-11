@@ -37,7 +37,8 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
         private static int GetDispId(ExcelRibbon ribbon, string name)
         {
             int[] ids = new int[1];
-            ribbon.GetIDsOfNames(Guid.Empty, new[] { name }, 1, 0, ids);
+            Guid riid = Guid.Empty;
+            ribbon.GetIDsOfNames(in riid, new[] { name }, 1, 0, ids);
             return ids[0];
         }
 
@@ -53,7 +54,8 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
             try
             {
                 Marshal.StructureToPtr(default(VariantNative), pVarResult, false);
-                ribbon.Invoke(dispId, Guid.Empty, 0, INVOKEKIND.INVOKE_FUNC, in dispParams, pVarResult, 0, 0);
+                Guid riid = Guid.Empty;
+                ribbon.Invoke(dispId, in riid, 0, (ushort)INVOKEKIND.INVOKE_FUNC, in dispParams, pVarResult, 0, 0);
                 return VariantMarshaller.ConvertToManaged(Marshal.PtrToStructure<VariantNative>(pVarResult)).Value;
             }
             finally
@@ -76,6 +78,20 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
             Assert.True(GetDispId(ribbon, "DoesNotExist") < 0);
             // LoadImage is the built-in callback dispatched past the end of the methods array.
             Assert.True(GetDispId(ribbon, "LoadImage") >= 0);
+        }
+
+        [Fact]
+        public void IDispatch_TypeInfoProbes_ReturnHResults()
+        {
+            ExcelRibbon ribbon = CreateRibbon();
+
+            int countHr = ribbon.GetTypeInfoCount(out uint count);
+            int typeInfoHr = ribbon.GetTypeInfo(0, 0, out nint typeInfo);
+
+            Assert.Equal(0, countHr);
+            Assert.Equal(0u, count);
+            Assert.NotEqual(0, typeInfoHr);
+            Assert.Equal(0, typeInfo);
         }
 
         [Fact]
@@ -108,7 +124,8 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
             ExcelRibbon ribbon = CreateRibbon();
             TestRibbon.LastPressed = false;
             DispParams dispParams = new DispParams { cArgs = 2, rgvarg = new[] { new Variant(null), new Variant(true) } };
-            ribbon.Invoke(GetDispId(ribbon, "OnToggle"), Guid.Empty, 0, INVOKEKIND.INVOKE_FUNC, in dispParams, 0, 0, 0);
+            Guid riid = Guid.Empty;
+            ribbon.Invoke(GetDispId(ribbon, "OnToggle"), in riid, 0, (ushort)INVOKEKIND.INVOKE_FUNC, in dispParams, 0, 0, 0);
             Assert.True(TestRibbon.LastPressed);
         }
 
@@ -118,7 +135,8 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
             ExcelRibbon ribbon = CreateRibbon();
             TestRibbon.LastText = null;
             DispParams dispParams = new DispParams { cArgs = 2, rgvarg = new[] { new Variant(null), new Variant("hello") } };
-            ribbon.Invoke(GetDispId(ribbon, "OnChange"), Guid.Empty, 0, INVOKEKIND.INVOKE_FUNC, in dispParams, 0, 0, 0);
+            Guid riid = Guid.Empty;
+            ribbon.Invoke(GetDispId(ribbon, "OnChange"), in riid, 0, (ushort)INVOKEKIND.INVOKE_FUNC, in dispParams, 0, 0, 0);
             Assert.Equal("hello", TestRibbon.LastText);
         }
     }

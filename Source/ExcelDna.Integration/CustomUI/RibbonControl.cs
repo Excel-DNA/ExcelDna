@@ -1,4 +1,6 @@
-﻿#if COM_GENERATED
+#if COM_GENERATED
+
+using System.Runtime.InteropServices;
 
 namespace ExcelDna.Integration.CustomUI
 {
@@ -21,6 +23,19 @@ namespace ExcelDna.Integration.CustomUI
             {
                 control.get_Tag(out string result);
                 return result;
+            }
+        }
+
+        public object Context
+        {
+            get
+            {
+                int hr = control.get_Context(out nint result);
+                Marshal.ThrowExceptionForHR(hr);
+                if (result == 0)
+                    return null;
+
+                return new ComInterop.Generator.DynamicComObject(new ComInterop.Generator.Interfaces.DispatchObject(result));
             }
         }
 

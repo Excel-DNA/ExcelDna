@@ -11,6 +11,11 @@ namespace ExcelDna.SourceGenerator.NativeAOT
             return type.ToDisplayString().Replace("[*,*]", "[,]");
         }
 
+        public static string GetFullTypeOfTypeName(ITypeSymbol type)
+        {
+            return type.ToDisplayString(FullTypeOfTypeNameFormat).Replace("[*,*]", "[,]");
+        }
+
         public static string GetFullGenericTypeName(INamedTypeSymbol type)
         {
             return type.ToDisplayString(FullGenericNameFormat);
@@ -342,5 +347,9 @@ namespace ExcelDna.SourceGenerator.NativeAOT
 
         private static SymbolDisplayFormat FullNameFormat = new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
         private static SymbolDisplayFormat FullGenericNameFormat = new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces, genericsOptions: SymbolDisplayGenericsOptions.None);
+        private static SymbolDisplayFormat FullTypeOfTypeNameFormat = new SymbolDisplayFormat(
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
     }
 }
