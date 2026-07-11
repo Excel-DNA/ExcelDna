@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net472;net8.0-windows</TargetFrameworks>
+    <UseWindowsForms>True</UseWindowsForms>
+    <UseWPF>True</UseWPF>
+
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ExcelAddInInclude>
+         WPFControl.dll;
+         ControlzEx.dll;
+         MahApps.Metro.dll;
+         Microsoft.Xaml.Behaviors.dll
+    </ExcelAddInInclude>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
+    <Reference Include="ExcelDna.Integration">
+      <HintPath>..\..\.exceldna.addin\tools\net6.0-windows7.0\ExcelDna.Integration.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <Reference Include="ExcelDna.Integration">
+      <HintPath>..\..\.exceldna.addin\tools\net462\ExcelDna.Integration.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WPFControl\WPFControl.csproj" />
+  </ItemGroup>
+
+  <Import Project="$(ProjectDir)..\..\.exceldna.addin\build\ExcelDna.AddIn.targets" />
+
+</Project>

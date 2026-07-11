@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.3.11312.210 d18.3
+VisualStudioVersion = 18.3.11312.210
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SingleDnaFileDefaultSuffix", "SingleDnaFileDefaultSuffix\SingleDnaFileDefaultSuffix.csproj", "{69CFC6E4-EAF6-416A-B462-B586DC3E051D}"
 EndProject
@@ -143,6 +143,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AOTPackNativeInclude", "AOTPackNativeInclude\AOTPackNativeInclude.csproj", "{A6791642-7A97-025B-2096-C71E92AA55C2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StartupHooks", "StartupHooks\StartupHooks.csproj", "{35B162DF-CC46-D126-0741-39D09EB547CE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WPFControl", "WPFControl\WPFControl.csproj", "{90D59EA8-A127-5441-891E-610F278807BE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDKWPF", "SDKWPF\SDKWPF.csproj", "{E34415DC-1220-D742-33A1-6F7BEB3A49CD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -430,6 +434,14 @@ Global
 		{35B162DF-CC46-D126-0741-39D09EB547CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{35B162DF-CC46-D126-0741-39D09EB547CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{35B162DF-CC46-D126-0741-39D09EB547CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90D59EA8-A127-5441-891E-610F278807BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90D59EA8-A127-5441-891E-610F278807BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90D59EA8-A127-5441-891E-610F278807BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90D59EA8-A127-5441-891E-610F278807BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E34415DC-1220-D742-33A1-6F7BEB3A49CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E34415DC-1220-D742-33A1-6F7BEB3A49CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E34415DC-1220-D742-33A1-6F7BEB3A49CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E34415DC-1220-D742-33A1-6F7BEB3A49CD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
