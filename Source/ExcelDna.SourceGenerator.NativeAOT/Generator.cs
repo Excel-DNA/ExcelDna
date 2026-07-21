@@ -43,7 +43,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT
 {
     public unsafe class AddInInitialize
     {
-        [UnmanagedCallersOnly(EntryPoint = "Initialize", CallConvs = new[] { typeof(CallConvCdecl) })]
+        [UnmanagedCallersOnly(EntryPoint = "Initialize", CallConvs = new[] { typeof(CallConvStdcall) })]
         [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode", Justification = "SourceGenerator preserves types and methods")]
         public static short Initialize(void* xlAddInExportInfoAddress, void* hModuleXll, void* pPathXLL, byte disableAssemblyContextUnload, void* pTempDirPath)
         {
