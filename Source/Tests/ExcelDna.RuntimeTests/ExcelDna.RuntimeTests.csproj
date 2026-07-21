@@ -9,6 +9,10 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(PlatformTarget)' == 'x64'">
+    <DefineConstants>$(DefineConstants);X64</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="ExcelDna.Interop" Version="*-*" />
     <PackageReference Include="ExcelDna.Testing" Version="*-*" />

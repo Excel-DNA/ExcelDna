@@ -8,15 +8,24 @@
     
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <PublishAOT>true</PublishAOT>
     <SelfContained>true</SelfContained>
-    <TargetName>ExcelDna.AddIn.RuntimeTestsAOT64</TargetName>
 
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <Platforms>AnyCPU;x86;x64</Platforms>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Platform)' == 'x64'">
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <TargetName>ExcelDna.AddIn.RuntimeTestsAOT64</TargetName>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Platform)' == 'x86' Or '$(Platform)' == 'Win32'">
+    <RuntimeIdentifier>win-x86</RuntimeIdentifier>
+    <TargetName>ExcelDna.AddIn.RuntimeTestsAOT</TargetName>
   </PropertyGroup>
 
   <Target Name="SetNoBuild">
@@ -32,7 +41,8 @@
   </ItemGroup>
 
   <Target Name="PostBuildAOT" AfterTargets="PublishAfterBuild">
-    <Exec Command="xcopy /y &quot;$(SolutionDir)ExcelDna.Host.NativeAOT\bin\$(ConfigurationName)\x64\ExcelDna.Host.NativeAOT.x64.xll&quot; &quot;$(TargetDir)publish\ExcelDna.AddIn.RuntimeTestsAOT64.xll*&quot;&#xD;&#xA;" />
+    <Exec Condition="'$(Platform)' == 'x64'" Command="xcopy /y &quot;$(SolutionDir)ExcelDna.Host.NativeAOT\bin\$(ConfigurationName)\x64\ExcelDna.Host.NativeAOT.x64.xll&quot; &quot;$(TargetDir)publish\ExcelDna.AddIn.RuntimeTestsAOT64.xll*&quot;" />
+    <Exec Condition="'$(Platform)' == 'x86' Or '$(Platform)' == 'Win32'" Command="xcopy /y &quot;$(SolutionDir)ExcelDna.Host.NativeAOT\bin\$(ConfigurationName)\x86\ExcelDna.Host.NativeAOT.x86.xll&quot; &quot;$(TargetDir)publish\ExcelDna.AddIn.RuntimeTestsAOT.xll*&quot;" />
   </Target>
 
 </Project>
