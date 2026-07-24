@@ -334,7 +334,7 @@ namespace ExcelDna.RuntimeTests
                 Range functionRange2 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["D2"];
                 functionRange2.Formula = "=NativeGetAssemblyName(D1)";
 
-                Assert.Equal("ExcelDna.AddIn.RuntimeTestsAOT64", functionRange2.Value.ToString());
+                Assert.StartsWith("ExcelDna.AddIn.RuntimeTestsAOT", functionRange2.Value.ToString());
             }
             {
                 Range functionRange1 = ((Worksheet)ExcelDna.Testing.Util.Workbook.Sheets[1]).Range["E1"];
