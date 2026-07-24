@@ -53,7 +53,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
             try
             {
                 Marshal.StructureToPtr(default(VariantNative), pVarResult, false);
-                ribbon.Invoke(dispId, Guid.Empty, 0, INVOKEKIND.INVOKE_FUNC, in dispParams, pVarResult, 0, 0);
+                ribbon.Invoke(dispId, Guid.Empty, 0, (ushort)INVOKEKIND.INVOKE_FUNC, in dispParams, pVarResult, 0, 0);
                 return VariantMarshaller.ConvertToManaged(Marshal.PtrToStructure<VariantNative>(pVarResult)).Value;
             }
             finally
@@ -108,7 +108,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
             ExcelRibbon ribbon = CreateRibbon();
             TestRibbon.LastPressed = false;
             DispParams dispParams = new DispParams { cArgs = 2, rgvarg = new[] { new Variant(null), new Variant(true) } };
-            ribbon.Invoke(GetDispId(ribbon, "OnToggle"), Guid.Empty, 0, INVOKEKIND.INVOKE_FUNC, in dispParams, 0, 0, 0);
+            ribbon.Invoke(GetDispId(ribbon, "OnToggle"), Guid.Empty, 0, (ushort)INVOKEKIND.INVOKE_FUNC, in dispParams, 0, 0, 0);
             Assert.True(TestRibbon.LastPressed);
         }
 
@@ -118,7 +118,7 @@ namespace ExcelDna.SourceGenerator.NativeAOT.Tests
             ExcelRibbon ribbon = CreateRibbon();
             TestRibbon.LastText = null;
             DispParams dispParams = new DispParams { cArgs = 2, rgvarg = new[] { new Variant(null), new Variant("hello") } };
-            ribbon.Invoke(GetDispId(ribbon, "OnChange"), Guid.Empty, 0, INVOKEKIND.INVOKE_FUNC, in dispParams, 0, 0, 0);
+            ribbon.Invoke(GetDispId(ribbon, "OnChange"), Guid.Empty, 0, (ushort)INVOKEKIND.INVOKE_FUNC, in dispParams, 0, 0, 0);
             Assert.Equal("hello", TestRibbon.LastText);
         }
     }

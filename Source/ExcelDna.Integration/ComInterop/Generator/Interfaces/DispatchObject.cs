@@ -128,7 +128,7 @@ namespace ExcelDna.Integration.ComInterop.Generator.Interfaces
                 dispIds[0],
                 emptyGuid,
                 LOCALE_USER_DEFAULT,
-                kind,
+                (ushort)kind,
                 dispParams,
                 variantResult.Ptr,
                 0,

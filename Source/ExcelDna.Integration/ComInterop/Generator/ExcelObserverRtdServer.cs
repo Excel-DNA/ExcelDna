@@ -37,14 +37,14 @@ namespace ExcelDna.Integration.ComInterop.Generator
             throw new NotImplementedException();
         }
 
-        public int GetIDsOfNames(Guid riid, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr, SizeParamIndex = 2)] string[] rgszNames, uint cNames, uint lcid, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2), Out] int[] rgDispId)
+        public int GetIDsOfNames(in Guid riid, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr, SizeParamIndex = 2)] string[] rgszNames, uint cNames, uint lcid, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2), Out] int[] rgDispId)
         {
             dispatcher.GetIDsOfNames(rgszNames, rgDispId);
 
             return 0;
         }
 
-        public int Invoke(int dispIdMember, Guid riid, uint lcid, INVOKEKIND wFlags, [MarshalUsing(typeof(DispParamsMarshaller))] in DispParams pDispParams, nint pVarResult, nint pExcepInfo, nint puArgErr)
+        public int Invoke(int dispIdMember, in Guid riid, uint lcid, ushort wFlags, [MarshalUsing(typeof(DispParamsMarshaller))] in DispParams pDispParams, nint pVarResult, nint pExcepInfo, nint puArgErr)
         {
             dispatcher.Invoke(dispIdMember, pDispParams, pVarResult);
 

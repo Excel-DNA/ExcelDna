@@ -69,12 +69,12 @@ namespace ExcelDna.Integration.ComInterop.Generator
             throw new NotImplementedException();
         }
 
-        int IDispatch.GetIDsOfNames(Guid riid, string[] rgszNames, uint cNames, uint lcid, int[] rgDispId)
+        int IDispatch.GetIDsOfNames(in Guid riid, string[] rgszNames, uint cNames, uint lcid, int[] rgDispId)
         {
             throw new NotImplementedException();
         }
 
-        int IDispatch.Invoke(int dispIdMember, Guid riid, uint lcid, INVOKEKIND wFlags, in DispParams pDispParams, nint pVarResult, nint pExcepInfo, nint puArgErr)
+        int IDispatch.Invoke(int dispIdMember, in Guid riid, uint lcid, ushort wFlags, in DispParams pDispParams, nint pVarResult, nint pExcepInfo, nint puArgErr)
         {
             throw new NotImplementedException();
         }
