@@ -1,0 +1,3 @@
+<DnaLibrary Name="ExcelDna.AddIn.RegistrationSampleVB Add-In">
+  <ExternalLibrary Path="ExcelDna.AddIn.RegistrationSampleVB.dll" ExplicitRegistration="true" Pack="true" />
+</DnaLibrary>
