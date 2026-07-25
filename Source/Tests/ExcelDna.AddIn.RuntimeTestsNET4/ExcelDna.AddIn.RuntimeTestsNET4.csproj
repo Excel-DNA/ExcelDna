@@ -22,8 +22,8 @@
   </ItemGroup>
   
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy /y &quot;$(SolutionDir)ExcelDna\x64\$(ConfigurationName)\ExcelDna64.xll&quot; &quot;$(TargetDir)ExcelDna.AddIn.RuntimeTestsNET4-AddIn64.xll*&quot;" />
-    <Exec Command="xcopy /y &quot;$(SolutionDir)ExcelDna\$(ConfigurationName)\ExcelDna.xll&quot; &quot;$(TargetDir)ExcelDna.AddIn.RuntimeTestsNET4-AddIn.xll*&quot;" />
+    <Exec Condition="Exists('$(SolutionDir)ExcelDna\x64\$(ConfigurationName)\ExcelDna64.xll')" Command="xcopy /y &quot;$(SolutionDir)ExcelDna\x64\$(ConfigurationName)\ExcelDna64.xll&quot; &quot;$(TargetDir)ExcelDna.AddIn.RuntimeTestsNET4-AddIn64.xll*&quot;" />
+    <Exec Condition="Exists('$(SolutionDir)ExcelDna\$(ConfigurationName)\ExcelDna.xll')" Command="xcopy /y &quot;$(SolutionDir)ExcelDna\$(ConfigurationName)\ExcelDna.xll&quot; &quot;$(TargetDir)ExcelDna.AddIn.RuntimeTestsNET4-AddIn.xll*&quot;" />
   </Target>
 
 </Project>
