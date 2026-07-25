@@ -16,7 +16,7 @@
 
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
 
-    <Platforms>AnyCPU;x86;x64</Platforms>
+    <Platforms>x86;x64</Platforms>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Platform)' == 'x64'">
