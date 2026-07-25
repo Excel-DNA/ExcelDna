@@ -26,7 +26,13 @@ namespace ExcelDna.RuntimeTests
         [ExcelFact(Workbook = "", AddIn = AddInPath.RuntimeTestsAOT)]
         public void NativeCommand()
         {
-            CommandBarPopup? menu = FindPopupMenu("ExcelDna.AddIn.RuntimeTestsAOT64");
+            CommandBarPopup? menu = FindPopupMenu(
+#if X64
+                "ExcelDna.AddIn.RuntimeTestsAOT64"
+#else
+                "ExcelDna.AddIn.RuntimeTestsAOT"
+#endif
+                );
             Assert.NotNull(menu);
 
             CommandBarButton? button = FindButton(menu, "NativeCommandHello");
