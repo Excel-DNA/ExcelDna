@@ -10,6 +10,9 @@ namespace ExcelDna.Integration.ComInterop.Generator
     [GeneratedComClass]
     internal partial class RTDUpdateEvent : Rtd.IRTDUpdateEvent, IRTDUpdateEvent
     {
+        private const int S_OK = 0;
+        private const int E_NOTIMPL = unchecked((int)0x80004001);
+
         private IRTDUpdateEvent impl;
 
         public RTDUpdateEvent(IRTDUpdateEvent impl)
@@ -61,22 +64,24 @@ namespace ExcelDna.Integration.ComInterop.Generator
 
         int IDispatch.GetTypeInfoCount(out uint pctinfo)
         {
-            throw new NotImplementedException();
+            pctinfo = 0;
+            return S_OK;
         }
 
         int IDispatch.GetTypeInfo(uint iTInfo, uint lcid, out nint ppTInfo)
         {
-            throw new NotImplementedException();
+            ppTInfo = 0;
+            return E_NOTIMPL;
         }
 
-        int IDispatch.GetIDsOfNames(Guid riid, string[] rgszNames, uint cNames, uint lcid, int[] rgDispId)
+        int IDispatch.GetIDsOfNames(in Guid riid, string[] rgszNames, uint cNames, uint lcid, int[] rgDispId)
         {
-            throw new NotImplementedException();
+            return E_NOTIMPL;
         }
 
-        int IDispatch.Invoke(int dispIdMember, Guid riid, uint lcid, INVOKEKIND wFlags, in DispParams pDispParams, nint pVarResult, nint pExcepInfo, nint puArgErr)
+        int IDispatch.Invoke(int dispIdMember, in Guid riid, uint lcid, ushort wFlags, in DispParams pDispParams, nint pVarResult, nint pExcepInfo, nint puArgErr)
         {
-            throw new NotImplementedException();
+            return E_NOTIMPL;
         }
     }
 }

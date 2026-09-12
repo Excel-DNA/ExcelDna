@@ -15,6 +15,10 @@ namespace ExcelDna.Integration.ComInterop.Generator
     [GeneratedComClass]
     internal partial class ExcelRibbon : ExcelComAddIn, Interfaces.IDTExtensibility2, Interfaces.IRibbonExtensibility
     {
+        private const int S_OK = 0;
+        private const int E_NOTIMPL = unchecked((int)0x80004001);
+        private const int DISP_E_UNKNOWNNAME = unchecked((int)0x80020006);
+
         private MethodInfo[] methods;
         private CustomUI.IExcelRibbon customRibbon;
 
@@ -26,23 +30,29 @@ namespace ExcelDna.Integration.ComInterop.Generator
 
         public int GetTypeInfoCount(out uint pctinfo)
         {
-            throw new NotImplementedException();
+            pctinfo = 0;
+            return S_OK;
         }
 
         public int GetTypeInfo(uint iTInfo, uint lcid, out nint ppTInfo)
         {
-            throw new NotImplementedException();
+            ppTInfo = 0;
+            return E_NOTIMPL;
         }
 
-        public int GetIDsOfNames(Guid riid, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr, SizeParamIndex = 2)] string[] rgszNames, uint cNames, uint lcid, [In][Out][MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] int[] rgDispId)
+        public int GetIDsOfNames(in Guid riid, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr, SizeParamIndex = 2)] string[] rgszNames, uint cNames, uint lcid, [In][Out][MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] int[] rgDispId)
         {
+            bool foundAll = true;
             for (int i = 0; i < cNames; ++i)
+            {
                 rgDispId[i] = (rgszNames[i] == "LoadImage") ? methods.Length : Array.FindIndex(methods, m => m?.Name == rgszNames[i]);
+                foundAll &= rgDispId[i] >= 0;
+            }
 
-            return 0;
+            return foundAll ? S_OK : DISP_E_UNKNOWNNAME;
         }
 
-        public int Invoke(int dispIdMember, Guid riid, uint lcid, INVOKEKIND wFlags, [MarshalUsing(typeof(Generator.Interfaces.DispParamsMarshaller))] in Generator.Interfaces.DispParams pDispParams, nint pVarResult, nint pExcepInfo, nint puArgErr)
+        public int Invoke(int dispIdMember, in Guid riid, uint lcid, ushort wFlags, [MarshalUsing(typeof(Generator.Interfaces.DispParamsMarshaller))] in Generator.Interfaces.DispParams pDispParams, nint pVarResult, nint pExcepInfo, nint puArgErr)
         {
             try
             {
@@ -139,8 +149,17 @@ namespace ExcelDna.Integration.ComInterop.Generator
 
         public int GetCustomUI([MarshalAs(UnmanagedType.BStr)] string RibbonID, [MarshalAs(UnmanagedType.BStr)] out string result)
         {
-            result = customRibbon.GetCustomUI(RibbonID);
-            return 0;
+            try
+            {
+                result = customRibbon.GetCustomUI(RibbonID);
+                return S_OK;
+            }
+            catch (Exception ex)
+            {
+                ExcelDna.Logging.Logger.ComAddIn.Error(ex, "Ribbon GetCustomUI failed");
+                result = string.Empty;
+                return E_NOTIMPL;
+            }
         }
         #endregion
 

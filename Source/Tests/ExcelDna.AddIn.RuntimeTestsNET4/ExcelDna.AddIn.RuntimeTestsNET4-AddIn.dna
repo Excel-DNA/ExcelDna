@@ -1,0 +1,3 @@
+﻿<DnaLibrary Name="ExcelDna.AddIn.RuntimeTests .NET 4 add-in" RuntimeVersion="v4.0">
+  <ExternalLibrary Path="ExcelDna.AddIn.RuntimeTestsNET4.dll" Pack="true" />
+</DnaLibrary>

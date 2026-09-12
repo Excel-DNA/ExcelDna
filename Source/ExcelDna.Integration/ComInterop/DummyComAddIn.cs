@@ -14,24 +14,29 @@ namespace ExcelDna.Integration.ComInterop
     [GeneratedComClass]
     internal partial class DummyComAddIn : Generator.Interfaces.IDTExtensibility2
     {
+        private const int S_OK = 0;
+        private const int E_NOTIMPL = unchecked((int)0x80004001);
+
         public int GetTypeInfoCount(out uint pctinfo)
         {
-            throw new NotImplementedException();
+            pctinfo = 0;
+            return S_OK;
         }
 
         public int GetTypeInfo(uint iTInfo, uint lcid, out nint ppTInfo)
         {
-            throw new NotImplementedException();
+            ppTInfo = 0;
+            return E_NOTIMPL;
         }
 
-        public int GetIDsOfNames(Guid riid, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr, SizeParamIndex = 2)] string[] rgszNames, uint cNames, uint lcid, [In][Out][MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] int[] rgDispId)
+        public int GetIDsOfNames(in Guid riid, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr, SizeParamIndex = 2)] string[] rgszNames, uint cNames, uint lcid, [In][Out][MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] int[] rgDispId)
         {
-            throw new NotImplementedException();
+            return E_NOTIMPL;
         }
 
-        public int Invoke(int dispIdMember, Guid riid, uint lcid, INVOKEKIND wFlags, [MarshalUsing(typeof(Generator.Interfaces.DispParamsMarshaller))] in Generator.Interfaces.DispParams pDispParams, nint pVarResult, nint pExcepInfo, nint puArgErr)
+        public int Invoke(int dispIdMember, in Guid riid, uint lcid, ushort wFlags, [MarshalUsing(typeof(Generator.Interfaces.DispParamsMarshaller))] in Generator.Interfaces.DispParams pDispParams, nint pVarResult, nint pExcepInfo, nint puArgErr)
         {
-            throw new NotImplementedException();
+            return E_NOTIMPL;
         }
 
         #region IDTExtensibility2 interface

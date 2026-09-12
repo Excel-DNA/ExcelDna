@@ -95,6 +95,7 @@ namespace ExcelDna.ComInterop
                 ComWrappers cw = new System.Runtime.InteropServices.Marshalling.StrategyBasedComWrappers();
                 nint ptr = cw.GetOrCreateComInterfaceForObject(factory, CreateComInterfaceFlags.None);
                 HRESULT hrQI = Marshal.QueryInterface(ptr, in iid, out ppunk);
+                Marshal.Release(ptr);
 #else
                 IntPtr punkFactory = Marshal.GetIUnknownForObject(factory);
                 HRESULT hrQI = Marshal.QueryInterface(punkFactory, ref iid, out ppunk);

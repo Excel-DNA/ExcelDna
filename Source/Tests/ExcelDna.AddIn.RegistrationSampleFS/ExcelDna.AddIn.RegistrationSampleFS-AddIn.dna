@@ -1,0 +1,3 @@
+<DnaLibrary Name="ExcelDna.AddIn.RegistrationSampleFS Add-In">
+  <ExternalLibrary Path="ExcelDna.AddIn.RegistrationSampleFS.dll" ExplicitRegistration="true" Pack="true" />
+</DnaLibrary>
