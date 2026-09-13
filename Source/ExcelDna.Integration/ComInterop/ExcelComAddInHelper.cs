@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using ExcelDna.ComInterop.ComRegistration;
@@ -159,6 +161,13 @@ namespace ExcelDna.Integration
                 {
                     Logger.ComAddIn.Info("Load Ribbon/COM Add-In exception with /K in CommandLine \r\n{0}", ex.ToString());
                 }
+                // WPS Office (ET.exe) does not fully support the COM add-in loading mechanism used for
+                // ribbons and custom task panes. We downgrade the error to Info to avoid a misleading
+                // error dialog for users running their add-in under WPS.
+                else if (IsRunningUnderWps())
+                {
+                    Logger.ComAddIn.Info("Load Ribbon/COM Add-In exception under WPS Office \r\n{0}", ex.ToString());
+                }
                 else
                 {
                     Logger.ComAddIn.Error(ex, "The Ribbon/COM add-in helper required by add-in {0} could not be registered.\r\nThis may be due to the helper add-in being disabled by Excel.\r\nTo repair, open Disabled items in the Options->Add-Ins page and re-enable target add-in, then restart Excel.\r\n\r\nError details: {1}", DnaLibrary.CurrentLibrary.Name, ex.ToString());
@@ -173,6 +182,21 @@ namespace ExcelDna.Integration
             {
                 typeAdapter.SetProperty("Connect", false, comAddIn.ComObject);
                 Logger.ComAddIn.Info("Ribbon/COM Add-In Unloaded.");
+            }
+        }
+
+        // WPS Sheets (KingSoft Office) uses ET.exe as the host process and does not fully support
+        // the COM add-in loading mechanism that Excel-DNA relies on for ribbons and CTPs.
+        private static bool IsRunningUnderWps()
+        {
+            try
+            {
+                string fileName = Process.GetCurrentProcess().MainModule?.FileName;
+                return string.Equals(Path.GetFileName(fileName), "ET.EXE", StringComparison.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                return false;
             }
         }
 
